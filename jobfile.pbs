@@ -1,0 +1,63 @@
+# =====================================================================================
+#
+#       Filename:  jobfile.pbs
+#
+#    Description:  PBS job file for Hybrid MPI/OpenMP parallel processing on Cluster
+#
+#        Version:  1.0
+#        Created:  06/04/2020 13:22:34 AM
+#       Revision:  none
+#       Compiler:  gcc
+#
+#         Author:  Siavash Ameli
+#   Organization:  University Of California, Berkeley
+#
+# =====================================================================================
+
+#! /bin/bash
+
+###PBS -k o
+#PBS -N (^_*)
+#PBS -o localhost:$PBS_O_WORKDIR/Log.log
+#PBS -e localhost:$PBS_O_WORKDIR/Err.err
+###PBS -j oe
+#PBS -l cput=2880:00:00
+#PBS -l walltime=144:00:00
+#PBS -l nodes=1:ppn=20
+#PBS -l mem=63GB
+#PBS -q default
+#PBS -m n
+#PBS -M sameli@berkeley.edu
+
+cd $PBS_O_WORKDIR
+###NPROCS=`wc -l < $PBS_NODEFILE`
+###export OMP_NUM_THREADS=4
+
+pwd
+ls -all
+
+PROJECT_DIR=/home/sia/code/Max-Likelihood-Noise-Estimation
+EXECUTABLE=$PROJECT_DIR/FindOptimalCovarianceParameters.py
+MPI_RUN=/opt/intel/impi/4.1.0.024/intel64/bin/mpirun
+PYTHON_DIR=/home/sia/programs/miniconda3
+export PYTHONPATH=$PYTHON_DIR/lib/python3.7/site-packages
+# $MPI_RUN -ppn 1 -np 1 $PYTHON_DIR/bin/python ${EXECUTABLE} > StreamOutput.txt
+$PYTHON_DIR/bin/python ${EXECUTABLE} > StreamOutput.txt
+
+### Example 1:
+### Using 3 nodes, 1 master MPI process per node, each master MPI process use 20 slave nodes
+### So 60 total process are used.
+### NOTE: -ppn should be declared before other options
+###    PBS -l nodes=3:ppn=20
+###    mpiexec -ppn 1 -np 3 int config2D.in
+
+### Example 2:
+### Each MPI process deploys 4 openmp threads
+###    mpiexec -ppn 1 -n 3 -env OMP_NUM_THREADS 4 ./exe
+
+### Notes:
+### mpiexec needs the mpd deamon to run on the background.
+### mpirun does not need the mpd deamon to run on the background.
+### So it is better to use mpirun. However, the fullpath of mpirun
+### in the cluster should be used. Find the full path with
+###      $ which mpirun

@@ -1,0 +1,9 @@
+name: gaussian_proc_env
+channels:
+    - s-ameli
+    - conda-forge
+dependencies:
+    - python
+    - pip
+    - pip:
+        - gaussian_proc
