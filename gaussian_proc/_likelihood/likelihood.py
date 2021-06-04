@@ -51,25 +51,33 @@ class Likelihood(object):
     # likelihood
     # ==========
 
-    def likelihood(self, z, hyperparameters):
+    def likelihood(self, z, hyperparam):
         """
         """
 
         sign_switch = False
         return DirectLikelihood.log_likelihood(z, self.X, self.K_mixed,
-                                               sign_switch, hyperparameters)
+                                               sign_switch, hyperparam)
 
     # =======================
     # maximize log likelihood
     # =======================
 
-    def maximize_log_likelihood(self, z):
+    def maximize_log_likelihood(self, z, plot=False):
         """
         """
 
         if self.likelihood_method == 'direct':
-            return DirectLikelihood.maximize_log_likelihood(z, self.X,
-                                                            self.K_mixed)
+            results = DirectLikelihood.maximize_log_likelihood(z, self.X,
+                                                               self.K_mixed)
+
+            # Plot log likelihood
+            if plot:
+                optimal_sigma = results['sigma']
+                optimal_sigma0 = results['sigma0']
+                optimal_hyperparam = [optimal_sigma, optimal_sigma0]
+                DirectLikelihood.plot_log_likelihood(z, self.X, self.K_mixed,
+                                                     optimal_hyperparam)
 
             # return ProfileLikelihood.maximize_log_likelihood_with_sigma_eta(
             #         z, self.X, self.K_mixed)
@@ -80,14 +88,14 @@ class Likelihood(object):
             # exactly the end points of eta_i, not less or more.
             interval_eta = [1e-4, 1e+3]
 
-            # Find hyperparameters
+            # Find hyperparam
             results = ProfileLikelihood.find_log_likelihood_der1_zeros(
                     z, self.X, self.K_mixed, interval_eta)
-            optimal_eta = results['eta']
 
-            # Plot
-            ProfileLikelihood.plot_log_likelihood_der1_eta(z, self.X, self.K,
-                                                           self.K_mixed,
-                                                           optimal_eta)
+            # Plot first derivative of log likelihood
+            if plot:
+                optimal_eta = results['eta']
+                ProfileLikelihood.plot_log_likelihood_der1_eta(
+                        z, self.X, self.K, self.K_mixed, optimal_eta)
 
         return results

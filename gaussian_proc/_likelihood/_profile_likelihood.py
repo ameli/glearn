@@ -35,7 +35,7 @@ class ProfileLikelihood(object):
     # Log Likelihood
     # ==============
 
-    def log_likelihood(z, X, K_mixed, sign_switch, hyperparameters):
+    def log_likelihood(z, X, K_mixed, sign_switch, hyperparam):
         """
         Log likelihood function
 
@@ -47,16 +47,16 @@ class ProfileLikelihood(object):
             Sinv is the inverse of S
             M1 = Sinv = Sinv*X*(X.T*Sinv*X)^(-1)*X.T*Sinv
 
-        hyperparameters = [sigma, eta]
+        hyperparam = [sigma, eta]
 
         sign_switch chnages the sign of the output from lp to -lp. When True,
         this is used to minimizing (instad of maximizing) the negative of
         log-likelihood function.
         """
 
-        # hyperparameters
-        sigma = hyperparameters[0]
-        eta = hyperparameters[1]
+        # hyperparam
+        sigma = hyperparam[0]
+        eta = hyperparam[1]
 
         logdet_Kn = K_mixed.logdet(eta)
 
@@ -196,18 +196,15 @@ class ProfileLikelihood(object):
     # ======================================
 
     @staticmethod
-    def maximize_log_likelihood_with_sigma_eta(z, X, K_mixed):
+    def maximize_log_likelihood_with_sigma_eta(
+            z, X, K_mixed,
+            tol=1e-6, hyperparam_guess=[0.1, 0.1], method='Nelder-Mead'):
         """
         Maximizing the log-likelihood function over the space of
-        hyperparameters sigma and eta.
+        hyperparam sigma and eta.
         """
 
         print('Maximize log likelihood with sigma eta ...')
-
-        # Initial points # SETTING
-        guess_sigma = 0.1
-        guess_eta = 0.1
-        guess_hyperparameters = [guess_sigma, guess_eta]
 
         # Partial function with minus to make maximization to a minimization
         sign_switch = True
@@ -218,8 +215,7 @@ class ProfileLikelihood(object):
         # method = 'BFGS'
         # method = 'CG'
         method = 'Nelder-Mead'
-        tol = 1e-6  # SETTING
-        res = minimize(log_likelihood_partial_function, guess_hyperparameters,
+        res = minimize(log_likelihood_partial_function, hyperparam_guess,
                        method=method, tol=tol)
 
         print('Iter: %d, Eval: %d, success: %s'
@@ -245,7 +241,9 @@ class ProfileLikelihood(object):
     # find log likelihood der1 zeros
     # ==============================
 
-    def find_log_likelihood_der1_zeros(z, X, K_mixed, interval_eta):
+    def find_log_likelihood_der1_zeros(z, X, K_mixed, interval_eta, tol=1e-6,
+                                       max_iterations=100,
+                                       num_bracket_trials=3):
         """
         root finding of the derivative of lp.
 
@@ -311,17 +309,14 @@ class ProfileLikelihood(object):
 
         # Initial points
         bracket = [log_eta_start, log_eta_end]
-        num_trials = 3    # SETTING
         bracket_found, bracket, bracket_values = \
             find_interval_with_sign_change(
                     log_likelihood_der1_eta_partial_function, bracket,
-                    num_trials, args=(), )
+                    num_bracket_trials, args=(), )
 
         if bracket_found:
             # There is a sign change in the interval of eta. Find root of lp
             # derivative
-            tol = 1e-6     # SETTING
-            max_iterations = 100  # SETTING
 
             # Find roots using Brent method
             # method = 'brentq'
@@ -426,7 +421,7 @@ class ProfileLikelihood(object):
     @staticmethod
     def plot_log_likelihood(z, X, K_mixed):
         """
-        Plots log likelihood versus sigma, eta hyperparameters
+        Plots log likelihood versus sigma, eta hyperparam
         """
 
         eta = numpy.logspace(-3, 3, 20)

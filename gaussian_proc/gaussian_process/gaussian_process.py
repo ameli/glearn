@@ -49,12 +49,12 @@ class GaussianProcess(object):
     # train
     # =====
 
-    def train(self, z):
+    def train(self, z, plot=False):
         """
         Finds the hyperparameters of the gaussian process model.
         """
 
-        results = self.likelihood.maximize_log_likelihood(z)
+        results = self.likelihood.maximize_log_likelihood(z, plot=plot)
 
         print(results)
 

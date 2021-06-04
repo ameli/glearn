@@ -14,6 +14,7 @@
 # =======
 
 import sys
+import time
 from _utilities.data_utilities import generate_points, generate_data, \
         generate_basis_functions
 from gaussian_proc import generate_correlation
@@ -49,8 +50,15 @@ def main():
                                  trigonometric=False)
 
     # Gaussian process
-    gaussian_process = GaussianProcess(X, K)
-    gaussian_process.train(z)
+    likelihood_method = 'direct'
+    # likelihood_method = 'profiled'
+    gaussian_process = GaussianProcess(
+            X, K, likelihood_method=likelihood_method)
+
+    t0 = time.time()
+    gaussian_process.train(z, plot=False)
+    t1 = time.time()
+    print('Elapsed time: %0.2f' % (t1 - t0))
 
 
 # ===========

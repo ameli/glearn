@@ -18,7 +18,7 @@ import numpy
 # find interval with sign change
 # ==============================
 
-def find_interval_with_sign_change(f, bracket, num_trials, args=(), ):
+def find_interval_with_sign_change(f, bracket, num_bracket_trials, args=(), ):
     """
     Finds an interval ``[x0, x1]`` in which ``f(x0)`` and ``f(x1)`` have
     opposite signs. The interval is used for some root finding algorithms, such
@@ -26,8 +26,8 @@ def find_interval_with_sign_change(f, bracket, num_trials, args=(), ):
     *bracketing* the function.
 
     If the initial interval is not a sitable *bracket*, then it iterates
-    *num_trials* times. If within the iterations the bracket is yet not found,
-    it exits with false status.
+    *num_bracket_trials* times. If within the iterations the bracket is yet not
+    found, it exits with false status.
     """
 
     # Initialization
@@ -43,7 +43,7 @@ def find_interval_with_sign_change(f, bracket, num_trials, args=(), ):
 
     # Trials
     iterations = 0
-    while (not bracket_found) and (iterations < num_trials):
+    while (not bracket_found) and (iterations < num_bracket_trials):
         iterations += 1
 
         if numpy.sign(f0) != numpy.sign(f1):

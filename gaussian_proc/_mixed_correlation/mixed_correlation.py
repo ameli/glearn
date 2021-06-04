@@ -188,7 +188,7 @@ class MixedCorrelation(object):
                                       **self.imate_options)
 
         elif self.imate_method == 'cholesky' or \
-             self.imate_method == 'hutchinson':
+                self.imate_method == 'hutchinson':
 
             # Note: hutchinson method does not exists for logdet. So, we use
             # the cholesky method instead.
@@ -237,3 +237,30 @@ class MixedCorrelation(object):
         X = linear_solver(Kn, Y, assume_matrix='sym_pos')
 
         return X
+
+    # ===
+    # dot
+    # ===
+
+    def dot(self, eta, x):
+        """
+        Matrix-vector multiplication:
+
+        .. math::
+
+            \\boldsymbol{y} = (\\mathbf{K} + \\eta \\mathbf{I}) \\boldsymbol{x}
+
+        where:
+
+        * :math:`\\boldsymbol{x}` is the given vector,
+        * :math:`\\boldsymbol{y}` is the product vector,
+        * :math:`\\mathbf{I}` is the identity matrix,
+        * :math:`\\eta` is a real number.
+        """
+
+        if eta == 0:
+            return self.K.dot(x)
+
+        else:
+            Kn = self.K + eta*self.I
+            return Kn.dot(x)
