@@ -39,6 +39,7 @@ class Likelihood(object):
         # Mixed correlation object
         interpolate = False
         imate_method = 'eigenvalue'
+        # imate_method = 'hutchinson'
         imate_options = {}
         # imate_options = {
         #     'min_num_samples': 100

@@ -40,7 +40,7 @@ class MixedCorrelation(object):
         self.interpolate = interpolate
         self.interpolant_points = interpolant_points
 
-        # Create affine matrix function object
+        # Create affine matrix function (amf) object
         self.K_amf = imate.AffineMatrixFunction(K)
 
         # Options for imate
@@ -61,6 +61,7 @@ class MixedCorrelation(object):
             # Incldue extra options
             traceinv_options.update(imate_options)
 
+            # Create nterpolation object (only for traceinv)
             self.interpolate_traceinv = imate.InterpolateTraceInv(
                     self.K, traceinv_options=traceinv_options)
 
@@ -87,6 +88,65 @@ class MixedCorrelation(object):
         """
 
         return self.K.shape[0]
+
+    # =====
+    # trace
+    # =====
+
+    def trace(self, eta, exponent=1):
+        """
+        Computes
+
+        .. math::
+
+            \\mathrm{trace} (\\mathbf{K} + \\eta \\mathbf{I}),
+
+        where :math:`\\mathbf{I}` is the identity matrix and :math:`\\eta` is a
+        real number.
+        """
+
+        if exponent == 0:
+            trace, _ = imate.trace(self.K, exponent=exponent)
+
+        elif exponent == 1:
+            trace, _ = imate.trace(self.K, exponent=exponent)
+
+            if eta != 0:
+                trace += eta * self.K.shape[0]
+
+        elif exponent == 2:
+
+            if eta == 0:
+                trace, _ = imate.trace(self.K, exponent=exponent)
+            else:
+                trace_K, _ = imate.trace(self.K, exponent=1)
+                trace_K2, _ = imate.trace(self.K, exponent=2)
+
+                trace = trace_K2 + 2.0*eta * trace_K + eta**2 * self.K.shape[0]
+
+        elif self.imate_method == 'eigenvalue':
+
+            # Eigenvalues of mixed correlation K + eta*I
+            Kn_eigenvalues = self.K_eigenvalues + eta
+
+            # Using eigenvalues only. Here, self.K will not be used.
+            trace, _ = imate.trace(self.K, method=self.imate_method,
+                                   eigenvalues=Kn_eigenvalues,
+                                   exponent=exponent, symmetric=True,
+                                   **self.imate_options)
+
+        elif self.imate_method == 'slq':
+
+            # Passing the affine matrix function
+            trace, _ = imate.trace(self.K_afm, parameters=eta,
+                                   exponent=exponent, symmetric=True,
+                                   **self.imate_options)
+
+        else:
+            raise ValueError('Existing methods are "exact", "eigenvalue", ' +
+                             'and "slq".')
+
+        return trace
 
     # ========
     # traceinv
@@ -208,8 +268,8 @@ class MixedCorrelation(object):
                                       **self.imate_options)
 
         else:
-            raise ValueError('Existing methods are "eigenvalue", "cholesky,"' +
-                             'and "slq".')
+            raise ValueError('Existing methods are "eigenvalue", "cholesky",' +
+                             ' and "slq".')
 
         return logdet_
 
@@ -242,25 +302,34 @@ class MixedCorrelation(object):
     # dot
     # ===
 
-    def dot(self, eta, x):
+    def dot(self, eta, x, exponent=1):
         """
         Matrix-vector multiplication:
 
         .. math::
 
-            \\boldsymbol{y} = (\\mathbf{K} + \\eta \\mathbf{I}) \\boldsymbol{x}
+            \\boldsymbol{y} = (\\mathbf{K} + \\eta \\mathbf{I})^{q} 
+            \\boldsymbol{x}
 
         where:
 
         * :math:`\\boldsymbol{x}` is the given vector,
         * :math:`\\boldsymbol{y}` is the product vector,
         * :math:`\\mathbf{I}` is the identity matrix,
-        * :math:`\\eta` is a real number.
+        * :math:`\\eta` is a real number,
+        * :math:`p`is a non-negative integer.
         """
 
-        if eta == 0:
-            return self.K.dot(x)
+        if not isinstance(exponent, int):
+            raise ValueError('"exponent" should be an integer.')
+        elif exponent < 0:
+            raise ValueError('"exponent" should be a non-negative integer.')
 
-        else:
-            Kn = self.K + eta*self.I
-            return Kn.dot(x)
+        y = numpy.zeros_like(x)
+
+        for i in range(exponent):
+            y += self.K.dot(x)
+            if eta != 0:
+                y += eta * x
+
+        return y

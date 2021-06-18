@@ -42,37 +42,38 @@ class DirectLikelihood(object):
         sigma = hyperparam[0]
         sigma0 = hyperparam[1]
 
-        # S is the (sigma**2) * K + (sigma0**2) * I, but we don't construct it
-        # Also, Kn is K + eta I, where eta = (sigma0 / sigma)**2
+        n, m = X.shape
+
+        # S is the (sigma**2) * K + (sigma0**2) * I, but we don't construct it.
+        # Instead, we consruct Kn = K + eta I, where eta = (sigma0 / sigma)**2
         tol = 1e-8
         if numpy.abs(sigma) < tol:
 
             # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
-            logdet_S = K_mixed.get_matrix_size() * numpy.log(sigma0**2)
+            logdet_S = n * numpy.log(sigma0**2)
 
-            Y = X / sigma**2
-            w = z / sigma**2
+            Y = X / sigma0**2
 
         else:
             eta = (sigma0 / sigma)**2
             logdet_Kn = K_mixed.logdet(eta)
-            logdet_S = K_mixed.get_matrix_size() * numpy.log(sigma**2) + \
-                logdet_Kn
+            logdet_S = n * numpy.log(sigma**2) + logdet_Kn
 
             Y = K_mixed.solve(eta, X) / sigma**2
-            w = K_mixed.solve(eta, z) / sigma**2
 
         # Compute log det (X.T*Sinv*X)
         XtSinvX = numpy.matmul(X.T, Y)
         logdet_XtSinvX = numpy.log(numpy.linalg.det(XtSinvX))
 
-        # Matrix B is X.T * S * X
-        Binv = numpy.linalg.inv(XtSinvX)
-        YBinvYt = numpy.matmul(Y, numpy.matmul(Binv, Y.T))
+        # Compute zMz
+        B = numpy.matmul(X.T, Y)
+        Binv = numpy.linalg.inv(B)
+        Mz = DirectLikelihood.M_dot(K_mixed, Binv, Y, sigma, sigma0, z)
+        zMz = numpy.dot(z, Mz)
 
         # Log likelihood
-        lp = -0.5*logdet_S - 0.5*logdet_XtSinvX - \
-            0.5*numpy.dot(z, w-numpy.dot(YBinvYt, z))
+        lp = -0.5*(n-m)*numpy.log(2.0*numpy.pi) - 0.5*logdet_S \
+             - 0.5*logdet_XtSinvX - 0.5*zMz
 
         # If lp is used in scipy.optimize.minimize, change the sign to optain
         # the minimum of -lp
@@ -85,80 +86,258 @@ class DirectLikelihood(object):
     # log likelihood jacobian
     # =======================
 
+    @staticmethod
     def log_likelihood_jacobian(z, X, K_mixed, sign_switch, hyperparam):
         """
+        When both :math:`\\sigma` and :math:`\\sigma_0` are zero, jacobian is
+        undefined.
         """
 
         # hyperparameters
         sigma = hyperparam[0]
         sigma0 = hyperparam[1]
+
         n, m = X.shape
 
         # S is the (sigma**2) * K + (sigma0**2) * I, but we don't construct it
-        # Also, Kn is K + eta I, where eta = (sigma0 / sigma)**2
+        # Instead, we construct Kn = K + eta I, where eta = (sigma0 / sigma)**2
 
         # Computing Y=Sinv*X and w=Sinv*z
         tol = 1e-8
         if numpy.abs(sigma) < tol:
 
             # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
-            Y = X / sigma**2
-            w = z / sigma**2
+            Y = X / sigma0**2
 
         else:
             eta = (sigma0 / sigma)**2
             Y = K_mixed.solve(eta, X) / sigma**2
+
+        # B is Xt * Y
+        B = numpy.matmul(X.T, Y)
+        Binv = numpy.linalg.inv(B)
+
+        # Compute Mz
+        Mz = DirectLikelihood.M_dot(K_mixed, Binv, Y, sigma, sigma0, z)
+
+        # Compute KMz
+        KMz = K_mixed.dot(0, Mz)
+
+        # Compute zMMz and zMKMz
+        zMMz = numpy.dot(Mz, Mz)
+        zMKMz = numpy.dot(Mz, KMz)
+
+        # Compute trace of M
+        if numpy.abs(sigma) < tol:
+            trace_M = (n - m) / sigma0**2
+        else:
+            trace_Sinv = K_mixed.traceinv(eta) / sigma**2
+            YtY = numpy.matmul(Y.T, Y)
+            trace_BinvYtY = numpy.trace(numpy.matmul(Binv, YtY))
+            trace_M = trace_Sinv - trace_BinvYtY
+
+        # Compute trace of KM which is (n-m)/sigma**2 - eta* trace(M)
+        if numpy.abs(sigma) < tol:
+            YtKY = numpy.matmul(Y.T, K_mixed.dot(0, Y))
+            BinvYtKY = numpy.matmul(Binv, YtKY)
+            trace_BinvYtKY = numpy.trace(BinvYtKY)
+            trace_KM = K_mixed.trace(0)/sigma0**2 - trace_BinvYtKY
+        else:
+            trace_KM = (n - m)/sigma**2 - eta*trace_M
+
+        # Derivative of lp wrt to sigma
+        der1_sigma = -0.5*trace_KM + 0.5*zMKMz
+        der1_sigma0 = -0.5*trace_M + 0.5*zMMz
+
+        jacobian = numpy.array([der1_sigma, der1_sigma0], dtype=float)
+
+        if sign_switch:
+            jacobian = -jacobian
+
+        return jacobian
+
+    # ======================
+    # log likelihood hessian
+    # ======================
+
+    @staticmethod
+    def log_likelihood_hessian(z, X, K_mixed, sign_switch, hyperparam):
+        """
+        """
+
+        # hyperparameters
+        sigma = hyperparam[0]
+        sigma0 = hyperparam[1]
+
+        n, m = X.shape
+
+        # S is the (sigma**2) * K + (sigma0**2) * I, but we don't construct it
+        # Instead, we construct Kn = K + eta I, where eta = (sigma0 / sigma)**2
+
+        # Computing Y=Sinv*X, V = Sinv*Y, and w=Sinv*z
+        # tol = 1e-8
+        tol = 1e-16
+        if numpy.abs(sigma) < tol:
+
+            # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
+            Y = X / sigma0**2
+            V = Y / sigma0**2
+
+        else:
+            eta = (sigma0 / sigma)**2
+            Y = K_mixed.solve(eta, X) / sigma**2
+            V = K_mixed.solve(eta, Y) / sigma**2
+
+        # B is Xt * Y
+        B = numpy.matmul(X.T, Y)
+        Binv = numpy.linalg.inv(B)
+        YtY = numpy.matmul(Y.T, Y)
+        A = numpy.matmul(Binv, YtY)
+
+        # Compute Mz, MMz
+        Mz = DirectLikelihood.M_dot(K_mixed, Binv, Y, sigma, sigma0, z)
+        MMz = DirectLikelihood.M_dot(K_mixed, Binv, Y, sigma, sigma0, Mz)
+
+        # Compute KMz, zMMMz
+        KMz = K_mixed.dot(0, Mz)
+        zMMMz = numpy.dot(Mz, MMz)
+
+        # Compute MKMz
+        MKMz = DirectLikelihood.M_dot(K_mixed, Binv, Y, sigma, sigma0, KMz)
+
+        # Compute zMKMKMz
+        zMMKMz = numpy.dot(MMz, KMz)
+        zMKMKMz = numpy.dot(KMz, MKMz)
+
+        # Trace of M
+        if numpy.abs(sigma) < tol:
+            trace_M = (n - m) / sigma0**2
+        else:
+            trace_Sinv = K_mixed.traceinv(eta) / sigma**2
+            trace_A = numpy.trace(A)
+            trace_M = trace_Sinv - trace_A
+
+        # Trace of Sinv**2
+        if numpy.abs(sigma) < tol:
+            trace_S2inv = n / sigma0**4
+        else:
+            trace_S2inv = K_mixed.traceinv(eta, exponent=2) / sigma**4
+
+        # Trace of M**2
+        YtV = numpy.matmul(Y.T, V)
+        C = numpy.matmul(Binv, YtV)
+        trace_C = numpy.trace(C)
+        AA = numpy.matmul(A, A)
+        trace_AA = numpy.trace(AA)
+        trace_M2 = trace_S2inv - 2.0*trace_C + trace_AA
+
+        # Trace of (KM)**2
+        if numpy.abs(sigma) < tol:
+            trace_K2 = K_mixed.trace(0, exponent=2)
+            D = numpy.matmul(X.T, X)
+            K2X = K_mixed.dot(0, X, exponent=2)
+            E = numpy.matmul(K2X, D)
+            E2 = numpy.matmul(E, E)
+            trace_KMKM = (trace_K2 - 2.0*numpy.trace(E) + numpy.trace(E2)) / \
+                sigma0**4
+        else:
+            trace_KMKM = (n-m)/sigma**4 - (2*eta/sigma**2)*trace_M + \
+                (eta**2)*trace_M2
+
+        # Trace of K*(M**2)
+        if numpy.abs(sigma) < tol:
+            YtKY = numpy.matmul(Y.T, K_mixed.dot(0, Y))
+            BinvYtKY = numpy.matmul(Binv, YtKY)
+            trace_BinvYtKY = numpy.trace(BinvYtKY)
+            trace_KM = K_mixed.trace(0)/sigma0**2 - trace_BinvYtKY
+            trace_KMM = trace_KM / sigma0**2
+        else:
+            trace_KMM = trace_M/sigma**2 - eta*trace_M2
+
+        # Compute second derivatives
+        der2_sigma0_sigma0 = 0.5 * (trace_M2 - 2.0*zMMMz)
+        der2_sigma_sigma = 0.5 * (trace_KMKM - 2.0*zMKMKMz)
+        der2_sigma_sigma0 = 0.5 * (trace_KMM - 2.0*zMMKMz)
+
+        # Hessian
+        hessian = numpy.array(
+                [[der2_sigma_sigma, der2_sigma_sigma0],
+                 [der2_sigma_sigma0, der2_sigma0_sigma0]], dtype=float)
+
+        if sign_switch:
+            hessian = -hessian
+
+        return hessian
+
+    # =====
+    # M dot
+    # =====
+
+    @staticmethod
+    def M_dot(K_mixed, Binv, Y, sigma, sigma0, z):
+        """
+        Multiplies the matrix :math:`\\mathbf{M}` by a given vector
+        :math:`\\boldsymbol{z}`. The matrix :math:`\\mathbf{M}` is defined by
+
+        .. math::
+
+            \\mathbf{M} = \\boldsymbol{\\Sigma}^{-1} \\mathbf{P},
+
+        where the covarance matrix :math:`\\boldsymbol{\\Sigmna}` is defined by
+
+        .. math::
+
+            \\boldsymbol{\\Sigma} = \\sigma^2 \\mathbf{K} +
+            \\sigma_0^2 \\mathbf{I},
+
+        and the projection matrix :math:`\\mathbf{P}` is defined by
+
+        .. math::
+
+            \\mathbf{P} = \\mathbf{I} - \\mathbf{X} (\\mathbf{X}^{\\intercal}
+            \\boldsymbol{\\Sigma}^{-1}) \\mathbf{X})^{-1}
+            \\mathbf{X}^{\\intercal} \\boldsymbol{\\Sigma}^{-1}.
+
+        :param K_mixed: An object of class :class:`MixedCorrelation` which
+            represents the operator :math:`\\mathbf{K} + \\eta \\mathbf{I}`.
+        :type K_mixed: gaussian_proc.MixedCorrelation
+
+        :param Binv: The inverse of matrix
+            :math:`\\mathbf{B} = \\mathbf{X}^{\\intercal} \\mathbf{Y}`.
+        :type Binv: numpy.ndarray
+
+        :param Y: The matrix
+            :math:`\\mathbf{Y} = \\boldsymbol{\\Sigma}^{-1} \\mathbf{X}`.
+        :type Y: numpy.ndarray
+
+        :param sigma: The parameter :math:`\\sigma`.
+        :type sigma: float
+
+        :param sigma0: The parameter :math:`\\sigma_0`.
+        :type sigma0: float
+
+        :param z: The data column vector.
+        :type z: numpy.ndarray
+        """
+
+        # Computing w = Sinv*z, where S is sigma**2 * K + sigma0**2 * I
+        tol = 1e-8
+        if numpy.abs(sigma) < tol:
+
+            # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
+            w = z / sigma0**2
+
+        else:
+            eta = (sigma0 / sigma)**2
             w = K_mixed.solve(eta, z) / sigma**2
 
         # Computing Mz
-        B = numpy.matmul(X.T, Y)
-        Binv = numpy.linalg.inv(B)
         Ytz = numpy.matmul(Y.T, z)
         Binv_Ytz = numpy.matmul(Binv, Ytz)
         Y_Binv_Ytz = numpy.matmul(Y, Binv_Ytz)
         Mz = w - Y_Binv_Ytz
 
-        # Computing KMz
-        KMz = K_mixed.dot(0, Mz)
-
-        # Compute Sinv * KMz
-        if numpy.abs(sigma) < tol:
-
-            # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
-            w2 = KMz / sigma**2
-
-        else:
-            w2 = K_mixed.solve(eta, KMz) / sigma**2
-
-        # Compute MKMz
-        Yt_KMz = numpy.matmul(Y.T, KMz)
-        Binv_Yt_KMz = numpy.matmul(Binv, Yt_KMz)
-        Y_Binv_Yt_KMz = numpy.matmul(Y, Binv_Yt_KMz)
-        MKMz = w2 - Y_Binv_Yt_KMz
-
-        # Compute zMKMz and zMMz
-        zMKMz = numpy.dot(z, MKMz)
-        zMMz = numpy.dot(Mz, Mz)
-
-        # Compute trace of KM which is (n-m)/sigma**2 - eta* trace(M)
-        trace_Kninv = K_mixed.traceinv(eta)
-        YtY = numpy.matmul(Y.T, Y)
-        TraceBinvYtY = numpy.trace(numpy.matmul(Binv, YtY))
-        # TraceBinvYtY = numpy.trace(numpy.matmul(Y, numpy.matmul(Binv, Y.T)))
-        traceM = trace_Kninv - TraceBinvYtY
-        traceKM = (n - m) / sigma**2 - eta * traceM
-
-        # Derivative of lp wrt to sigma
-        der1_sigma = -0.5*traceKM + 0.5*zMKMz
-        der1_sigma0 = -0.5*traceM + 0.5*zMMz
-
-        if sign_switch:
-            der1_sigma = -der1_sigma
-            der1_sigma0 = -der1_sigma0
-
-        jacobian = [der1_sigma, der1_sigma0]
-
-        return jacobian
+        return Mz
 
     # =======================
     # maximize log likelihood
@@ -167,7 +346,7 @@ class DirectLikelihood(object):
     @staticmethod
     def maximize_log_likelihood(
             z, X, K_mixed,
-            tol=1e-3, hyperparam_guess=[0.1, 0.15], method='Neldeer-Mead'):
+            tol=1e-3, hyperparam_guess=[0.2, 0.2], method='Nelder-Mead'):
         """
         Maximizing the log-likelihood function over the space of parameters
         sigma and sigma0
@@ -186,15 +365,23 @@ class DirectLikelihood(object):
                 DirectLikelihood.log_likelihood_jacobian, z, X, K_mixed,
                 sign_switch)
 
+        log_likelihood_hessian_partial_func = partial(
+                DirectLikelihood.log_likelihood_hessian, z, X, K_mixed,
+                sign_switch)
+
         # Minimize
-        # method = 'BFGS'
-        method = 'Newton-CG'
-        # method = 'CG'
         # method = 'Nelder-Mead'
+        # method = 'BFGS'         # coverges to wrong local maxima
+        # method = 'CG'
+        # method = 'Newton-CG'
+        # method = 'dogleg'       # requires hessian
+        method = 'trust-exact'  # requires hessian
+        # method = 'trust-ncg'    # requires hessian
         res = scipy.optimize.minimize(log_likelihood_partial_func,
                                       hyperparam_guess,
                                       method=method, tol=tol,
-                                      jac=log_likelihood_jacobian_partial_func)
+                                      jac=log_likelihood_jacobian_partial_func,
+                                      hess=log_likelihood_hessian_partial_func)
 
         print(res)
 
