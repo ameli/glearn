@@ -195,6 +195,9 @@ def generate_correlation(
         # Repeate corelation scale to an array of size dimension
         correlation_scale = numpy.repeat(correlation_scale, dimension)
 
+    elif isinstance(correlation_scale, list):
+        correlation_scale = numpy.array(correlation_scale)
+
     # Compute the correlation between the set of points
     if sparse:
 
@@ -223,7 +226,7 @@ def generate_correlation(
 
 
 # ===========
-# Plot Matrix
+# plot matrix
 # ===========
 
 def plot_matrix(matrix, sparse, verbose=False):

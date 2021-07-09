@@ -73,7 +73,8 @@ class ProfileLikelihood(object):
         YBinvYt = numpy.matmul(Y, numpy.matmul(Binv, Y.T))
 
         # Log likelihood
-        lp = -0.5*(n-m)*numpy.log(sigma**2) - 0.5*logdet_Kn \
+        lp = -0.5*(n-m)*numpy.log(2.0*numpy.pi) \
+            -0.5*(n-m)*numpy.log(sigma**2) - 0.5*logdet_Kn \
             - 0.5*logdet_XtKninvX \
             - (0.5/(sigma**2))*numpy.dot(z, w-numpy.dot(YBinvYt, z))
 
@@ -408,8 +409,7 @@ class ProfileLikelihood(object):
         results = {
             'sigma': sigma,
             'sigma0': sigma0,
-            'eta': eta,
-            'success': success
+            'eta': eta
         }
 
         return results

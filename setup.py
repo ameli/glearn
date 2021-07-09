@@ -27,7 +27,7 @@ import multiprocessing
 
 
 # ===============
-# Install Package
+# install package
 # ===============
 
 def install_package(package):
@@ -40,7 +40,7 @@ def install_package(package):
 
         >>> install_package('numpy>1.11')
 
-    :param package: Name of pakcage with or without its version pin.
+    :param package: Name of package with or without its version pin.
     :type package: string
     """
 
@@ -91,9 +91,9 @@ except ImportError:
     from distutils.command import build_ext
 
 
-# ===========================
-# Check environment variables
-# ===========================
+# =========================
+# get environment variables
+# =========================
 
 """
 To compile with cuda, set ``USE_CUDA`` environment variable.
@@ -124,7 +124,7 @@ use_cuda = False
 if 'USE_CUDA' in os.environ and os.environ.get('USE_CUDA') == '1':
     use_cuda = True
 
-# If DEBUG_MODE is set to "1", the package is compiled with debug mode.
+# If DEBUG_MODE is set to "1<F3>", the package is compiled with debug mode.
 debug_mode = False
 if 'DEBUG_MODE' in os.environ and os.environ.get('DEBUG_MODE') == '1':
     debug_mode = True
@@ -369,7 +369,7 @@ def customize_windows_compiler_for_nvcc(self, cuda):
 
 
 # =======================
-# Check Compiler Has Flag
+# check compiler has flag
 # =======================
 
 def check_compiler_has_flag(compiler, compile_flags, link_flags):
@@ -724,7 +724,7 @@ def does_cuda_source_exist(sources):
 
 
 # ================
-# Create Extension
+# create Extension
 # ================
 
 def create_extension(
@@ -1119,13 +1119,15 @@ def main(argv):
         },
         classifiers=[
             'Programming Language :: Cython',
+            'Programming Language :: Python',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: 3.9',
             'Programming Language :: Python :: Implementation :: CPython',
             'Programming Language :: Python :: Implementation :: PyPy',
-            'License :: OSI Approved :: MIT License',
+            'Environment :: GPU :: NVIDIA CUDA',
+            'License :: OSI Approved :: BSD License',
             'Operating System :: POSIX :: Linux',
             'Operating System :: Microsoft :: Windows',
             'Operating System :: MacOS',
@@ -1134,6 +1136,9 @@ def main(argv):
             'Intended Audience :: Developers',
             'Topic :: Software Development',
             'Topic :: Software Development :: Libraries :: Python Modules',
+            'Topic :: Scientific/Engineering',
+            'Topic :: Scientific/Engineering :: Mathematics',
+            'Topic :: Scientific/Engineering :: Artificial Intelligence',
         ],
     )
 
@@ -1142,7 +1147,7 @@ def main(argv):
 
 
 # =============
-# Script's Main
+# script's main
 # =============
 
 if __name__ == "__main__":

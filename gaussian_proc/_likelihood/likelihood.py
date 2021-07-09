@@ -93,6 +93,11 @@ class Likelihood(object):
             results = ProfileLikelihood.find_log_likelihood_der1_zeros(
                     z, self.X, self.K_mixed, interval_eta)
 
+            # Finding the maxima. This isn't neccessary and affects run time
+            # results['max_lp'] = ProfileLikelihood.log_likelihood(
+            #         z, self.X, self.K_mixed, False,
+            #         [results['sigma'], results['eta']])
+
             # Plot first derivative of log likelihood
             if plot:
                 optimal_eta = results['eta']

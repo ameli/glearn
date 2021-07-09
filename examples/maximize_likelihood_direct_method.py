@@ -28,7 +28,7 @@ from gaussian_proc import GaussianProcess
 def main():
 
     # Generate points
-    num_points = 50
+    num_points = 30
     dimension = 2
     grid = True
     points = generate_points(num_points, dimension, grid)
@@ -39,6 +39,7 @@ def main():
 
     # Generate Correlation Matrix
     correlation_scale = 0.1
+    # correlation_scale = [0.1, 0.1]
     nu = 0.5
     density = 1e-2
     sparse = False
@@ -50,8 +51,8 @@ def main():
                                  trigonometric=False)
 
     # Gaussian process
-    likelihood_method = 'direct'
-    # likelihood_method = 'profiled'
+    # likelihood_method = 'direct'
+    likelihood_method = 'profiled'
     gaussian_process = GaussianProcess(
             X, K, likelihood_method=likelihood_method)
 

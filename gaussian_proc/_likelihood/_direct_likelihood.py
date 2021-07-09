@@ -61,19 +61,18 @@ class DirectLikelihood(object):
 
             Y = K_mixed.solve(eta, X) / sigma**2
 
-        # Compute log det (X.T*Sinv*X)
-        XtSinvX = numpy.matmul(X.T, Y)
-        logdet_XtSinvX = numpy.log(numpy.linalg.det(XtSinvX))
-
         # Compute zMz
         B = numpy.matmul(X.T, Y)
         Binv = numpy.linalg.inv(B)
         Mz = DirectLikelihood.M_dot(K_mixed, Binv, Y, sigma, sigma0, z)
         zMz = numpy.dot(z, Mz)
 
+        # Compute log det (X.T*Sinv*X)
+        logdet_B = numpy.log(numpy.linalg.det(B))
+
         # Log likelihood
         lp = -0.5*(n-m)*numpy.log(2.0*numpy.pi) - 0.5*logdet_S \
-             - 0.5*logdet_XtSinvX - 0.5*zMz
+             - 0.5*logdet_B - 0.5*zMz
 
         # If lp is used in scipy.optimize.minimize, change the sign to optain
         # the minimum of -lp
@@ -141,7 +140,7 @@ class DirectLikelihood(object):
             YtKY = numpy.matmul(Y.T, K_mixed.dot(0, Y))
             BinvYtKY = numpy.matmul(Binv, YtKY)
             trace_BinvYtKY = numpy.trace(BinvYtKY)
-            trace_KM = K_mixed.trace(0)/sigma0**2 - trace_BinvYtKY
+            trace_KM = n/sigma0**2 - trace_BinvYtKY
         else:
             trace_KM = (n - m)/sigma**2 - eta*trace_M
 
@@ -235,10 +234,14 @@ class DirectLikelihood(object):
         if numpy.abs(sigma) < tol:
             trace_K2 = K_mixed.trace(0, exponent=2)
             D = numpy.matmul(X.T, X)
-            K2X = K_mixed.dot(0, X, exponent=2)
-            E = numpy.matmul(K2X, D)
+            Dinv = numpy.linalg.inv(D)
+            KX = K_mixed.dot(0, X, exponent=1)
+            XKX = numpy.matmul(X.T, KX)
+            XK2X = numpy.matmul(KX.T, KX)
+            E = numpy.matmul(Dinv, XKX)
             E2 = numpy.matmul(E, E)
-            trace_KMKM = (trace_K2 - 2.0*numpy.trace(E) + numpy.trace(E2)) / \
+            F = numpy.matmul(Dinv, XK2X)
+            trace_KMKM = (trace_K2 - 2.0*numpy.trace(F) + numpy.trace(E2)) / \
                 sigma0**4
         else:
             trace_KMKM = (n-m)/sigma**4 - (2*eta/sigma**2)*trace_M + \
@@ -246,18 +249,15 @@ class DirectLikelihood(object):
 
         # Trace of K*(M**2)
         if numpy.abs(sigma) < tol:
-            YtKY = numpy.matmul(Y.T, K_mixed.dot(0, Y))
-            BinvYtKY = numpy.matmul(Binv, YtKY)
-            trace_BinvYtKY = numpy.trace(BinvYtKY)
-            trace_KM = K_mixed.trace(0)/sigma0**2 - trace_BinvYtKY
+            trace_KM = (n - numpy.trace(E))/sigma0**2
             trace_KMM = trace_KM / sigma0**2
         else:
             trace_KMM = trace_M/sigma**2 - eta*trace_M2
 
         # Compute second derivatives
-        der2_sigma0_sigma0 = 0.5 * (trace_M2 - 2.0*zMMMz)
-        der2_sigma_sigma = 0.5 * (trace_KMKM - 2.0*zMKMKMz)
-        der2_sigma_sigma0 = 0.5 * (trace_KMM - 2.0*zMMKMz)
+        der2_sigma0_sigma0 = 0.5*trace_M2 - zMMMz
+        der2_sigma_sigma = 0.5*trace_KMKM - zMKMKMz
+        der2_sigma_sigma0 = 0.5*trace_KMM - zMMKMz
 
         # Hessian
         hessian = numpy.array(
@@ -346,7 +346,7 @@ class DirectLikelihood(object):
     @staticmethod
     def maximize_log_likelihood(
             z, X, K_mixed,
-            tol=1e-3, hyperparam_guess=[0.2, 0.2], method='Nelder-Mead'):
+            tol=1e-3, hyperparam_guess=[0.1, 0.1], method='Nelder-Mead'):
         """
         Maximizing the log-likelihood function over the space of parameters
         sigma and sigma0
@@ -371,12 +371,12 @@ class DirectLikelihood(object):
 
         # Minimize
         # method = 'Nelder-Mead'
-        # method = 'BFGS'         # coverges to wrong local maxima
-        # method = 'CG'
-        # method = 'Newton-CG'
-        # method = 'dogleg'       # requires hessian
-        method = 'trust-exact'  # requires hessian
-        # method = 'trust-ncg'    # requires hessian
+        # method = 'BFGS'           # requires jacobian
+        # method = 'CG'           # requires jacobian
+        method = 'Newton-CG'    # requires jacobian, hessian
+        # method = 'dogleg'       # requires jacobian, hessian
+        # method = 'trust-exact'  # requires jacobian, hessian
+        # method = 'trust-ncg'    # requires jacobian, hessian
         res = scipy.optimize.minimize(log_likelihood_partial_func,
                                       hyperparam_guess,
                                       method=method, tol=tol,
