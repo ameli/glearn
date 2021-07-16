@@ -68,10 +68,10 @@ _check_import()
 # Imports
 # =======
 
-# Import sub-packages
-from .generate_correlation import generate_correlation             # noqa: E402
+from .correlation import Correlation                               # noqa: E402
+from .covariance import Covariance                                 # noqa: E402
 from .gaussian_process import GaussianProcess                      # noqa: E402
 
-__all__ = ['GaussianProcess', 'generate_correlation']
+__all__ = ['GaussianProcess', 'Correlation']
 
 from.__version__ import __version__                                # noqa: F401

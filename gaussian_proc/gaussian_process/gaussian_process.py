@@ -11,6 +11,8 @@
 # Imports
 # =======
 
+from ..mean import Mean
+from ..covarianceimport Covariance
 from .._likelihood import Likelihood
 
 
@@ -36,13 +38,13 @@ class GaussianProcess(object):
     # init
     # ====
 
-    def __init__(self, X, K, likelihood_method='direct'):
+    def __init__(self, mean, cov, likelihood_method='direct'):
         """
         Constructor.
         """
 
-        self.X = X
-        self.K = K
+        self.mean = mean
+        self.cov = cov
         self.likelihood = Likelihood(X, K, likelihood_method=likelihood_method)
 
     # =====

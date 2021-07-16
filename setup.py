@@ -1047,7 +1047,8 @@ def main(argv):
     # Cyhton cpp extentions
     extensions = []
 
-    extensions.append(create_extension(package_name, 'generate_correlation'))
+    extensions.append(create_extension(package_name, 'kernels'))
+    extensions.append(create_extension(package_name, 'correlation'))
 
     # Cythonize
     external_modules = cythonize_extensions(extensions)

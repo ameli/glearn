@@ -69,8 +69,16 @@ class Likelihood(object):
         """
 
         if self.likelihood_method == 'direct':
-            results = DirectLikelihood.maximize_log_likelihood(z, self.X,
-                                                               self.K_mixed)
+            # method = 'Nelder-Mead'
+            # method = 'BFGS'           # requires jacobian
+            # method = 'CG'           # requires jacobian
+            method = 'Newton-CG'    # requires jacobian, hessian
+            # method = 'dogleg'       # requires jacobian, hessian
+            # method = 'trust-exact'  # requires jacobian, hessian
+            # method = 'trust-ncg'    # requires jacobian, hessian
+            results = DirectLikelihood.maximize_log_likelihood(
+                    z, self.X, self.K_mixed, tol=1e-3,
+                    hyperparam_guess=[0.1, 0.1], method=method)
 
             # Plot log likelihood
             if plot:

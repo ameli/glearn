@@ -370,13 +370,6 @@ class DirectLikelihood(object):
                 sign_switch)
 
         # Minimize
-        # method = 'Nelder-Mead'
-        # method = 'BFGS'           # requires jacobian
-        # method = 'CG'           # requires jacobian
-        method = 'Newton-CG'    # requires jacobian, hessian
-        # method = 'dogleg'       # requires jacobian, hessian
-        # method = 'trust-exact'  # requires jacobian, hessian
-        # method = 'trust-ncg'    # requires jacobian, hessian
         res = scipy.optimize.minimize(log_likelihood_partial_func,
                                       hyperparam_guess,
                                       method=method, tol=tol,

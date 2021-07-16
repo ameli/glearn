@@ -19,9 +19,11 @@ import multiprocessing
 
 # Cython
 from cython.parallel cimport parallel, prange
-from ._kernels cimport matern_kernel, euclidean_distance
 from libc.stdio cimport printf
 from libc.stdlib cimport exit, malloc, free
+from .euclidean_distance cimport euclidean_distance
+from ..kernels import Kernel
+from ..kernels cimport Kernel
 cimport cython
 cimport openmp
 
@@ -38,8 +40,8 @@ cdef int _generate_correlation_matrix(
         const double[:, ::1] points,
         const int matrix_size,
         const int dimension,
-        const double[:] correlation_scale,
-        const double nu,
+        const double[:] distance_scale,
+        Kernel kernel,
         const double kernel_threshold,
         const int num_threads,
         const long max_nnz,
@@ -70,9 +72,9 @@ cdef int _generate_correlation_matrix(
         is the dimension of the spatial points.
     :type dimension: int
 
-    :param correlation_scale: A parameter of the correlation function that
+    :param distance_scale: A parameter of the correlation function that
         scales distances.
-    :type correlation_scale: double
+    :type distance_scale: double
 
     :param nu: The parameter :math:`\\nu` of Matern correlation kernel.
     :type nu: float
@@ -148,13 +150,12 @@ cdef int _generate_correlation_matrix(
             for j in range(i, matrix_size):
 
                 # Compute an element of the matrix
-                thread_data[openmp.omp_get_thread_num()] = matern_kernel(
+                thread_data[openmp.omp_get_thread_num()] = kernel.cy_kernel(
                         euclidean_distance(
                             points[i][:],
                             points[j][:],
-                            correlation_scale,
-                            dimension),
-                        nu)
+                            distance_scale,
+                            dimension))
 
                 # Check with kernel threshold to taper out or store
                 if thread_data[openmp.omp_get_thread_num()] > kernel_threshold:
@@ -295,8 +296,8 @@ def _estimate_kernel_threshold(
         matrix_size,
         dimension,
         density,
-        correlation_scale,
-        nu):
+        distance_scale,
+        kernel):
     """
     Estimates the kernel's tapering threshold to sparsify a dense matrix into a
     sparse matrix with the requested density.
@@ -359,9 +360,9 @@ def _estimate_kernel_threshold(
         actual matrix density.
     :type sparse_density: int
 
-    :param correlation_scale: A parameter of correlation function that scales
+    :param distance_scale: A parameter of correlation function that scales
         distance.
-    :type correlation_scale: float
+    :type distance_scale: float
 
     :param nu: The parameter :math:`\\nu` of Matern correlation kernel.
     :type nu: float
@@ -380,14 +381,15 @@ def _estimate_kernel_threshold(
                 'Adjacency: %0.2f. Correlation matrix will become identity '
                 % (adjacency_volume) +
                 'since kernel radius is less than grid size. To increase ' +
-                'adjacency, consider increasing density or correlation_scale.')
+                'adjacency, consider increasing density or distance_scale.')
 
     # Volume of an ellipsoid with radia of the components of the correlation
     # scale is equvalent to the vlume of an d-ball with the radius of the
     # geometric mean of the correlation scale elements
-    dimesnion = correlation_scale.size
-    geometric_mean_radius = numpy.prod(correlation_scale)**(1.0/ dimension)
-    correlation_ellipsoid_volume = _ball_volume(geometric_mean_radius)
+    dimesnion = distance_scale.size
+    geometric_mean_radius = numpy.prod(distance_scale)**(1.0/ dimension)
+    correlation_ellipsoid_volume = _ball_volume(geometric_mean_radius,
+                                                dimension)
 
     # Normalize the adjacency volume with the volume of an ellipsiod of the
     # correlation scale radia
@@ -408,7 +410,7 @@ def _estimate_kernel_threshold(
     kernel_radius = grid_size * adjacency_radius
 
     # Threshold of kernel to perform tapering
-    kernel_threshold = matern_kernel(kernel_radius, nu)
+    kernel_threshold = kernel.kernel(kernel_radius)
 
     return kernel_threshold
 
@@ -419,7 +421,7 @@ def _estimate_kernel_threshold(
 
 def _estimate_max_nnz(
         matrix_size,
-        correlation_scale,
+        distance_scale,
         dimension,
         density):
     """
@@ -449,12 +451,12 @@ def _estimate_max_nnz(
     estimated_nnz = int(numpy.ceil(density * (matrix_size**2)))
 
     # Normalize correlation scale so that its largest element is one
-    normalized_correlation_scale = \
-        correlation_scale / numpy.max(correlation_scale)
+    normalized_distance_scale = \
+        distance_scale / numpy.max(distance_scale)
 
     # Get the geometric mean of the normalized correlation
     geometric_mean_radius = \
-        numpy.prod(normalized_correlation_scale)**(1.0/dimension)
+        numpy.prod(normalized_distance_scale)**(1.0/dimension)
 
     # Multiply the estimated nnz by unit hypercube over unit ball volume ratio
     unit_hypercube_volume = 1.0
@@ -471,8 +473,9 @@ def _estimate_max_nnz(
 
 def generate_sparse_correlation(
         points,
-        correlation_scale,
-        nu,
+        distance_scale,
+        kernel,
+        derivative,
         density,
         verbose):
     """
@@ -493,9 +496,9 @@ def generate_sparse_correlation(
         the dimension of the spatial points.
     :type points: numpy.ndarray
 
-    :param correlation_scale: A parameter of correlation function that scales
+    :param distance_scale: A parameter of correlation function that scales
         distance.
-    :type correlation_scale: float
+    :type distance_scale: float
 
     :param nu: The parameter :math:`\\nu` of Matern correlation kernel.
     :type nu: float
@@ -535,12 +538,13 @@ def generate_sparse_correlation(
             matrix_size,
             dimension,
             density,
-            correlation_scale,
-            nu)
+            distance_scale,
+            kernel)
 
     # maximum nnz
     max_nnz = _estimate_max_nnz(
             matrix_size,
+            distance_scale,
             dimension,
             density)
 
@@ -549,26 +553,31 @@ def generate_sparse_correlation(
 
     while not bool(success):
 
-        # Allocate sparse arrays
-        matrix_row_indices = numpy.zeros((max_nnz,), dtype=int)
-        matrix_column_indices = numpy.zeros((max_nnz,), dtype=int)
-        matrix_data = numpy.zeros((max_nnz,), dtype=float)
-        nnz = numpy.zeros((1,), dtype=int)
+        if derivative == 0:
 
-        # Generate matrix assuming the estimated nnz is enough
-        success = _generate_correlation_matrix(
-                points,
-                matrix_size,
-                dimension,
-                correlation_scale,
-                nu,
-                kernel_threshold,
-                num_threads,
-                max_nnz,
-                nnz,
-                matrix_row_indices,
-                matrix_column_indices,
-                matrix_data)
+            # Allocate sparse arrays
+            matrix_row_indices = numpy.zeros((max_nnz,), dtype=int)
+            matrix_column_indices = numpy.zeros((max_nnz,), dtype=int)
+            matrix_data = numpy.zeros((max_nnz,), dtype=float)
+            nnz = numpy.zeros((1,), dtype=int)
+
+            # Generate matrix assuming the estimated nnz is enough
+            success = _generate_correlation_matrix(
+                    points,
+                    matrix_size,
+                    dimension,
+                    distance_scale,
+                    kernel,
+                    kernel_threshold,
+                    num_threads,
+                    max_nnz,
+                    nnz,
+                    matrix_row_indices,
+                    matrix_column_indices,
+                    matrix_data)
+
+        else:
+            raise NotImplementedError('"derivative" should be only "0".')
 
         # Double the number of pre-allocated nnz and try again
         if not bool(success):

@@ -7,6 +7,7 @@
 # directory of this source tree.
 
 
-from .generate_correlation import generate_correlation
+from .generate_points import generate_points
+from .generate_data import generate_data
 
-__all__ = ['generate_correlation']
+__all__ = ['generate_points', 'generate_data']

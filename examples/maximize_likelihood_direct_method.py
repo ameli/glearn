@@ -43,21 +43,30 @@ def main():
     nu = 0.5
     density = 1e-2
     sparse = False
-    K = generate_correlation(points, correlation_scale, nu, grid,
-                             sparse=sparse, density=density)
+    K = generate_correlation(points, correlation_scale, nu, sparse=sparse,
+                             density=density)
 
     # generate basis functions
     X = generate_basis_functions(points, polynomial_degree=2,
                                  trigonometric=False)
 
     # Gaussian process
+    gaussian_process = GaussianProcess(X, K)
+
+    # Trainign options
     # likelihood_method = 'direct'
     likelihood_method = 'profiled'
-    gaussian_process = GaussianProcess(
-            X, K, likelihood_method=likelihood_method)
+    optimization_method = 
+            # method = 'Nelder-Mead'
+            # method = 'BFGS'           # requires jacobian
+            # method = 'CG'           # requires jacobian
+            method = 'Newton-CG'    # requires jacobian, hessian
+            # method = 'dogleg'       # requires jacobian, hessian
+            # method = 'trust-exact'  # requires jacobian, hessian
+            # method = 'trust-ncg'    # requires jacobian, hessian
 
     t0 = time.time()
-    gaussian_process.train(z, plot=False)
+    gaussian_process.train(z, options=options, plot=False)
     t1 = time.time()
     print('Elapsed time: %0.2f' % (t1 - t0))
 
