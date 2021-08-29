@@ -12,7 +12,6 @@
 # =======
 
 import numpy
-import matplotlib.pyplot as plt
 
 __all__ = ['generate_points']
 

@@ -74,7 +74,7 @@ class ProfileLikelihood(object):
 
         # Log likelihood
         lp = -0.5*(n-m)*numpy.log(2.0*numpy.pi) \
-            -0.5*(n-m)*numpy.log(sigma**2) - 0.5*logdet_Kn \
+            - 0.5*(n-m)*numpy.log(sigma**2) - 0.5*logdet_Kn \
             - 0.5*logdet_XtKninvX \
             - (0.5/(sigma**2))*numpy.dot(z, w-numpy.dot(YBinvYt, z))
 
@@ -342,7 +342,7 @@ class ProfileLikelihood(object):
             sigma0 = numpy.sqrt(eta) * sigma
 
             # Check second derivative
-            success = True
+            # success = True
             # d2lp_deta2 = ProfileLikelihood.log_likelihood_der2_eta(
             #         z, X, K_mixed, eta)
             # if d2lp_deta2 < 0:
@@ -397,11 +397,9 @@ class ProfileLikelihood(object):
             if eta == 0:
                 sigma0 = 0
                 sigma = find_optimal_sigma(z, X, K_mixed, eta)
-                success = True
             elif eta == numpy.inf:
                 sigma = 0
                 sigma0 = find_optimal_sigma0(z, X)
-                success = True
             else:
                 raise ValueError('eta must be zero or inf at this point.')
 

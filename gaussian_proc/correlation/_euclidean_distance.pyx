@@ -14,7 +14,7 @@
 from cython import boundscheck, wraparound
 from libc.math cimport sqrt
 
-__all__ = ['euclidean-distance']
+__all__ = ['euclidean_distance']
 
 
 # ==================

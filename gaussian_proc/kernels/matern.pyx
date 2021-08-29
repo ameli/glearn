@@ -17,6 +17,7 @@ from libc.math cimport sqrt, exp, fabs, isnan, isinf
 from libc.stdio cimport printf
 from .kernel import Kernel
 from .kernel cimport Kernel
+import numpy
 
 __all__ = ['Matern']
 
@@ -37,7 +38,7 @@ cdef class Matern(Kernel):
         """
         """
 
-        if not isinstance(nu, int) and not isinstance(nu, float):
+        if not isinstance(nu, (int, numpy.integer, float)):
             raise ValueError('"nu" should be a float or int type.')
 
         self.nu = nu
@@ -65,18 +66,15 @@ cdef class Matern(Kernel):
         The Matern correlation function defined by
 
         .. math::
-            K(\\boldsymbol{x},\\boldsymbol{x}'|\\rho,\\nu) =
+
+            K(x,\\nu) =
                 \\frac{2^{1-\\nu}}{\\Gamma(\\nu)}
-                \\left( \\sqrt{2 \\nu} \\frac{\\| \\boldsymbol{x} -
-                \\boldsymbol{x}' \\|}{\\rho} \\right)
-                K_{\\nu}\\left(\\sqrt{2 \\nu}  \\frac{\\|\\boldsymbol{x} -
-                \\boldsymbol{x}' \\|}{\\rho} \\right)
+                \\left( \\sqrt{2 \\nu} x \\right)
+                K_{\\nu}\\left(\\sqrt{2 \\nu} x \\right)
 
         where
 
-            * :math:`\\rho` is the correlation scale of the function,
             * :math:`\\Gamma` is the Gamma function,
-            * :math:`\\| \\cdot \\|` is the Euclidean distance,
             * :math:`\\nu` is the smoothness parameter.
             * :math:`K_{\\nu}` is the modified Bessel function of the second
               kind of order :math:`\\nu`
@@ -89,18 +87,7 @@ cdef class Matern(Kernel):
             :math:`1`. If the distance is not exactly zero, but close to zero,
             this function might produce unstable results.
 
-        In this function, it is assumed that :math:`\\nu = \\frac{5}{2}`, and
-        the Matern correlation in this case can be represented by:
-
-        .. math::
-            K(\\boldsymbol{x},\\boldsymbol{x}'|\\rho,\\nu) =
-            \\left( 1 + \\sqrt{5} \\frac{\\| \\boldsymbol{x} -
-            \\boldsymbol{x}'\\|}{\\rho} + \\frac{5}{3} \\frac{\\|
-            \\boldsymbol{x} - \\boldsymbol{x}'\\|^2}{\\rho^2} \\right)
-            \\exp \\left( -\\sqrt{5} \\frac{\\| \\boldsymbol{x} -
-            \\boldsymbol{x}'\\|}{\\rho} \\right)
-
-        :param x: The distance  that represents the Euclidean distance between
+        :param x: The distance that represents the Euclidean distance between
             mutual points.
         :type x: ndarray
 
@@ -231,8 +218,8 @@ cdef class Matern(Kernel):
 
                 c = ((2.0**(1.0-self.nu)) / gamma(self.nu)) * sqrt(2.0*self.nu)
                 dk = c * (y**(self.nu-1.0)) * \
-                        (self.nu * besselk(self.nu, y, 0) + \
-                        y * besselk(self.nu, y, 1))
+                    (self.nu * besselk(self.nu, y, 0) +
+                     y * besselk(self.nu, y, 1))
 
         else:
             # For nu > 100, assume nu is Inf. In this case, Matern function
@@ -330,9 +317,9 @@ cdef class Matern(Kernel):
                     y = sqrt(2.0*self.nu) * x
 
                 c = ((2.0**(1.0-self.nu)) / gamma(self.nu)) * 2.0*self.nu
-                d2k = c * (y**(self.nu-2.0)) * ( \
-                        self.nu * (self.nu - 1.0) * besselk(self.nu, y, 0) + \
-                        2.0 * y * besselk(self.nu, y, 1) + \
+                d2k = c * (y**(self.nu-2.0)) * (
+                        self.nu * (self.nu - 1.0) * besselk(self.nu, y, 0) +
+                        2.0 * y * besselk(self.nu, y, 1) +
                         y**2 * besselk(self.nu, y, 2))
 
         else:

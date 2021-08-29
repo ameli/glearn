@@ -1096,6 +1096,7 @@ def main(argv):
             'wheel',
             'numpy>1.11',
             'scipy>=1.5',
+            'special_functions',
             'cython',
             'pytest-runner'],
         tests_require=[

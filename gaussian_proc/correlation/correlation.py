@@ -34,7 +34,13 @@ class Correlation(object):
     """
     """
 
-    def __init__(self, points, kernel=None, distance_scale=None):
+    def __init__(
+            self,
+            points,
+            kernel=None,
+            distance_scale=None,
+            sparse=False,
+            density=1e-3):
         """
         """
 
@@ -47,10 +53,10 @@ class Correlation(object):
             raise ValueError('"points" should be either a column vector or ' +
                              'a 2D matrix.')
         elif points.shape[0] < 2:
-            raise ValueError('"points" array should contan at least two ' +
+            raise ValueError('"points" array should contain at least two ' +
                              'points.')
 
-        # Check kernel
+        # set kernel
         if kernel is not None:
             if not isinstance(kernel, Kernel):
                 raise TypeError('"kernel" should be an object of "Kernel" ' +
@@ -62,12 +68,21 @@ class Correlation(object):
         else:
             self.kernel = kernel
 
-        # Set attributes
+        # Attributes
         self.points = points
-        self.kernel = kernel
+        self.sparse = sparse
+        self.density = density
+        self.distance_scale = self.set_distance_scale(distance_scale)
 
-        # distance scale
-        self.set_distance_scale(distance_scale)
+        # Initialize correlation matrix
+        self.K_der0 = None
+        self.K_der1 = None
+        self.K_der2 = None
+
+        # Keeps which of the derivatives are updated (used only for sparse)
+        self.K_der0_updated = False
+        self.K_der1_updated = False
+        self.K_der2_updated = False
 
     # ==================
     # set distance scale
@@ -78,43 +93,159 @@ class Correlation(object):
         """
 
         # Check correlation scale
-        if distance_scale is not None:
-            if not isinstance(distance_scale, int) and \
-               not isinstance(distance_scale, float):
-                raise TypeError('"distance_scale" should be float.')
+        if distance_scale is None:
 
-            # Convert distance scale to numpy array
-            if numpy.isscalar(distance_scale):
-                dimension = self.points.shape[1]
-                self.distance_scale = numpy.array([distance_scale],
-                                                  dtype=float)
-
-                # Repeate corelation scale to an array of size dimension
-                self.distance_scale = numpy.repeat(distance_scale, dimension)
-
-            elif isinstance(distance_scale, list):
-                self.distance_scale = numpy.array(distance_scale)
-
-            else:
-                self.distance_scale = distance_scale
+            # distance_scale will be either set later, or will be found as
+            # additional optimization variable
+            distance_scale_ = None
 
         else:
-            self.distance_scale = None
 
-    # ====================
-    # generate correlation
-    # ====================
+            if numpy.isscalar(distance_scale):
+                if not isinstance(distance_scale, (int, numpy.integer)) and \
+                   not isinstance(distance_scale, float):
+                    raise TypeError('"distance_scale" should be float.')
 
-    def generate_correlation(
+                # Convert distance scale to numpy array
+                distance_scale_ = numpy.array([distance_scale], dtype=float)
+
+            elif isinstance(distance_scale, list):
+                distance_scale_ = numpy.array(distance_scale)
+
+            elif not isinstance(distance_scale, numpy.ndarray):
+                raise TypeError('"distance_scale" should be either a scalar,' +
+                                ' a list of numbers, or a numpy array.')
+
+            else:
+                distance_scale_ = distance_scale
+
+            # if distance_scale is an array of length one, extend the array to
+            # be the size of dimension
+            dimension = self.points.shape[1]
+            if distance_scale_.size == 1:
+
+                # Repeat correlation scale to an array of size dimension
+                distance_scale_ = numpy.repeat(distance_scale, dimension)
+
+            elif distance_scale_.size != dimension:
+                # Check dimension matches the size of distance_scale array
+                raise ValueError('"distance_scale" should have the same ' +
+                                 'dimension as the "points".')
+
+        return distance_scale_
+
+    # ==========
+    # get matrix
+    # ==========
+
+    def get_matrix(
             self,
             distance_scale=None,
             derivative=0,
-            sparse=False,
-            density=0.001,
             plot=False,
             verbose=False):
         """
-        Generates symmetric and positive-definite matrix for test purposes.
+        Returns the correlation matrix. If the correlation is not available as
+        a matrix, it generates the matrix from the kernel and spatial distance
+        of the given points.
+        """
+
+        # distance scale (if None, uses the distance_scale that this class was
+        # initialized with).
+        if distance_scale is not None:
+            distance_scale_ = self.set_distance_scale(distance_scale)
+        else:
+            distance_scale_ = self.distance_scale
+
+        if distance_scale_ is None:
+            raise ValueError('"distance_scale" cannot be None.')
+
+        # Check arguments
+        if derivative not in (0, 1, 2):
+            raise ValueError('"derivative" should be 0, 1, or 2.')
+
+        # Initialize variable to determine whether to regenerate matrix or not.
+        generate_matrix = False
+        correlation_scale_changed = False
+
+        # Note, these if conditions are independent
+        if (derivative == 0) and (self.K_der0 is None):
+            generate_matrix = True
+        if (derivative == 1) and (self.K_der1 is None):
+            generate_matrix = True
+        if (derivative == 2) and (self.K_der2 is None):
+            generate_matrix = True
+
+        if any(self.distance_scale != distance_scale_):
+            generate_matrix = True
+            correlation_scale_changed = True
+
+        if (derivative == 0) and (not self.K_der0_updated):
+            generate_matrix = True
+        if (derivative == 1) and (not self.K_der1_updated):
+            generate_matrix = True
+        if (derivative == 2) and (not self.K_der2_updated):
+            generate_matrix = True
+
+        if generate_matrix:
+
+            # Sparse matrix of derivative 1 and 2 needs matrix of derivative 0
+            if (derivative > 0) and self.sparse and (self.K_der0 is None):
+                # Before generating matrix of derivative 1 or 2, first,
+                # generate correlation matrix of derivative 0
+                temp_derivative = 0
+                self._generate_correlation_matrix(
+                        distance_scale_, temp_derivative, self.sparse,
+                        self.density, plot, verbose)
+
+            self._generate_correlation_matrix(
+                    distance_scale_, derivative, self.sparse, self.density,
+                    plot, verbose)
+
+            # Update distance_scale
+            self.distance_scale = distance_scale_
+
+        if derivative == 0:
+            self.K_der0_updated = True
+
+            if correlation_scale_changed:
+                self.K_der1_updated = False
+                self.K_der2_updated = False
+
+            return self.K_der0
+
+        elif derivative == 1:
+            self.K_der1_updated = True
+
+            if correlation_scale_changed:
+                self.K_der0_updated = False
+                self.K_der2_updated = False
+
+            return self.K_der1
+
+        elif derivative == 2:
+            self.K_der2_updated = True
+
+            if correlation_scale_changed:
+                self.K_der0_updated = False
+                self.K_der1_updated = False
+
+            return self.K_der2
+
+    # ===========================
+    # generate correlation matrix
+    # ===========================
+
+    def _generate_correlation_matrix(
+            self,
+            distance_scale,
+            derivative,
+            sparse,
+            density,
+            plot,
+            verbose):
+        """
+        Generates symmetric and positive-definite matrix.
 
         **Correlation Function:**
 
@@ -248,24 +379,44 @@ class Correlation(object):
             >>> A = generate_matrix(size=30, dimension=2, plot=True)
         """
 
-        # distance scale
-        if distance_scale is not None:
-            self.set_distance_scale(distance_scale)
-
-        if self.distance_scale is None:
-            raise ValueError('"distance_scale" cannot be None.')
-
         # Compute the correlation between the set of points
         if sparse:
 
             # Generate a sparse matrix
-            correlation_matrix = generate_sparse_correlation(
-                self.points,
-                self.distance_scale,
-                self.kernel,
-                derivative,
-                density,
-                verbose)
+            if derivative == 0:
+                # This generates a new correlation matrix (no derivative).
+                # The nnz of the matrix will be determined, and is not known
+                # a priori.
+                correlation_matrix = generate_sparse_correlation(
+                    self.points,
+                    self.distance_scale,
+                    self.kernel,
+                    derivative,
+                    density,
+                    verbose)
+
+            else:
+                # We use the same sparsity structure of self.K_der0 in the
+                # derivative matrix.
+                if self.K_der0 is None:
+                    raise RuntimeError('To compute the derivative of a ' +
+                                       'sparse correlation matrix, first, ' +
+                                       'the correlation matrix itself ' +
+                                       'should be computed.')
+
+                # Generate derivative of correlation. The nnz of the matrix is
+                # known a priori based on the zero-th derivative correlation
+                # matrix that was calculated before. No new sparcity is
+                # generated, rather, the sparsity structure of the matrix is
+                # the same as self.K_der0.
+                correlation_matrix = generate_sparse_correlation(
+                    self.points,
+                    self.distance_scale,
+                    self.kernel,
+                    derivative,
+                    density,
+                    verbose,
+                    self.K_der0)
 
         else:
 
@@ -281,7 +432,14 @@ class Correlation(object):
         if plot:
             self.plot_matrix(correlation_matrix, sparse, verbose)
 
-        return correlation_matrix
+        if derivative == 0:
+            self.K_der0 = correlation_matrix
+        elif derivative == 1:
+            self.K_der1 = correlation_matrix
+        elif derivative == 2:
+            self.K_der2 = correlation_matrix
+        else:
+            raise ValueError('"derivative" should be 0, 1, or 2.')
 
     # ===========
     # plot matrix

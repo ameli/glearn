@@ -9,5 +9,9 @@
 
 from .kernel import Kernel
 from .matern import Matern
+from .exponential import Exponential
+from .square_exponential import SquareExponential
+from .rational_quadratic import RationalQuadratic
 
-__all__ = ['Kernel', 'Matern']
+__all__ = ['Kernel', 'Matern', 'Exponential', 'SquareExponential',
+           'RationalQuadratic']

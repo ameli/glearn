@@ -61,17 +61,23 @@ def _check_import():
                            % _executable_dir)
 
 
-# Check import
-_check_import()
-
 # =======
 # Imports
 # =======
 
-from .correlation import Correlation                               # noqa: E402
-from .covariance import Covariance                                 # noqa: E402
-from .gaussian_process import GaussianProcess                      # noqa: E402
+try:
+    from .mean import LinearModel
+    from .correlation import Correlation                           # noqa: E402
+    from .covariance import Covariance                             # noqa: E402
+    from .gaussian_process import GaussianProcess                  # noqa: E402
 
-__all__ = ['GaussianProcess', 'Correlation']
+except Exception as e:
+    # Before printing the exception, check if the exception is raised due to
+    # being on the wrong directory.
+    _check_import()
+
+    raise e
+
+__all__ = ['LinearModel', 'Correlation', 'Covariance', 'GaussianProcess']
 
 from.__version__ import __version__                                # noqa: F401

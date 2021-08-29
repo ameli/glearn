@@ -29,7 +29,7 @@ class DirectLikelihood(object):
     # ==============
 
     @staticmethod
-    def log_likelihood(z, X, K_mixed, sign_switch, hyperparam):
+    def log_likelihood(z, X, S_mixed, sign_switch, hyperparam):
         """
         Here we use direct parameter, sigma and sigma0
 
@@ -44,27 +44,14 @@ class DirectLikelihood(object):
 
         n, m = X.shape
 
-        # S is the (sigma**2) * K + (sigma0**2) * I, but we don't construct it.
-        # Instead, we consruct Kn = K + eta I, where eta = (sigma0 / sigma)**2
-        tol = 1e-8
-        if numpy.abs(sigma) < tol:
-
-            # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
-            logdet_S = n * numpy.log(sigma0**2)
-
-            Y = X / sigma0**2
-
-        else:
-            eta = (sigma0 / sigma)**2
-            logdet_Kn = K_mixed.logdet(eta)
-            logdet_S = n * numpy.log(sigma**2) + logdet_Kn
-
-            Y = K_mixed.solve(eta, X) / sigma**2
+        # S_mixed is the (sigma**2) * K + (sigma0**2) * I
+        logdet_S = S_mixed.logdet(sigma, sigma0)
+        Y = S_mixed.solve(sigma, sigma0, X)
 
         # Compute zMz
         B = numpy.matmul(X.T, Y)
         Binv = numpy.linalg.inv(B)
-        Mz = DirectLikelihood.M_dot(K_mixed, Binv, Y, sigma, sigma0, z)
+        Mz = DirectLikelihood.M_dot(S_mixed, Binv, Y, sigma, sigma0, z)
         zMz = numpy.dot(z, Mz)
 
         # Compute log det (X.T*Sinv*X)
@@ -86,7 +73,7 @@ class DirectLikelihood(object):
     # =======================
 
     @staticmethod
-    def log_likelihood_jacobian(z, X, K_mixed, sign_switch, hyperparam):
+    def log_likelihood_jacobian(z, X, S_mixed, sign_switch, hyperparam):
         """
         When both :math:`\\sigma` and :math:`\\sigma_0` are zero, jacobian is
         undefined.
@@ -98,50 +85,40 @@ class DirectLikelihood(object):
 
         n, m = X.shape
 
-        # S is the (sigma**2) * K + (sigma0**2) * I, but we don't construct it
-        # Instead, we construct Kn = K + eta I, where eta = (sigma0 / sigma)**2
-
-        # Computing Y=Sinv*X and w=Sinv*z
-        tol = 1e-8
-        if numpy.abs(sigma) < tol:
-
-            # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
-            Y = X / sigma0**2
-
-        else:
-            eta = (sigma0 / sigma)**2
-            Y = K_mixed.solve(eta, X) / sigma**2
+        # Computing Y=Sinv*X and w=Sinv*z.
+        Y = S_mixed.solve(sigma, sigma0, X)
 
         # B is Xt * Y
         B = numpy.matmul(X.T, Y)
         Binv = numpy.linalg.inv(B)
 
         # Compute Mz
-        Mz = DirectLikelihood.M_dot(K_mixed, Binv, Y, sigma, sigma0, z)
+        Mz = DirectLikelihood.M_dot(S_mixed, Binv, Y, sigma, sigma0, z)
 
-        # Compute KMz
-        KMz = K_mixed.dot(0, Mz)
+        # Compute KMz (Setting sigma=1 and sigma0=0 to have S_mixed = K)
+        KMz = S_mixed.dot(1.0, 0.0, Mz)
 
         # Compute zMMz and zMKMz
         zMMz = numpy.dot(Mz, Mz)
         zMKMz = numpy.dot(Mz, KMz)
 
         # Compute trace of M
-        if numpy.abs(sigma) < tol:
+        if numpy.abs(sigma) < S_mixed.tol:
             trace_M = (n - m) / sigma0**2
         else:
-            trace_Sinv = K_mixed.traceinv(eta) / sigma**2
+            trace_Sinv = S_mixed.traceinv(sigma, sigma0)
             YtY = numpy.matmul(Y.T, Y)
             trace_BinvYtY = numpy.trace(numpy.matmul(Binv, YtY))
             trace_M = trace_Sinv - trace_BinvYtY
 
         # Compute trace of KM which is (n-m)/sigma**2 - eta* trace(M)
-        if numpy.abs(sigma) < tol:
-            YtKY = numpy.matmul(Y.T, K_mixed.dot(0, Y))
+        if numpy.abs(sigma) < S_mixed.tol:
+            YtKY = numpy.matmul(Y.T, S_mixed.dot(1.0, 0.0, Y))
             BinvYtKY = numpy.matmul(Binv, YtKY)
             trace_BinvYtKY = numpy.trace(BinvYtKY)
             trace_KM = n/sigma0**2 - trace_BinvYtKY
         else:
+            eta = (sigma0 / sigma)**2
             trace_KM = (n - m)/sigma**2 - eta*trace_M
 
         # Derivative of lp wrt to sigma
@@ -160,32 +137,20 @@ class DirectLikelihood(object):
     # ======================
 
     @staticmethod
-    def log_likelihood_hessian(z, X, K_mixed, sign_switch, hyperparam):
+    def log_likelihood_hessian(z, X, S_mixed, sign_switch, hyperparam):
         """
         """
 
         # hyperparameters
         sigma = hyperparam[0]
         sigma0 = hyperparam[1]
+        eta = (sigma0 / sigma)**2
 
         n, m = X.shape
 
-        # S is the (sigma**2) * K + (sigma0**2) * I, but we don't construct it
-        # Instead, we construct Kn = K + eta I, where eta = (sigma0 / sigma)**2
-
         # Computing Y=Sinv*X, V = Sinv*Y, and w=Sinv*z
-        # tol = 1e-8
-        tol = 1e-16
-        if numpy.abs(sigma) < tol:
-
-            # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
-            Y = X / sigma0**2
-            V = Y / sigma0**2
-
-        else:
-            eta = (sigma0 / sigma)**2
-            Y = K_mixed.solve(eta, X) / sigma**2
-            V = K_mixed.solve(eta, Y) / sigma**2
+        Y = S_mixed.solve(sigma, sigma0, X)
+        V = S_mixed.solve(sigma, sigma0, Y)
 
         # B is Xt * Y
         B = numpy.matmul(X.T, Y)
@@ -194,33 +159,30 @@ class DirectLikelihood(object):
         A = numpy.matmul(Binv, YtY)
 
         # Compute Mz, MMz
-        Mz = DirectLikelihood.M_dot(K_mixed, Binv, Y, sigma, sigma0, z)
-        MMz = DirectLikelihood.M_dot(K_mixed, Binv, Y, sigma, sigma0, Mz)
+        Mz = DirectLikelihood.M_dot(S_mixed, Binv, Y, sigma, sigma0, z)
+        MMz = DirectLikelihood.M_dot(S_mixed, Binv, Y, sigma, sigma0, Mz)
 
-        # Compute KMz, zMMMz
-        KMz = K_mixed.dot(0, Mz)
+        # Compute KMz, zMMMz (Setting sigma=1 and sigma0=0 to have S_mixed=K)
+        KMz = S_mixed.dot(1.0, 0.0, Mz)
         zMMMz = numpy.dot(Mz, MMz)
 
         # Compute MKMz
-        MKMz = DirectLikelihood.M_dot(K_mixed, Binv, Y, sigma, sigma0, KMz)
+        MKMz = DirectLikelihood.M_dot(S_mixed, Binv, Y, sigma, sigma0, KMz)
 
         # Compute zMKMKMz
         zMMKMz = numpy.dot(MMz, KMz)
         zMKMKMz = numpy.dot(KMz, MKMz)
 
         # Trace of M
-        if numpy.abs(sigma) < tol:
+        if numpy.abs(sigma) < S_mixed.tol:
             trace_M = (n - m) / sigma0**2
         else:
-            trace_Sinv = K_mixed.traceinv(eta) / sigma**2
+            trace_Sinv = S_mixed.traceinv(sigma, sigma0)
             trace_A = numpy.trace(A)
             trace_M = trace_Sinv - trace_A
 
         # Trace of Sinv**2
-        if numpy.abs(sigma) < tol:
-            trace_S2inv = n / sigma0**4
-        else:
-            trace_S2inv = K_mixed.traceinv(eta, exponent=2) / sigma**4
+        trace_S2inv = S_mixed.traceinv(sigma, sigma0, exponent=2)
 
         # Trace of M**2
         YtV = numpy.matmul(Y.T, V)
@@ -231,11 +193,11 @@ class DirectLikelihood(object):
         trace_M2 = trace_S2inv - 2.0*trace_C + trace_AA
 
         # Trace of (KM)**2
-        if numpy.abs(sigma) < tol:
-            trace_K2 = K_mixed.trace(0, exponent=2)
+        if numpy.abs(sigma) < S_mixed.tol:
+            trace_K2 = S_mixed.trace(1.0, 0.0, exponent=2)
             D = numpy.matmul(X.T, X)
             Dinv = numpy.linalg.inv(D)
-            KX = K_mixed.dot(0, X, exponent=1)
+            KX = S_mixed.dot(1.0, 0.0, X, exponent=1)
             XKX = numpy.matmul(X.T, KX)
             XK2X = numpy.matmul(KX.T, KX)
             E = numpy.matmul(Dinv, XKX)
@@ -248,7 +210,7 @@ class DirectLikelihood(object):
                 (eta**2)*trace_M2
 
         # Trace of K*(M**2)
-        if numpy.abs(sigma) < tol:
+        if numpy.abs(sigma) < S_mixed.tol:
             trace_KM = (n - numpy.trace(E))/sigma0**2
             trace_KMM = trace_KM / sigma0**2
         else:
@@ -274,7 +236,7 @@ class DirectLikelihood(object):
     # =====
 
     @staticmethod
-    def M_dot(K_mixed, Binv, Y, sigma, sigma0, z):
+    def M_dot(S_mixed, Binv, Y, sigma, sigma0, z):
         """
         Multiplies the matrix :math:`\\mathbf{M}` by a given vector
         :math:`\\boldsymbol{z}`. The matrix :math:`\\mathbf{M}` is defined by
@@ -298,9 +260,10 @@ class DirectLikelihood(object):
             \\boldsymbol{\\Sigma}^{-1}) \\mathbf{X})^{-1}
             \\mathbf{X}^{\\intercal} \\boldsymbol{\\Sigma}^{-1}.
 
-        :param K_mixed: An object of class :class:`MixedCorrelation` which
-            represents the operator :math:`\\mathbf{K} + \\eta \\mathbf{I}`.
-        :type K_mixed: gaussian_proc.MixedCorrelation
+        :param S_mixed: An object of class :class:`Covariance` which represents
+            the operator :math:`\\sigma^2 \\mathbf{K} +
+            \\sigma_0^2 \\mathbf{I}`.
+        :type S_mixed: gaussian_proc.Covariance
 
         :param Binv: The inverse of matrix
             :math:`\\mathbf{B} = \\mathbf{X}^{\\intercal} \\mathbf{Y}`.
@@ -321,15 +284,7 @@ class DirectLikelihood(object):
         """
 
         # Computing w = Sinv*z, where S is sigma**2 * K + sigma0**2 * I
-        tol = 1e-8
-        if numpy.abs(sigma) < tol:
-
-            # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
-            w = z / sigma0**2
-
-        else:
-            eta = (sigma0 / sigma)**2
-            w = K_mixed.solve(eta, z) / sigma**2
+        w = S_mixed.solve(sigma, sigma0, z)
 
         # Computing Mz
         Ytz = numpy.matmul(Y.T, z)
@@ -345,8 +300,10 @@ class DirectLikelihood(object):
 
     @staticmethod
     def maximize_log_likelihood(
-            z, X, K_mixed,
-            tol=1e-3, hyperparam_guess=[0.1, 0.1], method='Nelder-Mead'):
+            z, X, S_mixed,
+            tol=1e-3,
+            hyperparam_guess=[0.1, 0.1],
+            optimization_method='Nelder-Mead'):
         """
         Maximizing the log-likelihood function over the space of parameters
         sigma and sigma0
@@ -356,23 +313,26 @@ class DirectLikelihood(object):
 
         print('Maximize log likelihood with sigma sigma0 ...')
 
-        # Partial function with minus to make maximization to a minimization
+        # Partial function of likelihood (with minus to make maximization to a
+        # )minimization
         sign_switch = True
         log_likelihood_partial_func = partial(
-                DirectLikelihood.log_likelihood, z, X, K_mixed, sign_switch)
+                DirectLikelihood.log_likelihood, z, X, S_mixed, sign_switch)
 
+        # Partial function of Jacobian of likelihood (with minus sign)
         log_likelihood_jacobian_partial_func = partial(
-                DirectLikelihood.log_likelihood_jacobian, z, X, K_mixed,
+                DirectLikelihood.log_likelihood_jacobian, z, X, S_mixed,
                 sign_switch)
 
+        # Partial function of Hessian of likelihood (with minus sign)
         log_likelihood_hessian_partial_func = partial(
-                DirectLikelihood.log_likelihood_hessian, z, X, K_mixed,
+                DirectLikelihood.log_likelihood_hessian, z, X, S_mixed,
                 sign_switch)
 
         # Minimize
         res = scipy.optimize.minimize(log_likelihood_partial_func,
                                       hyperparam_guess,
-                                      method=method, tol=tol,
+                                      method=optimization_method, tol=tol,
                                       jac=log_likelihood_jacobian_partial_func,
                                       hess=log_likelihood_hessian_partial_func)
 
@@ -402,7 +362,7 @@ class DirectLikelihood(object):
     # ===================
 
     @staticmethod
-    def plot_log_likelihood(z, X, K_mixed, optimal_hyperparam=None):
+    def plot_log_likelihood(z, X, S_mixed, optimal_hyperparam=None):
         """
         Plots log likelihood versus sigma0, sigma hyperparam
         """
@@ -416,7 +376,7 @@ class DirectLikelihood(object):
         for i in range(sigma0.size):
             for j in range(sigma.size):
                 lp[i, j] = DirectLikelihood.log_likelihood(
-                        z, X, K_mixed, False, [sigma[j], sigma0[i]])
+                        z, X, S_mixed, False, [sigma[j], sigma0[i]])
 
         [sigma_mesh, sigma0_mesh] = numpy.meshgrid(sigma, sigma0)
 
@@ -430,7 +390,7 @@ class DirectLikelihood(object):
             opt_sigma = optimal_hyperparam[0]
             opt_sigma0 = optimal_hyperparam[1]
             opt_lp = DirectLikelihood.log_likelihood(
-                        z, X, K_mixed, False, optimal_hyperparam)
+                        z, X, S_mixed, False, optimal_hyperparam)
             plt.plot(opt_sigma, opt_sigma0, opt_lp, markersize=5, marker='o',
                      markerfacecolor='red', markeredgecolor='red')
         ax.set_xlabel(r'$\sigma$')

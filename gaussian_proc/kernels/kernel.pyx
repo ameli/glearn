@@ -21,12 +21,6 @@ from libc.math cimport NAN
 
 cdef class Kernel(object):
 
-    def __cinit__(self):
-        """
-        """
-
-        pass
-
     # =========
     # cy kernel
     # =========
@@ -84,4 +78,3 @@ cdef class Kernel(object):
                                       'or "2"')
 
         return k
-

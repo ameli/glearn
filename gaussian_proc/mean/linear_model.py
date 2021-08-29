@@ -26,21 +26,47 @@ class LinearModel(object):
     # init
     # ====
 
-    def __init__(self, X, beta=None, B=None):
+    def __init__(self, X, beta_mean=None, beta_cov=None):
         """
         """
 
-        self.check_arguments(X, beta, B)
+        self.check_arguments(X, beta_mean, beta_cov)
 
         self.X = X
-        self.beta = beta
-        self.B = B
+        self.beta_mean = beta_mean
+        self.beta_cov = beta_cov
+
+    # ======
+    # design
+    # ======
+
+    @classmethod
+    def design(
+            cls,
+            points,
+            polynomial_degree=0,
+            trigonometric_coeff=None,
+            hyperbolic_coeff=None,
+            beta_mean=None,
+            beta_cov=None):
+        """
+        An alternative costructor used when the desig matrix ``X`` is not
+        know. This method designs the design matrix ``X`` and returns a class
+        object with the computed ``X``.
+        """
+
+        # Generate design matrix X
+        X = LinearModel.generate_design_matrix(points, polynomial_degree,
+                                               trigonometric_coeff,
+                                               hyperbolic_coeff)
+
+        return cls(X, beta_mean, beta_cov)
 
     # ===============
     # check arguments
     # ===============
 
-    def check_coefficients(self, X, beta, B):
+    def check_arguments(self, X, beta_mean, beta_cov):
         """
         """
 
@@ -57,35 +83,35 @@ class LinearModel(object):
         elif X.shape[0] < X.shape[1]:
             raise ValueError('Design matrix "X" should have full column rank.')
 
-        # Check beta
-        if beta is not None:
+        # Check beta_mean
+        if beta_mean is not None:
 
-            if numpy.isscalar(beta) and (X.ndim != 1 or X.shape[1] != 1):
-                raise ValueError('"beta" should be a vector of the same ' +
-                                 'size as the number of columns of the ' +
+            if numpy.isscalar(beta_mean) and (X.ndim != 1 or X.shape[1] != 1):
+                raise ValueError('"beta_mean" should be a vector of the ' +
+                                 'same size as the number of columns of the ' +
                                  'design matrix "X".')
-            elif not isinstance(beta, numpy.ndarray):
-                raise TypeError('"beta" should be either a scalar (if ' +
+            elif not isinstance(beta_mean, numpy.ndarray):
+                raise TypeError('"beta_mean" should be either a scalar (if ' +
                                 'the design matrix is a column vector) ' +
                                 'or a row vector of "numpy.ndarray" type.')
-            elif beta.size != X.shape[1]:
-                raise ValueError('"beta" should have the same size as ' +
+            elif beta_mean.size != X.shape[1]:
+                raise ValueError('"beta_mean" should have the same size as ' +
                                  'the number of columns of the design ' +
                                  'matrix "X".')
 
-        # Check B
-        if B is not None:
+        # Check beta_cov
+        if beta_cov is not None:
 
-            if numpy.isscalar(beta) and not numpy.isscalar(B):
-                raise ValueError('When "beta" is a scalar, "B" should ' +
-                                 'also be a scalar.')
-            elif not isinstance(B, numpy.ndarray):
-                raise TypeError('"B" should be a "numpy.ndarray" type.')
+            if numpy.isscalar(beta_mean) and not numpy.isscalar(beta_cov):
+                raise ValueError('When "beta_mean" is a scalar, "beta_cov" ' +
+                                 'should also be a scalar.')
+            elif not isinstance(beta_cov, numpy.ndarray):
+                raise TypeError('"beta_cov" should be a "numpy.ndarray" type.')
 
-            elif B.shape != (beta.size, beta.size):
-                raise ValueError('"B" should be a square matrix with ' +
+            elif beta_cov.shape != (beta_mean.size, beta_mean.size):
+                raise ValueError('"beta_cov" should be a square matrix with ' +
                                  'the same number of columns/rows as the ' +
-                                 'size of vector "beta".')
+                                 'size of vector "beta_mean".')
 
     # ======================
     # generate design matrix

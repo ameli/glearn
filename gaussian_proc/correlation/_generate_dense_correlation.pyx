@@ -18,7 +18,8 @@ import multiprocessing
 # Cython
 from cython.parallel cimport parallel, prange
 from libc.stdlib cimport exit, malloc, free
-from .euclidean_distance cimport euclidean_distance
+from ._compute_dense_correlation cimport compute_dense_correlation, \
+        compute_dense_correlation_jacobian, compute_dense_correlation_hessian
 from ..kernels import Kernel
 from ..kernels cimport Kernel
 cimport cython
@@ -89,12 +90,12 @@ cdef void _generate_correlation_matrix(
             for j in range(i, matrix_size):
 
                 # Compute correlation
-                correlation_matrix[i][j] = kernel.cy_kernel(
-                        euclidean_distance(
-                            points[i][:],
-                            points[j][:],
-                            distance_scale,
-                            dimension))
+                correlation_matrix[i][j] = compute_dense_correlation(
+                        points[i][:],
+                        points[j][:],
+                        dimension,
+                        distance_scale,
+                        kernel)
 
                 # Use symmetry of the correlation matrix
                 if i != j:
@@ -146,7 +147,7 @@ cdef void _generate_correlation_matrix_jacobian(
     :type correlation_matrix: cython memoryview (double)
     """
 
-    cdef int i, j, l
+    cdef int i, j, p
     cdef int dim
 
     # Set number of parallel threads
@@ -162,7 +163,7 @@ cdef void _generate_correlation_matrix_jacobian(
         for i in prange(matrix_size, schedule='static', chunksize=chunk_size):
             for j in range(i, matrix_size):
 
-                _compute_correlation_jacobian(
+                compute_dense_correlation_jacobian(
                         points,
                         dimension,
                         distance_scale,
@@ -172,55 +173,9 @@ cdef void _generate_correlation_matrix_jacobian(
 
                 # Use anti-symmetry of the correlation matrix jacobian
                 if i != j:
-                    for l in range(dimension):
-                        correlation_matrix_jacobian[l][j][i] = \
-                            -correlation_matrix_jacobian[l][i][j]
-
-
-# ============================
-# compute correlation jacobian
-# ============================
-
-cdef void _compute_correlation_jacobian(
-        const double[:, ::1] points,
-        const int dimension,
-        const double[:] distance_scale,
-        Kernel kernel,
-        double[:, :, ::1] correlation_matrix_jacobian,
-        int i,
-        int j) nogil:
-    """
-    Computes the jacobian of correlation with respect to distance_scale
-    parameters.
-    """
-
-    cdef int l
-
-    # The case at zero distance
-    if i == j:
-        for l in range(dimension):
-            correlation_matrix_jacobian[l, i, j] = 0.0
-        return
-   
-    cdef double distance = euclidean_distance(
-            points[i][:],
-            points[j][:],
-            distance_scale,
-            dimension)
-
-    cdef double d1_k = kernel.cy_kernel_first_derivative(distance)
-
-    # Derivative of distance w.r.t one of the components of distance_scale
-    cdef double d1_distance
-
-    for l in range(dimension):
-
-        # derivative of distance w.r.t the l-th component of distance_scale
-        d1_distance = -(points[i, l] - points[j, l]) / \
-            (distance * distance_scale[l]**3)
-
-        # Derivative of correlation
-        correlation_matrix_jacobian[l, i, j] = d1_k * d1_distance
+                    for p in range(dimension):
+                        correlation_matrix_jacobian[p][j][i] = \
+                            -correlation_matrix_jacobian[p][i][j]
 
 
 # ===================================
@@ -268,7 +223,7 @@ cdef void _generate_correlation_matrix_hessian(
     :type correlation_matrix: cython memoryview (double)
     """
 
-    cdef int i, j, l, p
+    cdef int i, j, p, q
     cdef int dim
 
     # Set number of parallel threads
@@ -284,7 +239,7 @@ cdef void _generate_correlation_matrix_hessian(
         for i in prange(matrix_size, schedule='static', chunksize=chunk_size):
             for j in range(i, matrix_size):
 
-                _compute_correlation_hessian(
+                compute_dense_correlation_hessian(
                         points,
                         dimension,
                         distance_scale,
@@ -294,83 +249,10 @@ cdef void _generate_correlation_matrix_hessian(
 
                 # Use anti-symmetry of the correlation matrix jacobian
                 if i != j:
-                    for l in range(dimension):
-                        for p in range(dimension):
-                            correlation_matrix_hessian[p][l][j][i] = \
-                                correlation_matrix_hessian[p][l][i][j]
-
-
-# ===========================
-# compute correlation hessian
-# ===========================
-
-cdef void _compute_correlation_hessian(
-        const double[:, ::1] points,
-        const int dimension,
-        const double[:] distance_scale,
-        Kernel kernel,
-        double[:, :, :, ::1] correlation_matrix_hessian,
-        int i,
-        int j) nogil:
-    """
-    Computes the jacobian of correlation with respect to distance_scale
-    parameters.
-    """
-
-    cdef int l, p
-
-    # The case at zero distance
-    if i == j:
-        for l in range(dimension):
-            for p in range(dimension):
-                correlation_matrix_hessian[l, p, i, j] = 0.0
-        return
-   
-    cdef double distance = euclidean_distance(
-            points[i][:],
-            points[j][:],
-            distance_scale,
-            dimension)
-
-    cdef double d1_k = kernel.cy_kernel_first_derivative(distance)
-    cdef double d2_k = kernel.cy_kernel_second_derivative(distance)
-
-    # Derivative of distance w.r.t one of the components of distance_scale
-    cdef double dl_distance
-    cdef double dp_distance
-    cdef double dlp_distance
-
-    for l in range(dimension):
-        for p in range(l, dimension):
-
-            # derivative of distance w.r.t the l-th component of distance_scale
-            dl_distance = -(points[i, l] - points[j, l]) / \
-                (distance * distance_scale[l]**3)
-
-            # derivative of distance w.r.t the p-th component of distance_scale
-            if p == l:
-                dp_distance = dl_distance
-            else:
-                dp_distance = -(points[i, p] - points[j, p]) / \
-                    (distance * distance_scale[p]**3)
-
-            # Second mixed derivative of distance w.r.t the l and p component
-            if p == l:
-                dlp_distance = (points[i, l] - points[j, l]) / \
-                        (3.0 / (distance_scale[l]**4 * distance) + \
-                        dl_distance / (distance_scale[l]**3 * distance**2))
-            else:
-                dlp_distance = (points[i, l] - points[j, l]) / \
-                        (distance**2 * distance_scale[l]**3) * dp_distance
-
-            # Second partial derivative of correlation w.r.t l and p components
-            correlation_matrix_hessian[l, p, i, j] = \
-                    d2_k * dl_distance * dp_distance + d1_k * dlp_distance
-
-            # Using symmetry of Hessian
-            if p != l:
-                correlation_matrix_hessian[p, l, i, j] = \
-                        correlation_matrix_hessian[l, p, i, j]
+                    for p in range(dimension):
+                        for q in range(dimension):
+                            correlation_matrix_hessian[q][p][j][i] = \
+                                correlation_matrix_hessian[q][p][i][j]
 
 
 # ==========================
@@ -419,6 +301,10 @@ def generate_dense_correlation(
     # size of data and the correlation matrix
     matrix_size = points.shape[0]
     dimension = points.shape[1]
+
+    if verbose:
+        print('Generated dense correlation matirx of size: %d.'
+              % (matrix_size))
 
     # Get number of CPU threads
     num_threads = multiprocessing.cpu_count()
@@ -482,8 +368,3 @@ def generate_dense_correlation(
 
     else:
         raise NotImplementedError('"derivative" can only be "0", "1", or "2".')
-
-    if verbose:
-        print('Generated dense correlation matirx of size: %d.'
-              % (matrix_size))
-

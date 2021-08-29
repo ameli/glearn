@@ -15,9 +15,12 @@
 
 import sys
 import time
-from _utilities.data_utilities import generate_points, generate_data, \
-        generate_basis_functions
-from gaussian_proc import generate_correlation
+from gaussian_proc.sample_data import generate_points, generate_data
+from gaussian_proc.mean import LinearModel
+from gaussian_proc.kernels import Matern, Exponential, SquareExponential, \
+        RationalQuadratic
+from gaussian_proc import Correlation
+from gaussian_proc import Covariance
 from gaussian_proc import GaussianProcess
 
 
@@ -37,36 +40,38 @@ def main():
     noise_magnitude = 0.2
     z = generate_data(points, noise_magnitude)
 
-    # Generate Correlation Matrix
-    correlation_scale = 0.1
-    # correlation_scale = [0.1, 0.1]
-    nu = 0.5
-    density = 1e-2
-    sparse = False
-    K = generate_correlation(points, correlation_scale, nu, sparse=sparse,
-                             density=density)
+    # Mean
+    mean = LinearModel.design(points, polynomial_degree=2)
 
-    # generate basis functions
-    X = generate_basis_functions(points, polynomial_degree=2,
-                                 trigonometric=False)
+    # Correlation
+    # kernel = Matern()
+    # kernel = Exponential()
+    # kernel = SquareExponential()
+    kernel = RationalQuadratic()
+    cor = Correlation(points, kernel=kernel, distance_scale=0.1, sparse=False)
+
+    # Covariance
+    cov = Covariance(cor)
 
     # Gaussian process
-    gaussian_process = GaussianProcess(X, K)
+    gp = GaussianProcess(mean, cov)
 
     # Trainign options
-    # likelihood_method = 'direct'
-    likelihood_method = 'profiled'
-    optimization_method = 
-            # method = 'Nelder-Mead'
-            # method = 'BFGS'           # requires jacobian
-            # method = 'CG'           # requires jacobian
-            method = 'Newton-CG'    # requires jacobian, hessian
-            # method = 'dogleg'       # requires jacobian, hessian
-            # method = 'trust-exact'  # requires jacobian, hessian
-            # method = 'trust-ncg'    # requires jacobian, hessian
+    likelihood_method = 'direct'
+    # likelihood_method = 'profiled'
+
+    # optimization_method = 'Nelder-Mead'
+    # optimization_method = 'BFGS'         # requires jacobian
+    # optimization_method = 'CG'           # requires jacobian
+    optimization_method = 'Newton-CG'      # requires jacobian, hessian
+    # optimization_method = 'dogleg'       # requires jacobian, hessian
+    # optimization_method = 'trust-exact'  # requires jacobian, hessian
+    # optimization_method = 'trust-ncg'    # requires jacobian, hessian
 
     t0 = time.time()
-    gaussian_process.train(z, options=options, plot=False)
+    # gp.train(z, options=options, plot=False)
+    gp.train(z, likelihood_method=likelihood_method,
+             optimization_method=optimization_method)
     t1 = time.time()
     print('Elapsed time: %0.2f' % (t1 - t0))
 

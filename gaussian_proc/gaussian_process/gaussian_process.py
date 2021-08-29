@@ -11,8 +11,6 @@
 # Imports
 # =======
 
-from ..mean import Mean
-from ..covarianceimport Covariance
 from .._likelihood import Likelihood
 
 
@@ -38,36 +36,31 @@ class GaussianProcess(object):
     # init
     # ====
 
-    def __init__(self, mean, cov, likelihood_method='direct'):
+    def __init__(self, mean, cov):
         """
         Constructor.
         """
 
         self.mean = mean
         self.cov = cov
-        self.likelihood = Likelihood(X, K, likelihood_method=likelihood_method)
+        self.likelihood = Likelihood(mean, cov)
 
     # =====
     # train
     # =====
 
-    def train(self, z, plot=False):
+    def train(
+            self,
+            z,
+            likelihood_method='direct',
+            optimization_method='Newton-CG',
+            plot=False):
         """
         Finds the hyperparameters of the gaussian process model.
         """
 
-        results = self.likelihood.maximize_log_likelihood(z, plot=plot)
+        results = self.likelihood.maximize_log_likelihood(
+                z, likelihood_method=likelihood_method,
+                optimization_method=optimization_method, plot=plot)
 
         print(results)
-
-    # ==========
-    # likelihood
-    # ==========
-
-    # def log_likelihood(self, z, derivative=0):
-    #     """
-    #     Log likelihood function or its first and second derivative with
-    #     respect to the hyperparameter.
-    #     """
-    #
-    #     pass
