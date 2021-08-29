@@ -52,3 +52,4 @@ prune .tox
 prune .github
 prune conda-recipe
 prune benchmark
+prune docs/_buil
