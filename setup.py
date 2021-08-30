@@ -66,6 +66,13 @@ except ImportError:
     # Install scipy
     install_package('scipy')
 
+# Check special_functions is installed (needed for build)
+try:
+    import special_functions                                        # noqa F401
+except ImportError:
+    # Install special_functions
+    install_package('special_functions')
+
 # Import setuptools
 try:
     import setuptools
