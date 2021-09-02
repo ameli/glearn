@@ -55,9 +55,9 @@ cdef void compute_sparse_correlation_jacobian(
         const int dimension,
         const double[:] distance_scale,
         Kernel kernel,
-        long row,
-        long index_pointer,
-        long[:] matrix_column_indices,
+        int row,
+        int index_pointer,
+        int[:] matrix_column_indices,
         double[:, ::1] matrix_data) nogil:
     """
     Computes the Jacobian of correlation with respect to distance_scale
@@ -70,11 +70,7 @@ cdef void compute_sparse_correlation_jacobian(
     # Find column of csr matrix
     cdef int column = matrix_column_indices[index_pointer]
 
-    # The case at zero distance. Assume the kernel is symmetric  at zero.
-    # Even if the kernel does not have a continuous first derivative at zero,
-    # we average the derivative at discontinuity. But because we assume the
-    # kernel extends as an even function to the negative length, we set the
-    # derivative at zero to be zero.
+    # The case at zero distance.
     if row == column:
         for p in range(dimension):
             matrix_data[p, index_pointer] = 0.0
@@ -86,7 +82,7 @@ cdef void compute_sparse_correlation_jacobian(
             distance_scale,
             dimension)
 
-    cdef double d1_k = kernel.cy_kernel_first_derivative(distance)
+    cdef double d1_kernel = kernel.cy_kernel_first_derivative(distance)
 
     # Derivative of distance w.r.t one of the components of distance_scale
     cdef double d1_distance
@@ -94,11 +90,11 @@ cdef void compute_sparse_correlation_jacobian(
     for p in range(dimension):
 
         # derivative of distance w.r.t the p-th component of distance_scale
-        d1_distance = -(points[row, p] - points[column, p]) / \
+        d1_distance = -(points[row, p] - points[column, p])**2 / \
             (distance * distance_scale[p]**3)
 
         # Derivative of correlation
-        matrix_data[p, index_pointer] = d1_k * d1_distance
+        matrix_data[p, index_pointer] = d1_kernel * d1_distance
 
 
 # ==================================
@@ -112,9 +108,9 @@ cdef void compute_sparse_correlation_hessian(
         const int dimension,
         const double[:] distance_scale,
         Kernel kernel,
-        long row,
-        long index_pointer,
-        long[:] matrix_column_indices,
+        int row,
+        int index_pointer,
+        int[:] matrix_column_indices,
         double[:, :, ::1] matrix_data) nogil:
     """
     Computes the Hessian of correlation with respect to distance_scale
@@ -127,11 +123,11 @@ cdef void compute_sparse_correlation_hessian(
     cdef int column = matrix_column_indices[index_pointer]
 
     # The case at zero distance
-    # if row == column:
-    #     for p in range(dimension):
-    #         for q in range(dimension):
-    #             matrix_data[p, q, index_pointer] = 0.0
-    #     return
+    if row == column:
+        for p in range(dimension):
+            for q in range(dimension):
+                matrix_data[p, q, index_pointer] = 0.0
+        return
 
     cdef double distance = euclidean_distance(
             points[row][:],
@@ -139,40 +135,42 @@ cdef void compute_sparse_correlation_hessian(
             distance_scale,
             dimension)
 
-    cdef double d1_k = kernel.cy_kernel_first_derivative(distance)
-    cdef double d2_k = kernel.cy_kernel_second_derivative(distance)
+    cdef double d1_kernel = kernel.cy_kernel_first_derivative(distance)
+    cdef double d2_kernel = kernel.cy_kernel_second_derivative(distance)
 
     # Derivative of distance w.r.t one of the components of distance_scale
-    cdef double dl_distance
     cdef double dp_distance
-    cdef double dlp_distance
+    cdef double dq_distance
+    cdef double dpq_distance
 
     for p in range(dimension):
         for q in range(p, dimension):
 
             # derivative of distance w.r.t the p-th component of distance_scale
-            dl_distance = -(points[row, p] - points[column, p]) / \
+            dp_distance = -(points[row, p] - points[column, p])**2 / \
                 (distance * distance_scale[p]**3)
 
             # derivative of distance w.r.t the p-th component of distance_scale
             if q == p:
-                dp_distance = dl_distance
+                dq_distance = dp_distance
             else:
-                dp_distance = -(points[row, q] - points[column, q]) / \
-                    (distance * distance_scale[p]**3)
+                dq_distance = -(points[row, q] - points[column, q])**2 / \
+                    (distance * distance_scale[q]**3)
 
             # Second mixed derivative of distance w.r.t the p and q component
             if q == p:
-                dlp_distance = (points[row, p] - points[column, p]) / \
-                        (3.0 / (distance_scale[p]**4 * distance) +
-                         dl_distance / (distance_scale[p]**3 * distance**2))
+                dpq_distance = ((points[row, p] - points[column, p])**2 /
+                                (distance * distance_scale[p]**3)) * \
+                        (3.0 / distance_scale[p] + dp_distance / distance)
             else:
-                dlp_distance = (points[row, p] - points[column, p]) / \
-                        (distance**2 * distance_scale[p]**3) * dp_distance
+                dpq_distance = ((points[row, p] - points[column, p])**2 /
+                                (distance**2 * distance_scale[p]**3)) * \
+                                        dq_distance
 
             # Second partial derivative of correlation w.r.t p and q components
             matrix_data[p, q, index_pointer] = \
-                d2_k * dl_distance * dp_distance + d1_k * dlp_distance
+                d2_kernel * dp_distance * dq_distance + \
+                d1_kernel * dpq_distance
 
             # Using symmetry of Hessian
             if q != p:

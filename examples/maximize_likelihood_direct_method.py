@@ -31,8 +31,9 @@ from gaussian_proc import GaussianProcess
 def main():
 
     # Generate points
-    num_points = 30
-    dimension = 2
+    # num_points = 30
+    num_points = 100
+    dimension = 1
     grid = True
     points = generate_points(num_points, dimension, grid)
 
@@ -45,10 +46,11 @@ def main():
 
     # Correlation
     # kernel = Matern()
-    # kernel = Exponential()
+    kernel = Exponential()
     # kernel = SquareExponential()
-    kernel = RationalQuadratic()
-    cor = Correlation(points, kernel=kernel, distance_scale=0.1, sparse=False)
+    # kernel = RationalQuadratic()
+    # cor = Correlation(points, kernel=kernel, distance_scale=0.1, sparse=False)
+    cor = Correlation(points, kernel=kernel, sparse=False)
 
     # Covariance
     cov = Covariance(cor)
@@ -57,21 +59,29 @@ def main():
     gp = GaussianProcess(mean, cov)
 
     # Trainign options
-    likelihood_method = 'direct'
-    # likelihood_method = 'profiled'
+    # likelihood_method = 'direct'
+    likelihood_method = 'profiled'
 
     # optimization_method = 'Nelder-Mead'
-    # optimization_method = 'BFGS'         # requires jacobian
-    # optimization_method = 'CG'           # requires jacobian
-    optimization_method = 'Newton-CG'      # requires jacobian, hessian
-    # optimization_method = 'dogleg'       # requires jacobian, hessian
-    # optimization_method = 'trust-exact'  # requires jacobian, hessian
-    # optimization_method = 'trust-ncg'    # requires jacobian, hessian
+    # optimization_method = 'BFGS'         # requires func, jacobian
+    # optimization_method = 'CG'           # requires func, jacobian
+    optimization_method = 'Newton-CG'      # requires func, jacobian, hessian
+    # optimization_method = 'dogleg'       # requires func, jacobian, hessian
+    # optimization_method = 'trust-exact'  # requires func, jacobian, hessian
+    # optimization_method = 'trust-ncg'    # requires func, jacobian, hessian
+    # optimization_method = 'chandrupatla' # requires jacobian
+
+    # hyperparam_guess = [0]
+    # hyperparam_guess = [0, 0.1, 0.1]
+    hyperparam_guess = [0, 0.1]
+    # hyperparam_guess = [0.1, 0.1]
+    # hyperparam_guess = [0.1, 0.1, 0.1, 0.1]
 
     t0 = time.time()
     # gp.train(z, options=options, plot=False)
     gp.train(z, likelihood_method=likelihood_method,
-             optimization_method=optimization_method)
+             optimization_method=optimization_method,
+             hyperparam_guess=hyperparam_guess)
     t1 = time.time()
     print('Elapsed time: %0.2f' % (t1 - t0))
 

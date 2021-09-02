@@ -217,8 +217,8 @@ cdef void _generate_correlation_matrix_jacobian(
         const double[:] distance_scale,
         Kernel kernel,
         const int num_threads,
-        long[:] matrix_column_indices,
-        long[:] matrix_index_pointer,
+        int[:] matrix_column_indices,
+        int[:] matrix_index_pointer,
         double[:, ::1] matrix_data) nogil:
     """
     Generates the Jcobian of a sparse correlation matrix.
@@ -329,8 +329,8 @@ cdef void _generate_correlation_matrix_hessian(
         const double[:] distance_scale,
         Kernel kernel,
         const int num_threads,
-        long[:] matrix_column_indices,
-        long[:] matrix_index_pointer,
+        int[:] matrix_column_indices,
+        int[:] matrix_index_pointer,
         double[:, :, ::1] matrix_data) nogil:
     """
     Generates the Jcobian of a sparse correlation matrix.
@@ -777,7 +777,7 @@ def generate_sparse_correlation(
 
     success = 0
 
-    if derivative == 0:
+    if len(derivative) == 0:
 
         # Try with the estimated nnz. If not enough, we will double and retry
         while not bool(success):
@@ -826,7 +826,7 @@ def generate_sparse_correlation(
 
         return correlation_matrix
 
-    elif derivative == 1:
+    elif len(derivative) == 1:
 
         if correlation_matrix is None:
             raise ValueError('To compute the Jacobian of a sparse ' +
@@ -858,21 +858,17 @@ def generate_sparse_correlation(
                 matrix_index_pointer,
                 matrix_data)
 
-        # Extend indices for each dimension of matrix_data
-        matrix_column_indices = numpy.tile(matrix_column_indices,
-                                           dimension)
-        matrix_index_pointer = numpy.tile(matrix_index_pointer,
-                                          dimension)
-        matrix_data = matrix_data.ravel(order='F')
-
         # Construct the correlation matrix from indices
-        correlation_matrix_jacobian = scipy.sparse.csr_matrix(
-                (matrix_data, matrix_column_indices, matrix_index_pointer),
-                shape=(dimension, matrix_size, matrix_size))
+        correlation_list_jacobian = [None] * dimension
+        for p in range(dimension):
+            correlation_list_jacobian[p] = scipy.sparse.csr_matrix(
+                    (matrix_data[p, :], matrix_column_indices,
+                     matrix_index_pointer),
+                    shape=(matrix_size, matrix_size))
 
-        return correlation_matrix_jacobian
+        return correlation_list_jacobian
 
-    elif derivative == 2:
+    elif len(derivative) == 2:
 
         if correlation_matrix is None:
             raise ValueError('To compute the Hessian of a sparse ' +
@@ -904,19 +900,17 @@ def generate_sparse_correlation(
                 matrix_index_pointer,
                 matrix_data)
 
-        # Extend indices for each dimension of matrix_data
-        matrix_column_indices = numpy.tile(matrix_column_indices,
-                                           dimension**2)
-        matrix_index_pointer = numpy.tile(matrix_index_pointer,
-                                          dimension**2)
-        matrix_data = matrix_data.ravel(order='F')
-
         # Construct the correlation matrix from indices
-        correlation_matrix_hessian = scipy.sparse.csr_matrix(
-                (matrix_data, matrix_column_indices, matrix_index_pointer),
-                shape=(dimension, dimension, matrix_size, matrix_size))
+        correlation_list_hessian = [[] for _ in range(dimension)]
+        for p in range(dimension):
+            correlation_list_hessian[p] = [None] * dimension
+            for q in range(dimension):
+                correlation_list_hessian[p][q] = scipy.sparse.csr_matrix(
+                        (matrix_data[p, q, :], matrix_column_indices,
+                         matrix_index_pointer),
+                        shape=(matrix_size, matrix_size))
 
-        return correlation_matrix_hessian
+        return correlation_list_hessian
 
     else:
-        raise ValueError('"derivative" can be 0, 1, or 2.')
+        raise ValueError('"derivative" order can be 0, 1, or 2.')

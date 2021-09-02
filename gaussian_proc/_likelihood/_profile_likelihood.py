@@ -23,6 +23,8 @@ from .._utilities.plot_utilities import *                    # noqa: F401, F403
 from .._utilities.plot_utilities import load_plot_settings, save_plot, plt, \
         mark_inset, InsetPosition
 from ._root_finding import find_interval_with_sign_change, chandrupatla_method
+from ._likelihood_utilities import M_dot
+import imate
 
 
 # ==================
@@ -35,7 +37,7 @@ class ProfileLikelihood(object):
     # Log Likelihood
     # ==============
 
-    def log_likelihood(z, X, K_mixed, sign_switch, hyperparam):
+    def log_likelihood(z, X, mixed_cor, sign_switch, hyperparam):
         """
         Log likelihood function
 
@@ -49,21 +51,35 @@ class ProfileLikelihood(object):
 
         hyperparam = [sigma, eta]
 
-        sign_switch chnages the sign of the output from lp to -lp. When True,
-        this is used to minimizing (instad of maximizing) the negative of
+        sign_switch changes the sign of the output from lp to -lp. When True,
+        this is used to minimizing (instead of maximizing) the negative of
         log-likelihood function.
         """
 
-        # hyperparam
-        sigma = hyperparam[0]
-        eta = hyperparam[1]
+        # Include derivative w.r.t distance_scale
+        if hyperparam.size > 1:
+            distance_scale = numpy.abs(hyperparam[1:])
+            mixed_cor.set_distance_scale(distance_scale)
 
-        logdet_Kn = K_mixed.logdet(eta)
+        # hyperparam
+        if numpy.isscalar(hyperparam):
+            log_eta = hyperparam
+        else:
+            log_eta = hyperparam[0]
+
+        # Change log_eta to eta
+        if numpy.isneginf(log_eta):
+            eta = 0.0
+        else:
+            eta = 10.0**log_eta
+        sigma = ProfileLikelihood.find_optimal_sigma(z, X, mixed_cor, eta)
+
+        logdet_Kn = mixed_cor.logdet(eta)
 
         # Compute log det (X.T Kn_inv X)
         n, m = X.shape
-        Y = K_mixed.solve(eta, X)
-        w = K_mixed.solve(eta, z)
+        Y = mixed_cor.solve(eta, X)
+        w = mixed_cor.solve(eta, z)
 
         XtKninvX = numpy.matmul(X.T, Y)
         logdet_XtKninvX = numpy.log(numpy.linalg.det(XtKninvX))
@@ -89,12 +105,18 @@ class ProfileLikelihood(object):
     # log likelihood der1 eta
     # =======================
 
-    def log_likelihood_der1_eta(z, X, K_mixed, log_eta):
+    def log_likelihood_der1_eta(z, X, mixed_cor, hyperparam):
         """
         lp is the log likelihood probability. lp_deta is d(lp)/d(eta), is the
         derivative of lp with respect to eta when the optimal value of sigma is
         subtituted in the likelihood function per given eta.
         """
+
+        # hyperparam
+        if numpy.isscalar(hyperparam):
+            log_eta = hyperparam
+        else:
+            log_eta = hyperparam[0]
 
         # Change log_eta to eta
         if numpy.isneginf(log_eta):
@@ -102,9 +124,14 @@ class ProfileLikelihood(object):
         else:
             eta = 10.0**log_eta
 
+        # Include derivative w.r.t distance_scale
+        if hyperparam.size > 1:
+            distance_scale = numpy.abs(hyperparam[1:])
+            mixed_cor.set_distance_scale(distance_scale)
+
         # Compute Kn_inv*X and Kn_inv*z
-        Y = K_mixed.solve(eta, X)
-        w = K_mixed.solve(eta, z)
+        Y = mixed_cor.solve(eta, X)
+        w = mixed_cor.solve(eta, z)
 
         n, m = X.shape
 
@@ -117,7 +144,7 @@ class ProfileLikelihood(object):
         Mz = w - Y_Binv_Ytz
 
         # Traces
-        trace_Kninv = K_mixed.traceinv(eta)
+        trace_Kninv = mixed_cor.traceinv(eta)
         YtY = numpy.matmul(Y.T, Y)
         TraceBinvYtY = numpy.trace(numpy.matmul(Binv, YtY))
         # TraceBinvYtY = numpy.trace(numpy.matmul(Y, numpy.matmul(Binv, Y.T)))
@@ -130,23 +157,44 @@ class ProfileLikelihood(object):
         # dlp_deta = -0.5*((TraceM/(n-m))*zMz - zM2z)
         dlp_deta = -0.5*(TraceM - zM2z/sigma02)
 
-        return dlp_deta
+        # Return as scalar or array of length one
+        if numpy.isscalar(hyperparam):
+            return dlp_deta
+        else:
+            return numpy.array([dlp_deta], dtype=float)
 
     # =======================
     # log likelihood der2 eta
     # =======================
 
     @staticmethod
-    def log_likelihood_der2_eta(z, X, K_mixed, eta):
+    def log_likelihood_der2_eta(z, X, mixed_cor, hyperparam):
         """
         The second derivative of lp is computed as a function of only eta.
         Here, we substituted optimal value of sigma, which istself is a
         function of eta.
         """
 
-        Y = K_mixed.solve(eta, X)
-        V = K_mixed.solve(eta, Y)
-        w = K_mixed.solve(eta, z)
+        # hyperparam
+        if numpy.isscalar(hyperparam):
+            log_eta = hyperparam
+        else:
+            log_eta = hyperparam[0]
+
+        # Change log_eta to eta
+        if numpy.isneginf(log_eta):
+            eta = 0.0
+        else:
+            eta = 10.0**log_eta
+
+        # Include derivative w.r.t distance_scale
+        if hyperparam.size > 1:
+            distance_scale = numpy.abs(hyperparam[1:])
+            mixed_cor.set_distance_scale(distance_scale)
+
+        Y = mixed_cor.solve(eta, X)
+        V = mixed_cor.solve(eta, Y)
+        w = mixed_cor.solve(eta, z)
 
         n, m = X.shape
 
@@ -159,14 +207,14 @@ class ProfileLikelihood(object):
         Mz = w - Y_Binv_Ytz
 
         # Trace of M
-        trace_Kninv = K_mixed.traceinv(eta)
+        trace_Kninv = mixed_cor.traceinv(eta)
         YtY = numpy.matmul(Y.T, Y)
         A = numpy.matmul(Binv, YtY)
         trace_A = numpy.trace(A)
         trace_M = trace_Kninv - trace_A
 
         # Trace of M**2
-        trace_Kn2inv = K_mixed.traceinv(eta, exponent=2)
+        trace_Kn2inv = mixed_cor.traceinv(eta, exponent=2)
         YtV = numpy.matmul(Y.T, V)
         C = numpy.matmul(Binv, YtV)
         trace_C = numpy.trace(C)
@@ -178,7 +226,7 @@ class ProfileLikelihood(object):
         YtMz = numpy.matmul(Y.T, Mz)
         Binv_YtMz = numpy.matmul(Binv, YtMz)
         Y_Binv_YtMz = numpy.matmul(Y, Binv_YtMz)
-        v = K_mixed.solve(eta, Mz)
+        v = mixed_cor.solve(eta, Mz)
         MMz = v - Y_Binv_YtMz
 
         # Second derivative (only at the location ofzero first derivative)
@@ -190,7 +238,116 @@ class ProfileLikelihood(object):
         d2lp_deta2 = (0.5/sigma02) * \
             ((trace_M2/(n-m) + (trace_M/(n-m))**2) * zMz - 2.0*zM3z)
 
-        return d2lp_deta2
+        # Return as scalar or array of length one
+        if numpy.isscalar(hyperparam):
+            return d2lp_deta2
+        else:
+            return numpy.array([d2lp_deta2])
+
+    # =======================
+    # log likelihood jacobian
+    # =======================
+
+    @staticmethod
+    def log_likelihood_jacobian(z, X, cov, sign_switch, hyperparam):
+        """
+        Computes Jacobian w.r.t eta, and if given, distance_scale.
+        """
+
+        # -------------------------------
+        # 1. Compute derivative w.r.t eta
+        # -------------------------------
+
+        # Derivative w.r.t eta
+        jacobian = ProfileLikelihood.log_likelihood_der1_eta(
+                z, X, cov.mixed_cor, hyperparam)
+
+        # ------------------------------------------
+        # 2. Compute derivative w.r.t distance_scale
+        # ------------------------------------------
+
+        # # Compute Jacobian w.r.t distance_scale
+        if hyperparam.size > 1:
+
+            # Update covariance with the given distance_scale
+            distance_scale = numpy.abs(hyperparam[1:])
+            cov.set_distance_scale(distance_scale)
+
+            # Initialize jacobian
+            der1_distance_scale = numpy.zeros((distance_scale.size, ),
+                                              dtype=float)
+
+            # hyperparameters
+            log_eta = hyperparam[0]
+            if numpy.isneginf(log_eta):
+                eta = 0.0
+            else:
+                eta = 10.0**log_eta
+
+            # Find optimal sigma based on eta. Then compute sigma0
+            sigma = ProfileLikelihood.find_optimal_sigma(z, X, cov.mixed_cor,
+                                                         eta)
+            sigma0 = numpy.sqrt(eta * sigma**2)
+
+            n, m = X.shape
+
+            # Computing Y=Sinv*X and w=Sinv*z.
+            Y = cov.solve(sigma, sigma0, X)
+
+            # B is Xt * Y
+            B = numpy.matmul(X.T, Y)
+            Binv = numpy.linalg.inv(B)
+
+            # Compute Mz
+            Mz = M_dot(cov, Binv, Y, sigma, sigma0, z)
+
+            # Needed to compute trace (TODO)
+            S = cov.get_matrix(sigma, sigma0)
+            Sinv = numpy.linalg.inv(S)
+
+            # Sp is the derivative of cov w.r.t the p-th element of
+            # distance_scale.
+            for p in range(distance_scale.size):
+
+                # Compute zMSpMz
+                # SpMz = cov.dot(sigma, sigma0, Mz, derivative=[p])
+                # zMSpMz = numpy.dot(Mz, SpMz)
+                #
+                # # Compute the first component of trace of Sp * Sinv (TODO)
+                # Sp = cov.get_matrix(sigma, sigma0, derivative=[p])
+                # SpSinv = numpy.matmul(Sp, Sinv)
+                # trace_SpSinv, _ = imate.trace(SpSinv, method='exact')
+                #
+                # # Compute the second component of trace of Sp * M
+                # SpY = cov.dot(sigma, sigma0, Y, derivative=[p])
+                # YtSpY = numpy.matmul(Y.T, SpY)
+                # BinvYtSpY = numpy.matmul(Binv, YtSpY)
+                # trace_BinvYtSpY = numpy.trace(BinvYtSpY)
+                #
+                # # Compute trace of Sp * M
+                # trace_SpM = trace_SpSinv - trace_BinvYtSpY
+                #
+                # # Derivative of lp w.r.t p-th element of distance scale
+                # der1_distance_scale[p] = -0.5*trace_SpM + 0.5*zMSpMz
+
+                # Test
+                Sp = cov.get_matrix(sigma, sigma0, derivative=[p])
+                Y = Sinv @ X
+                B = X.T @ Y
+                Binv = numpy.linalg.inv(B)
+                YBinvYt = Y @ Binv @ Y.T
+                M = Sinv - YBinvYt
+
+                der1_distance_scale[p] = -0.5*numpy.trace(Sp@M) + \
+                        0.5*numpy.dot(z, numpy.dot(M@Sp@M, z))
+
+            # Concatenate jacobian
+            jacobian = numpy.r_[jacobian, der1_distance_scale]
+
+        if sign_switch:
+            jacobian = -jacobian
+
+        return jacobian
 
     # ======================================
     # maximize log likelihood with sigma eta
@@ -198,7 +355,7 @@ class ProfileLikelihood(object):
 
     @staticmethod
     def maximize_log_likelihood_with_sigma_eta(
-            z, X, K_mixed,
+            z, X, mixed_cor,
             tol=1e-6, hyperparam_guess=[0.1, 0.1], method='Nelder-Mead'):
         """
         Maximizing the log-likelihood function over the space of
@@ -210,7 +367,7 @@ class ProfileLikelihood(object):
         # Partial function with minus to make maximization to a minimization
         sign_switch = True
         log_likelihood_partial_function = partial(
-                ProfileLikelihood.log_likelihood, z, X, K_mixed, sign_switch)
+                ProfileLikelihood.log_likelihood, z, X, mixed_cor, sign_switch)
 
         # Minimize
         # method = 'BFGS'
@@ -238,11 +395,55 @@ class ProfileLikelihood(object):
 
         return results
 
+    # ==================
+    # find optimal sigma
+    # ==================
+
+    @staticmethod
+    def find_optimal_sigma(z, X, mixed_cor, eta):
+        """
+        Based on a given eta, finds optimal sigma
+        """
+
+        Y = mixed_cor.solve(eta, X)
+        w = mixed_cor.solve(eta, z)
+
+        n, m = X.shape
+        B = numpy.matmul(X.T, Y)
+        Binv = numpy.linalg.inv(B)
+        Ytz = numpy.matmul(Y.T, z)
+        v = numpy.matmul(Y, numpy.matmul(Binv, Ytz))
+        sigma2 = numpy.dot(z, w-v) / (n-m)
+        sigma = numpy.sqrt(sigma2)
+
+        return sigma
+
+    # ===================
+    # find optimal sigma0
+    # ===================
+
+    @staticmethod
+    def find_optimal_sigma0(z, X):
+        """
+        When eta is very large, we assume sigma is zero. Thus, sigma0 is
+        computed by this function.
+        """
+
+        n, m = X.shape
+        B = numpy.matmul(X.T, X)
+        Binv = numpy.linalg.inv(B)
+        Xtz = numpy.matmul(X.T, z)
+        v = numpy.matmul(X, numpy.matmul(Binv, Xtz))
+        sigma02 = numpy.dot(z, z-v) / (n-m)
+        sigma0 = numpy.sqrt(sigma02)
+
+        return sigma0
+
     # ==============================
     # find log likelihood der1 zeros
     # ==============================
 
-    def find_log_likelihood_der1_zeros(z, X, K_mixed, interval_eta, tol=1e-6,
+    def find_log_likelihood_der1_zeros(z, X, mixed_cor, interval_eta, tol=1e-6,
                                        max_iterations=100,
                                        num_bracket_trials=3):
         """
@@ -253,50 +454,6 @@ class ProfileLikelihood(object):
         eta.
         """
 
-        # ------------------
-        # find optimal sigma
-        # ------------------
-
-        def find_optimal_sigma(z, X, K_mixed, eta):
-            """
-            Based on a given eta, finds optimal sigma
-            """
-
-            Y = K_mixed.solve(eta, X)
-            w = K_mixed.solve(eta, z)
-
-            n, m = X.shape
-            B = numpy.matmul(X.T, Y)
-            Binv = numpy.linalg.inv(B)
-            Ytz = numpy.matmul(Y.T, z)
-            v = numpy.matmul(Y, numpy.matmul(Binv, Ytz))
-            sigma2 = numpy.dot(z, w-v) / (n-m)
-            sigma = numpy.sqrt(sigma2)
-
-            return sigma
-
-        # -------------------
-        # find optimal sigma0
-        # -------------------
-
-        def find_optimal_sigma0(z, X):
-            """
-            When eta is very large, we assume sigma is zero. Thus, sigma0 is
-            computed by this function.
-            """
-
-            n, m = X.shape
-            B = numpy.matmul(X.T, X)
-            Binv = numpy.linalg.inv(B)
-            Xtz = numpy.matmul(X.T, z)
-            v = numpy.matmul(X, numpy.matmul(Binv, Xtz))
-            sigma02 = numpy.dot(z, z-v) / (n-m)
-            sigma0 = numpy.sqrt(sigma02)
-
-            return sigma0
-
-        # -----------------
-
         print('Find root of log likelihood derivative ...')
 
         # Find an interval that the function changes sign before finding its
@@ -306,7 +463,7 @@ class ProfileLikelihood(object):
 
         # Partial function with minus to make maximization to a minimization
         log_likelihood_der1_eta_partial_function = partial(
-                ProfileLikelihood.log_likelihood_der1_eta, z, X, K_mixed)
+                ProfileLikelihood.log_likelihood_der1_eta, z, X, mixed_cor)
 
         # Initial points
         bracket = [log_eta_start, log_eta_end]
@@ -338,13 +495,13 @@ class ProfileLikelihood(object):
             # Extract results
             # eta = 10**res.root                       # Use with Brent
             eta = 10**res['root']                      # Use with Chandrupatla
-            sigma = find_optimal_sigma(z, X, K_mixed, eta)
+            sigma = ProfileLikelihood.find_optimal_sigma(z, X, mixed_cor, eta)
             sigma0 = numpy.sqrt(eta) * sigma
 
             # Check second derivative
             # success = True
             # d2lp_deta2 = ProfileLikelihood.log_likelihood_der2_eta(
-            #         z, X, K_mixed, eta)
+            #         z, X, mixed_cor, eta)
             # if d2lp_deta2 < 0:
             #     success = True
             # else:
@@ -364,11 +521,11 @@ class ProfileLikelihood(object):
             eta_zero = 0.0
             # method 1: directly from analytical equation
             d2lp_deta2_zero_eta = ProfileLikelihood.log_likelihood_der2_eta(
-                    z, X, K_mixed, eta_zero)
+                    z, X, mixed_cor, eta_zero)
 
             # method 2: usng forward differencing from first derivative
             # dlp_deta_zero_eta = ProfileLikelihood.log_likelihood_der1_eta(
-            #         z, X, K_mixed, numpy.log10(eta_zero))
+            #         z, X, mixed_cor, numpy.log10(eta_zero))
             # d2lp_deta2_zero_eta = \
             #         (dlp_deta_lowest_eta - dlp_deta_zero_eta) / eta_lowest
 
@@ -396,10 +553,11 @@ class ProfileLikelihood(object):
             # Find sigma and sigma0
             if eta == 0:
                 sigma0 = 0
-                sigma = find_optimal_sigma(z, X, K_mixed, eta)
+                sigma = ProfileLikelihood.find_optimal_sigma(
+                        z, X, mixed_cor, eta)
             elif eta == numpy.inf:
                 sigma = 0
-                sigma0 = find_optimal_sigma0(z, X)
+                sigma0 = ProfileLikelihood.find_optimal_sigma0(z, X)
             else:
                 raise ValueError('eta must be zero or inf at this point.')
 
@@ -412,12 +570,95 @@ class ProfileLikelihood(object):
 
         return results
 
+    # =======================
+    # maximize log likelihood
+    # =======================
+
+    @staticmethod
+    def maximize_log_likelihood(
+            z, X, cov,
+            tol=1e-3,
+            hyperparam_guess=[0.1, 0.1],
+            optimization_method='Nelder-Mead'):
+        """
+        Maximizing the log-likelihood function over the space of parameters
+        sigma and sigma0
+
+        In this function, hyperparam = [sigma, sigma0].
+        """
+
+        if optimization_method == 'chandrupatla' and \
+                len(hyperparam_guess) == 1:
+
+            # Note: When using interpolation, make sure the interval below is
+            # exactly the end points of eta_i, not less or more.
+            interval_eta = [1e-4, 1e+3]
+
+            # Using root finding method on the first derivative w.r.t eta
+            result = ProfileLikelihood.find_log_likelihood_der1_zeros(
+                    z, X, cov.mixed_cor, interval_eta)
+
+            # Finding the maxima. This isn't necessary and affects run time
+            result['max_lp'] = ProfileLikelihood.log_likelihood(
+                    z, X, cov, False, result['eta'])
+
+        else:
+            # Partial function of likelihood (with minus to make maximization
+            # to a minimization).
+            sign_switch = True
+            log_likelihood_partial_func = partial(
+                    ProfileLikelihood.log_likelihood, z, X, cov.mixed_cor,
+                    sign_switch)
+
+            # Partial function of Jacobian of likelihood (with minus sign)
+            jacobian_partial_func = partial(
+                    ProfileLikelihood.log_likelihood_jacobian, z, X, cov,
+                    sign_switch)
+
+            # Partial function of Hessian of likelihood (with minus sign)
+            # hessian_partial_func = partial(
+            #         ProfileLikelihood.log_likelihood_hessian, z, X,
+            #         cov, sign_switch)
+
+            # Minimize
+            res = scipy.optimize.minimize(log_likelihood_partial_func,
+                                          hyperparam_guess,
+                                          method=optimization_method, tol=tol,
+                                          jac=jacobian_partial_func)
+                                          # hess=hessian_partial_func)
+
+            print('Iter: %d, Eval: %d, Success: %s'
+                  % (res.nit, res.nfev, res.success))
+
+            print(res)
+
+            # Extract res
+            log_eta = res.x[0]
+            if numpy.isneginf(log_eta):
+                eta = 0.0
+            else:
+                eta = 10.0**log_eta
+            sigma = ProfileLikelihood.find_optimal_sigma(z, X, cov.mixed_cor,
+                                                         eta)
+            sigma0 = numpy.sqrt(eta * sigma**2)
+            max_lp = -res.fun
+
+            # Output dictionary
+            result = {
+                'sigma': sigma,
+                'sigma0': sigma0,
+                'eta': eta,
+                'max_lp': max_lp
+            }
+
+        return result
+
     # ===================
     # plot log likelihood
     # ===================
 
     @staticmethod
-    def plot_log_likelihood(z, X, K_mixed):
+    def plot_log_likelihood(z, X, mixed_cor):
         """
         Plots log likelihood versus sigma, eta hyperparam
         """
@@ -428,7 +669,7 @@ class ProfileLikelihood(object):
         for i in range(eta.size):
             for j in range(sigma.size):
                 lp[i, j] = ProfileLikelihood.log_likelihood(
-                        z, X, K_mixed, False, [sigma[j], eta[i]])
+                        z, X, mixed_cor, False, [sigma[j], eta[i]])
 
         [sigma_mesh, eta_mesh] = numpy.meshgrid(sigma, eta)
 
@@ -544,7 +785,7 @@ class ProfileLikelihood(object):
     # ============================
 
     @staticmethod
-    def plot_log_likelihood_der1_eta(z, X, K, K_mixed, optimal_eta):
+    def plot_log_likelihood_der1_eta(z, X, K, mixed_cor, optimal_eta):
         """
         Plots the derivative of log likelihood as a function of eta.
         Also it shows where the optimal eta is, which is the location
@@ -591,7 +832,7 @@ class ProfileLikelihood(object):
         dlp_deta = numpy.zeros(eta.size)
         for i in range(eta.size):
             dlp_deta[i] = ProfileLikelihood.log_likelihood_der1_eta(
-                    z, X, K_mixed, numpy.log10(eta[i]))
+                    z, X, mixed_cor, numpy.log10(eta[i]))
 
         # Compute upper and lower bound of derivative
         dlp_deta_upper_bound, dlp_deta_lower_bound = \

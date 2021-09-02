@@ -32,9 +32,9 @@ cdef void compute_sparse_correlation_jacobian(
         const int dimension,
         const double[:] distance_scale,
         Kernel kernel,
-        long row,
-        long index_pointer,
-        long[:] matrix_column_indices,
+        int row,
+        int index_pointer,
+        int[:] matrix_column_indices,
         double[:, ::1] matrix_data) nogil
 
 # Compute sparse correlation hessian
@@ -43,7 +43,7 @@ cdef void compute_sparse_correlation_hessian(
         const int dimension,
         const double[:] distance_scale,
         Kernel kernel,
-        long row,
-        long index_pointer,
-        long[:] matrix_column_indices,
+        int row,
+        int index_pointer,
+        int[:] matrix_column_indices,
         double[:, :, ::1] matrix_data) nogil

@@ -32,10 +32,10 @@ class Likelihood(object):
         """
 
         self.mean = mean
-        self.S_mixed = cov
+        self.cov = cov
 
         self.X = self.mean.X
-        self.K_mixed = self.S_mixed.K_mixed
+        self.mixed_cor = self.cov.mixed_cor
 
     # ==========
     # likelihood
@@ -46,7 +46,7 @@ class Likelihood(object):
         """
 
         sign_switch = False
-        return DirectLikelihood.log_likelihood(z, self.X, self.S_mixed,
+        return DirectLikelihood.log_likelihood(z, self.X, self.cov,
                                                sign_switch, hyperparam)
 
     # =======================
@@ -56,6 +56,7 @@ class Likelihood(object):
     def maximize_log_likelihood(
             self,
             z,
+            hyperparam_guess,
             likelihood_method='direct',
             optimization_method='Newton-CG',
             plot=False):
@@ -63,9 +64,15 @@ class Likelihood(object):
         """
 
         if likelihood_method == 'direct':
+
+            if optimization_method == 'chandrupatla':
+                raise ValueError('"chandrupatla" method can only be used ' +
+                                 'with "profiled" likelihood method.')
+
+            # Find hyperparam
             results = DirectLikelihood.maximize_log_likelihood(
-                    z, self.X, self.S_mixed, tol=1e-3,
-                    hyperparam_guess=[0.1, 0.1],
+                    z, self.X, self.cov, tol=1e-3,
+                    hyperparam_guess=hyperparam_guess,
                     optimization_method=optimization_method)
 
             # Plot log likelihood
@@ -73,31 +80,30 @@ class Likelihood(object):
                 optimal_sigma = results['sigma']
                 optimal_sigma0 = results['sigma0']
                 optimal_hyperparam = [optimal_sigma, optimal_sigma0]
-                DirectLikelihood.plot_log_likelihood(z, self.X, self.S_mixed,
+                DirectLikelihood.plot_log_likelihood(z, self.X, self.cov,
                                                      optimal_hyperparam)
 
             # return ProfileLikelihood.maximize_log_likelihood_with_sigma_eta(
-            #         z, self.X, self.K_mixed)
+            #         z, self.X, self.mixed_cor)
 
         elif likelihood_method == 'profiled':
 
-            # Note: When using interpolation, make sure the interval below is
-            # exactly the end points of eta_i, not less or more.
-            interval_eta = [1e-4, 1e+3]
+            if optimization_method == 'chandrupatla' and \
+                    len(hyperparam_guess) > 1:
+                raise ValueError('Length of "hyperparam_guess" should be one' +
+                                 'when "chandrupatla" optimization method ' +
+                                 'used.')
 
             # Find hyperparam
-            results = ProfileLikelihood.find_log_likelihood_der1_zeros(
-                    z, self.X, self.K_mixed, interval_eta)
-
-            # Finding the maxima. This isn't neccessary and affects run time
-            # results['max_lp'] = ProfileLikelihood.log_likelihood(
-            #         z, self.X, self.K_mixed, False,
-            #         [results['sigma'], results['eta']])
+            results = ProfileLikelihood.maximize_log_likelihood(
+                    z, self.X, self.cov, tol=1e-3,
+                    hyperparam_guess=hyperparam_guess,
+                    optimization_method=optimization_method)
 
             # Plot first derivative of log likelihood
             if plot:
                 optimal_eta = results['eta']
                 ProfileLikelihood.plot_log_likelihood_der1_eta(
-                        z, self.X, self.K, self.K_mixed, optimal_eta)
+                        z, self.X, self.K, self.mixed_cor, optimal_eta)
 
         return results

@@ -12,9 +12,11 @@
 # ======
 
 import numpy
+import scipy.linalg
 from ._generate_dense_correlation import generate_dense_correlation
 from ._generate_sparse_correlation import generate_sparse_correlation
 from ..kernels import Kernel, Matern
+import imate
 
 try:
     from .._utilities.plot_utilities import matplotlib, plt
@@ -72,12 +74,31 @@ class Correlation(object):
         self.points = points
         self.sparse = sparse
         self.density = density
-        self.distance_scale = self.set_distance_scale(distance_scale)
+        self.matrix_size = points.shape[0]
+        self.dimension = points.shape[1]
+
+        # Set distance scale
+        if distance_scale is None:
+            # By initializing distance_scale to None in the constructor, it
+            # will be determined later as variable to the optimization problem
+            self.distance_scale = None
+        else:
+            self.distance_scale = self.set_distance_scale(distance_scale)
 
         # Initialize correlation matrix
         self.K_der0 = None
         self.K_der1 = None
         self.K_der2 = None
+
+        # Initialize correlation affine matrix function (amf)
+        self.K_amf_der0 = None
+        self.K_amf_der1 = None
+        self.K_amf_der2 = None
+
+        # Initialize correlation matrix eigenvalues
+        self.K_eig_der0 = None
+        self.K_eig_der1 = None
+        self.K_eig_der2 = None
 
         # Keeps which of the derivatives are updated (used only for sparse)
         self.K_der0_updated = False
@@ -97,7 +118,12 @@ class Correlation(object):
 
             # distance_scale will be either set later, or will be found as
             # additional optimization variable
-            distance_scale_ = None
+            if self.distance_scale is None:
+                raise ValueError('"distance_scale" cannot be initialized ' +
+                                 'to "None" value.')
+            else:
+                # This essentially leaves self.distance_scale unchanged.
+                distance_scale_ = self.distance_scale
 
         else:
 
@@ -134,6 +160,17 @@ class Correlation(object):
 
         return distance_scale_
 
+    # ===============
+    # get matrix size
+    # ===============
+
+    def get_matrix_size(self):
+        """
+        Returns the size of the matrix.
+        """
+
+        return self.matrix_size
+
     # ==========
     # get matrix
     # ==========
@@ -141,13 +178,143 @@ class Correlation(object):
     def get_matrix(
             self,
             distance_scale=None,
-            derivative=0,
+            derivative=[],
             plot=False,
             verbose=False):
         """
         Returns the correlation matrix. If the correlation is not available as
         a matrix, it generates the matrix from the kernel and spatial distance
         of the given points.
+        """
+
+        # Update matrix (if needed)
+        self._update_matrix(distance_scale, derivative)
+
+        if len(derivative) == 0:
+            return self.K_der0
+
+        elif len(derivative) == 1:
+            return self.K_der1[derivative[0]]
+
+        elif len(derivative) == 2:
+            return self.K_der2[derivative[0]][derivative[1]]
+
+    # ==========================
+    # get affine matrix function
+    # ==========================
+
+    def get_affine_matrix_function(
+            self,
+            distance_scale=None,
+            derivative=[],
+            plot=False,
+            verbose=False):
+        """
+        Returns an instance of ``imate.AffineMatrixFunction`` class.
+        """
+
+        # Update matrix (if needed)
+        generate_matrix = self._update_matrix(distance_scale, derivative)
+
+        if len(derivative) == 0:
+
+            if self.K_amf_der0 is None or generate_matrix:
+                # Create new affine matrix function object
+                self.K_amf_der0 = imate.AffineMatrixFunction(self.K_der0)
+
+            return self.K_amf_der0
+
+        elif len(derivative) == 1:
+
+            if self.K_amf_der1 is None or generate_matrix:
+                # Create new affine matrix function object
+                self.K_amf_der1 = [None] * self.dimension
+                for p in range(self.dimension):
+                    self.K_amf_der1[p] = imate.AffineMatrixFunction(
+                            self.K_der1[derivative[0]])
+
+            return self.K_amf_der1[derivative[0]]
+
+        elif len(derivative) == 2:
+
+            if self.K_amf_der2 is None or generate_matrix:
+                # Create new affine matrix function object
+                self.K_amf_der2 = [[] for _ in range(self.dimension)]
+                for p in range(self.dimension):
+                    self.K_amf_der2[p] = [None] * self.dimension
+                    for q in range(self.dimension):
+                        self.K_amf_der2[p][q] = imate.AffineMatrixFunction(
+                                self.K_der2[derivative[0]][derivative[1]])
+
+            return self.K_amf_der2[derivative[0]][derivative[1]]
+
+    # ===============
+    # get eigenvalues
+    # ===============
+
+    def get_eigenvalues(
+            self,
+            distance_scale=None,
+            derivative=[]):
+        """
+        Returns the eigenvalues of the correlation matrix or its derivative.
+        """
+
+        if self.sparse:
+            raise RuntimeError('When the correlation matrix is sparse, ' +
+                               'the "imate_method" cannot be set to ' +
+                               '"eigenvalue". You may set ' +
+                               '"imate_method" to "cholesky", "slq", or ' +
+                               '"hutchinson."')
+
+        # Update matrix (if needed)
+        generate_matrix = self._update_matrix(distance_scale, derivative)
+
+        if len(derivative) == 0:
+
+            if self.K_eig_der0 is None or generate_matrix:
+                self.K_eig_der0 = scipy.linalg.eigh(
+                        self.K_der0, eigvals_only=True, check_finite=False)
+
+            return self.K_eig_der0
+
+        elif len(derivative) == 1:
+
+            if self.K_eig_der1 is None or generate_matrix:
+                self.K_eig_der1 = [None] * self.dimension
+                for p in range(self.dimension):
+                    self.K_eig_der1[p] = scipy.linalg.eigh(
+                        self.K_der1[p], eigvals_only=True, check_finite=False)
+
+            return self.K_eig_der1[derivative[0]]
+
+        elif len(derivative) == 2:
+
+            if self.K_eig_der2 is None or generate_matrix:
+                self.K_eig_der2 = [[] for _ in range(self.dimension)]
+                for p in range(self.dimension):
+                    self.K_eig_der2[p] = [None] * self.dimension
+                    for q in range(self.dimension):
+                        self.K_eig_der2[p][q] = scipy.linalg.eigh(
+                                self.K_der2[p][q], eigvals_only=True,
+                                check_finite=False)
+
+            return self.K_eig_der2[derivative[0]][derivative[1]]
+
+    # =============
+    # update matrix
+    # =============
+
+    def _update_matrix(
+            self,
+            distance_scale=None,
+            derivative=[],
+            plot=False,
+            verbose=False):
+        """
+        If the matrix has not been generated before, or if the matrix settings
+        has changed, this function generates a new matrix. It returns the
+        status of whether a new matrix generated or not.
         """
 
         # distance scale (if None, uses the distance_scale that this class was
@@ -161,43 +328,45 @@ class Correlation(object):
             raise ValueError('"distance_scale" cannot be None.')
 
         # Check arguments
-        if derivative not in (0, 1, 2):
-            raise ValueError('"derivative" should be 0, 1, or 2.')
+        if len(derivative) not in (0, 1, 2):
+            raise ValueError('"derivative" order should be 0, 1, or 2.')
 
         # Initialize variable to determine whether to regenerate matrix or not.
         generate_matrix = False
-        correlation_scale_changed = False
+        distance_scale_changed = False
 
         # Note, these if conditions are independent
-        if (derivative == 0) and (self.K_der0 is None):
+        if (len(derivative) == 0) and (self.K_der0 is None):
             generate_matrix = True
-        if (derivative == 1) and (self.K_der1 is None):
+        if (len(derivative) == 1) and (self.K_der1 is None):
             generate_matrix = True
-        if (derivative == 2) and (self.K_der2 is None):
+        if (len(derivative) == 2) and (self.K_der2 is None):
             generate_matrix = True
 
         if any(self.distance_scale != distance_scale_):
             generate_matrix = True
-            correlation_scale_changed = True
+            distance_scale_changed = True
 
-        if (derivative == 0) and (not self.K_der0_updated):
+        if (len(derivative) == 0) and (not self.K_der0_updated):
             generate_matrix = True
-        if (derivative == 1) and (not self.K_der1_updated):
+        if (len(derivative) == 1) and (not self.K_der1_updated):
             generate_matrix = True
-        if (derivative == 2) and (not self.K_der2_updated):
+        if (len(derivative) == 2) and (not self.K_der2_updated):
             generate_matrix = True
 
+        # Generate new correlation matrix
         if generate_matrix:
 
             # Sparse matrix of derivative 1 and 2 needs matrix of derivative 0
-            if (derivative > 0) and self.sparse and (self.K_der0 is None):
+            if (len(derivative) > 0) and self.sparse and (self.K_der0 is None):
                 # Before generating matrix of derivative 1 or 2, first,
                 # generate correlation matrix of derivative 0
-                temp_derivative = 0
+                no_derivative = []
                 self._generate_correlation_matrix(
-                        distance_scale_, temp_derivative, self.sparse,
+                        distance_scale_, no_derivative, self.sparse,
                         self.density, plot, verbose)
 
+            # The main line where new matrix is generated
             self._generate_correlation_matrix(
                     distance_scale_, derivative, self.sparse, self.density,
                     plot, verbose)
@@ -205,32 +374,28 @@ class Correlation(object):
             # Update distance_scale
             self.distance_scale = distance_scale_
 
-        if derivative == 0:
+        if len(derivative) == 0:
             self.K_der0_updated = True
 
-            if correlation_scale_changed:
+            if distance_scale_changed:
                 self.K_der1_updated = False
                 self.K_der2_updated = False
 
-            return self.K_der0
-
-        elif derivative == 1:
+        elif len(derivative) == 1:
             self.K_der1_updated = True
 
-            if correlation_scale_changed:
+            if distance_scale_changed:
                 self.K_der0_updated = False
                 self.K_der2_updated = False
 
-            return self.K_der1
-
-        elif derivative == 2:
+        elif len(derivative) == 2:
             self.K_der2_updated = True
 
-            if correlation_scale_changed:
+            if distance_scale_changed:
                 self.K_der0_updated = False
                 self.K_der1_updated = False
 
-            return self.K_der2
+        return generate_matrix
 
     # ===========================
     # generate correlation matrix
@@ -383,7 +548,7 @@ class Correlation(object):
         if sparse:
 
             # Generate a sparse matrix
-            if derivative == 0:
+            if len(derivative) == 0:
                 # This generates a new correlation matrix (no derivative).
                 # The nnz of the matrix will be determined, and is not known
                 # a priori.
@@ -430,22 +595,22 @@ class Correlation(object):
 
         # Plot Correlation Matrix
         if plot:
-            self.plot_matrix(correlation_matrix, sparse, verbose)
+            self._plot_matrix(correlation_matrix, sparse, verbose)
 
-        if derivative == 0:
+        if len(derivative) == 0:
             self.K_der0 = correlation_matrix
-        elif derivative == 1:
+        elif len(derivative) == 1:
             self.K_der1 = correlation_matrix
-        elif derivative == 2:
+        elif len(derivative) == 2:
             self.K_der2 = correlation_matrix
         else:
-            raise ValueError('"derivative" should be 0, 1, or 2.')
+            raise ValueError('"derivative" order should be 0, 1, or 2.')
 
     # ===========
     # plot matrix
     # ===========
 
-    def plot_matrix(self, matrix, sparse, verbose=False):
+    def _plot_matrix(self, matrix, sparse, verbose=False):
         """
         Plots a given matrix.
 

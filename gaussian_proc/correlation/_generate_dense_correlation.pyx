@@ -171,11 +171,11 @@ cdef void _generate_correlation_matrix_jacobian(
                         correlation_matrix_jacobian,
                         i, j)
 
-                # Use anti-symmetry of the correlation matrix jacobian
+                # Use symmetry of the correlation matrix jacobian
                 if i != j:
                     for p in range(dimension):
                         correlation_matrix_jacobian[p][j][i] = \
-                            -correlation_matrix_jacobian[p][i][j]
+                            correlation_matrix_jacobian[p][i][j]
 
 
 # ===================================
@@ -247,7 +247,7 @@ cdef void _generate_correlation_matrix_hessian(
                         correlation_matrix_hessian,
                         i, j)
 
-                # Use anti-symmetry of the correlation matrix jacobian
+                # Use symmetry of the correlation matrix jacobian
                 if i != j:
                     for p in range(dimension):
                         for q in range(dimension):
@@ -309,7 +309,7 @@ def generate_dense_correlation(
     # Get number of CPU threads
     num_threads = multiprocessing.cpu_count()
 
-    if derivative == 0:
+    if len(derivative) == 0:
 
         # Initialize matrix
         correlation_matrix = numpy.zeros(
@@ -328,7 +328,7 @@ def generate_dense_correlation(
 
         return correlation_matrix
 
-    elif derivative == 1:
+    elif len(derivative) == 1:
 
         # Initialize matrix
         correlation_matrix_jacobian = numpy.zeros(
@@ -345,9 +345,14 @@ def generate_dense_correlation(
                 num_threads,
                 correlation_matrix_jacobian)
 
-        return correlation_matrix_jacobian
+        # Slice each derivative component into a list element
+        correlation_list_jacobian = [None] * dimension
+        for p in range(dimension):
+            correlation_list_jacobian[p] = correlation_matrix_jacobian[p, :, :]
 
-    elif derivative == 2:
+        return correlation_list_jacobian
+
+    elif len(derivative) == 2:
 
         # Initialize matrix
         correlation_matrix_hessian = numpy.zeros(
@@ -364,7 +369,16 @@ def generate_dense_correlation(
                 num_threads,
                 correlation_matrix_hessian)
 
-        return correlation_matrix_hessian
+        # Slice each derivative component into a list element
+        correlation_list_hessian = [[] for _ in range(dimension)]
+        for p in range(dimension):
+            correlation_list_hessian[p] = [None] * dimension
+            for q in range(dimension):
+                correlation_list_hessian[p][q] = \
+                        correlation_matrix_hessian[p, q, :, :]
+
+        return correlation_list_hessian
 
     else:
-        raise NotImplementedError('"derivative" can only be "0", "1", or "2".')
+        raise NotImplementedError('"derivative" order can only be "0", "1", ' +
+                                  'or "2".')

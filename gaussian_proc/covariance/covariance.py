@@ -49,13 +49,10 @@ class Covariance(object):
         self.sigma0 = sigma0
         self.tol = tol
 
-        # correlation matrix
-        self.K = self.cor.get_matrix()
-
         # Mixed correlation (K + eta I)
-        self.K_mixed = MixedCorrelation(self.K, interpolate=interpolate,
-                                        imate_method=imate_method,
-                                        imate_options=imate_options)
+        self.mixed_cor = MixedCorrelation(self.cor, interpolate=interpolate,
+                                          imate_method=imate_method,
+                                          imate_options=imate_options)
 
     # ===============
     # Check arguments
@@ -111,30 +108,107 @@ class Covariance(object):
             elif sigma0 < 0.0:
                 raise ValueError('"sigma0" cannot be negative.')
 
+    # ==================
+    # set distance scale
+    # ==================
+
+    def set_distance_scale(self, distance_scale):
+        """
+        Sets the distance_scale attribute of coreelation matrix.
+        """
+
+        self.mixed_cor.set_distance_scale(distance_scale)
+
+    # ==================
+    # get distance scale
+    # ==================
+
+    def get_distance_scale(self):
+        """
+        Returns distance scale of self.mixed_cor.cor object.
+        """
+
+        return self.mixed_cor.get_distance_scale()
+
+    # ==========
+    # get matrix
+    # ==========
+
+    def get_matrix(
+            self,
+            sigma,
+            sigma0,
+            distance_scale=None,
+            derivative=[]):
+        """
+        Get the matrix as a numpy array of scipy sparse array.
+        """
+
+        eta = (sigma0 / sigma)**2
+        Kn = self.mixed_cor.get_matrix(eta, distance_scale, derivative)
+
+        return sigma**2 * Kn
+
     # =====
     # trace
     # =====
 
-    def trace(self, sigma, sigma0, exponent=1):
+    def trace(
+            self,
+            sigma,
+            sigma0,
+            distance_scale=None,
+            exponent=1,
+            derivative=[]):
         """
         Computes
 
         .. math::
 
-            \\mathrm{trace} (\\sigma^2 \\mathbf{K} + \\sigma_0^2 \\mathbf{I}),
+            \\mathrm{trace} \\frac{\\partial^q}{\\partial \\theta^q}
+            (\\sigma^2 \\mathbf{K} + \\sigma_0^2 \\mathbf{I})^{p},
 
-        where :math:`\\mathbf{I}` is the identity matrix and :math:`\\sigma`
-        and :math:`\\sigma_0` are real numbers.
+        where
+
+        * :math:`\\mathbf{I}` is the identity matrix,
+        * :math:`p`is a non-negative integer.
+        * :math:`\\sigma` and :math:`\\sigma_0` are real numbers.
+        * :math:`\\theta` is correlation scale parameter.
+        * :math:`q` is the order of the derivative.
         """
+
+        if (exponent > 1) and (len(derivative) > 0):
+            raise NotImplementedError('If "exponent" is larger than one, ' +
+                                      '"derivative" should be zero (using ' +
+                                      'an empty list).')
+
+        elif len(derivative) > 0 and exponent == 0:
+            # Matrix is zero.
+            trace_ = 0.0
+
+        elif exponent == 0:
+            # Matrix is identity.
+            n = self.mixed_cor.get_matrix_size()
+            trace_ = n
 
         if numpy.abs(sigma) < self.tol:
 
-            # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
-            n = self.K_mixed.get_matrix_size()
-            trace_ = (sigma0**(2.0*exponent)) * n
+            if len(derivative) > 0:
+                # mixed covariance is independent of derivative parameter
+                trace_ = 0.0
+            else:
+                # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
+                n = self.mixed_cor.get_matrix_size()
+                trace_ = (sigma0**(2.0*exponent)) * n
+
         else:
+            # Derivative eliminates sigma0^2 I term.
+            if len(derivative) > 0:
+                sigma0 = 0.0
+
             eta = (sigma0 / sigma)**2
-            trace_ = sigma**(2.0*exponent) * self.K_mixed.trace(eta, exponent)
+            trace_ = sigma**(2.0*exponent) * self.mixed_cor.trace(
+                    eta, distance_scale, exponent, derivative)
 
         return trace_
 
@@ -142,28 +216,62 @@ class Covariance(object):
     # traceinv
     # ========
 
-    def traceinv(self, sigma, sigma0, exponent=1):
+    def traceinv(
+            self,
+            sigma,
+            sigma0,
+            distance_scale=None,
+            exponent=1,
+            derivative=[]):
         """
         Computes
 
         .. math::
 
-            \\mathrm{trace} (\\sigma^2 \\mathbf{K} +
-            \\sigma_0^2 \\mathbf{I})^{-1},
+            \\mathrm{trace} \\frac{\\partial^q}{\\partial \\theta^q}
+            (\\sigma^2 \\mathbf{K} + \\sigma_0^2 \\mathbf{I})^{-p},
 
-        where :math:`\\mathbf{I}` is the identity matrix and :math:`\\sigma`
-        and :math:`\\sigma_0` are real numbers.
+        where
+
+        * :math:`\\mathbf{I}` is the identity matrix,
+        * :math:`p`is a non-negative integer.
+        * :math:`\\sigma` and :math:`\\sigma_0` are real numbers.
+        * :math:`\\theta` is correlation scale parameter.
+        * :math:`q` is the order of the derivative.
         """
 
-        if numpy.abs(sigma) < self.tol:
+        if (exponent > 1) and (len(derivative) > 0):
+            raise NotImplementedError('If "exponent" is larger than one, ' +
+                                      '"derivative" should be zero (using ' +
+                                      'an empty list).')
 
-            # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
-            n = self.K_mixed.get_matrix_size()
-            traceinv_ = n / (sigma0**(2.0*exponent))
+        elif len(derivative) > 0 and exponent == 0:
+            # Matrix is zero.
+            traceinv_ = numpy.nan
+
+        elif exponent == 0:
+            # Matrix is identity.
+            n = self.mixed_cor.get_matrix_size()
+            traceinv_ = n
+
+        elif numpy.abs(sigma) < self.tol:
+
+            if len(derivative) > 0:
+                # mixed covariance is independent of derivative parameter
+                traceinv_ = numpy.nan
+            else:
+                # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
+                n = self.mixed_cor.get_matrix_size()
+                traceinv_ = n / (sigma0**(2.0*exponent))
 
         else:
+            # Derivative eliminates sigma0^2 I term.
+            if len(derivative) > 0:
+                sigma0 = 0.0
+
             eta = (sigma0 / sigma)**2
-            traceinv_ = self.K_mixed.traceinv(eta, exponent) / \
+            traceinv_ = self.mixed_cor.traceinv(
+                    eta, distance_scale, exponent, derivative) / \
                 (sigma**(2.0*exponent))
 
         return traceinv_
@@ -172,28 +280,65 @@ class Covariance(object):
     # logdet
     # ======
 
-    def logdet(self, sigma, sigma0, exponent=1):
+    def logdet(
+            self,
+            sigma,
+            sigma0,
+            distance_scale=None,
+            exponent=1,
+            derivative=[]):
         """
         Computes
 
         .. math::
 
-            \\mathrm{det} (\\sigma^2 \\mathbf{K} + \\sigma_0^2 \\mathbf{I}),
+            \\mathrm{det} \\frac{\\partial^q}{\\partial \\theta^q}
+            (\\sigma^2 \\mathbf{K} + \\sigma_0^2 \\mathbf{I})^{p},
 
-        where :math:`\\mathbf{I}` is the identity matrix and :math:`\\sigma`
-        and :math:`\\sigma_0^2` are real numbers.
+        where
+
+        * :math:`\\mathbf{I}` is the identity matrix,
+        * :math:`p`is a non-negative integer.
+        * :math:`\\sigma` and :math:`\\sigma_0` are real numbers.
+        * :math:`\\theta` is correlation scale parameter.
+        * :math:`q` is the order of the derivative.
         """
 
-        n = self.K_mixed.get_matrix_size()
-        if numpy.abs(sigma) < self.tol:
+        if (exponent > 1) and (len(derivative) > 0):
+            raise NotImplementedError('If "exponent" is larger than one, ' +
+                                      '"derivative" should be zero (using ' +
+                                      'an empty list).')
 
-            # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
-            logdet_ = (2.0*exponent*n) * numpy.log(sigma0)
+        elif len(derivative) > 0 and exponent == 0:
+            # Matrix is zero.
+            logdet_ = -numpy.inf
+
+        elif exponent == 0:
+            # Matrix is identity.
+            logdet_ = 0.0
+
+        elif numpy.abs(sigma) < self.tol:
+
+            n = self.mixed_cor.get_matrix_size()
+
+            if len(derivative) > 0:
+                # mixed covariance is independent of derivative parameter
+                logdet_ = -numpy.inf
+            else:
+                # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
+                logdet_ = (2.0*exponent*n) * numpy.log(sigma0)
 
         else:
+            n = self.mixed_cor.get_matrix_size()
+
+            # Derivative eliminates sigma0^2 I term.
+            if len(derivative) > 0:
+                sigma0 = 0.0
+
             eta = (sigma0 / sigma)**2
             logdet_ = (2.0*exponent*n) * numpy.log(sigma) + \
-                self.K_mixed.logdet(eta, exponent)
+                self.mixed_cor.logdet(eta, distance_scale, exponent,
+                                      derivative)
 
         return logdet_
 
@@ -201,13 +346,21 @@ class Covariance(object):
     # solve
     # =====
 
-    def solve(self, sigma, sigma0, Y, exponent=1):
+    def solve(
+            self,
+            sigma,
+            sigma0,
+            Y,
+            distance_scale=None,
+            exponent=1,
+            derivative=[]):
         """
         Solves the linear system
 
         .. math::
 
-            (\\sigma^2 \\mathbf{K} + \\sigma_0^2 \\mathbf{I}) \\mathbf{X}
+            \\frac{\\partial^q}{\\partial \\theta^q}
+            (\\sigma^2 \\mathbf{K} + \\sigma_0^2 \\mathbf{I})^{p} \\mathbf{X}
             = \\mathbf{Y},
 
         where:
@@ -215,17 +368,44 @@ class Covariance(object):
         * :math:`\\mathbf{Y}` is the given right hand side matrix,
         * :math:`\\mathbf{X}` is the solution (unknown) matrix,
         * :math:`\\mathbf{I}` is the identity matrix,
+        * :math:`p`is a non-negative integer.
         * :math:`\\sigma` and :math:`\\sigma_0` are real numbers.
+        * :math:`\\theta` is correlation scale parameter.
+        * :math:`q` is the order of the derivative.
         """
 
-        if numpy.abs(sigma) < self.tol:
+        if (exponent > 1) and (len(derivative) > 0):
+            raise NotImplementedError('If "exponent" is larger than one, ' +
+                                      '"derivative" should be zero (using ' +
+                                      'an empty list).')
 
-            # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
-            X = Y / (sigma0**(2*exponent))
+        elif len(derivative) > 0 and exponent == 0:
+            # Matrix is zero, hence has no inverse.
+            X = numpy.zeros_like(Y)
+            X[:] = numpy.nan
+
+        elif exponent == 0:
+            # Matrix is identity.
+            X = Y.copy()
+
+        elif numpy.abs(sigma) < self.tol:
+
+            if len(derivative) > 0:
+                # mixed covariance is independent of derivative parameter
+                X = numpy.zeros_like(Y)
+            else:
+                # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
+                X = Y / (sigma0**(2*exponent))
 
         else:
+            # Derivative eliminates sigma0^2 I term.
+            if len(derivative) > 0:
+                sigma0 = 0.0
+
             eta = (sigma0 / sigma)**2
-            X = self.K_mixed.solve(eta, Y, exponent) / (sigma**(2*exponent))
+            X = self.mixed_cor.solve(
+                    eta, Y, distance_scale, exponent, derivative) / \
+                (sigma**(2*exponent))
 
         return X
 
@@ -233,14 +413,21 @@ class Covariance(object):
     # dot
     # ===
 
-    def dot(self, sigma, sigma0, x, exponent=1):
+    def dot(
+            self,
+            sigma,
+            sigma0,
+            x,
+            distance_scale=None,
+            exponent=1,
+            derivative=[]):
         """
         Matrix-vector multiplication:
 
         .. math::
 
-            \\boldsymbol{y} = (\\sigma^2 \\mathbf{K} +
-            \\sigma_0^2 \\mathbf{I})^{q}
+            \\boldsymbol{y} = \\frac{\\partial^q}{\\partial \\theta^q}
+            (\\sigma^2 \\mathbf{K}(\\theta) + \\sigma_0^2 \\mathbf{I})^{p}
             \\boldsymbol{x}
 
         where:
@@ -250,21 +437,40 @@ class Covariance(object):
         * :math:`\\mathbf{I}` is the identity matrix,
         * :math:`\\sigma` and :math:`\\sigma_0` are real numbers.
         * :math:`p`is a non-negative integer.
+        * :math:`\\theta` is correlation scale parameter.
+        * :math:`q` is the order of the derivative.
         """
 
-        if exponent == 0:
-            # Matrix is identity
-            y = x
+        if (exponent > 1) and (len(derivative) > 0):
+            raise NotImplementedError('If "exponent" is larger than one, ' +
+                                      '"derivative" should be zero (using ' +
+                                      'an empty list).')
 
-        else:
-            if numpy.abs(sigma) < self.tol:
+        elif exponent == 0 and len(derivative) > 0:
+            # Matrix is zero.
+            y = numpy.zeros_like(x)
 
+        elif exponent == 0:
+            # Matrix is identity.
+            y = x.copy()
+
+        elif numpy.abs(sigma) < self.tol:
+
+            if len(derivative) > 0:
+                # mixed covariance is independent of derivative parameter
+                y = numpy.zeros_like(x)
+            else:
                 # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
                 y = sigma0**(2.0*exponent) * x
 
-            else:
-                eta = (sigma0 / sigma)**2
-                y = (sigma**(2.0*exponent)) * \
-                    self.K_mixed.dot(eta, x, exponent)
+        else:
+            # Derivative eliminates sigma0^2 I term.
+            if len(derivative) > 0:
+                sigma0 = 0.0
+
+            eta = (sigma0 / sigma)**2
+            y = (sigma**(2.0*exponent)) * \
+                self.mixed_cor.dot(eta, x, distance_scale, exponent,
+                                   derivative)
 
         return y
