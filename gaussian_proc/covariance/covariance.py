@@ -15,6 +15,7 @@ import numpy
 from scipy.sparse import isspmatrix
 from ..correlation import Correlation
 from ._mixed_correlation import MixedCorrelation
+import imate
 
 
 # ==========
@@ -159,7 +160,8 @@ class Covariance(object):
             sigma0,
             distance_scale=None,
             exponent=1,
-            derivative=[]):
+            derivative=[],
+            imate_method=None):
         """
         Computes
 
@@ -208,7 +210,7 @@ class Covariance(object):
 
             eta = (sigma0 / sigma)**2
             trace_ = sigma**(2.0*exponent) * self.mixed_cor.trace(
-                    eta, distance_scale, exponent, derivative)
+                    eta, distance_scale, exponent, derivative, imate_method)
 
         return trace_
 
@@ -220,16 +222,19 @@ class Covariance(object):
             self,
             sigma,
             sigma0,
+            B=None,
             distance_scale=None,
             exponent=1,
-            derivative=[]):
+            derivative=[],
+            imate_method=None):
         """
         Computes
 
         .. math::
 
-            \\mathrm{trace} \\frac{\\partial^q}{\\partial \\theta^q}
-            (\\sigma^2 \\mathbf{K} + \\sigma_0^2 \\mathbf{I})^{-p},
+            \\mathrm{trace} \\left( \\frac{\\partial^q}{\\partial \\theta^q}
+            (\\sigma^2 \\mathbf{K} + \\sigma_0^2 \\mathbf{I})^{-p} \\mathbf{B}
+            \\right)
 
         where
 
@@ -238,6 +243,8 @@ class Covariance(object):
         * :math:`\\sigma` and :math:`\\sigma_0` are real numbers.
         * :math:`\\theta` is correlation scale parameter.
         * :math:`q` is the order of the derivative.
+        * :math:`\\mathbf{B}` is a matrix. If set to None, identity matrix is
+          assumed.
         """
 
         if (exponent > 1) and (len(derivative) > 0):
@@ -251,8 +258,12 @@ class Covariance(object):
 
         elif exponent == 0:
             # Matrix is identity.
-            n = self.mixed_cor.get_matrix_size()
-            traceinv_ = n
+            if B is None:
+                # B is identity
+                n = self.mixed_cor.get_matrix_size()
+                traceinv_ = n
+            else:
+                traceinv_ = imate.trace(B, method='exact')
 
         elif numpy.abs(sigma) < self.tol:
 
@@ -261,8 +272,13 @@ class Covariance(object):
                 traceinv_ = numpy.nan
             else:
                 # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
-                n = self.mixed_cor.get_matrix_size()
-                traceinv_ = n / (sigma0**(2.0*exponent))
+                if B is None:
+                    # B is identity
+                    n = self.mixed_cor.get_matrix_size()
+                    traceinv_ = n / (sigma0**(2.0*exponent))
+                else:
+                    traceinv_ = imate.trace(B, method='exact') \
+                            / (sigma0**(2.0*exponent))
 
         else:
             # Derivative eliminates sigma0^2 I term.
@@ -271,8 +287,8 @@ class Covariance(object):
 
             eta = (sigma0 / sigma)**2
             traceinv_ = self.mixed_cor.traceinv(
-                    eta, distance_scale, exponent, derivative) / \
-                (sigma**(2.0*exponent))
+                    eta, B, distance_scale, exponent, derivative,
+                    imate_method) / (sigma**(2.0*exponent))
 
         return traceinv_
 
@@ -286,7 +302,8 @@ class Covariance(object):
             sigma0,
             distance_scale=None,
             exponent=1,
-            derivative=[]):
+            derivative=[],
+            imate_method=None):
         """
         Computes
 
@@ -338,7 +355,7 @@ class Covariance(object):
             eta = (sigma0 / sigma)**2
             logdet_ = (2.0*exponent*n) * numpy.log(sigma) + \
                 self.mixed_cor.logdet(eta, distance_scale, exponent,
-                                      derivative)
+                                      derivative, imate_method)
 
         return logdet_
 

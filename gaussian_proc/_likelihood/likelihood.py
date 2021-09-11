@@ -13,6 +13,7 @@
 
 from ._direct_likelihood import DirectLikelihood
 from ._profile_likelihood import ProfileLikelihood
+import numpy
 
 
 # ==========
@@ -59,6 +60,7 @@ class Likelihood(object):
             hyperparam_guess,
             likelihood_method='direct',
             optimization_method='Newton-CG',
+            profile_eta=False,
             plot=False):
         """
         """
@@ -69,16 +71,16 @@ class Likelihood(object):
                 raise ValueError('"chandrupatla" method can only be used ' +
                                  'with "profiled" likelihood method.')
 
-            # Find hyperparam
-            results = DirectLikelihood.maximize_log_likelihood(
+            # Find optimal hyperparam
+            result = DirectLikelihood.maximize_log_likelihood(
                     z, self.X, self.cov, tol=1e-3,
                     hyperparam_guess=hyperparam_guess,
                     optimization_method=optimization_method)
 
             # Plot log likelihood
             if plot:
-                optimal_sigma = results['sigma']
-                optimal_sigma0 = results['sigma0']
+                optimal_sigma = result['sigma']
+                optimal_sigma0 = result['sigma0']
                 optimal_hyperparam = [optimal_sigma, optimal_sigma0]
                 DirectLikelihood.plot_log_likelihood(z, self.X, self.cov,
                                                      optimal_hyperparam)
@@ -88,22 +90,33 @@ class Likelihood(object):
 
         elif likelihood_method == 'profiled':
 
-            if optimization_method == 'chandrupatla' and \
-                    len(hyperparam_guess) > 1:
-                raise ValueError('Length of "hyperparam_guess" should be one' +
-                                 'when "chandrupatla" optimization method ' +
-                                 'used.')
-
-            # Find hyperparam
-            results = ProfileLikelihood.maximize_log_likelihood(
+            # Find optimal hyperparam
+            result = ProfileLikelihood.maximize_log_likelihood(
                     z, self.X, self.cov, tol=1e-3,
                     hyperparam_guess=hyperparam_guess,
-                    optimization_method=optimization_method)
+                    optimization_method=optimization_method,
+                    profile_eta=profile_eta)
 
-            # Plot first derivative of log likelihood
             if plot:
-                optimal_eta = results['eta']
-                ProfileLikelihood.plot_log_likelihood_der1_eta(
-                        z, self.X, self.K, self.mixed_cor, optimal_eta)
+                # Plot log-lp when eta is fixed, for a selection of eta
+                ProfileLikelihood.plot_log_likelihood_for_fixed_eta(
+                        z, self.X, self.mixed_cor,
+                        numpy.r_[result['eta'], numpy.logspace(-3, 3, 7)])
 
-        return results
+                # Plot log-lp when distance_scale is fixed, for a selection of
+                # distance_scale
+                ProfileLikelihood.plot_log_likelihood_for_fixed_distance_scale(
+                        z, self.X, self.mixed_cor,
+                        numpy.r_[result['distance_scale'],
+                                 numpy.logspace(-3, 3, 7)])
+
+                # 3D Plot of log-lp function
+                ProfileLikelihood.plot_log_likelihood(z, self.X,
+                                                      self.mixed_cor, result)
+
+                # Plot first derivative of log likelihood
+                optimal_eta = result['eta']
+                ProfileLikelihood.plot_log_likelihood_der1_eta(
+                        z, self.X, self.mixed_cor, optimal_eta)
+
+        return result

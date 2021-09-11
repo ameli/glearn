@@ -54,8 +54,12 @@ def generate_data(points, noise_magnitude, plot=False):
         if dimension == 1:
 
             fig, ax = plt.subplots()
-            num_points_on_axis = numpy.sqrt(num_points).astype(int)
-            p = ax.plot(points, z)
+            ax.plot(points, z, 'o', color='black', markersize=4)
+            ax.set_xlim([points[0], points[-1]])
+            ax.set_xlabel(r'$x$')
+            ax.set_ylabel(r'$z(x)$')
+            ax.set_title('Sample one dimensional data')
+
             plt.show()
 
         elif dimension == 2:
@@ -69,6 +73,10 @@ def generate_data(points, noise_magnitude, plot=False):
             p = ax.plot_surface(x_mesh, y_mesh, z_mesh, linewidth=0,
                                 antialiased=False)
             fig.colorbar(p, ax=ax)
+            ax.set_xlabel(r'$x_1$')
+            ax.set_ylabel(r'$x_2$')
+            ax.set_zlabel(r'$z(x_1, x_2)$')
+            ax.set_title('Sample two dimensional data')
             plt.show()
 
         else:

@@ -178,7 +178,7 @@ class DirectLikelihood(object):
             jacobian = numpy.r_[jacobian, der1_distance_scale]
 
         # Test
-        print(jacobian)
+        # print(jacobian)
 
         if sign_switch:
             jacobian = -jacobian
@@ -558,11 +558,18 @@ class DirectLikelihood(object):
         eta = (sigma0/sigma)**2
         max_lp = -res.fun
 
+        # Distance scale
+        if res.x.size > 1:
+            distance_scale = res.x[1:]
+        else:
+            distance_scale = cov.get_distance_scale()
+
         # Output dictionary
         result = {
             'sigma': sigma,
             'sigma0': sigma0,
             'eta': eta,
+            'distance_scale': distance_scale,
             'max_lp': max_lp
         }
 
