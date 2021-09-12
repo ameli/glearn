@@ -34,11 +34,11 @@ import warnings
 
 class ProfileLikelihood(object):
 
-    # ==============
-    # Log Likelihood
-    # ==============
+    # ==========
+    # Likelihood
+    # ==========
 
-    def log_likelihood(z, X, mixed_cor, sign_switch, hyperparam):
+    def likelihood(z, X, mixed_cor, sign_switch, hyperparam):
         """
         Log likelihood function
 
@@ -125,55 +125,11 @@ class ProfileLikelihood(object):
 
         return lp
 
-    # ===========================
-    # log likelihood eta profiled
-    # ===========================
+    # ===================
+    # likelihood der1 eta
+    # ===================
 
-    def log_likelihood_eta_profiled(z, X, mixed_cor, sign_switch,
-                                    log_eta_guess, hyperparam):
-        """
-        Variable eta is profiled out, meaning that optimal value of eta is
-        used in log-likelihood function.
-        """
-
-        # Here, hyperparam consists of only distance_scale, but not eta.
-        if isinstance(hyperparam, list):
-            hyperparam = numpy.array(hyperparam)
-        distance_scale = numpy.abs(hyperparam)
-        mixed_cor.set_distance_scale(distance_scale)
-
-        # Note: When using interpolation, make sure the interval below is
-        # exactly the end points of eta_i, not less or more.
-        min_eta_guess = numpy.min([1e-4, 10.0**log_eta_guess * 1e-2])
-        max_eta_guess = numpy.max([1e+3, 10.0**log_eta_guess * 1e+2])
-        interval_eta = [min_eta_guess, max_eta_guess]
-
-        # Using root finding method on the first derivative w.r.t eta
-        result = ProfileLikelihood.find_log_likelihood_der1_zeros(
-                z, X, mixed_cor, interval_eta)
-        eta = result['eta']
-        log_eta = numpy.log(eta)
-
-        # Construct new hyperparam that consists of both eta and distance_scale
-        hyperparam_full = numpy.r_[log_eta, distance_scale]
-
-        # Finding the maxima.
-        lp = ProfileLikelihood.log_likelihood(
-                z, X, mixed_cor, sign_switch, hyperparam_full)
-
-        # Test
-        print(distance_scale)
-        print(eta)
-        print(lp)
-        print('--')
-
-        return lp
-
-    # =======================
-    # log likelihood der1 eta
-    # =======================
-
-    def log_likelihood_der1_eta(z, X, mixed_cor, hyperparam):
+    def likelihood_der1_eta(z, X, mixed_cor, hyperparam):
         """
         lp is the log likelihood probability. lp_deta is d(lp)/d(eta), is the
         derivative of lp with respect to eta when the optimal value of sigma is
@@ -224,18 +180,23 @@ class ProfileLikelihood(object):
         sigma2 = zMz/(n-m)
         dlp_deta = -0.5*(trace_M - zM2z/sigma2)
 
+        # Becase we use xi = log_eta instead of eta as the variable, the
+        # derivative of lp w.r.t log_eta is dlp_deta * deta_dxi, and
+        # deta_dxi is eta * lob(10).
+        # dlp_deta = dlp_deta * eta * numpy.log(10.0)
+
         # Return as scalar or array of length one
         if numpy.isscalar(hyperparam):
             return dlp_deta
         else:
             return numpy.array([dlp_deta], dtype=float)
 
-    # =======================
-    # log likelihood der2 eta
-    # =======================
+    # ===================
+    # likelihood der2 eta
+    # ===================
 
     @staticmethod
-    def log_likelihood_der2_eta(z, X, mixed_cor, hyperparam):
+    def likelihood_der2_eta(z, X, mixed_cor, hyperparam):
         """
         The second derivative of lp is computed as a function of only eta.
         Here, we substituted optimal value of sigma, which istself is a
@@ -311,11 +272,11 @@ class ProfileLikelihood(object):
         else:
             return numpy.array([d2lp_deta2])
 
-    # ==================================
-    # log likelihood der1 distance scale
-    # ==================================
+    # ==============================
+    # likelihood der1 distance scale
+    # ==============================
 
-    def log_likelihood_der1_distance_scale(z, X, cov, hyperparam):
+    def likelihood_der1_distance_scale(z, X, cov, hyperparam):
         """
         lp is the log likelihood probability. lp_dscale is d(lp)/d(theta), is
         the derivative of lp with respect to the distance scale (theta).
@@ -332,9 +293,8 @@ class ProfileLikelihood(object):
                                           dtype=float)
 
         # Find optimal sigma based on eta. Then compute sigma0
-        sigma = ProfileLikelihood.find_optimal_sigma(z, X, cov.mixed_cor,
-                                                     eta)
-        sigma0 = numpy.sqrt(eta) * sigma
+        sigma, sigma0 = ProfileLikelihood.find_optimal_sigma_sigma0(
+                z, X, cov.mixed_cor, eta)
 
         n, m = X.shape
 
@@ -383,32 +343,19 @@ class ProfileLikelihood(object):
 
         return der1_distance_scale
 
-    # =======================
-    # log likelihood jacobian
-    # =======================
+    # ===================
+    # likelihood jacobian
+    # ===================
 
     @staticmethod
-    def log_likelihood_jacobian(z, X, cov, sign_switch, hyperparam):
+    def likelihood_jacobian(z, X, cov, sign_switch, hyperparam):
         """
         Computes Jacobian w.r.t eta, and if given, distance_scale.
         """
 
         # Derivative w.r.t eta
-        der1_eta = ProfileLikelihood.log_likelihood_der1_eta(
+        der1_eta = ProfileLikelihood.likelihood_der1_eta(
                 z, X, cov.mixed_cor, hyperparam)
-
-        # Here, hyperparam consists of both eta and distance_scale.
-        # log_eta = hyperparam[0]
-        # if numpy.isneginf(log_eta):
-        #     eta = 0.0
-        # else:
-        #     eta = 10.0**log_eta
-        # # eta = numpy.abs(log_eta)  # Test
-
-        # Becase we use xi = log_eta instead of eta as the variable, the
-        # derivative of lp w.r.t log_eta is dlp_deta * deta_dxi, and
-        # deta_dxi is eta * lob(10).
-        # jacobian = jacobian * eta * numpy.log(10.0)
 
         jacobian = der1_eta
 
@@ -417,7 +364,7 @@ class ProfileLikelihood(object):
 
             # Compute first derivative w.r.t distance_scale
             der1_distance_scale = \
-                    ProfileLikelihood.log_likelihood_der1_distance_scale(
+                    ProfileLikelihood.likelihood_der1_distance_scale(
                             z, X, cov, hyperparam)
 
             # Concatenate derivatives of eta and distance_scale if needed
@@ -428,54 +375,40 @@ class ProfileLikelihood(object):
 
         return jacobian
 
-    # ====================================
-    # log likelihood jacobian eta profiled
-    # ====================================
+    # =========================
+    # find optimal sigma sigma0
+    # =========================
 
     @staticmethod
-    def log_likelihood_jacobian_eta_profiled(z, X, cov, sign_switch,
-                                             log_eta_guess, hyperparam):
+    def find_optimal_sigma_sigma0(z, X, mixed_cor, eta):
         """
-        Computes Jacobian w.r.t eta, and if given, distance_scale.
+        Based on a given eta, finds optimal sigma and sigma0.
         """
 
-        # When profiling eta is enabled, derivative w.r.t eta is not needed.
-        # Compute only Jacobian w.r.t distance_scale. Also, here, the input
-        # hyperparam consists of only distance_scale (and not eta).
-        if isinstance(hyperparam, list):
-            hyperparam = numpy.array(hyperparam)
-        distance_scale = numpy.abs(hyperparam)
-        cov.mixed_cor.set_distance_scale(distance_scale)
+        max_eta = 1e+16
+        min_eta = 1e-16
+        if numpy.abs(eta) > max_eta:
 
-        # Note: When using interpolation, make sure the interval below is
-        # exactly the end points of eta_i, not less or more.
-        min_eta_guess = numpy.min([1e-4, 10.0**log_eta_guess * 1e-2])
-        max_eta_guess = numpy.max([1e+3, 10.0**log_eta_guess * 1e+2])
-        interval_eta = [min_eta_guess, max_eta_guess]
+            # eta is very large. Use Asymptotic relation
+            sigma0 = ProfileLikelihood.find_optimal_sigma0(z, X)
 
-        # Using root finding method on the first derivative w.r.t eta
-        result = ProfileLikelihood.find_log_likelihood_der1_zeros(
-                z, X, cov.mixed_cor, interval_eta)
-        eta = result['eta']
-        log_eta = numpy.log(eta)
+            if numpy.isinf(eta):
+                sigma = 0.
+            else:
+                sigma = sigma0 / numpy.sqrt(eta)
 
-        # Construct new hyperparam that consists of both eta and distance_scale
-        hyperparam_full = numpy.r_[log_eta, distance_scale]
+        else:
 
-        # Compute first derivative w.r.t distance_scale
-        der1_distance_scale = \
-            ProfileLikelihood.log_likelihood_der1_distance_scale(
-                    z, X, cov, hyperparam_full)
+            # Find sigma
+            sigma = ProfileLikelihood.find_optimal_sigma(z, X, mixed_cor, eta)
 
-        # Jacobian only consists of the derivative w.r.t distance_scale
-        jacobian = der1_distance_scale
+            # Find sigma0
+            if numpy.abs(eta) < min_eta:
+                sigma0 = 0.0
+            else:
+                sigma0 = numpy.sqrt(eta) * sigma
 
-        print('scale: %f, jac: %f' % (distance_scale[0], jacobian[0]))
-
-        if sign_switch:
-            jacobian = -jacobian
-
-        return jacobian
+        return sigma, sigma0
 
     # ==================
     # find optimal sigma
@@ -484,28 +417,19 @@ class ProfileLikelihood(object):
     @staticmethod
     def find_optimal_sigma(z, X, mixed_cor, eta):
         """
-        Based on a given eta, finds optimal sigma.
+        When eta is *not* very large, finds optimal sigma.
         """
 
-        max_eta = 1e+16
-        if numpy.abs(eta) > max_eta:
+        Y = mixed_cor.solve(eta, X)
+        w = mixed_cor.solve(eta, z)
 
-            # eta is very large. Use Asymptotic relation
-            sigma0 = ProfileLikelihood.find_optimal_sigma0(z, X)
-            sigma = sigma0 / numpy.sqrt(eta)
-
-        else:
-
-            Y = mixed_cor.solve(eta, X)
-            w = mixed_cor.solve(eta, z)
-
-            n, m = X.shape
-            B = numpy.matmul(X.T, Y)
-            Binv = numpy.linalg.inv(B)
-            Ytz = numpy.matmul(Y.T, z)
-            v = numpy.matmul(Y, numpy.matmul(Binv, Ytz))
-            sigma2 = numpy.dot(z, w-v) / (n-m)
-            sigma = numpy.sqrt(sigma2)
+        n, m = X.shape
+        B = numpy.matmul(X.T, Y)
+        Binv = numpy.linalg.inv(B)
+        Ytz = numpy.matmul(Y.T, z)
+        v = numpy.matmul(Y, numpy.matmul(Binv, Ytz))
+        sigma2 = numpy.dot(z, w-v) / (n-m)
+        sigma = numpy.sqrt(sigma2)
 
         return sigma
 
@@ -530,13 +454,12 @@ class ProfileLikelihood(object):
 
         return sigma0
 
-    # ==============================
-    # find log likelihood der1 zeros
-    # ==============================
+    # ==========================
+    # find likelihood der1 zeros
+    # ==========================
 
-    def find_log_likelihood_der1_zeros(z, X, mixed_cor, interval_eta, tol=1e-6,
-                                       max_iterations=100,
-                                       num_bracket_trials=3):
+    def find_likelihood_der1_zeros(z, X, mixed_cor, interval_eta, tol=1e-6,
+                                   max_iterations=100, num_bracket_trials=3):
         """
         root finding of the derivative of lp.
 
@@ -551,14 +474,14 @@ class ProfileLikelihood(object):
         log_eta_end = numpy.log10(interval_eta[1])
 
         # Partial function with minus to make maximization to a minimization
-        log_likelihood_der1_eta_partial_function = partial(
-                ProfileLikelihood.log_likelihood_der1_eta, z, X, mixed_cor)
+        likelihood_der1_eta_partial_function = partial(
+                ProfileLikelihood.likelihood_der1_eta, z, X, mixed_cor)
 
         # Initial points
         bracket = [log_eta_start, log_eta_end]
         bracket_found, bracket, bracket_values = \
             find_interval_with_sign_change(
-                    log_likelihood_der1_eta_partial_function, bracket,
+                    likelihood_der1_eta_partial_function, bracket,
                     num_bracket_trials, args=(), )
 
         if bracket_found:
@@ -568,14 +491,14 @@ class ProfileLikelihood(object):
             # Find roots using Brent method
             # method = 'brentq'
             # res = scipy.optimize.root_scalar(
-            #         log_likelihood_der1_eta_partial_function,
+            #         likelihood_der1_eta_partial_function,
             #         bracket=bracket,
             #         method=method, xtol=tol)
             # print('Iter: %d, Eval: %d, Converged: %s'
             #         % (res.iterations, res.function_calls, res.converged))
 
             # Find roots using Chandraputala method
-            res = chandrupatla_method(log_likelihood_der1_eta_partial_function,
+            res = chandrupatla_method(likelihood_der1_eta_partial_function,
                                       bracket, bracket_values, verbose=False,
                                       eps_m=tol, eps_a=tol,
                                       maxiter=max_iterations)
@@ -583,13 +506,13 @@ class ProfileLikelihood(object):
             # Extract results
             # eta = 10**res.root                       # Use with Brent
             eta = 10**res['root']                      # Use with Chandrupatla
-            sigma = ProfileLikelihood.find_optimal_sigma(z, X, mixed_cor, eta)
-            sigma0 = numpy.sqrt(eta) * sigma
+            sigma, sigma0 = ProfileLikelihood.find_optimal_sigma_sigma0(
+                    z, X, mixed_cor, eta)
             iter = res['iterations']
 
             # Check second derivative
             # success = True
-            # d2lp_deta2 = ProfileLikelihood.log_likelihood_der2_eta(
+            # d2lp_deta2 = ProfileLikelihood.likelihood_der2_eta(
             #         z, X, mixed_cor, eta)
             # if d2lp_deta2 < 0:
             #     success = True
@@ -610,11 +533,11 @@ class ProfileLikelihood(object):
             # of the two methods below:
             eta_zero = 0.0
             # method 1: directly from analytical equation
-            d2lp_deta2_zero_eta = ProfileLikelihood.log_likelihood_der2_eta(
+            d2lp_deta2_zero_eta = ProfileLikelihood.likelihood_der2_eta(
                     z, X, mixed_cor, eta_zero)
 
             # method 2: using forward differencing from first derivative
-            # dlp_deta_zero_eta = ProfileLikelihood.log_likelihood_der1_eta(
+            # dlp_deta_zero_eta = ProfileLikelihood.likelihood_der1_eta(
             #         z, X, mixed_cor, numpy.log10(eta_zero))
             # d2lp_deta2_zero_eta = \
             #         (dlp_deta_lowest_eta - dlp_deta_zero_eta) / eta_lowest
@@ -640,16 +563,13 @@ class ProfileLikelihood(object):
                 else:
                     eta = numpy.inf
 
-            # Find sigma and sigma0
-            if eta == 0:
-                sigma0 = 0
-                sigma = ProfileLikelihood.find_optimal_sigma(
-                        z, X, mixed_cor, eta)
-            elif eta == numpy.inf:
-                sigma = 0
-                sigma0 = ProfileLikelihood.find_optimal_sigma0(z, X)
-            else:
+            # Check eta
+            if not (eta == 0 or numpy.isinf(eta)):
                 raise ValueError('eta must be zero or inf at this point.')
+
+            # Find sigma and sigma0
+            sigma, sigma0 = ProfileLikelihood.find_optimal_sigma_sigma0(
+                        z, X, mixed_cor, eta)
 
         # Output dictionary
         results = {
@@ -661,17 +581,19 @@ class ProfileLikelihood(object):
 
         return results
 
-    # =======================
-    # maximize log likelihood
-    # =======================
+    # ===================
+    # maximize likelihood
+    # ===================
 
     @staticmethod
-    def maximize_log_likelihood(
-            z, X, cov,
+    def maximize_likelihood(
+            z,
+            X,
+            cov,
             tol=1e-3,
             hyperparam_guess=[0.1, 0.1],
             optimization_method='Nelder-Mead',
-            profile_eta=False):
+            verbose=False):
         """
         Maximizing the log-likelihood function over the space of parameters
         sigma and sigma0
@@ -679,82 +601,19 @@ class ProfileLikelihood(object):
         In this function, hyperparam = [sigma, sigma0].
         """
 
-        if profile_eta:
-            # When profile eta is used, hyperparam should exclude eta, and only
-            # contain distance_scale
-            log_eta_guess = hyperparam_guess[0]
-            distance_scale_guess = hyperparam_guess[1:]
-
-            # Partial function of likelihood with profiled eta. The input
-            # hyperparam is only distance_scale, not eta.
-            sign_switch = True
-            log_likelihood_eta_profiled_partial_func = partial(
-                    ProfileLikelihood.log_likelihood_eta_profiled, z, X,
-                    cov.mixed_cor, sign_switch, log_eta_guess)
-
-            # Partial function of Jacobian of likelihood (with minus sign)
-            jacobian_eta_profiled_partial_func = partial(
-                    ProfileLikelihood.log_likelihood_jacobian_eta_profiled, z,
-                    X, cov, sign_switch, log_eta_guess)
-
-            # Partial function of Hessian of likelihood (with minus sign)
-            # hessian_partial_func = partial(
-            #         ProfileLikelihood.log_likelihood_hessian_eta_profiled, z
-            #         X, cov, sign_switch, log_eta_guess)
-
-            # Minimize
-            res = scipy.optimize.minimize(
-                    log_likelihood_eta_profiled_partial_func,
-                    distance_scale_guess, method=optimization_method, tol=tol,
-                    jac=jacobian_eta_profiled_partial_func)
-                    # hess=hessian_eta_profiled_partial_func)
-
-            print('Iter: %d, Eval: %d, Success: %s'
-                  % (res.nit, res.nfev, res.success))
-
-            print(res)
-
-            # Get the optimal distance_scale
-            distance_scale = res.x
-
-            # Find optimal eta with the given distance_scale
-            # Note: When using interpolation, make sure the interval below is
-            # exactly the end points of eta_i, not less or more.
-            min_eta_guess = numpy.min([1e-4, 10.0**log_eta_guess * 1e-2])
-            max_eta_guess = numpy.max([1e+3, 10.0**log_eta_guess * 1e+2])
-            interval_eta = [min_eta_guess, max_eta_guess]
-            result = ProfileLikelihood.find_log_likelihood_der1_zeros(
-                    z, X, cov.mixed_cor, interval_eta)
-            eta = result['eta']
-
-            # Find optimal sigma and sigma0 with the optimal eta
-            sigma = ProfileLikelihood.find_optimal_sigma(z, X, cov.mixed_cor,
-                                                         eta)
-            sigma0 = numpy.sqrt(eta) * sigma
-            max_lp = -res.fun
-
-            # Output dictionary
-            result = {
-                'sigma': sigma,
-                'sigma0': sigma0,
-                'eta': eta,
-                'distance_scale': distance_scale,
-                'max_lp': max_lp
-            }
-
-        elif optimization_method == 'chandrupatla':
+        if optimization_method == 'chandrupatla':
 
             if len(hyperparam_guess) > 1:
                 warnings.warn('"chandrupatla" method does not optimize ' +
-                             '"distance_scale". The "distance scale in the ' +
-                             'given "hyperparam_guess" will be ignored. To ' +
-                             'optimize distance scale with "chandrupatla"' +
-                             'method, set "profile_eta" to True.')
+                              '"distance_scale". The "distance scale in the ' +
+                              'given "hyperparam_guess" will be ignored. To ' +
+                              'optimize distance scale with "chandrupatla"' +
+                              'method, set "profile_eta" to True.')
                 distance_scale_guess = hyperparam_guess[1:]
                 if cov.get_distance_scale() is None:
                     cov.set_distance_scale(distance_scale_guess)
                     warnings.warn('distance_scale is set based on the guess ' +
-                                 'value.')
+                                  'value.')
 
             # Note: When using interpolation, make sure the interval below is
             # exactly the end points of eta_i, not less or more.
@@ -764,42 +623,41 @@ class ProfileLikelihood(object):
             interval_eta = [min_eta_guess, max_eta_guess]
 
             # Using root finding method on the first derivative w.r.t eta
-            result = ProfileLikelihood.find_log_likelihood_der1_zeros(
+            result = ProfileLikelihood.find_likelihood_der1_zeros(
                     z, X, cov.mixed_cor, interval_eta)
 
             # Finding the maxima. This isn't necessary and affects run time
-            result['max_lp'] = ProfileLikelihood.log_likelihood(
+            result['max_lp'] = ProfileLikelihood.likelihood(
                     z, X, cov.mixed_cor, False, result['eta'])
 
         else:
             # Partial function of likelihood (with minus to make maximization
             # to a minimization).
             sign_switch = True
-            log_likelihood_partial_func = partial(
-                    ProfileLikelihood.log_likelihood, z, X, cov.mixed_cor,
+            likelihood_partial_func = partial(
+                    ProfileLikelihood.likelihood, z, X, cov.mixed_cor,
                     sign_switch)
 
             # Partial function of Jacobian of likelihood (with minus sign)
             jacobian_partial_func = partial(
-                    ProfileLikelihood.log_likelihood_jacobian, z, X, cov,
+                    ProfileLikelihood.likelihood_jacobian, z, X, cov,
                     sign_switch)
 
             # Partial function of Hessian of likelihood (with minus sign)
             # hessian_partial_func = partial(
-            #         ProfileLikelihood.log_likelihood_hessian, z, X,
+            #         ProfileLikelihood.likelihood_hessian, z, X,
             #         cov, sign_switch)
 
             # Minimize
-            res = scipy.optimize.minimize(log_likelihood_partial_func,
+            res = scipy.optimize.minimize(likelihood_partial_func,
                                           hyperparam_guess,
                                           method=optimization_method, tol=tol,
                                           jac=jacobian_partial_func)
                                           # hess=hessian_partial_func)
 
-            print('Iter: %d, Eval: %d, Success: %s'
-                  % (res.nit, res.nfev, res.success))
-
-            print(res)
+            # print('Iter: %d, Eval: %d, Success: %s'
+            #       % (res.nit, res.nfev, res.success))
+            # print(res)
 
             # Extract res
             log_eta = res.x[0]
@@ -808,9 +666,8 @@ class ProfileLikelihood(object):
             else:
                 eta = 10.0**log_eta
             # eta = log_eta   # Test
-            sigma = ProfileLikelihood.find_optimal_sigma(z, X, cov.mixed_cor,
-                                                         eta)
-            sigma0 = numpy.sqrt(eta) * sigma
+            sigma, sigma0 = ProfileLikelihood.find_optimal_sigma_sigma0(
+                    z, X, cov.mixed_cor, eta)
             max_lp = -res.fun
 
             # Distance scale
@@ -830,12 +687,12 @@ class ProfileLikelihood(object):
 
         return result
 
-    # =================================
-    # plot log likelihood for fixed eta
-    # =================================
+    # =============================
+    # plot likelihood for fixed eta
+    # =============================
 
     @staticmethod
-    def plot_log_likelihood_for_fixed_eta(z, X, mixed_cor, eta):
+    def plot_likelihood_for_fixed_eta(z, X, mixed_cor, eta):
         """
         Plots log likelihood versus sigma, eta hyperparam
         """
@@ -862,7 +719,7 @@ class ProfileLikelihood(object):
         for i in range(eta.size):
             for j in range(distance_scale.size):
                 mixed_cor.set_distance_scale(distance_scale[j])
-                lp[i, j] = ProfileLikelihood.log_likelihood(
+                lp[i, j] = ProfileLikelihood.likelihood(
                         z, X, mixed_cor, False, numpy.log10(eta[i]))
 
             # Find maximum of lp
@@ -888,12 +745,12 @@ class ProfileLikelihood(object):
         ax.grid(True)
         plt.show()
 
-    # ============================================
-    # plot log likelihood for fixed distance scale
-    # ============================================
+    # ========================================
+    # plot likelihood for fixed distance scale
+    # ========================================
 
     @staticmethod
-    def plot_log_likelihood_for_fixed_distance_scale(
+    def plot_likelihood_for_fixed_distance_scale(
             z, X, mixed_cor, distance_scale):
         """
         Plots log likelihood versus sigma, eta hyperparam
@@ -921,7 +778,7 @@ class ProfileLikelihood(object):
         for i in range(distance_scale.size):
             mixed_cor.set_distance_scale(distance_scale[i])
             for j in range(eta.size):
-                lp[i, j] = ProfileLikelihood.log_likelihood(
+                lp[i, j] = ProfileLikelihood.likelihood(
                         z, X, mixed_cor, False, numpy.log10(eta[j]))
 
             # Find maximum of lp
@@ -947,12 +804,12 @@ class ProfileLikelihood(object):
         ax.grid(True)
         plt.show()
 
-    # ===================
-    # plot log likelihood
-    # ===================
+    # ===============
+    # plot likelihood
+    # ===============
 
     @staticmethod
-    def plot_log_likelihood(z, X, mixed_cor, result):
+    def plot_likelihood(z, X, mixed_cor, result):
         """
         Plots log likelihood versus sigma, eta hyperparam
         """
@@ -972,7 +829,7 @@ class ProfileLikelihood(object):
         for i in range(distance_scale.size):
             mixed_cor.set_distance_scale(distance_scale[i])
             for j in range(eta.size):
-                lp[i, j] = ProfileLikelihood.log_likelihood(
+                lp[i, j] = ProfileLikelihood.likelihood(
                         z, X, mixed_cor, False, numpy.log10(eta[j]))
 
         # Convert inf to nan
@@ -1136,12 +993,12 @@ class ProfileLikelihood(object):
 
         return asymptote_1_order, asymptote_2_order, roots_1, roots_2
 
-    # ============================
-    # plot log likelihood der1 eta
-    # ============================
+    # ========================
+    # plot likelihood der1 eta
+    # ========================
 
     @staticmethod
-    def plot_log_likelihood_der1_eta(z, X, mixed_cor, optimal_eta):
+    def plot_likelihood_der1_eta(z, X, mixed_cor, optimal_eta):
         """
         Plots the derivative of log likelihood as a function of eta.
         Also it shows where the optimal eta is, which is the location
@@ -1187,7 +1044,7 @@ class ProfileLikelihood(object):
         # Compute derivative of L
         dlp_deta = numpy.zeros(eta.size)
         for i in range(eta.size):
-            dlp_deta[i] = ProfileLikelihood.log_likelihood_der1_eta(
+            dlp_deta[i] = ProfileLikelihood.likelihood_der1_eta(
                     z, X, mixed_cor, numpy.log10(eta[i]))
 
         # Compute upper and lower bound of derivative
@@ -1322,7 +1179,7 @@ class ProfileLikelihood(object):
 
         # Save plots
         # plt.tight_layout()
-        filename = 'log_likelihood_first_derivative'
+        filename = 'likelihood_first_derivative'
         save_plot(plt, filename, transparent_background=False, pdf=True)
 
         plt.show()

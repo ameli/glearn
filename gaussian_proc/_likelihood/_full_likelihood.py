@@ -20,18 +20,18 @@ from ._likelihood_utilities import M_dot
 import imate
 
 
-# =================
-# Direct Likelihood
-# =================
+# ===============
+# Full Likelihood
+# ===============
 
-class DirectLikelihood(object):
+class FullLikelihood(object):
 
-    # ==============
-    # log likelihood
-    # ==============
+    # ==========
+    # likelihood
+    # ==========
 
     @staticmethod
-    def log_likelihood(z, X, cov, sign_switch, hyperparam):
+    def likelihood(z, X, cov, sign_switch, hyperparam):
         """
         Here we use direct parameter, sigma and sigma0
 
@@ -75,12 +75,12 @@ class DirectLikelihood(object):
 
         return lp
 
-    # =======================
-    # log likelihood jacobian
-    # =======================
+    # ===================
+    # likelihood jacobian
+    # ===================
 
     @staticmethod
-    def log_likelihood_jacobian(z, X, cov, sign_switch, hyperparam):
+    def likelihood_jacobian(z, X, cov, sign_switch, hyperparam):
         """
         When both :math:`\\sigma` and :math:`\\sigma_0` are zero, jacobian is
         undefined.
@@ -185,12 +185,12 @@ class DirectLikelihood(object):
 
         return jacobian
 
-    # ======================
-    # log likelihood hessian
-    # ======================
+    # ==================
+    # likelihood hessian
+    # ==================
 
     @staticmethod
-    def log_likelihood_hessian(z, X, cov, sign_switch, hyperparam):
+    def likelihood_hessian(z, X, cov, sign_switch, hyperparam):
         """
         """
 
@@ -505,13 +505,15 @@ class DirectLikelihood(object):
 
         return hessian
 
-    # =======================
-    # maximize log likelihood
-    # =======================
+    # ===================
+    # maximize likelihood
+    # ===================
 
     @staticmethod
-    def maximize_log_likelihood(
-            z, X, cov,
+    def maximize_likelihood(
+            z,
+            X,
+            cov,
             tol=1e-3,
             hyperparam_guess=[0.1, 0.1],
             optimization_method='Nelder-Mead'):
@@ -527,21 +529,21 @@ class DirectLikelihood(object):
         # Partial function of likelihood (with minus to make maximization to a
         # minimization).
         sign_switch = True
-        log_likelihood_partial_func = partial(
-                DirectLikelihood.log_likelihood, z, X, cov, sign_switch)
+        likelihood_partial_func = partial(
+                FullLikelihood.likelihood, z, X, cov, sign_switch)
 
         # Partial function of Jacobian of likelihood (with minus sign)
         jacobian_partial_func = partial(
-                DirectLikelihood.log_likelihood_jacobian, z, X, cov,
+                FullLikelihood.likelihood_jacobian, z, X, cov,
                 sign_switch)
 
         # Partial function of Hessian of likelihood (with minus sign)
         hessian_partial_func = partial(
-                DirectLikelihood.log_likelihood_hessian, z, X, cov,
+                FullLikelihood.likelihood_hessian, z, X, cov,
                 sign_switch)
 
         # Minimize
-        res = scipy.optimize.minimize(log_likelihood_partial_func,
+        res = scipy.optimize.minimize(likelihood_partial_func,
                                       hyperparam_guess,
                                       method=optimization_method, tol=tol,
                                       jac=jacobian_partial_func,
@@ -575,12 +577,12 @@ class DirectLikelihood(object):
 
         return result
 
-    # ===================
-    # plot log likelihood
-    # ===================
+    # ===============
+    # plot likelihood
+    # ===============
 
     @staticmethod
-    def plot_log_likelihood(z, X, cov, optimal_hyperparam=None):
+    def plot_likelihood(z, X, cov, result=None):
         """
         Plots log likelihood versus sigma0, sigma hyperparam
         """
@@ -593,7 +595,7 @@ class DirectLikelihood(object):
         lp = numpy.zeros((sigma0.size, sigma.size))
         for i in range(sigma0.size):
             for j in range(sigma.size):
-                lp[i, j] = DirectLikelihood.log_likelihood(
+                lp[i, j] = FullLikelihood.likelihood(
                         z, X, cov, False, [sigma[j], sigma0[i]])
 
         [sigma_mesh, sigma0_mesh] = numpy.meshgrid(sigma, sigma0)
@@ -604,18 +606,19 @@ class DirectLikelihood(object):
                             antialiased=False)
         fig.colorbar(p, ax=ax)
 
-        if optimal_hyperparam is not None:
-            opt_sigma = optimal_hyperparam[0]
-            opt_sigma0 = optimal_hyperparam[1]
-            opt_lp = DirectLikelihood.log_likelihood(
-                        z, X, cov, False, optimal_hyperparam)
+        if result is not None:
+            opt_sigma = result['sigma']
+            opt_sigma0 = result['sigma0']
+            hyperparam = [opt_sigma, opt_sigma0]
+            opt_lp = FullLikelihood.likelihood(
+                        z, X, cov, False, hyperparam)
             plt.plot(opt_sigma, opt_sigma0, opt_lp, markersize=5, marker='o',
                      markerfacecolor='red', markeredgecolor='red')
         ax.set_xlabel(r'$\sigma$')
         ax.set_ylabel(r'$\sigma_0$')
         ax.set_title('Log Likelihood function')
 
-        filename = 'log_likelihood'
+        filename = 'likelihood'
         save_plot(plt, filename, transparent_background=False, pdf=True)
 
         plt.show()

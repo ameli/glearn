@@ -53,10 +53,10 @@ class GaussianProcess(object):
     def train(
             self,
             z,
-            likelihood_method='direct',
             optimization_method='Newton-CG',
-            profile_eta=False,
+            profile_param='var',
             hyperparam_guess=None,
+            verbose=False,
             plot=False):
         """
         Finds the hyperparameters of the Gaussian process model.
@@ -68,12 +68,17 @@ class GaussianProcess(object):
         distance_scale = self.cov.get_distance_scale()
 
         # Number of parameters of covariance function
-        if likelihood_method == 'direct':
+        if profile_param == 'none':
             # hyperparameters are sigma and sigma0
             num_cov_hyperparam = 2
-        else:
+        elif profile_param == 'var':
             # hyperparameter is eta
             num_cov_hyperparam = 1
+        elif profile_param == 'var_noise':
+            num_cov_hyperparam = 0
+        else:
+            raise ValueError('"profile_param" can be one of "none", ' +
+                             '"var", or "var_noise".')
 
         # Prepare hyparameter guess
         if hyperparam_guess is None:
@@ -104,10 +109,9 @@ class GaussianProcess(object):
                 raise ValueError('The size of "hyperparam_guess" does not' +
                                  'match the number of hyprparameters.')
 
-        results = self.likelihood.maximize_log_likelihood(
+        results = self.likelihood.maximize_likelihood(
                 z, hyperparam_guess=hyperparam_guess,
-                likelihood_method=likelihood_method,
                 optimization_method=optimization_method,
-                profile_eta=profile_eta, plot=plot)
+                profile_param=profile_param, verbose=verbose, plot=plot)
 
         print(results)
