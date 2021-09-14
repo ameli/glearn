@@ -133,7 +133,7 @@ class Correlation(object):
 
         else:
 
-            # Here, distance_scale is not None.
+            # Here, distance_scale is not None. Convert distance_scale to array
             if numpy.isscalar(distance_scale):
                 if not isinstance(distance_scale, (int, numpy.integer)) and \
                    not isinstance(distance_scale, float):
@@ -368,10 +368,13 @@ class Correlation(object):
                     self.distance_scale, derivative, self.sparse, self.density,
                     plot, verbose)
 
+            # if distance_scale was changed, all matrices should be recomputed
+            if self.distance_scale_changed:
+                self.K_der0_updated = False
+                self.K_der1_updated = False
+                self.K_der2_updated = False
+
             # Specify which derivative was updated
-            self.K_der0_updated = False
-            self.K_der1_updated = False
-            self.K_der2_updated = False
             if len(derivative) == 0:
                 self.K_der0_updated = True
             elif len(derivative) == 1:

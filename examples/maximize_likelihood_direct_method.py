@@ -33,7 +33,7 @@ def main():
     # Generate points
     # num_points = 30
     # num_points = 95
-    num_points = 70
+    num_points = 40
     dimension = 1
     grid = True
     points = generate_points(num_points, dimension, grid)
@@ -48,9 +48,9 @@ def main():
 
     # Correlation
     # kernel = Matern()
-    # kernel = Exponential()
+    kernel = Exponential()
     # kernel = SquareExponential()
-    kernel = RationalQuadratic()
+    # kernel = RationalQuadratic()
     # cor = Correlation(points, kernel=kernel, distance_scale=0.1, sparse=False)
     cor = Correlation(points, kernel=kernel, sparse=False)
 
@@ -66,10 +66,10 @@ def main():
     # profile_param = 'var_noise'
 
     # optimization_method = 'chandrupatla'  # requires jacobian
-    # optimization_method = 'Nelder-Mead'     # requires func
+    optimization_method = 'Nelder-Mead'     # requires func
     # optimization_method = 'BFGS'          # requires func, jacobian
     # optimization_method = 'CG'            # requires func, jacobian
-    optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
+    # optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
     # optimization_method = 'dogleg'        # requires func, jacobian, hessian
     # optimization_method = 'trust-exact'   # requires func, jacobian, hessian
     # optimization_method = 'trust-ncg'     # requires func, jacobian, hessian

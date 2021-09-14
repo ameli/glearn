@@ -96,17 +96,16 @@ class Likelihood(object):
                     verbose=verbose)
 
             if plot:
-                # Plot log-lp when eta is fixed, for a selection of eta
-                ProfileLikelihood.plot_likelihood_for_fixed_eta(
-                        z, self.X, self.mixed_cor,
-                        numpy.r_[result['eta'], numpy.logspace(-3, 3, 7)])
-
                 # Plot log-lp when distance_scale is fixed, for a selection of
                 # distance_scale
                 ProfileLikelihood.plot_likelihood_for_fixed_distance_scale(
-                        z, self.X, self.mixed_cor,
-                        numpy.r_[result['distance_scale'],
-                                 numpy.logspace(-3, 3, 7)])
+                        z, self.X, self.mixed_cor, result['distance_scale'],
+                        numpy.logspace(-2, 2, 5))
+
+                # Plot log-lp when eta is fixed, for a selection of eta
+                ProfileLikelihood.plot_likelihood_for_fixed_eta(
+                        z, self.X, self.cov, result['eta'],
+                        numpy.logspace(-2, 2, 5))
 
                 # 3D Plot of log-lp function
                 ProfileLikelihood.plot_likelihood(z, self.X, self.mixed_cor,

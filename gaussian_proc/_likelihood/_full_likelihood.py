@@ -159,7 +159,7 @@ class FullLikelihood(object):
 
                 # Compute the first component of trace of Sp * Sinv (TODO)
                 Sp = cov.get_matrix(sigma, sigma0, derivative=[p])
-                SpSinv = numpy.matmul(Sp, Sinv)
+                SpSinv = Sp @ Sinv
                 trace_SpSinv, _ = imate.trace(SpSinv, method='exact')
 
                 # Compute the second component of trace of Sp * M

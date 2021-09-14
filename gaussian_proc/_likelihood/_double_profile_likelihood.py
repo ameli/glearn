@@ -283,7 +283,7 @@ class DoubleProfileLikelihood(object):
         ax.plot(distance_scale, lp, color='black', label=r'$\ell(\theta)$')
         ax2.plot(distance_scale, eta, '--', color='black', label=r'$\eta$')
         ax.plot(optimal_distance_scale, optimal_lp, 'o', color='black',
-                markersize=3, label=r'optimal $\theta$ (bruteforce)')
+                markersize=3, label=r'optimal $\theta$ (brute force)')
 
         if result is not None:
             opt_distance_scale = result['distance_scale']
@@ -377,7 +377,7 @@ class DoubleProfileLikelihood(object):
         opt_lp = lp[max_indices[0], max_indices[1]]
         ax.plot3D(numpy.log10(opt_eta), numpy.log10(opt_distance_scale),
                   opt_lp, 'o', color='red', markersize=6,
-                  label=r'$\max_{\eta, \theta} \ell$ (by bruteforce on grid)')
+                  label=r'$\max_{\eta, \theta} \ell$ (by brute force on grid)')
 
         # Plot optimal point as found by the profile likelihood method
         if result is not None:
@@ -387,7 +387,7 @@ class DoubleProfileLikelihood(object):
             ax.plot3D(numpy.log10(optimal_eta),
                       numpy.log10(optimal_distance_scale),
                       optimal_lp, 'o', color='magenta', markersize=6,
-                      label=r'$\max_{\eta, \theta} \ell$ (by optimzation)')
+                      label=r'$\max_{\eta, \theta} \ell$ (by optimization)')
 
         # Plot annotations
         ax.legend()
