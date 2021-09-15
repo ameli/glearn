@@ -98,9 +98,9 @@ class Likelihood(object):
             if plot:
                 # Plot log-lp when distance_scale is fixed, for a selection of
                 # distance_scale
-                ProfileLikelihood.plot_likelihood_for_fixed_distance_scale(
-                        z, self.X, self.mixed_cor, result['distance_scale'],
-                        numpy.logspace(-2, 2, 5))
+                # ProfileLikelihood.plot_likelihood_for_fixed_distance_scale(
+                #         z, self.X, self.mixed_cor, result['distance_scale'],
+                #         numpy.logspace(-2, 2, 5))
 
                 # Plot log-lp when eta is fixed, for a selection of eta
                 ProfileLikelihood.plot_likelihood_for_fixed_eta(
@@ -108,8 +108,8 @@ class Likelihood(object):
                         numpy.logspace(-2, 2, 5))
 
                 # 3D Plot of log-lp function
-                ProfileLikelihood.plot_likelihood(z, self.X, self.mixed_cor,
-                                                  result)
+                # ProfileLikelihood.plot_likelihood(z, self.X, self.mixed_cor,
+                #                                   result)
 
                 # # Plot first derivative of log likelihood
                 # optimal_eta = result['eta']

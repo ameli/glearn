@@ -7,12 +7,20 @@
 # directory of this source tree.
 
 
-from .kernel import Kernel
-from .matern import Matern
-from .linear import Linear
-from .exponential import Exponential
-from .square_exponential import SquareExponential
-from .rational_quadratic import RationalQuadratic
+# =======
+# Imports
+# =======
 
-__all__ = ['Kernel', 'Matern', 'Exponential', 'SquareExponential', 'Linear',
-           'RationalQuadratic']
+from .kernel cimport Kernel
+
+
+# ======
+# Linear
+# ======
+
+cdef class Linear(Kernel):
+
+    # Methods
+    cdef double cy_kernel(self, const double x) nogil
+    cdef double cy_kernel_first_derivative(self, const double x) nogil
+    cdef double cy_kernel_second_derivative(self, const double x) nogil

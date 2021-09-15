@@ -18,7 +18,7 @@ import time
 from gaussian_proc.sample_data import generate_points, generate_data
 from gaussian_proc.mean import LinearModel
 from gaussian_proc.kernels import Matern, Exponential, SquareExponential, \
-        RationalQuadratic
+        RationalQuadratic, Linear
 from gaussian_proc import Correlation
 from gaussian_proc import Covariance
 from gaussian_proc import GaussianProcess
@@ -33,7 +33,7 @@ def main():
     # Generate points
     # num_points = 30
     # num_points = 95
-    num_points = 40
+    num_points = 50
     dimension = 1
     grid = True
     points = generate_points(num_points, dimension, grid)
@@ -49,6 +49,7 @@ def main():
     # Correlation
     # kernel = Matern()
     kernel = Exponential()
+    # kernel = Linear()
     # kernel = SquareExponential()
     # kernel = RationalQuadratic()
     # cor = Correlation(points, kernel=kernel, distance_scale=0.1, sparse=False)

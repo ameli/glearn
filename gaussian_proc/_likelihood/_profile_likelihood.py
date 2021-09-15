@@ -115,7 +115,8 @@ class ProfileLikelihood(object):
             lp = -0.5*(n-m)*numpy.log(2.0*numpy.pi) \
                 - (n-m)*numpy.log(sigma) - 0.5*logdet_Kn \
                 - 0.5*logdet_XtKninvX \
-                - (0.5/(sigma**2))*numpy.dot(z, w-numpy.dot(YBinvYt, z))
+                - 0.5*(n-m)
+                # - (0.5/(sigma**2))*numpy.dot(z, w-numpy.dot(YBinvYt, z))
 
         # If lp is used in scipy.optimize.minimize, change the sign to obtain
         # the minimum of -lp
@@ -336,6 +337,7 @@ class ProfileLikelihood(object):
 
             # Compute the first component of trace of Sp * M (TODO)
             Sp = cov.get_matrix(sigma, sigma0, derivative=[p])
+
             SpSinv = Sp @ Sinv
             trace_SpSinv, _ = imate.trace(SpSinv, method='exact')
             # trace_SpSinv = cov.traceinv(sigma, sigma0, Sp,
@@ -415,15 +417,6 @@ class ProfileLikelihood(object):
 
             for q in range(distance_scale.size):
 
-                # # Test
-                # Sp = cov.get_matrix(sigma, sigma0, derivative=[p])
-                # Sq = cov.get_matrix(sigma, sigma0, derivative=[q])
-                # Spq = cov.get_matrix(sigma, sigma0, derivative=[p, q])
-                # Q = Spq @ M - Sp @ M @ Sq @ M
-                # W = M @ Spq @ M - 2.0 * M @ Sp @ M @ Sq @ M
-                # test = -0.5*numpy.trace(Q) + \
-                #         0.5*numpy.dot(z, W @ z)
-
                 # 1. Compute zMSqMSpMz
                 if p == q:
                     SqMz = SpMz
@@ -496,9 +489,17 @@ class ProfileLikelihood(object):
                 trace_SpMSqM = trace_SpMSqM_1 - trace_SpMSqM_21 - \
                     trace_SpMSqM_22 + trace_SpMSqM_3
 
-                # 5. Second derivatives w.r.t distance_scale
-                der2_distance_scale[p, q] = -0.5*trace_SpqM + \
+                # 5. Second "local" derivatives w.r.t distance_scale
+                local_der2_distance_scale = -0.5*trace_SpqM + \
                     0.5*trace_SpMSqM - zMSqMSpMz + 0.5*zMSpqMz
+
+                # Computing total second derivative
+                MSqMz = M_dot(cov, Binv, Y, sigma, sigma0, SqMz)
+
+                dp_log_sigma2 = -numpy.dot(z, MSpMz) / (n-m)
+                dq_log_sigma2 = -numpy.dot(z, MSqMz) / (n-m)
+                der2_distance_scale[p, q] = local_der2_distance_scale + \
+                        0.5 * (n-m) * dp_log_sigma2 * dq_log_sigma2
 
                 if p != q:
                     der2_distance_scale[q, p] = der2_distance_scale[p, q]
@@ -884,8 +885,7 @@ class ProfileLikelihood(object):
         etas = numpy.sort(etas)
 
         # Generate lp for various distance scales
-        # distance_scale = numpy.logspace(-3, 3, 200)
-        distance_scale = numpy.logspace(-3, 1, 500)
+        distance_scale = numpy.logspace(-3, 3, 200)
         d0_lp = numpy.zeros((etas.size, distance_scale.size), dtype=float)
         d1_lp = numpy.zeros((etas.size, distance_scale.size), dtype=float)
         d2_lp = numpy.zeros((etas.size, distance_scale.size), dtype=float)
@@ -978,9 +978,9 @@ class ProfileLikelihood(object):
                         r'fixed $\eta$')
         ax[2].set_title(r'Second derivative of log likelihood function for ' +
                         r'fixed $\eta$')
-        ax[0].grid(True)
-        ax[1].grid(True)
-        ax[2].grid(True)
+        ax[0].grid(True, which='both')
+        ax[1].grid(True, which='both')
+        ax[2].grid(True, which='both')
 
         plt.tight_layout()
         plt.show()
@@ -1105,9 +1105,9 @@ class ProfileLikelihood(object):
                         r'fixed $\theta$')
         ax[2].set_title(r'Second derivative of log likelihood function for ' +
                         r'fixed $\theta$')
-        ax[0].grid(True)
-        ax[1].grid(True)
-        ax[2].grid(True)
+        ax[0].grid(True, both='both')
+        ax[1].grid(True, both='both')
+        ax[2].grid(True, both='both')
 
         plt.tight_layout()
         plt.show()

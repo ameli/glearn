@@ -77,12 +77,11 @@ class Correlation(object):
         self.matrix_size = points.shape[0]
         self.dimension = points.shape[1]
 
-        # Set distance scale
-        if distance_scale is None:
-            # By initializing distance_scale to None in the constructor, it
-            # will be determined later as variable to the optimization problem
-            self.distance_scale = None
-        else:
+        # Set distance scale. By initializing distance_scale to None in the
+        # constructor, it will be determined later as variable to the
+        # optimization problem.
+        self.distance_scale = None
+        if distance_scale is not None:
             self.set_distance_scale(distance_scale)
 
         # Determine whether a new matrix needs to be computed or not. Usually,
