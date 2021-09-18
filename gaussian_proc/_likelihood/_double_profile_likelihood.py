@@ -11,6 +11,7 @@
 # Imports
 # =======
 
+import time
 import numpy
 import scipy
 import scipy.linalg
@@ -35,7 +36,13 @@ class DoubleProfileLikelihood(object):
     # likelihood
     # ==========
 
-    def likelihood(z, X, cov, sign_switch, log_eta_guess, hyperparam):
+    def likelihood(
+            z,
+            X,
+            cov,
+            sign_switch,
+            log_eta_guess,
+            hyperparam):
         """
         Variable eta is profiled out, meaning that optimal value of eta is
         used in log-likelihood function.
@@ -59,12 +66,6 @@ class DoubleProfileLikelihood(object):
         lp = ProfileLikelihood.likelihood(
                 z, X, cov.mixed_cor, sign_switch, hyperparam_full)
 
-        # Test
-        # print(distance_scale)
-        # print(eta)
-        # print(lp)
-        # print('--')
-
         return lp
 
     # ===================
@@ -72,8 +73,13 @@ class DoubleProfileLikelihood(object):
     # ===================
 
     @staticmethod
-    def likelihood_jacobian(z, X, cov, sign_switch, log_eta_guess,
-                                hyperparam):
+    def likelihood_jacobian(
+            z,
+            X,
+            cov,
+            sign_switch,
+            log_eta_guess,
+            hyperparam):
         """
         Computes Jacobian w.r.t eta, and if given, distance_scale.
         """
@@ -102,13 +108,53 @@ class DoubleProfileLikelihood(object):
         # Jacobian only consists of the derivative w.r.t distance_scale
         jacobian = der1_distance_scale
 
-        print('scale: %f, eta: %f, jac: %f'
-              % (distance_scale[0], eta, jacobian[0]))
+        # print('scale: %f, eta: %f, jac: %f'
+        #       % (distance_scale[0], eta, jacobian[0]))
+        print(jacobian)
 
         if sign_switch:
             jacobian = -jacobian
 
         return jacobian
+
+    # ==================
+    # likelihood hessian
+    # ==================
+
+    @staticmethod
+    def likelihood_hessian(z, X, cov, sign_switch, hyperparam):
+        """
+        Computes Hessian w.r.t eta, and if given, distance_scale.
+        """
+
+        # When profiling eta is enabled, derivative w.r.t eta is not needed.
+        # Compute only Jacobian w.r.t distance_scale. Also, here, the input
+        # hyperparam consists of only distance_scale (and not eta).
+        if isinstance(hyperparam, list):
+            hyperparam = numpy.array(hyperparam)
+        distance_scale = numpy.abs(hyperparam)
+        cov.set_distance_scale(distance_scale)
+
+        # Find optimal eta
+        eta = DoubleProfileLikelihood._find_optimal_eta(
+                z, X, cov, distance_scale, log_eta_guess)
+        log_eta = numpy.log(eta)
+
+        # Construct new hyperparam that consists of both eta and distance_scale
+        hyperparam_full = numpy.r_[log_eta, distance_scale]
+
+        # Compute second derivative w.r.t distance_scale
+        der2_distance_scale = \
+                ProfileLikelihood.likelihood_der2_distance_scale(
+                        z, X, cov, hyperparam)
+
+        # Concatenate derivatives to form Hessian of all variables
+        hessian = der2_distance_scale
+
+        # if sign_switch:
+        #     hessian = -hessian
+
+        return hessian
 
     # ================
     # find optimal eta
@@ -134,10 +180,10 @@ class DoubleProfileLikelihood(object):
         # # Using root finding method on the first derivative w.r.t eta
         # result = ProfileLikelihood.find_likelihood_der1_zeros(
         #         z, X, cov.mixed_cor, interval_eta)
-        # eta = result['eta']
+        # eta = result['hyperparam']['eta']
 
         cov.set_distance_scale(distance_scale)
-        
+       
         # optimization_method = 'Newton-CG'
         result = ProfileLikelihood.maximize_likelihood(
                 z, X, cov,
@@ -145,7 +191,7 @@ class DoubleProfileLikelihood(object):
                 hyperparam_guess=[log_eta_guess],
                 optimization_method=optimization_method)
 
-        eta = result['eta']
+        eta = result['hyperparam']['eta']
         return eta
 
     # ===================
@@ -168,8 +214,12 @@ class DoubleProfileLikelihood(object):
         In this function, hyperparam = [sigma, sigma0].
         """
 
+        # Keeping times
+        initial_wall_time = time.time()
+        initial_proc_time = time.process_time()
+
         # When profile eta is used, hyperparam only contains distance_scale
-        log_eta_guess = 0.0
+        log_eta_guess = 1.0
 
         # Partial function of likelihood with profiled eta. The input
         # hyperparam is only distance_scale, not eta.
@@ -194,12 +244,8 @@ class DoubleProfileLikelihood(object):
                 method=optimization_method, tol=tol, jac=jacobian_partial_func)
                 # hess=hessian_partial_func)
 
-        # print('Iter: %d, Eval: %d, Success: %s'
-        #       % (res.nit, res.nfev, res.success))
-        # print(res)
-
         # Get the optimal distance_scale
-        distance_scale = res.x
+        distance_scale = numpy.abs(res.x)
 
         # Find optimal eta with the given distance_scale
         eta = DoubleProfileLikelihood._find_optimal_eta(
@@ -210,13 +256,29 @@ class DoubleProfileLikelihood(object):
                 z, X, cov.mixed_cor, eta)
         max_lp = -res.fun
 
+        # Adding time to the results
+        wall_time = time.time() - initial_wall_time
+        proc_time = time.process_time() - initial_proc_time
+
         # Output dictionary
         result = {
-            'sigma': sigma,
-            'sigma0': sigma0,
-            'eta': eta,
-            'distance_scale': distance_scale,
-            'max_lp': max_lp
+            'hyperparam':
+            {
+                'sigma': sigma,
+                'sigma0': sigma0,
+                'eta': eta,
+                'distance_scale': distance_scale,
+            },
+            'optimization':
+            {
+                'max_likelihood': max_lp,
+                'iter': res.nit,
+            },
+            'time':
+            {
+                'wall_time': wall_time,
+                'proc_time': proc_time
+            }
         }
 
         return result
@@ -226,7 +288,11 @@ class DoubleProfileLikelihood(object):
     # ===============
 
     @staticmethod
-    def plot_likelihood(z, X, cov, result):
+    def plot_likelihood(
+            z,
+            X,
+            cov,
+            result):
         """
         Plots log likelihood for distance_scale parameters.
         """
@@ -246,7 +312,11 @@ class DoubleProfileLikelihood(object):
     # ==================
 
     @staticmethod
-    def plot_likelihood_1d(z, X, cov, result=None):
+    def plot_likelihood_1d(
+            z,
+            X,
+            cov,
+            result=None):
         """
         Plots log likelihood versus sigma, eta hyperparam
         """
@@ -254,22 +324,31 @@ class DoubleProfileLikelihood(object):
         load_plot_settings()
 
         # Generate lp for various distance scales
-        # distance_scale = numpy.logspace(-3, 3, 100)
-        distance_scale = numpy.logspace(-2, 2, 100)
+        distance_scale = numpy.logspace(-3, 2, 200)
         eta = numpy.zeros((distance_scale.size, ), dtype=float)
         lp = numpy.zeros((distance_scale.size, ), dtype=float)
-        log_eta_guess = 0.0
+        der1_lp = numpy.zeros((distance_scale.size, ), dtype=float)
+        der1_lp_numerical = numpy.zeros((distance_scale.size-2, ), dtype=float)
+        log_eta_guess = 1.0
         sign_switch = False
 
-        fig, ax = plt.subplots()
-        ax2 = ax.twinx()
+        fig, ax = plt.subplots(ncols=2, figsize=(11, 5))
+        ax2 = ax[0].twinx()
 
         for j in range(distance_scale.size):
+            cov.set_distance_scale(distance_scale[j])
             lp[j] = DoubleProfileLikelihood.likelihood(
                     z, X, cov, sign_switch, log_eta_guess,
                     distance_scale[j])
+            der1_lp[j] = DoubleProfileLikelihood.likelihood_jacobian(
+                    z, X, cov, sign_switch, log_eta_guess,
+                    distance_scale[j])[0]
             eta[j] = DoubleProfileLikelihood._find_optimal_eta(
-                    z, X, cov, distance_scale[j])
+                    z, X, cov, distance_scale[j], log_eta_guess)
+
+        # Numerical derivative of likelihood
+        der1_lp_numerical = (lp[2:] - lp[:-2]) / \
+                (distance_scale[2:] - distance_scale[:-2])
 
         # Exclude large eta
         eta[eta > 1e+16] = numpy.nan
@@ -280,28 +359,48 @@ class DoubleProfileLikelihood(object):
         optimal_lp = lp[max_index]
 
         # Plot
-        ax.plot(distance_scale, lp, color='black', label=r'$\ell(\theta)$')
-        ax2.plot(distance_scale, eta, '--', color='black', label=r'$\eta$')
-        ax.plot(optimal_distance_scale, optimal_lp, 'o', color='black',
-                markersize=3, label=r'optimal $\theta$ (brute force)')
+        ax[0].plot(distance_scale, lp, color='black',
+                label=r'$\ell(\hat{\eta}, \theta)$')
+        ax[1].plot(
+            distance_scale, der1_lp, color='black',
+            label=
+            r'$\frac{\mathrm{d} \ell(\hat{\eta}, \theta)}{\mathrm{d} \theta}$')
+        ax[1].plot(
+                distance_scale[1:-1], der1_lp_numerical, '--', color='black')
+        ax2.plot(distance_scale, eta, '--', color='black',
+                 label=r'$\hat{\eta}(\theta)$')
+        ax[0].plot(optimal_distance_scale, optimal_lp, 'o', color='black',
+                markersize=4, label=r'$\hat{\theta}$ (brute force)')
 
         if result is not None:
-            opt_distance_scale = result['distance_scale']
-            opt_lp = result['max_lp']
-            ax.plot(opt_distance_scale, opt_lp, 'o', color='maroon',
-                    markersize=3, label=r'optimal $\theta$ (optimized)')
+            opt_distance_scale = result['hyperparam']['distance_scale']
+            opt_lp = result['optimization']['max_likelihood']
+            ax[0].plot(opt_distance_scale, opt_lp, 'o', color='maroon',
+                    markersize=4, label=r'$\hat{\theta}$ (optimized)')
 
         # Plot annotations
-        ax.legend(loc='lower right')
+        ax[0].legend(loc='lower right')
+        ax[1].legend(loc='lower right')
         ax2.legend(loc='upper right')
-        ax.set_xscale('log')
-        ax.set_xlim([distance_scale[0], distance_scale[-1]])
+        ax[0].set_xscale('log')
+        ax[1].set_xscale('log')
+        ax[0].set_xlim([distance_scale[0], distance_scale[-1]])
+        ax[1].set_xlim([distance_scale[0], distance_scale[-1]])
         ax2.set_xlim([distance_scale[0], distance_scale[-1]])
-        ax.set_xlabel(r'$\theta$')
-        ax.set_ylabel(r'$\ell(\theta)$')
-        ax2.set_ylabel(r'$\eta(\theta)$')
-        ax.set_title(r'Profiled Log Likelihood Function')
-        ax.grid(True)
+        ax2.set_ylim(bottom=0.0, top=None)
+        ax[0].set_xlabel(r'$\theta$')
+        ax[1].set_xlabel(r'$\theta$')
+        ax[0].set_ylabel(r'$\ell(\hat{\eta}(\theta), \theta)$')
+        ax[1].set_ylabel(
+            r'$\frac{\mathrm{d}\ell(\hat{\eta}(\theta),' +
+            r' \theta)}{\mathrm{d} \theta}$')
+        ax2.set_ylabel(r'$\hat{\eta}(\theta)$')
+        ax[0].set_title(r'Log likelihood function profiled for $\eta$')
+        ax[1].set_title(r'Derivative of log likelihood function')
+        ax[0].grid(True)
+        ax[1].grid(True)
+
+        plt.tight_layout()
         plt.show()
 
     # ==================
@@ -309,7 +408,11 @@ class DoubleProfileLikelihood(object):
     # ==================
 
     @staticmethod
-    def plot_likelihood_2d(z, X, cov, result=None):
+    def plot_likelihood_2d(
+            z,
+            X,
+            cov,
+            result=None):
         """
         Plots log likelihood versus sigma, eta hyperparam
         """
@@ -317,7 +420,7 @@ class DoubleProfileLikelihood(object):
         load_plot_settings()
 
         eta = numpy.logspace(-3, 3, 100)
-        distance_scale = numpy.logspace(-3, 3, 100)
+        distance_scale = numpy.logspace(-3, 2, 100)
         lp = numpy.zeros((distance_scale.size, eta.size), dtype=float)
 
         # Compute lp
@@ -381,8 +484,8 @@ class DoubleProfileLikelihood(object):
 
         # Plot optimal point as found by the profile likelihood method
         if result is not None:
-            opt_distance_scale = result['distance_scale']
-            opt_lp = result['max_lp']
+            opt_distance_scale = result['hyperparam']['distance_scale']
+            opt_lp = result['optimization']['max_likelihood']
 
             ax.plot3D(numpy.log10(optimal_eta),
                       numpy.log10(optimal_distance_scale),

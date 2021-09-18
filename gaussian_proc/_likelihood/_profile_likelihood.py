@@ -11,6 +11,7 @@
 # Imports
 # =======
 
+import time
 import numpy
 import scipy
 import scipy.linalg
@@ -21,7 +22,7 @@ from functools import partial
 
 from .._utilities.plot_utilities import *                    # noqa: F401, F403
 from .._utilities.plot_utilities import load_plot_settings, save_plot, plt, \
-        mark_inset, InsetPosition, matplotlib
+        mark_inset, InsetPosition, matplotlib, make_axes_locatable
 from ._root_finding import find_interval_with_sign_change, chandrupatla_method
 from ._likelihood_utilities import M_dot
 import imate
@@ -102,21 +103,15 @@ class ProfileLikelihood(object):
 
             # Compute log det (X.T Kn_inv X)
             Y = mixed_cor.solve(eta, X)
-            w = mixed_cor.solve(eta, z)
 
             XtKninvX = numpy.matmul(X.T, Y)
             logdet_XtKninvX = numpy.log(numpy.linalg.det(XtKninvX))
-
-            # Suppose B is XtKninvX found above. We compute inverse of B
-            Binv = numpy.linalg.inv(XtKninvX)
-            YBinvYt = numpy.matmul(Y, numpy.matmul(Binv, Y.T))
 
             # Log likelihood
             lp = -0.5*(n-m)*numpy.log(2.0*numpy.pi) \
                 - (n-m)*numpy.log(sigma) - 0.5*logdet_Kn \
                 - 0.5*logdet_XtKninvX \
                 - 0.5*(n-m)
-                # - (0.5/(sigma**2))*numpy.dot(z, w-numpy.dot(YBinvYt, z))
 
         # If lp is used in scipy.optimize.minimize, change the sign to obtain
         # the minimum of -lp
@@ -282,7 +277,7 @@ class ProfileLikelihood(object):
         if numpy.isscalar(hyperparam):
             return d2lp_deta2
         else:
-            return numpy.array([d2lp_deta2])
+            return numpy.array([[d2lp_deta2]], dtype=float)
 
     # ==============================
     # likelihood der1 distance scale
@@ -369,7 +364,8 @@ class ProfileLikelihood(object):
         """
         lp is the log likelihood probability. der2_distance_scale is
         d2(lp)/d(theta2), is the second derivative of lp with respect to the
-        distance scale (theta).
+        distance scale (theta). The output is a 2D array of the size of
+        distance_scale.
         """
 
         # Get log_eta
@@ -404,9 +400,6 @@ class ProfileLikelihood(object):
         # Needed to compute trace (TODO)
         S = cov.get_matrix(sigma, sigma0)
         Sinv = numpy.linalg.inv(S)
-
-        # Test
-        # M = Sinv - Y @ Binv @ Y.T
 
         # Sp is the derivative of cov w.r.t the p-th element of
         # distance_scale.
@@ -499,12 +492,95 @@ class ProfileLikelihood(object):
                 dp_log_sigma2 = -numpy.dot(z, MSpMz) / (n-m)
                 dq_log_sigma2 = -numpy.dot(z, MSqMz) / (n-m)
                 der2_distance_scale[p, q] = local_der2_distance_scale + \
-                        0.5 * (n-m) * dp_log_sigma2 * dq_log_sigma2
+                    0.5 * (n-m) * dp_log_sigma2 * dq_log_sigma2
 
                 if p != q:
                     der2_distance_scale[q, p] = der2_distance_scale[p, q]
 
         return der2_distance_scale
+
+    # =====================
+    # likelihood der2 mixed
+    # =====================
+
+    def likelihood_der2_mixed(z, X, cov, hyperparam):
+        """
+        lp is the log likelihood probability. der2_mixed is the mixed second
+        derivative w.r.t eta and distance_scale. The output is a 1D vector
+        of the size of distance_scale.
+        """
+
+        # Get log_eta
+        if numpy.isscalar(hyperparam):
+            log_eta = hyperparam
+        else:
+            log_eta = hyperparam[0]
+        eta = 10.0**log_eta
+        distance_scale = numpy.abs(hyperparam[1:])
+        cov.set_distance_scale(distance_scale)
+
+        # Initialize mixed derivative as 2D array with one row.
+        der2_mixed = numpy.zeros(
+                (1, distance_scale.size), dtype=float)
+
+        # Find optimal sigma based on eta. Then compute sigma0
+        sigma, sigma0 = ProfileLikelihood.find_optimal_sigma_sigma0(
+                z, X, cov.mixed_cor, eta)
+
+        n, m = X.shape
+
+        # Computing Y=Sinv*X and w=Sinv*z.
+        Y = cov.solve(sigma, sigma0, X)
+        YtY = numpy.matmul(Y.T, Y)
+        V = cov.solve(sigma, sigma0, Y)
+
+        # B is Xt * Y
+        B = numpy.matmul(X.T, Y)
+        Binv = numpy.linalg.inv(B)
+
+        # Compute Mz and MMz
+        Mz = M_dot(cov, Binv, Y, sigma, sigma0, z)
+        MMz = M_dot(cov, Binv, Y, sigma, sigma0, Mz)
+
+        # Needed to compute trace (TODO)
+        S = cov.get_matrix(sigma, sigma0)
+        Sinv = numpy.linalg.inv(S)
+        Sinv2 = Sinv @ Sinv
+
+        # Sp is the derivative of cov w.r.t the p-th element of
+        # distance_scale.
+        for p in range(distance_scale.size):
+
+            # Compute zMSpMMz
+            SpMz = cov.dot(sigma, sigma0, Mz, derivative=[p])
+            zMSpMMz = numpy.dot(SpMz, MMz)
+
+            # Compute trace of SpSinv2
+            Sp = cov.get_matrix(sigma, sigma0, derivative=[p])
+            SpSinv2 = Sp @ Sinv2
+            trace_SpSinv2, _ = imate.trace(SpSinv2, method='exact')
+
+            # Compute traces
+            SpY = cov.dot(sigma, sigma0, Y, derivative=[p])
+            YtSpY = numpy.matmul(Y.T, SpY)
+            VtSpY = numpy.matmul(V.T, SpY)
+            C1 = numpy.matmul(Binv, VtSpY)
+            C2 = numpy.matmul(Binv, VtSpY.T)
+            D1 = numpy.matmul(Binv, YtSpY)
+            D2 = numpy.matmul(Binv, YtY)
+            D = numpy.matmul(D1, D2)
+
+            trace_C1 = numpy.trace(C1)
+            trace_C2 = numpy.trace(C2)
+            trace_D = numpy.trace(D)
+
+            # Compute trace of M * Sp * M
+            trace_MSpM = trace_SpSinv2 - trace_C1 - trace_C2 + trace_D
+
+            # Compute mixed derivative
+            der2_mixed[p] = sigma**2 * (0.5*trace_MSpM - zMSpMMz)
+
+        return der2_mixed
 
     # ===================
     # likelihood jacobian
@@ -536,7 +612,47 @@ class ProfileLikelihood(object):
         if sign_switch:
             jacobian = -jacobian
 
+        print(jacobian)
+
         return jacobian
+
+    # ==================
+    # likelihood hessian
+    # ==================
+
+    @staticmethod
+    def likelihood_hessian(z, X, cov, sign_switch, hyperparam):
+        """
+        Computes Hessian w.r.t eta, and if given, distance_scale.
+        """
+
+        der2_eta = ProfileLikelihood.likelihood_der2_eta(
+                z, X, cov.mixed_cor, hyperparam)
+
+        # hessian here is a 2D array of size 1
+        hessian = der2_eta
+
+        # Compute Hessian w.r.t distance_scale
+        if hyperparam.size > 1:
+
+            # Compute second derivative w.r.t distance_scale
+            der2_distance_scale = \
+                    ProfileLikelihood.likelihood_der2_distance_scale(
+                            z, X, cov, hyperparam)
+
+            # Compute second mixed derivative w.r.t distance_scale and eta
+            der2_mixed = ProfileLikelihood.likelihood_der2_mixed(
+                    z, X, cov, hyperparam)
+
+            # Concatenate derivatives to form Hessian of all variables
+            hessian = numpy.block(
+                    [[hessian, der2_mixed],
+                     [der2_mixed.T, der2_distance_scale]])
+
+        if sign_switch:
+            hessian = -hessian
+
+        return hessian
 
     # =========================
     # find optimal sigma sigma0
@@ -735,14 +851,22 @@ class ProfileLikelihood(object):
                         z, X, mixed_cor, eta)
 
         # Output dictionary
-        results = {
-            'sigma': sigma,
-            'sigma0': sigma0,
-            'eta': eta,
-            'iter': iter
+        result = {
+            'hyperparam':
+            {
+                'sigma': sigma,
+                'sigma0': sigma0,
+                'eta': eta,
+                'distance_scale': None
+            },
+            'optimization':
+            {
+                'max_likelihood': None,
+                'iter': iter
+            }
         }
 
-        return results
+        return result
 
     # ===================
     # maximize likelihood
@@ -763,6 +887,10 @@ class ProfileLikelihood(object):
 
         In this function, hyperparam = [sigma, sigma0].
         """
+
+        # Keeping times
+        initial_wall_time = time.time()
+        initial_proc_time = time.process_time()
 
         if optimization_method == 'chandrupatla':
 
@@ -790,8 +918,12 @@ class ProfileLikelihood(object):
                     z, X, cov.mixed_cor, interval_eta)
 
             # Finding the maxima. This isn't necessary and affects run time
-            result['max_lp'] = ProfileLikelihood.likelihood(
-                    z, X, cov.mixed_cor, False, result['eta'])
+            result['optimization']['max_likelihood'] = \
+                ProfileLikelihood.likelihood(
+                    z, X, cov.mixed_cor, False, result['hyperparam']['eta'])
+
+            # The distance scale used in this method is the same as its guess.
+            result['hyperparam']['distance_scale'] = cov.get_distance_scale()
 
         else:
             # Partial function of likelihood (with minus to make maximization
@@ -807,20 +939,16 @@ class ProfileLikelihood(object):
                     sign_switch)
 
             # Partial function of Hessian of likelihood (with minus sign)
-            # hessian_partial_func = partial(
-            #         ProfileLikelihood.likelihood_hessian, z, X,
-            #         cov, sign_switch)
+            hessian_partial_func = partial(
+                    ProfileLikelihood.likelihood_hessian, z, X,
+                    cov, sign_switch)
 
             # Minimize
             res = scipy.optimize.minimize(likelihood_partial_func,
                                           hyperparam_guess,
                                           method=optimization_method, tol=tol,
-                                          jac=jacobian_partial_func)
-                                          # hess=hessian_partial_func)
-
-            # print('Iter: %d, Eval: %d, Success: %s'
-            #       % (res.nit, res.nfev, res.success))
-            # print(res)
+                                          jac=jacobian_partial_func,
+                                          hess=hessian_partial_func)
 
             # Extract res
             log_eta = res.x[0]
@@ -835,18 +963,34 @@ class ProfileLikelihood(object):
 
             # Distance scale
             if res.x.size > 1:
-                distance_scale = res.x[1:]
+                distance_scale = numpy.abs(res.x[1:])
             else:
                 distance_scale = cov.get_distance_scale()
 
             # Output dictionary
             result = {
-                'sigma': sigma,
-                'sigma0': sigma0,
-                'eta': eta,
-                'distance_scale': distance_scale,
-                'max_lp': max_lp
+                'hyperparam':
+                {
+                    'sigma': sigma,
+                    'sigma0': sigma0,
+                    'eta': eta,
+                    'distance_scale': distance_scale,
+                },
+                'optimization':
+                {
+                    'max_likelihood': max_lp,
+                    'iter': res.nit,
+                }
             }
+
+        # Adding time to the results
+        wall_time = time.time() - initial_wall_time
+        proc_time = time.process_time() - initial_proc_time
+
+        result['time'] = {
+            'wall_time': wall_time,
+            'proc_time': proc_time
+        }
 
         return result
 
@@ -859,13 +1003,23 @@ class ProfileLikelihood(object):
             z,
             X,
             cov,
-            eta_optimal,
+            result,
             other_etas=None):
         """
         Plots log likelihood versus sigma, eta hyperparam
         """
 
+        # This function can only plot one dimensional data.
+        dimension = cov.mixed_cor.cor.dimension
+        if dimension != 1:
+            raise ValueError('To plot likelihood w.r.t "eta" and ' +
+                             '"distance_scale", the dimension of the data ' +
+                             'points should be one.')
+
         load_plot_settings()
+
+        # Optimal point
+        optimal_eta = result['hyperparam']['eta']
 
         # Convert eta to a numpy array
         if other_etas is not None:
@@ -879,13 +1033,13 @@ class ProfileLikelihood(object):
 
         # Concatenate all given eta
         if other_etas is not None:
-            etas = numpy.r_[eta_optimal, other_etas]
+            etas = numpy.r_[optimal_eta, other_etas]
         else:
-            etas = numpy.r_[eta_optimal]
+            etas = numpy.r_[optimal_eta]
         etas = numpy.sort(etas)
 
         # Generate lp for various distance scales
-        distance_scale = numpy.logspace(-3, 3, 200)
+        distance_scale = numpy.logspace(-3, 2, 200)
         d0_lp = numpy.zeros((etas.size, distance_scale.size), dtype=float)
         d1_lp = numpy.zeros((etas.size, distance_scale.size), dtype=float)
         d2_lp = numpy.zeros((etas.size, distance_scale.size), dtype=float)
@@ -932,7 +1086,7 @@ class ProfileLikelihood(object):
             optimal_lp = d0_lp[i, max_index]
 
             # Plot
-            if etas[i] == eta_optimal:
+            if etas[i] == optimal_eta:
                 label = r'$\hat{\eta}=%0.2e$' % etas[i]
                 marker = 'X'
             else:
@@ -994,13 +1148,23 @@ class ProfileLikelihood(object):
             z,
             X,
             mixed_cor,
-            optimal_distance_scale,
+            result,
             other_distance_scales=None):
         """
         Plots log likelihood versus sigma, eta hyperparam
         """
 
+        # This function can only plot one dimensional data.
+        dimension = mixed_cor.cor.dimension
+        if dimension != 1:
+            raise ValueError('To plot likelihood w.r.t "eta" and ' +
+                             '"distance_scale", the dimension of the data ' +
+                             'points should be one.')
+
         load_plot_settings()
+
+        # Optimal point
+        optimal_distance_scale = result['hyperparam']['distance_scale']
 
         # Convert distance_scale to a numpy array
         if other_distance_scales is not None:
@@ -1020,7 +1184,7 @@ class ProfileLikelihood(object):
             distance_scales = numpy.r_[optimal_distance_scale]
         distance_scales = numpy.sort(distance_scales)
 
-        eta = numpy.logspace(-3, 3, 200)
+        eta = numpy.logspace(-3, 3, 100)
         d0_lp = numpy.zeros((distance_scales.size, eta.size,), dtype=float)
         d1_lp = numpy.zeros((distance_scales.size, eta.size,), dtype=float)
         d2_lp = numpy.zeros((distance_scales.size, eta.size,), dtype=float)
@@ -1105,9 +1269,9 @@ class ProfileLikelihood(object):
                         r'fixed $\theta$')
         ax[2].set_title(r'Second derivative of log likelihood function for ' +
                         r'fixed $\theta$')
-        ax[0].grid(True, both='both')
-        ax[1].grid(True, both='both')
-        ax[2].grid(True, both='both')
+        ax[0].grid(True, which='both')
+        ax[1].grid(True, which='both')
+        ax[2].grid(True, which='both')
 
         plt.tight_layout()
         plt.show()
@@ -1119,18 +1283,25 @@ class ProfileLikelihood(object):
     @staticmethod
     def plot_likelihood(z, X, mixed_cor, result):
         """
-        Plots log likelihood versus sigma, eta hyperparam
+        Plots log likelihood versus sigma and eta hyperparam.
         """
+
+        # This function can only plot one dimensional data.
+        dimension = mixed_cor.cor.dimension
+        if dimension != 1:
+            raise ValueError('To plot likelihood w.r.t "eta" and ' +
+                             '"distance_scale", the dimension of the data ' +
+                             'points should be one.')
 
         load_plot_settings()
 
-        #  Optimal point
-        optimal_eta = result['eta']
-        optimal_distance_scale = result['distance_scale']
-        optimal_lp = result['max_lp']
+        # Optimal point
+        optimal_eta = result['hyperparam']['eta']
+        optimal_distance_scale = result['hyperparam']['distance_scale']
+        optimal_lp = result['optimization']['max_likelihood']
 
-        eta = numpy.logspace(-3, 3, 100)
-        distance_scale = numpy.logspace(-3, 3, 100)
+        eta = numpy.logspace(-3, 3, 60)
+        distance_scale = numpy.logspace(-3, 2, 50)
         lp = numpy.zeros((distance_scale.size, eta.size), dtype=float)
 
         # Compute lp
@@ -1145,68 +1316,154 @@ class ProfileLikelihood(object):
 
         [distance_scale_mesh, eta_mesh] = numpy.meshgrid(distance_scale, eta)
 
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
-        surf = ax.plot_surface(numpy.log10(eta_mesh),
-                               numpy.log10(distance_scale_mesh), lp.T,
-                               linewidth=0, antialiased=True, alpha=0.9,
-                               label=r'$\ell(\eta, \theta)$')
-        fig.colorbar(surf, ax=ax)
+        # Smooth data for finer plot
+        # sigma = [2, 2]  # in unit of data pixel size
+        # lp = scipy.ndimage.filters.gaussian_filter(
+        #         lp, sigma, mode='nearest')
 
-        surf._facecolors2d = surf._facecolor3d
-        surf._edgecolors2d = surf._edgecolor3d
+        # Increase resolution for better contour plot
+        N = 300
+        f = scipy.interpolate.interp2d(
+                # eta, distance_scale, lp_smooth, kind='cubic')
+                numpy.log10(eta),
+                numpy.log10(distance_scale),
+                lp, kind='cubic')
+        distance_scale_fine = numpy.logspace(
+                numpy.log10(distance_scale[0]),
+                numpy.log10(distance_scale[-1]), N)
+        eta_fine = numpy.logspace(numpy.log10(eta[0]), numpy.log10(eta[-1]), N)
+        x, y = numpy.meshgrid(eta_fine, distance_scale_fine)
+        lp_fine = f(numpy.log10(eta_fine), numpy.log10(distance_scale_fine))
+
+        # We will plot the difference of max of Lp to Lp, called z
+        # max_lp = numpy.abs(numpy.max(lp_fine))
+        # z = max_lp - lp_fine
+        z = lp_fine
+
+        # Cut data
+        # cut_data = 0.92
+        # clim = 0.87
+        # z[z>CutData] = CutData   # Used for plotting data without prior
+
+        # Min and max of data
+        min_z = numpy.min(z)
+        max_z = numpy.max(z)
+
+        fig, ax = plt.subplots(ncols=3, figsize=(17, 5))
+
+        # Adjust bounds of a colormap
+        def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=2000):
+            new_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+                'trunc({n},{a:.2f},{b:.2f})'.format(
+                    n=cmap.name, a=minval, b=maxval),
+                cmap(numpy.linspace(minval, maxval, n)))
+            return new_cmap
+
+        # cmap = plt.get_cmap('gist_stern_r')
+        # cmap = plt.get_cmap('rainbow_r')
+        # cmap = plt.get_cmap('nipy_spectral_r')
+        # cmap = plt.get_cmap('RdYlGn')
+        # cmap = plt.get_cmap('ocean')
+        # cmap = plt.get_cmap('gist_stern_r')
+        # cmap = plt.get_cmap('RdYlBu')
+        # cmap = plt.get_cmap('gnuplot_r')
+        # cmap = plt.get_cmap('Spectral')
+        cmap = plt.get_cmap('gist_earth')
+        colormap = truncate_colormap(cmap, 0, 1)
+        # colormap = truncate_colormap(cmap, 0.2, 0.9)  # for ocean
+
+        # Contour fill Plot
+        levels = numpy.linspace(min_z, max_z, 2000)
+        c = ax[0].contourf(x, y, z, levels, cmap=colormap, zorder=-9)
+        divider = make_axes_locatable(ax[0])
+        cax = divider.append_axes('right', size='5%', pad=0.05)
+        cbar = fig.colorbar(c, cax=cax, orientation='vertical')
+        cbar.ax.set_ylabel(r'$\ell(\eta, \theta)$')
+        # c.set_clim(0, clim)
+        # cbar.set_ticks([0,0.3,0.6,0.9,1])
 
         # Find max for each fixed eta
-        opt_distance_scale1 = numpy.zeros((eta.size, ), dtype=float)
-        opt_lp1 = numpy.zeros((eta.size, ), dtype=float)
+        opt_distance_scale1 = numpy.zeros((eta_fine.size, ), dtype=float)
+        opt_lp1 = numpy.zeros((eta_fine.size, ), dtype=float)
         opt_lp1[:] = numpy.nan
-        for j in range(eta.size):
-            if numpy.all(numpy.isnan(lp[:, j])):
+        for j in range(eta_fine.size):
+            if numpy.all(numpy.isnan(lp_fine[:, j])):
                 continue
-            max_index = numpy.nanargmax(lp[:, j])
-            opt_distance_scale1[j] = distance_scale[max_index]
-            opt_lp1[j] = lp[max_index, j]
-        ax.plot3D(numpy.log10(eta), numpy.log10(opt_distance_scale1), opt_lp1,
-                  color='red', label=r'$\max_{\theta} \ell(\theta | \eta)$')
+            max_index = numpy.nanargmax(lp_fine[:, j])
+            opt_distance_scale1[j] = distance_scale_fine[max_index]
+            opt_lp1[j] = lp_fine[max_index, j]
+        ax[0].plot(eta_fine, opt_distance_scale1, color='red',
+                   label=r'$\hat{\theta}(\eta)$')
+        ax[1].plot(eta_fine, opt_lp1, color='red')
 
         # Find max for each fixed distance_scale
-        opt_eta2 = numpy.zeros((distance_scale.size, ), dtype=float)
-        opt_lp2 = numpy.zeros((distance_scale.size, ), dtype=float)
+        opt_eta2 = numpy.zeros((distance_scale_fine.size, ), dtype=float)
+        opt_lp2 = numpy.zeros((distance_scale_fine.size, ), dtype=float)
         opt_lp2[:] = numpy.nan
-        for i in range(distance_scale.size):
-            if numpy.all(numpy.isnan(lp[i, :])):
+        for i in range(distance_scale_fine.size):
+            if numpy.all(numpy.isnan(lp_fine[i, :])):
                 continue
-            max_index = numpy.nanargmax(lp[i, :])
-            opt_eta2[i] = eta[max_index]
-            opt_lp2[i] = lp[i, max_index]
-        ax.plot3D(numpy.log10(opt_eta2), numpy.log10(distance_scale), opt_lp2,
-                  color='goldenrod',
-                  label=r'$\max_{\eta} \ell(\eta | \theta)$')
+            max_index = numpy.nanargmax(lp_fine[i, :])
+            opt_eta2[i] = eta_fine[max_index]
+            opt_lp2[i] = lp_fine[i, max_index]
+        ax[0].plot(opt_eta2, distance_scale_fine, color='black',
+                   label=r'$\hat{\eta}(\theta)$')
+        ax[2].plot(distance_scale_fine, opt_lp2, color='black')
 
         # Plot max of the whole 2D array
-        max_indices = numpy.unravel_index(numpy.nanargmax(lp), lp.shape)
-        opt_distance_scale = distance_scale[max_indices[0]]
-        opt_eta = eta[max_indices[1]]
-        opt_lp = lp[max_indices[0], max_indices[1]]
-        ax.plot3D(numpy.log10(opt_eta), numpy.log10(opt_distance_scale),
-                  opt_lp, 'o', color='red', markersize=6,
-                  label=r'$\max_{\eta, \theta} \ell$ (by brute force on grid)')
+        max_indices = numpy.unravel_index(numpy.nanargmax(lp_fine),
+                                          lp_fine.shape)
+        opt_distance_scale = distance_scale_fine[max_indices[0]]
+        opt_eta = eta_fine[max_indices[1]]
+        opt_lp = lp_fine[max_indices[0], max_indices[1]]
+        ax[0].plot(
+                opt_eta, opt_distance_scale, 'o', color='red', markersize=6,
+                label=r'$(\hat{\eta}, \hat{\theta})$ (by brute force on grid)')
+        ax[1].plot(
+                opt_eta, opt_lp, 'o', color='red',
+                label=r'$\ell(\hat{\eta}, \hat{\theta})$ ' +
+                      r'(by brute force on grid)')
+        ax[2].plot(
+                opt_distance_scale, opt_lp, 'o', color='red',
+                label=r'$\ell(\hat{\eta}, \hat{\theta})$ ' +
+                      '(by brute force on grid)')
 
         # Plot optimal point as found by the profile likelihood method
-        ax.plot3D(numpy.log10(optimal_eta),
-                  numpy.log10(optimal_distance_scale),
-                  optimal_lp, 'o', color='magenta', markersize=6,
-                  label=r'$\max_{\eta, \theta} \ell$ (by optimization)')
+        ax[0].plot(optimal_eta, optimal_distance_scale, 'o', color='black',
+                   markersize=6,
+                   label=r'$\max_{\eta, \theta} \ell$ (by optimization)')
+        ax[1].plot(
+                optimal_eta, optimal_lp, 'o', color='black',
+                label=r'$\ell(\hat{\eta}, \hat{\theta})$ (by optimization)')
+        ax[2].plot(
+                optimal_distance_scale, optimal_lp, 'o', color='black',
+                label=r'$\ell(\hat{\eta}, \hat{\theta})$ (by optimization)')
 
         # Plot annotations
-        ax.legend()
-        ax.set_xlim([numpy.log10(eta[0]), numpy.log10(eta[-1])])
-        ax.set_ylim([numpy.log10(distance_scale[0]),
-                    numpy.log10(distance_scale[-1])])
-        ax.set_xlabel(r'$\log_{10}(\eta)$')
-        ax.set_ylabel(r'$\log_{10}(\theta)$')
-        ax.set_zlabel(r'$\ell(\eta, \theta)$')
-        ax.set_title('Log Likelihood function')
+        ax[0].legend()
+        ax[1].legend()
+        ax[2].legend()
+        ax[0].set_xlim([eta[0], eta[-1]])
+        ax[1].set_xlim([eta[0], eta[-1]])
+        ax[0].set_ylim([distance_scale[0], distance_scale[-1]])
+        ax[2].set_xlim([distance_scale[0], distance_scale[-1]])
+        ax[0].set_xscale('log')
+        ax[1].set_xscale('log')
+        ax[2].set_xscale('log')
+        ax[0].set_yscale('log')
+        ax[0].set_xlabel(r'$\log_{10}(\eta)$')
+        ax[1].set_xlabel(r'$\log_{10}(\eta)$')
+        ax[2].set_xlabel(r'$\log_{10}(\theta)$')
+        ax[0].set_ylabel(r'$\log_{10}(\theta)$')
+        ax[1].set_ylabel(r'$\ell(\eta, \hat{\theta}(\eta))$')
+        ax[2].set_ylabel(r'$\ell(\hat{\eta}(\theta), \theta)$')
+        ax[0].set_title('Log likelihood function')
+        ax[1].set_title(r'Log Likelihood profiled over $\theta$ ')
+        ax[2].set_title(r'Log likelihood profiled over $\eta$')
+        ax[1].grid(True)
+        ax[2].grid(True)
+
+        plt.tight_layout()
         plt.show()
 
     # =======================
@@ -1306,7 +1563,7 @@ class ProfileLikelihood(object):
     # ========================
 
     @staticmethod
-    def plot_likelihood_der1_eta(z, X, mixed_cor, optimal_eta):
+    def plot_likelihood_der1_eta(z, X, mixed_cor, result):
         """
         Plots the derivative of log likelihood as a function of eta.
         Also it shows where the optimal eta is, which is the location
@@ -1316,6 +1573,9 @@ class ProfileLikelihood(object):
         print('Plot first derivative ...')
 
         load_plot_settings()
+
+        # Optimal point
+        optimal_eta = result['hyperparam']['eta']
 
         if (optimal_eta != 0) and (not numpy.isinf(optimal_eta)):
             plot_optimal_eta = True

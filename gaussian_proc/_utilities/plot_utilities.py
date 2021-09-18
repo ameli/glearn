@@ -22,6 +22,7 @@ from mpl_toolkits.axes_grid1.inset_locator import InsetPosition    # noqa: F401
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset       # noqa: F401
 from matplotlib.ticker import ScalarFormatter, NullFormatter       # noqa: F401
 from matplotlib.ticker import FormatStrFormatter                   # noqa: F401
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from distutils.spawn import find_executable
 from .display_utilities import is_notebook

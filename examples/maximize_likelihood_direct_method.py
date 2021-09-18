@@ -14,7 +14,6 @@
 # =======
 
 import sys
-import time
 from gaussian_proc.sample_data import generate_points, generate_data
 from gaussian_proc.mean import LinearModel
 from gaussian_proc.kernels import Matern, Exponential, SquareExponential, \
@@ -33,14 +32,14 @@ def main():
     # Generate points
     # num_points = 30
     # num_points = 95
-    num_points = 50
+    num_points = 60
     dimension = 1
     grid = True
     points = generate_points(num_points, dimension, grid)
 
     # Generate noisy data
     # noise_magnitude = 0.2
-    noise_magnitude = 0.1
+    noise_magnitude = 0.05
     z = generate_data(points, noise_magnitude, plot=False)
 
     # Mean
@@ -52,7 +51,7 @@ def main():
     # kernel = Linear()
     # kernel = SquareExponential()
     # kernel = RationalQuadratic()
-    # cor = Correlation(points, kernel=kernel, distance_scale=0.1, sparse=False)
+    # cor = Correlation(points, kernel=kernel, distance_scale=0.2, sparse=False)
     cor = Correlation(points, kernel=kernel, sparse=False)
 
     # Covariance
@@ -63,12 +62,12 @@ def main():
 
     # Trainign options
     # profile_param = 'none'
-    profile_param = 'var'
-    # profile_param = 'var_noise'
+    # profile_param = 'var'
+    profile_param = 'var_noise'
 
     # optimization_method = 'chandrupatla'  # requires jacobian
-    optimization_method = 'Nelder-Mead'     # requires func
-    # optimization_method = 'BFGS'          # requires func, jacobian
+    # optimization_method = 'Nelder-Mead'     # requires func
+    optimization_method = 'BFGS'          # requires func, jacobian
     # optimization_method = 'CG'            # requires func, jacobian
     # optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
     # optimization_method = 'dogleg'        # requires func, jacobian, hessian
@@ -77,21 +76,17 @@ def main():
 
     # hyperparam_guess = [0.0]
     # hyperparam_guess = [0, 0.1, 0.1]
-    # hyperparam_guess = [0.1, 0.1]
-    # hyperparam_guess = [0.1]
-    hyperparam_guess = [0, 0.1]
+    # hyperparam_guess = [0.0, 5]
+    hyperparam_guess = [5.0]
+    # hyperparam_guess = [0, 0.1]
     # hyperparam_guess = [0.1, 0.1]
     # hyperparam_guess = [0.1, 0.1, 0.1, 0.1]
     # hyperparam_guess = [0.01, 0.01, 0.1]
 
-    t0 = time.time()
     # gp.train(z, options=options, plot=False)
     gp.train(z, profile_param=profile_param,
-             optimization_method=optimization_method,
+             optimization_method=optimization_method, tol=1e-5,
              hyperparam_guess=hyperparam_guess, verbose=False, plot=True)
-    t1 = time.time()
-    print('Elapsed time: %0.2f' % (t1 - t0))
-
 
 # ===========
 # script main

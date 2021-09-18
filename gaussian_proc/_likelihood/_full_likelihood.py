@@ -11,6 +11,7 @@
 # Imports
 # =======
 
+import time
 import numpy
 import scipy.optimize
 from functools import partial
@@ -524,7 +525,9 @@ class FullLikelihood(object):
         In this function, hyperparam = [sigma, sigma0].
         """
 
-        print('Maximize log likelihood with sigma sigma0 ...')
+        # Keeping times
+        initial_wall_time = time.time()
+        initial_proc_time = time.process_time()
 
         # Partial function of likelihood (with minus to make maximization to a
         # minimization).
@@ -562,17 +565,33 @@ class FullLikelihood(object):
 
         # Distance scale
         if res.x.size > 1:
-            distance_scale = res.x[1:]
+            distance_scale = numpy.abs(res.x[1:])
         else:
             distance_scale = cov.get_distance_scale()
 
+        # Adding time to the results
+        wall_time = time.time() - initial_wall_time
+        proc_time = time.process_time() - initial_proc_time
+
         # Output dictionary
         result = {
-            'sigma': sigma,
-            'sigma0': sigma0,
-            'eta': eta,
-            'distance_scale': distance_scale,
-            'max_lp': max_lp
+            'hyperparam':
+            {
+                'sigma': sigma,
+                'sigma0': sigma0,
+                'eta': eta,
+                'distance_scale': distance_scale,
+            },
+            'optimization':
+            {
+                'max_likelihood': max_lp,
+                'iter': res.nit,
+            },
+            'time':
+            {
+                'wall_time': wall_time,
+                'proc_time': proc_time
+            }
         }
 
         return result

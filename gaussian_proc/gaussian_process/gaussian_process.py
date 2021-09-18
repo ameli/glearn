@@ -56,6 +56,7 @@ class GaussianProcess(object):
             optimization_method='Newton-CG',
             profile_param='var',
             hyperparam_guess=None,
+            tol=1e-3,
             verbose=False,
             plot=False):
         """
@@ -109,9 +110,10 @@ class GaussianProcess(object):
                 raise ValueError('The size of "hyperparam_guess" does not' +
                                  'match the number of hyprparameters.')
 
-        results = self.likelihood.maximize_likelihood(
+        result = self.likelihood.maximize_likelihood(
                 z, hyperparam_guess=hyperparam_guess,
-                optimization_method=optimization_method,
+                optimization_method=optimization_method, tol=tol,
                 profile_param=profile_param, verbose=verbose, plot=plot)
 
-        print(results)
+        import pprint
+        pprint.pprint(result)

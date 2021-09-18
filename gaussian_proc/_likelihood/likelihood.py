@@ -61,6 +61,7 @@ class Likelihood(object):
             hyperparam_guess,
             profile_param='var',
             optimization_method='Newton-CG',
+            tol=1e-3,
             verbose=False,
             plot=False):
         """
@@ -74,7 +75,7 @@ class Likelihood(object):
 
             # Find optimal hyperparam
             result = FullLikelihood.maximize_likelihood(
-                    z, self.X, self.cov, tol=1e-3,
+                    z, self.X, self.cov, tol=tol,
                     hyperparam_guess=hyperparam_guess,
                     optimization_method=optimization_method,
                     verbose=verbose)
@@ -83,44 +84,39 @@ class Likelihood(object):
             if plot:
                 FullLikelihood.plot_likelihood(z, self.X, self.cov, result)
 
-            # return ProfileLikelihood.maximize_likelihood_with_sigma_eta(
-            #         z, self.X, self.mixed_cor)
-
         elif profile_param == 'var':
 
             # Find optimal hyperparam
             result = ProfileLikelihood.maximize_likelihood(
-                    z, self.X, self.cov, tol=1e-3,
+                    z, self.X, self.cov, tol=tol,
                     hyperparam_guess=hyperparam_guess,
                     optimization_method=optimization_method,
                     verbose=verbose)
 
             if plot:
-                # Plot log-lp when distance_scale is fixed, for a selection of
-                # distance_scale
+                # Plot log-lp when distance_scale is fixed
                 # ProfileLikelihood.plot_likelihood_for_fixed_distance_scale(
-                #         z, self.X, self.mixed_cor, result['distance_scale'],
+                #         z, self.X, self.mixed_cor, result,
                 #         numpy.logspace(-2, 2, 5))
 
                 # Plot log-lp when eta is fixed, for a selection of eta
-                ProfileLikelihood.plot_likelihood_for_fixed_eta(
-                        z, self.X, self.cov, result['eta'],
-                        numpy.logspace(-2, 2, 5))
+                # ProfileLikelihood.plot_likelihood_for_fixed_eta(
+                #         z, self.X, self.cov, result,
+                #         numpy.logspace(-2, 2, 5))
 
                 # 3D Plot of log-lp function
-                # ProfileLikelihood.plot_likelihood(z, self.X, self.mixed_cor,
-                #                                   result)
+                ProfileLikelihood.plot_likelihood(z, self.X, self.mixed_cor,
+                                                  result)
 
                 # # Plot first derivative of log likelihood
-                # optimal_eta = result['eta']
                 # ProfileLikelihood.plot_likelihood_der1_eta(
-                #         z, self.X, self.mixed_cor, optimal_eta)
+                #         z, self.X, self.mixed_cor, result)
 
         elif profile_param == 'var_noise':
 
             # Find optimal hyperparam
             result = DoubleProfileLikelihood.maximize_likelihood(
-                    z, self.X, self.cov, tol=1e-3,
+                    z, self.X, self.cov, tol=tol,
                     hyperparam_guess=hyperparam_guess,
                     optimization_method=optimization_method, verbose=verbose)
 
