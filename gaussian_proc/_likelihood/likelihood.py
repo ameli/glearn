@@ -82,7 +82,14 @@ class Likelihood(object):
 
             # Plot log likelihood
             if plot:
-                FullLikelihood.plot_likelihood(z, self.X, self.cov, result)
+
+                # Plot likelihood for fixed sigma and sigma0
+                FullLikelihood.plot_likelihood_for_fixed_sigma_sigma0(
+                        z, self.X, self.cov, result,
+                        other_sigmas=numpy.logspace(-1, 1, 3))
+
+                # 3D plot of likelihood
+                # FullLikelihood.plot_likelihood(z, self.X, self.cov, result)
 
         elif profile_param == 'var':
 
@@ -95,18 +102,18 @@ class Likelihood(object):
 
             if plot:
                 # Plot log-lp when distance_scale is fixed
-                # ProfileLikelihood.plot_likelihood_for_fixed_distance_scale(
-                #         z, self.X, self.mixed_cor, result,
-                #         numpy.logspace(-2, 2, 5))
+                ProfileLikelihood.plot_likelihood_for_fixed_distance_scale(
+                        z, self.X, self.cov, result,
+                        numpy.logspace(-2, 2, 5))
 
                 # Plot log-lp when eta is fixed, for a selection of eta
-                # ProfileLikelihood.plot_likelihood_for_fixed_eta(
-                #         z, self.X, self.cov, result,
-                #         numpy.logspace(-2, 2, 5))
+                ProfileLikelihood.plot_likelihood_for_fixed_eta(
+                        z, self.X, self.cov, result,
+                        numpy.logspace(-2, 2, 5))
 
                 # 3D Plot of log-lp function
-                ProfileLikelihood.plot_likelihood(z, self.X, self.mixed_cor,
-                                                  result)
+                # ProfileLikelihood.plot_likelihood(z, self.X, self.mixed_cor,
+                #                                   result)
 
                 # # Plot first derivative of log likelihood
                 # ProfileLikelihood.plot_likelihood_der1_eta(

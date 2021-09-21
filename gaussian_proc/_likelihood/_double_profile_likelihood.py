@@ -21,8 +21,7 @@ import scipy.optimize
 from functools import partial
 
 from .._utilities.plot_utilities import *                    # noqa: F401, F403
-from .._utilities.plot_utilities import load_plot_settings, save_plot, plt, \
-        mark_inset, InsetPosition, matplotlib
+from .._utilities.plot_utilities import load_plot_settings, plt, matplotlib
 from ._profile_likelihood import ProfileLikelihood
 
 
@@ -108,10 +107,6 @@ class DoubleProfileLikelihood(object):
         # Jacobian only consists of the derivative w.r.t distance_scale
         jacobian = der1_distance_scale
 
-        # print('scale: %f, eta: %f, jac: %f'
-        #       % (distance_scale[0], eta, jacobian[0]))
-        print(jacobian)
-
         if sign_switch:
             jacobian = -jacobian
 
@@ -122,7 +117,7 @@ class DoubleProfileLikelihood(object):
     # ==================
 
     @staticmethod
-    def likelihood_hessian(z, X, cov, sign_switch, hyperparam):
+    def likelihood_hessian(z, X, cov, sign_switch, log_eta_guess, hyperparam):
         """
         Computes Hessian w.r.t eta, and if given, distance_scale.
         """
@@ -145,8 +140,8 @@ class DoubleProfileLikelihood(object):
 
         # Compute second derivative w.r.t distance_scale
         der2_distance_scale = \
-                ProfileLikelihood.likelihood_der2_distance_scale(
-                        z, X, cov, hyperparam)
+            ProfileLikelihood.likelihood_der2_distance_scale(
+                    z, X, cov, hyperparam_full)
 
         # Concatenate derivatives to form Hessian of all variables
         hessian = der2_distance_scale
@@ -183,7 +178,7 @@ class DoubleProfileLikelihood(object):
         # eta = result['hyperparam']['eta']
 
         cov.set_distance_scale(distance_scale)
-       
+
         # optimization_method = 'Newton-CG'
         result = ProfileLikelihood.maximize_likelihood(
                 z, X, cov,
@@ -192,6 +187,7 @@ class DoubleProfileLikelihood(object):
                 optimization_method=optimization_method)
 
         eta = result['hyperparam']['eta']
+
         return eta
 
     # ===================
@@ -332,7 +328,7 @@ class DoubleProfileLikelihood(object):
         log_eta_guess = 1.0
         sign_switch = False
 
-        fig, ax = plt.subplots(ncols=2, figsize=(11, 5))
+        fig, ax = plt.subplots(ncols=2, figsize=(9, 4.5))
         ax2 = ax[0].twinx()
 
         for j in range(distance_scale.size):
@@ -348,7 +344,7 @@ class DoubleProfileLikelihood(object):
 
         # Numerical derivative of likelihood
         der1_lp_numerical = (lp[2:] - lp[:-2]) / \
-                (distance_scale[2:] - distance_scale[:-2])
+            (distance_scale[2:] - distance_scale[:-2])
 
         # Exclude large eta
         eta[eta > 1e+16] = numpy.nan
@@ -360,23 +356,22 @@ class DoubleProfileLikelihood(object):
 
         # Plot
         ax[0].plot(distance_scale, lp, color='black',
-                label=r'$\ell(\hat{\eta}, \theta)$')
+                   label=r'$\ell(\hat{\eta}, \theta)$')
         ax[1].plot(
-            distance_scale, der1_lp, color='black',
-            label=
-            r'$\frac{\mathrm{d} \ell(\hat{\eta}, \theta)}{\mathrm{d} \theta}$')
+            distance_scale, der1_lp, color='black', label='Analytic')
         ax[1].plot(
-                distance_scale[1:-1], der1_lp_numerical, '--', color='black')
+                distance_scale[1:-1], der1_lp_numerical, '--', color='black',
+                label='Numerical')
         ax2.plot(distance_scale, eta, '--', color='black',
                  label=r'$\hat{\eta}(\theta)$')
         ax[0].plot(optimal_distance_scale, optimal_lp, 'o', color='black',
-                markersize=4, label=r'$\hat{\theta}$ (brute force)')
+                   markersize=4, label=r'$\hat{\theta}$ (brute force)')
 
         if result is not None:
             opt_distance_scale = result['hyperparam']['distance_scale']
             opt_lp = result['optimization']['max_likelihood']
             ax[0].plot(opt_distance_scale, opt_lp, 'o', color='maroon',
-                    markersize=4, label=r'$\hat{\theta}$ (optimized)')
+                       markersize=4, label=r'$\hat{\theta}$ (optimized)')
 
         # Plot annotations
         ax[0].legend(loc='lower right')

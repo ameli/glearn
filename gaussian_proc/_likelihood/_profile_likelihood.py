@@ -541,6 +541,7 @@ class ProfileLikelihood(object):
         # Compute Mz and MMz
         Mz = M_dot(cov, Binv, Y, sigma, sigma0, z)
         MMz = M_dot(cov, Binv, Y, sigma, sigma0, Mz)
+        zMMz = numpy.dot(Mz, Mz)
 
         # Needed to compute trace (TODO)
         S = cov.get_matrix(sigma, sigma0)
@@ -553,6 +554,7 @@ class ProfileLikelihood(object):
 
             # Compute zMSpMMz
             SpMz = cov.dot(sigma, sigma0, Mz, derivative=[p])
+            zMSpMz = numpy.dot(Mz, SpMz)
             zMSpMMz = numpy.dot(SpMz, MMz)
 
             # Compute trace of SpSinv2
@@ -578,7 +580,8 @@ class ProfileLikelihood(object):
             trace_MSpM = trace_SpSinv2 - trace_C1 - trace_C2 + trace_D
 
             # Compute mixed derivative
-            der2_mixed[p] = sigma**2 * (0.5*trace_MSpM - zMSpMMz)
+            der2_mixed[p] = sigma**2 * (0.5*trace_MSpM - zMSpMMz +
+                                        (0.5/(n-m)) * zMMz * zMSpMz)
 
         return der2_mixed
 
@@ -611,8 +614,6 @@ class ProfileLikelihood(object):
 
         if sign_switch:
             jacobian = -jacobian
-
-        print(jacobian)
 
         return jacobian
 
@@ -1038,52 +1039,87 @@ class ProfileLikelihood(object):
             etas = numpy.r_[optimal_eta]
         etas = numpy.sort(etas)
 
+        # 2nd or 4th order finite difference coefficients for first derivative
+        coeff = numpy.array([-1.0/2.0, 0.0, 1.0/2.0])
+        # coeff = numpy.array([1.0/12.0, -2.0/3.0, 0.0, 2.0/3.0, -1.0/12.0])
+
+        # The first axis of some arrays below is 3, used for varying eta for
+        # numerical evaluating of mixed derivative w.r.t eta.
+        stencil_size = coeff.size
+        center_stencil = stencil_size//2  # Index of the center of stencil
+
         # Generate lp for various distance scales
-        distance_scale = numpy.logspace(-3, 2, 200)
-        d0_lp = numpy.zeros((etas.size, distance_scale.size), dtype=float)
+        distance_scale = numpy.logspace(-3, 2, 100)
+
+        d0_lp = numpy.zeros((stencil_size, etas.size, distance_scale.size),
+                            dtype=float)
         d1_lp = numpy.zeros((etas.size, distance_scale.size), dtype=float)
         d2_lp = numpy.zeros((etas.size, distance_scale.size), dtype=float)
-        d1_lp_numerical = numpy.zeros((etas.size, distance_scale.size-2),
+        d2_mixed_lp = numpy.zeros((etas.size, distance_scale.size),
+                                  dtype=float)
+        d1_lp_numerical = numpy.zeros((stencil_size,
+                                      etas.size, distance_scale.size-2),
                                       dtype=float)
         d2_lp_numerical = numpy.zeros((etas.size, distance_scale.size-4),
                                       dtype=float)
+        d2_mixed_lp_numerical = numpy.zeros((etas.size, distance_scale.size-2),
+                                            dtype=float)
 
-        fig, ax = plt.subplots(ncols=3, figsize=(17, 5))
+        fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(10, 8))
         colors = matplotlib.cm.nipy_spectral(
                 numpy.linspace(0, 0.9, etas.size))
 
         for i in range(etas.size):
+
+            # Stencil to perturb eta
+            d_eta = etas[i] * 1e-3
+            eta_stencil = etas[i] + \
+                d_eta * numpy.arange(-stencil_size//2+1, stencil_size//2+1)
+
             for j in range(distance_scale.size):
 
                 # Set the distance_scale
                 cov.set_distance_scale(distance_scale[j])
 
-                # Likelihood
-                d0_lp[i, j] = ProfileLikelihood.likelihood(
-                        z, X, cov.mixed_cor, False, numpy.log10(etas[i]))
+                # Likelihood (first index, center_stencil, means the main etas)
+                for k in range(stencil_size):
+                    d0_lp[k, i, j] = ProfileLikelihood.likelihood(
+                            z, X, cov.mixed_cor, False,
+                            numpy.log10(eta_stencil[k]))
 
                 # First derivative of likelihood w.r.t distance scale
                 hyperparam = numpy.r_[numpy.log10(etas[i]), distance_scale[j]]
                 d1_lp[i, j] = ProfileLikelihood.likelihood_der1_distance_scale(
-                        z, X, cov, hyperparam)
+                        z, X, cov, hyperparam)[0]
 
                 # Second derivative of likelihood w.r.t distance scale
                 d2_lp[i, j] = ProfileLikelihood.likelihood_der2_distance_scale(
-                        z, X, cov, hyperparam)
+                        z, X, cov, hyperparam)[0, 0]
 
-            # Compute first derivative numerically
-            d1_lp_numerical[i, :] = (d0_lp[i, 2:] - d0_lp[i, :-2]) / \
-                (distance_scale[2:] - distance_scale[:-2])
+                # Second mixed derivative of likelihood w.r.t distance scale
+                d2_mixed_lp[i, j] = ProfileLikelihood.likelihood_der2_mixed(
+                        z, X, cov, hyperparam)[0]
+
+            for k in range(stencil_size):
+                # Compute first derivative numerically
+                d1_lp_numerical[k, i, :] = \
+                        (d0_lp[k, i, 2:] - d0_lp[k, i, :-2]) / \
+                        (distance_scale[2:] - distance_scale[:-2])
+
+                # Second mixed derivative numerically (finite difference)
+                d2_mixed_lp_numerical[i, :] += \
+                    coeff[k] * d1_lp_numerical[k, i, :] / d_eta
 
             # Compute second derivative numerically
             d2_lp_numerical[i, :] = \
-                (d1_lp_numerical[i, 2:] - d1_lp_numerical[i, :-2]) / \
+                (d1_lp_numerical[center_stencil, i, 2:] -
+                 d1_lp_numerical[center_stencil, i, :-2]) / \
                 (distance_scale[3:-1] - distance_scale[1:-3])
 
             # Find maximum of lp
-            max_index = numpy.argmax(d0_lp[i, :])
+            max_index = numpy.argmax(d0_lp[center_stencil, i, :])
             optimal_distance_scale = distance_scale[max_index]
-            optimal_lp = d0_lp[i, max_index]
+            optimal_lp = d0_lp[center_stencil, i, max_index]
 
             # Plot
             if etas[i] == optimal_eta:
@@ -1092,49 +1128,65 @@ class ProfileLikelihood(object):
             else:
                 label = r'$\eta=%0.2e$' % etas[i]
                 marker = 'o'
-            ax[0].plot(distance_scale, d0_lp[i, :], color=colors[i],
-                       label=label)
-            ax[1].plot(distance_scale, d1_lp[i, :], color=colors[i],
-                       label=label)
-            ax[2].plot(distance_scale, d2_lp[i, :], color=colors[i],
-                       label=label)
-            ax[1].plot(distance_scale[1:-1], d1_lp_numerical[i, :], '--',
-                       color=colors[i])
-            ax[2].plot(distance_scale[2:-2], d2_lp_numerical[i, :], '--',
-                       color=colors[i])
-            p = ax[0].plot(optimal_distance_scale, optimal_lp, marker,
-                           color=colors[i], markersize=3)
-            ax[1].plot(optimal_distance_scale, 0.0,  marker,
-                       color=colors[i], markersize=3)
+            ax[0, 0].plot(distance_scale, d0_lp[center_stencil, i, :],
+                          color=colors[i],
+                          label=label)
+            ax[0, 1].plot(distance_scale, d1_lp[i, :], color=colors[i],
+                          label=label)
+            ax[1, 0].plot(distance_scale, d2_lp[i, :], color=colors[i],
+                          label=label)
+            ax[1, 1].plot(distance_scale, d2_mixed_lp[i, :], color=colors[i],
+                          label=label)
+            ax[0, 1].plot(distance_scale[1:-1],
+                          d1_lp_numerical[center_stencil, i, :], '--',
+                          color=colors[i])
+            ax[1, 0].plot(distance_scale[2:-2], d2_lp_numerical[i, :], '--',
+                          color=colors[i])
+            ax[1, 1].plot(distance_scale[1:-1], d2_mixed_lp_numerical[i, :],
+                          '--', color=colors[i])
+            p = ax[0, 0].plot(optimal_distance_scale, optimal_lp, marker,
+                              color=colors[i], markersize=3)
+            ax[0, 1].plot(optimal_distance_scale, 0.0,  marker,
+                          color=colors[i], markersize=3)
 
-        ax[0].legend(p, [r'optimal $\theta$'])
-        ax[0].legend(loc='lower right')
-        ax[1].legend(loc='lower right')
-        ax[2].legend(loc='lower right')
-        ax[0].set_xscale('log')
-        ax[1].set_xscale('log')
-        ax[2].set_xscale('log')
+        ax[0, 0].legend(p, [r'optimal $\theta$'])
+        ax[0, 0].legend(loc='lower right')
+        ax[0, 1].legend(loc='lower right')
+        ax[1, 0].legend(loc='lower right')
+        ax[1, 1].legend(loc='lower right')
+        ax[0, 0].set_xscale('log')
+        ax[0, 1].set_xscale('log')
+        ax[1, 0].set_xscale('log')
+        ax[1, 1].set_xscale('log')
 
         # Plot annotations
-        ax[0].set_xlim([distance_scale[0], distance_scale[-1]])
-        ax[1].set_xlim([distance_scale[0], distance_scale[-1]])
-        ax[2].set_xlim([distance_scale[0], distance_scale[-1]])
-        ax[0].set_xlabel(r'$\theta$')
-        ax[1].set_xlabel(r'$\theta$')
-        ax[2].set_xlabel(r'$\theta$')
-        ax[0].set_ylabel(r'$\ell(\theta | \eta)$')
-        ax[1].set_ylabel(
+        ax[0, 0].set_xlim([distance_scale[0], distance_scale[-1]])
+        ax[0, 1].set_xlim([distance_scale[0], distance_scale[-1]])
+        ax[1, 0].set_xlim([distance_scale[0], distance_scale[-1]])
+        ax[1, 1].set_xlim([distance_scale[0], distance_scale[-1]])
+        ax[0, 0].set_xlabel(r'$\theta$')
+        ax[0, 1].set_xlabel(r'$\theta$')
+        ax[1, 0].set_xlabel(r'$\theta$')
+        ax[1, 1].set_xlabel(r'$\theta$')
+        ax[0, 0].set_ylabel(r'$\ell(\theta | \eta)$')
+        ax[0, 1].set_ylabel(
             r'$\frac{\mathrm{d} \ell(\theta | \eta)}{\mathrm{d} \theta}$')
-        ax[2].set_ylabel(
+        ax[1, 0].set_ylabel(
             r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} \theta^2}$')
-        ax[0].set_title(r'Log likelihood function for fixed $\eta$')
-        ax[1].set_title(r'First derivative of log likelihood function for ' +
-                        r'fixed $\eta$')
-        ax[2].set_title(r'Second derivative of log likelihood function for ' +
-                        r'fixed $\eta$')
-        ax[0].grid(True, which='both')
-        ax[1].grid(True, which='both')
-        ax[2].grid(True, which='both')
+        ax[1, 1].set_ylabel(
+            r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} \theta ' +
+            r'\mathrm{d} \eta}$')
+        ax[0, 0].set_title(r'Log likelihood function for fixed $\eta$')
+        ax[0, 1].set_title(r'First derivative of log likelihood for fixed ' +
+                           r'$\eta$')
+        ax[1, 0].set_title(r'Second derivative of log likelihood for fixed ' +
+                           r'$\eta$')
+        ax[1, 1].set_title(r'Second mixed derivative of log likelihood for ' +
+                           r'fixed $\eta$')
+        ax[0, 0].grid(True, which='both')
+        ax[0, 1].grid(True, which='both')
+        ax[1, 0].grid(True, which='both')
+        ax[1, 1].grid(True, which='both')
 
         plt.tight_layout()
         plt.show()
@@ -1147,7 +1199,7 @@ class ProfileLikelihood(object):
     def plot_likelihood_for_fixed_distance_scale(
             z,
             X,
-            mixed_cor,
+            cov,
             result,
             other_distance_scales=None):
         """
@@ -1155,7 +1207,7 @@ class ProfileLikelihood(object):
         """
 
         # This function can only plot one dimensional data.
-        dimension = mixed_cor.cor.dimension
+        dimension = cov.mixed_cor.cor.dimension
         if dimension != 1:
             raise ValueError('To plot likelihood w.r.t "eta" and ' +
                              '"distance_scale", the dimension of the data ' +
@@ -1184,48 +1236,90 @@ class ProfileLikelihood(object):
             distance_scales = numpy.r_[optimal_distance_scale]
         distance_scales = numpy.sort(distance_scales)
 
+        # 2nd or 4th order finite difference coefficients for first derivative
+        coeff = numpy.array([-1.0/2.0, 0.0, 1.0/2.0])
+        # coeff = numpy.array([1.0/12.0, -2.0/3.0, 0.0, 2.0/3.0, -1.0/12.0])
+
+        # The first axis of some arrays below is 3, used for varying
+        # distance_scale for numerical evaluating of mixed derivative with
+        # respect to distance_scale.
+        stencil_size = coeff.size
+        center_stencil = stencil_size//2  # Index of the center of stencil
+
         eta = numpy.logspace(-3, 3, 100)
-        d0_lp = numpy.zeros((distance_scales.size, eta.size,), dtype=float)
+        d0_lp = numpy.zeros((stencil_size, distance_scales.size, eta.size,),
+                            dtype=float)
         d1_lp = numpy.zeros((distance_scales.size, eta.size,), dtype=float)
         d2_lp = numpy.zeros((distance_scales.size, eta.size,), dtype=float)
-        d1_lp_numerical = numpy.zeros((distance_scales.size, eta.size-2,),
-                                      dtype=float)
+        d2_mixed_lp = numpy.zeros((distance_scales.size, eta.size),
+                                  dtype=float)
+        d1_lp_numerical = numpy.zeros((stencil_size, distance_scales.size,
+                                      eta.size-2,), dtype=float)
         d2_lp_numerical = numpy.zeros((distance_scales.size, eta.size-4,),
                                       dtype=float)
+        d2_mixed_lp_numerical = numpy.zeros((distance_scales.size, eta.size-2),
+                                            dtype=float)
 
-        fig, ax = plt.subplots(ncols=3, figsize=(17, 5))
+        fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(10, 8))
         colors = matplotlib.cm.nipy_spectral(
                 numpy.linspace(0, 0.9, distance_scales.size))
 
         for i in range(distance_scales.size):
-            mixed_cor.set_distance_scale(distance_scales[i])
-            for j in range(eta.size):
 
-                # Likelihood function
-                d0_lp[i, j] = ProfileLikelihood.likelihood(
-                        z, X, mixed_cor, False, numpy.log10(eta[j]))
+            # Stencil to perturb distance_scale
+            d_distance_scale = distance_scales[i] * 1e-3
+            distance_scale_stencil = distance_scales[i] + \
+                d_distance_scale * \
+                numpy.arange(-stencil_size//2+1, stencil_size//2+1)
 
-                # First derivative w.r.t eta
-                d1_lp[i, j] = ProfileLikelihood.likelihood_der1_eta(
-                        z, X, mixed_cor, numpy.log10(eta[j]))
+            # Iterate over the perturbations of distance_scale
+            for k in range(stencil_size):
 
-                # Second derivative w.r.t eta
-                d2_lp[i, j] = ProfileLikelihood.likelihood_der2_eta(
-                        z, X, mixed_cor, numpy.log10(eta[j]))
+                # Set the perturbed distance scale
+                cov.set_distance_scale(distance_scale_stencil[k])
 
-            # Compute first derivative numerically
-            d1_lp_numerical[i, :] = (d0_lp[i, 2:] - d0_lp[i, :-2]) / \
-                (eta[2:] - eta[:-2])
+                for j in range(eta.size):
+
+                    # Likelihood
+                    d0_lp[k, i, j] = ProfileLikelihood.likelihood(
+                            z, X, cov.mixed_cor, False, numpy.log10(eta[j]))
+
+                    if k == center_stencil:
+                        # First derivative w.r.t eta
+                        d1_lp[i, j] = ProfileLikelihood.likelihood_der1_eta(
+                                z, X, cov.mixed_cor, numpy.log10(eta[j]))
+
+                        # Second derivative w.r.t eta
+                        d2_lp[i, j] = ProfileLikelihood.likelihood_der2_eta(
+                                z, X, cov.mixed_cor, numpy.log10(eta[j]))
+
+                        # Second mixed derivative w.r.t distance scale and eta
+                        hyperparam = numpy.r_[numpy.log10(eta[j]),
+                                              distance_scale_stencil[k]]
+                        d2_mixed_lp[i, j] = \
+                            ProfileLikelihood.likelihood_der2_mixed(
+                            z, X, cov, hyperparam)[0]
+
+            for k in range(stencil_size):
+                # Compute first derivative numerically
+                d1_lp_numerical[k, i, :] = \
+                    (d0_lp[k, i, 2:] - d0_lp[k, i, :-2]) / \
+                    (eta[2:] - eta[:-2])
+
+                # Second mixed derivative numerically (finite difference)
+                d2_mixed_lp_numerical[i, :] += \
+                    coeff[k] * d1_lp_numerical[k, i, :] / d_distance_scale
 
             # Compute second derivative numerically
             d2_lp_numerical[i, :] = \
-                (d1_lp_numerical[i, 2:] - d1_lp_numerical[i, :-2]) / \
+                (d1_lp_numerical[center_stencil, i, 2:] -
+                 d1_lp_numerical[center_stencil, i, :-2]) / \
                 (eta[3:-1] - eta[1:-3])
 
             # Find maximum of lp
-            max_index = numpy.argmax(d0_lp[i, :])
+            max_index = numpy.argmax(d0_lp[center_stencil, i, :])
             optimal_eta = eta[max_index]
-            optimal_lp = d0_lp[i, max_index]
+            optimal_lp = d0_lp[center_stencil, i, max_index]
 
             if distance_scales[i] == optimal_distance_scale:
                 label = r'$\hat{\theta} = %0.2e$' % distance_scales[i]
@@ -1234,44 +1328,60 @@ class ProfileLikelihood(object):
                 label = r'$\theta = %0.2e$' % distance_scales[i]
                 marker = 'o'
 
-            ax[0].plot(eta, d0_lp[i, :], color=colors[i], label=label)
-            ax[1].plot(eta, d1_lp[i, :], color=colors[i], label=label)
-            ax[2].plot(eta, d2_lp[i, :], color=colors[i], label=label)
-            ax[1].plot(eta[1:-1], d1_lp_numerical[i, :], '--', color=colors[i])
-            ax[2].plot(eta[2:-2], d2_lp_numerical[i, :], '--', color=colors[i])
+            ax[0, 0].plot(eta, d0_lp[center_stencil, i, :], color=colors[i],
+                          label=label)
+            ax[0, 1].plot(eta, d1_lp[i, :], color=colors[i], label=label)
+            ax[1, 0].plot(eta, d2_lp[i, :], color=colors[i], label=label)
+            ax[1, 1].plot(eta, d2_mixed_lp[i, :], color=colors[i], label=label)
+            ax[0, 1].plot(eta[1:-1], d1_lp_numerical[center_stencil, i, :],
+                          '--', color=colors[i])
+            ax[1, 0].plot(eta[2:-2], d2_lp_numerical[i, :], '--',
+                          color=colors[i])
+            ax[1, 1].plot(eta[1:-1], d2_mixed_lp_numerical[i, :], '--',
+                          color=colors[i])
+            p = ax[0, 0].plot(optimal_eta, optimal_lp, marker,
+                              color=colors[i], markersize=3)
+            ax[0, 1].plot(optimal_eta, 0.0, marker, color=colors[i],
+                          markersize=3)
 
-            p = ax[0].plot(optimal_eta, optimal_lp, marker, color=colors[i],
-                           markersize=3)
-            ax[1].plot(optimal_eta, 0.0, marker, color=colors[i], markersize=3)
-
-        ax[0].legend(p, [r'optimal $\eta$'])
-        ax[0].legend(loc='lower right')
-        ax[1].legend(loc='lower right')
-        ax[2].legend(loc='lower right')
+        ax[0, 0].legend(p, [r'optimal $\eta$'])
+        ax[0, 0].legend(loc='lower right')
+        ax[0, 1].legend(loc='lower right')
+        ax[1, 0].legend(loc='lower right')
+        ax[1, 1].legend(loc='lower right')
 
         # Plot annotations
-        ax[0].set_xlim([eta[0], eta[-1]])
-        ax[1].set_xlim([eta[0], eta[-1]])
-        ax[2].set_xlim([eta[0], eta[-1]])
-        ax[0].set_xscale('log')
-        ax[1].set_xscale('log')
-        ax[2].set_xscale('log')
-        ax[0].set_xlabel(r'$\eta$')
-        ax[1].set_xlabel(r'$\eta$')
-        ax[2].set_xlabel(r'$\eta$')
-        ax[0].set_ylabel(r'$\ell(\eta | \theta)$')
-        ax[1].set_ylabel(
+        ax[0, 0].set_xlim([eta[0], eta[-1]])
+        ax[0, 1].set_xlim([eta[0], eta[-1]])
+        ax[1, 0].set_xlim([eta[0], eta[-1]])
+        ax[1, 1].set_xlim([eta[0], eta[-1]])
+        ax[0, 0].set_xscale('log')
+        ax[0, 1].set_xscale('log')
+        ax[1, 0].set_xscale('log')
+        ax[1, 1].set_xscale('log')
+        ax[0, 0].set_xlabel(r'$\eta$')
+        ax[0, 1].set_xlabel(r'$\eta$')
+        ax[1, 0].set_xlabel(r'$\eta$')
+        ax[1, 1].set_xlabel(r'$\eta$')
+        ax[0, 0].set_ylabel(r'$\ell(\eta | \theta)$')
+        ax[0, 1].set_ylabel(
             r'$\frac{\mathrm{d}\ell(\eta | \theta)}{\mathrm{d}\eta}$')
-        ax[2].set_ylabel(
+        ax[1, 0].set_ylabel(
             r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d}\eta^2}$')
-        ax[0].set_title(r'Log likelihood function for fixed $\theta$')
-        ax[1].set_title(r'First derivative of log likelihood function for ' +
-                        r'fixed $\theta$')
-        ax[2].set_title(r'Second derivative of log likelihood function for ' +
-                        r'fixed $\theta$')
-        ax[0].grid(True, which='both')
-        ax[1].grid(True, which='both')
-        ax[2].grid(True, which='both')
+        ax[1, 1].set_ylabel(
+            r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d}\eta ' +
+            r'\mathrm{d} \theta}$')
+        ax[0, 0].set_title(r'Log likelihood for fixed $\theta$')
+        ax[0, 1].set_title(r'First derivative of log likelihood for ' +
+                           r'fixed $\theta$')
+        ax[1, 0].set_title(r'Second derivative of log likelihood for ' +
+                           r'fixed $\theta$')
+        ax[1, 1].set_title(r'Second mixed derivative of log likelihood for ' +
+                           r'fixed $\theta$')
+        ax[0, 0].grid(True, which='both')
+        ax[0, 1].grid(True, which='both')
+        ax[1, 0].grid(True, which='both')
+        ax[1, 1].grid(True, which='both')
 
         plt.tight_layout()
         plt.show()
