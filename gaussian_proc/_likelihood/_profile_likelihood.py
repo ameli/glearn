@@ -1424,20 +1424,16 @@ class ProfileLikelihood(object):
         # Convert inf to nan
         lp = numpy.where(numpy.isinf(lp), numpy.nan, lp)
 
-        [distance_scale_mesh, eta_mesh] = numpy.meshgrid(distance_scale, eta)
-
         # Smooth data for finer plot
-        # sigma = [2, 2]  # in unit of data pixel size
+        # sigma_ = [2, 2]  # in unit of data pixel size
         # lp = scipy.ndimage.filters.gaussian_filter(
-        #         lp, sigma, mode='nearest')
+        #         lp, sigma_, mode='nearest')
 
         # Increase resolution for better contour plot
         N = 300
         f = scipy.interpolate.interp2d(
-                # eta, distance_scale, lp_smooth, kind='cubic')
-                numpy.log10(eta),
-                numpy.log10(distance_scale),
-                lp, kind='cubic')
+                numpy.log10(eta), numpy.log10(distance_scale), lp,
+                kind='cubic')
         distance_scale_fine = numpy.logspace(
                 numpy.log10(distance_scale[0]),
                 numpy.log10(distance_scale[-1]), N)

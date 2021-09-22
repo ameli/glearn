@@ -83,13 +83,27 @@ class Likelihood(object):
             # Plot log likelihood
             if plot:
 
-                # Plot likelihood for fixed sigma and sigma0
-                FullLikelihood.plot_likelihood_for_fixed_sigma_sigma0(
-                        z, self.X, self.cov, result,
-                        other_sigmas=numpy.logspace(-1, 1, 3))
+                # # Plot likelihood for distance_scale, fixed sigma and sigma0
+                # FullLikelihood.plot_likelihood_versus_distance_scale(
+                #         z, self.X, self.cov, result,
+                #         other_sigmas=numpy.logspace(-1, 1, 3))
+                #
+                # # Plot likelihood for sigma, fixed sigma0 and distance_scale
+                # FullLikelihood.plot_likelihood_versus_sigma(
+                #         z, self.X, self.cov, result,
+                #         other_distance_scales=numpy.logspace(-1, 1, 3))
+                #
+                # # Plot likelihood for sigma0, fixed sigma and distance_scale
+                # FullLikelihood.plot_likelihood_versus_sigma0(
+                #         z, self.X, self.cov, result,
+                #         other_distance_scales=numpy.logspace(-1, 1, 3))
 
                 # 3D plot of likelihood
-                # FullLikelihood.plot_likelihood(z, self.X, self.cov, result)
+                FullLikelihood.plot_likelihood_versus_sigma0_sigma(
+                        z, self.X, self.cov, result)
+
+                FullLikelihood.plot_3d_likelihood_versus_sigma0_sigma(
+                        z, self.X, self.cov, result)
 
         elif profile_param == 'var':
 

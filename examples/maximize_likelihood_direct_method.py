@@ -32,7 +32,7 @@ def main():
     # Generate points
     # num_points = 30
     # num_points = 95
-    num_points = 40
+    num_points = 70
     dimension = 1
     grid = True
     points = generate_points(num_points, dimension, grid)
