@@ -995,12 +995,12 @@ class ProfileLikelihood(object):
 
         return result
 
-    # =============================
-    # plot likelihood for fixed eta
-    # =============================
+    # =====================================
+    # plot likelihood versus distance scale
+    # =====================================
 
     @staticmethod
-    def plot_likelihood_for_fixed_eta(
+    def plot_likelihood_versus_distance_scale(
             z,
             X,
             cov,
@@ -1191,12 +1191,12 @@ class ProfileLikelihood(object):
         plt.tight_layout()
         plt.show()
 
-    # ========================================
-    # plot likelihood for fixed distance scale
-    # ========================================
+    # ==========================
+    # plot likelihood versus eta
+    # ==========================
 
     @staticmethod
-    def plot_likelihood_for_fixed_distance_scale(
+    def plot_likelihood_versus_eta(
             z,
             X,
             cov,
@@ -1386,12 +1386,12 @@ class ProfileLikelihood(object):
         plt.tight_layout()
         plt.show()
 
-    # ===============
-    # plot likelihood
-    # ===============
+    # =========================================
+    # plot likelihood versus eta distance scale
+    # =========================================
 
     @staticmethod
-    def plot_likelihood(z, X, mixed_cor, result):
+    def plot_likelihood_versus_eta_distance_scale(z, X, mixed_cor, result):
         """
         Plots log likelihood versus sigma and eta hyperparam.
         """
@@ -1410,7 +1410,7 @@ class ProfileLikelihood(object):
         optimal_distance_scale = result['hyperparam']['distance_scale']
         optimal_lp = result['optimization']['max_likelihood']
 
-        eta = numpy.logspace(-3, 3, 60)
+        eta = numpy.logspace(-3, 3, 50)
         distance_scale = numpy.logspace(-3, 2, 50)
         lp = numpy.zeros((distance_scale.size, eta.size), dtype=float)
 

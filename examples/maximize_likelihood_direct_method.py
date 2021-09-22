@@ -32,7 +32,7 @@ def main():
     # Generate points
     # num_points = 30
     # num_points = 95
-    num_points = 70
+    num_points = 40
     dimension = 1
     grid = True
     points = generate_points(num_points, dimension, grid)
@@ -61,8 +61,8 @@ def main():
     gp = GaussianProcess(mean, cov)
 
     # Trainign options
-    profile_param = 'none'
-    # profile_param = 'var'
+    # profile_param = 'none'
+    profile_param = 'var'
     # profile_param = 'var_noise'
 
     # optimization_method = 'chandrupatla'  # requires jacobian
@@ -77,11 +77,11 @@ def main():
     # hyperparam_guess = [0.0]
     # hyperparam_guess = [0, 0.1, 0.1]
     # hyperparam_guess = [-1, 1e-1]
-    # hyperparam_guess = [5.0]
-    # hyperparam_guess = [0, 0.1]
+    # hyperparam_guess = [1.0]
+    hyperparam_guess = [0, 0.1]
     # hyperparam_guess = [0.1, 0.1]
     # hyperparam_guess = [0.1, 0.1, 0.1, 0.1]
-    hyperparam_guess = [0.01, 0.01, 0.1]
+    # hyperparam_guess = [0.01, 0.01, 0.1]
 
     # gp.train(z, options=options, plot=False)
     gp.train(z, profile_param=profile_param,

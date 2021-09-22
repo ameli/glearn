@@ -842,7 +842,7 @@ class FullLikelihood(object):
             r'\theta \mathrm{d} \sigma^2}$')
         ax[1, 1].set_ylabel(
             r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2)}{\mathrm{d} ' +
-            r'\theta \mathrm{d} \sigma^2_0}$')
+            r'\theta \mathrm{d} {\sigma_0}^2}$')
         ax[0, 0].set_title(r'Log likelihood function for fixed $\sigma^2$')
         ax[0, 1].set_title(r'First derivative of log likelihood function ' +
                            r'for fixed $\sigma^2$')
@@ -1121,13 +1121,13 @@ class FullLikelihood(object):
             r'\sigma^2}$')
         ax[0, 2].set_ylabel(
             r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \theta)}{\mathrm{d} ' +
-            r'\sigma^2^2}$')
+            r'(\sigma^2)^2}$')
         ax[1, 0].set_ylabel(
             r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \theta)}{\mathrm{d} ' +
             r'\sigma^2 \mathrm{d} \theta}$')
         ax[1, 1].set_ylabel(
             r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \theta)}{\mathrm{d} ' +
-            r'\sigma^2 \mathrm{d} \sigma^2_0}$')
+            r'\sigma^2 \mathrm{d} {\sigma_0}^2}$')
         ax[0, 0].set_title(r'Log likelihood function for fixed $\theta$')
         ax[0, 1].set_title(r'First derivative of log likelihood function ' +
                            r'for fixed $\theta$')
@@ -1399,19 +1399,19 @@ class FullLikelihood(object):
         ax[0, 2].set_xlabel(r'$\sigma_0$')
         ax[1, 0].set_xlabel(r'$\sigma_0$')
         ax[1, 1].set_xlabel(r'$\sigma_0$')
-        ax[0, 0].set_ylabel(r'$\ell(\sigma^2_0 | \theta)$')
+        ax[0, 0].set_ylabel(r'$\ell({\sigma_0}^2 | \theta)$')
         ax[0, 1].set_ylabel(
-            r'$\frac{\mathrm{d} \ell(\sigma^2_0 | \theta)}{\mathrm{d} ' +
-            r'\sigma^2_0}$')
+            r'$\frac{\mathrm{d} \ell({\sigma_0}^2 | \theta)}{\mathrm{d} ' +
+            r'{\sigma_0}^2}$')
         ax[0, 2].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\sigma^2_0 | \theta)}{\mathrm{d} ' +
-            r'\sigma^2_0^2}$')
+            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \theta)}{\mathrm{d} ' +
+            r'({\sigma_0}^2)^2}$')
         ax[1, 0].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\sigma^2_0 | \theta)}{\mathrm{d} ' +
-            r'\sigma^2_0 \mathrm{d} \theta}$')
+            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \theta)}{\mathrm{d} ' +
+            r'{\sigma_0}^2 \mathrm{d} \theta}$')
         ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\sigma^2_0 | \theta)}{\mathrm{d} ' +
-            r'\sigma^2_0 \mathrm{d} \sigma^2}$')
+            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \theta)}{\mathrm{d} ' +
+            r'{\sigma_0}^2 \mathrm{d} \sigma^2}$')
         ax[0, 0].set_title(r'Log likelihood function for fixed $\theta$')
         ax[0, 1].set_title(r'First derivative of log likelihood function ' +
                            r'for fixed $\theta$')
@@ -1562,7 +1562,7 @@ class FullLikelihood(object):
         opt_sigma = sigma_fine[max_indices[1]]
         opt_lp = lp_fine[max_indices[0], max_indices[1]]
         ax[0].plot(
-                opt_sigma0, opt_sigma, 'o', color='red', markersize=6,
+                opt_sigma, opt_sigma0, 'o', color='red', markersize=6,
                 label=r'$(\hat{\sigma}_0, \hat{\sigma})$ (by brute force on ' +
                       r' grid)')
         ax[1].plot(
@@ -1570,20 +1570,20 @@ class FullLikelihood(object):
                 label=r'$\ell(\hat{\sigma}, \hat{\sigma}_0)$ by brute force ' +
                       r' on grid)')
         ax[2].plot(
-                opt_sigma0, opt_lp, 'o', color='red',
+                opt_sigma0, opt_lp, 'o', color='black',
                 label=r'$\ell(\hat{\sigma}_0, \hat{\sigma})$ (by brute ' +
                       r'force on grid)')
 
         # Plot optimal point as found by the profile likelihood method
-        ax[0].plot(optimal_sigma0, optimal_sigma, 'o', color='black',
+        ax[0].plot(optimal_sigma, optimal_sigma0, 'X', color='black',
                    markersize=6,
                    label=r'$\max_{\sigma_0, \sigma} \ell$ (by optimization)')
         ax[1].plot(
-                optimal_sigma0, optimal_lp, 'o', color='black',
+                optimal_sigma, optimal_lp, 'X', color='red',
                 label=r'$\ell(\hat{\sigma}_0, \hat{\sigma})$ (by ' +
                       r'optimization)')
         ax[2].plot(
-                optimal_sigma, optimal_lp, 'o', color='black',
+                optimal_sigma0, optimal_lp, 'X', color='black',
                 label=r'$\ell(\hat{\sigma}_0, \hat{\sigma})$ (by ' +
                       r'optimization)')
 
@@ -1591,20 +1591,20 @@ class FullLikelihood(object):
         ax[0].legend()
         ax[1].legend()
         ax[2].legend()
-        ax[0].set_xlim([sigma0[0], sigma0[-1]])
-        ax[1].set_xlim([sigma0[0], sigma0[-1]])
-        ax[0].set_ylim([sigma[0], sigma[-1]])
-        ax[2].set_xlim([sigma[0], sigma[-1]])
+        ax[0].set_xlim([sigma[0], sigma[-1]])
+        ax[1].set_xlim([sigma[0], sigma[-1]])
+        ax[2].set_xlim([sigma0[0], sigma0[-1]])
+        ax[0].set_ylim([sigma0[0], sigma0[-1]])
         # ax[0].set_xscale('log')
         # ax[1].set_xscale('log')
         # ax[2].set_xscale('log')
         # ax[0].set_yscale('log')
-        ax[0].set_xlabel(r'$\sigma_0$')
-        ax[1].set_xlabel(r'$\sigma_0$')
-        ax[2].set_xlabel(r'$\sigma$')
-        ax[0].set_ylabel(r'$\sigma$')
-        ax[1].set_ylabel(r'$\ell(\sigma_0, \hat{\sigma}(\sigma_0))$')
-        ax[2].set_ylabel(r'$\ell(\hat{\sigma}_0(\sigma), \sigma)$')
+        ax[0].set_xlabel(r'$\sigma$')
+        ax[1].set_xlabel(r'$\sigma$')
+        ax[2].set_xlabel(r'$\sigma_0$')
+        ax[0].set_ylabel(r'$\sigma_0$')
+        ax[1].set_ylabel(r'$\ell(\hat{\sigma}_0(\sigma), \sigma)$')
+        ax[2].set_ylabel(r'$\ell(\sigma_0, \hat{\sigma}(\sigma_0))$')
         ax[0].set_title('Log likelihood function')
         ax[1].set_title(r'Log Likelihood profiled over $\sigma$ ')
         ax[2].set_title(r'Log likelihood profiled over $\sigma_0$')
@@ -1658,8 +1658,5 @@ class FullLikelihood(object):
         ax.set_xlabel(r'$\sigma$')
         ax.set_ylabel(r'$\sigma_0$')
         ax.set_title('Log Likelihood function')
-
-        filename = 'likelihood'
-        save_plot(plt, filename, transparent_background=False, pdf=True)
 
         plt.show()
