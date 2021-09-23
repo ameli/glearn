@@ -28,12 +28,25 @@ import imate
 
 class FullLikelihood(object):
 
+    # ====
+    # init
+    # ====
+
+    def __init__(self, z, X, cov):
+        """
+        Initialization.
+        """
+
+        # Attributes
+        self.z = z
+        self.X = X
+        self.cov = cov
+
     # ==========
     # likelihood
     # ==========
 
-    @staticmethod
-    def likelihood(z, X, cov, sign_switch, hyperparam):
+    def likelihood(self, sign_switch, hyperparam):
         """
         Here we use direct parameter, sigma and sigma0
 
@@ -49,19 +62,19 @@ class FullLikelihood(object):
         # Include derivative w.r.t scale
         if hyperparam.size > 2:
             scale = numpy.abs(hyperparam[2:])
-            cov.set_scale(scale)
+            self.cov.set_scale(scale)
 
-        n, m = X.shape
+        n, m = self.X.shape
 
         # cov is the (sigma**2) * K + (sigma0**2) * I
-        logdet_S = cov.logdet(sigma, sigma0)
-        Y = cov.solve(sigma, sigma0, X)
+        logdet_S = self.cov.logdet(sigma, sigma0)
+        Y = self.cov.solve(sigma, sigma0, self.X)
 
         # Compute zMz
-        B = numpy.matmul(X.T, Y)
+        B = numpy.matmul(self.X.T, Y)
         Binv = numpy.linalg.inv(B)
-        Mz = M_dot(cov, Binv, Y, sigma, sigma0, z)
-        zMz = numpy.dot(z, Mz)
+        Mz = M_dot(self.cov, Binv, Y, sigma, sigma0, self.z)
+        zMz = numpy.dot(self.z, Mz)
 
         # Compute log det (X.T*Sinv*X)
         logdet_B = numpy.log(numpy.linalg.det(B))
@@ -81,8 +94,7 @@ class FullLikelihood(object):
     # likelihood jacobian
     # ===================
 
-    @staticmethod
-    def likelihood_jacobian(z, X, cov, sign_switch, hyperparam):
+    def likelihood_jacobian(self, sign_switch, hyperparam):
         """
         When both :math:`\\sigma` and :math:`\\sigma_0` are zero, jacobian is
         undefined.
@@ -95,39 +107,39 @@ class FullLikelihood(object):
         # Include derivative w.r.t scale
         if hyperparam.size > 2:
             scale = numpy.abs(hyperparam[2:])
-            cov.set_scale(scale)
+            self.cov.set_scale(scale)
 
-        n, m = X.shape
+        n, m = self.X.shape
 
         # Computing Y=Sinv*X and w=Sinv*z.
-        Y = cov.solve(sigma, sigma0, X)
+        Y = self.cov.solve(sigma, sigma0, self.X)
 
         # B is Xt * Y
-        B = numpy.matmul(X.T, Y)
+        B = numpy.matmul(self.X.T, Y)
         Binv = numpy.linalg.inv(B)
 
         # Compute Mz
-        Mz = M_dot(cov, Binv, Y, sigma, sigma0, z)
+        Mz = M_dot(self.cov, Binv, Y, sigma, sigma0, self.z)
 
         # Compute KMz (Setting sigma=1 and sigma0=0 to have cov = K)
-        KMz = cov.dot(1.0, 0.0, Mz)
+        KMz = self.cov.dot(1.0, 0.0, Mz)
 
         # Compute zMMz and zMKMz
         zMMz = numpy.dot(Mz, Mz)
         zMKMz = numpy.dot(Mz, KMz)
 
         # Compute trace of M
-        if numpy.abs(sigma) < cov.tol:
+        if numpy.abs(sigma) < self.cov.tol:
             trace_M = (n - m) / sigma0**2
         else:
-            trace_Sinv = cov.traceinv(sigma, sigma0)
+            trace_Sinv = self.cov.traceinv(sigma, sigma0)
             YtY = numpy.matmul(Y.T, Y)
             trace_BinvYtY = numpy.trace(numpy.matmul(Binv, YtY))
             trace_M = trace_Sinv - trace_BinvYtY
 
         # Compute trace of KM which is (n-m)/sigma**2 - eta* trace(M)
-        if numpy.abs(sigma) < cov.tol:
-            YtKY = numpy.matmul(Y.T, cov.dot(1.0, 0.0, Y))
+        if numpy.abs(sigma) < self.cov.tol:
+            YtKY = numpy.matmul(Y.T, self.cov.dot(1.0, 0.0, Y))
             BinvYtKY = numpy.matmul(Binv, YtKY)
             trace_BinvYtKY = numpy.trace(BinvYtKY)
             trace_KM = n/sigma0**2 - trace_BinvYtKY
@@ -147,23 +159,23 @@ class FullLikelihood(object):
             der1_scale = numpy.zeros((scale.size, ), dtype=float)
 
             # Needed to compute trace (TODO)
-            S = cov.get_matrix(sigma, sigma0)
+            S = self.cov.get_matrix(sigma, sigma0)
             Sinv = numpy.linalg.inv(S)
 
             # Sp is the derivative of cov w.r.t the p-th element of scale.
             for p in range(scale.size):
 
                 # Compute zMSpMz
-                SpMz = cov.dot(sigma, sigma0, Mz, derivative=[p])
+                SpMz = self.cov.dot(sigma, sigma0, Mz, derivative=[p])
                 zMSpMz = numpy.dot(Mz, SpMz)
 
                 # Compute the first component of trace of Sp * Sinv (TODO)
-                Sp = cov.get_matrix(sigma, sigma0, derivative=[p])
+                Sp = self.cov.get_matrix(sigma, sigma0, derivative=[p])
                 SpSinv = Sp @ Sinv
                 trace_SpSinv, _ = imate.trace(SpSinv, method='exact')
 
                 # Compute the second component of trace of Sp * M
-                SpY = cov.dot(sigma, sigma0, Y, derivative=[p])
+                SpY = self.cov.dot(sigma, sigma0, Y, derivative=[p])
                 YtSpY = numpy.matmul(Y.T, SpY)
                 BinvYtSpY = numpy.matmul(Binv, YtSpY)
                 trace_BinvYtSpY = numpy.trace(BinvYtSpY)
@@ -189,8 +201,7 @@ class FullLikelihood(object):
     # likelihood hessian
     # ==================
 
-    @staticmethod
-    def likelihood_hessian(z, X, cov, sign_switch, hyperparam):
+    def likelihood_hessian(self, sign_switch, hyperparam):
         """
         """
 
@@ -202,49 +213,49 @@ class FullLikelihood(object):
         # Include derivatove w.r.t scale
         if hyperparam.size > 2:
             scale = numpy.abs(hyperparam[2:])
-            cov.set_scale(scale)
+            self.cov.set_scale(scale)
 
-        n, m = X.shape
+        n, m = self.X.shape
 
         # -----------------------------------------
         # Second derivatives w.r.t sigma and sigma0
         # -----------------------------------------
 
         # Computing Y=Sinv*X, V = Sinv*Y, and w=Sinv*z
-        Y = cov.solve(sigma, sigma0, X)
-        V = cov.solve(sigma, sigma0, Y)
+        Y = self.cov.solve(sigma, sigma0, self.X)
+        V = self.cov.solve(sigma, sigma0, Y)
 
         # B is Xt * Y
-        B = numpy.matmul(X.T, Y)
+        B = numpy.matmul(self.X.T, Y)
         Binv = numpy.linalg.inv(B)
         YtY = numpy.matmul(Y.T, Y)
         A = numpy.matmul(Binv, YtY)
 
         # Compute Mz, MMz
-        Mz = M_dot(cov, Binv, Y, sigma, sigma0, z)
-        MMz = M_dot(cov, Binv, Y, sigma, sigma0, Mz)
+        Mz = M_dot(self.cov, Binv, Y, sigma, sigma0, self.z)
+        MMz = M_dot(self.cov, Binv, Y, sigma, sigma0, Mz)
 
         # Compute KMz, zMMMz (Setting sigma=1 and sigma0=0 to have cov=K)
-        KMz = cov.dot(1.0, 0.0, Mz)
+        KMz = self.cov.dot(1.0, 0.0, Mz)
         zMMMz = numpy.dot(Mz, MMz)
 
         # Compute MKMz
-        MKMz = M_dot(cov, Binv, Y, sigma, sigma0, KMz)
+        MKMz = M_dot(self.cov, Binv, Y, sigma, sigma0, KMz)
 
         # Compute zMKMKMz
         zMMKMz = numpy.dot(MMz, KMz)
         zMKMKMz = numpy.dot(KMz, MKMz)
 
         # Trace of M
-        if numpy.abs(sigma) < cov.tol:
+        if numpy.abs(sigma) < self.cov.tol:
             trace_M = (n - m) / sigma0**2
         else:
-            trace_Sinv = cov.traceinv(sigma, sigma0)
+            trace_Sinv = self.cov.traceinv(sigma, sigma0)
             trace_A = numpy.trace(A)
             trace_M = trace_Sinv - trace_A
 
         # Trace of Sinv**2
-        trace_S2inv = cov.traceinv(sigma, sigma0, exponent=2)
+        trace_S2inv = self.cov.traceinv(sigma, sigma0, exponent=2)
 
         # Trace of M**2
         YtV = numpy.matmul(Y.T, V)
@@ -255,12 +266,12 @@ class FullLikelihood(object):
         trace_M2 = trace_S2inv - 2.0*trace_C + trace_AA
 
         # Trace of (KM)**2
-        if numpy.abs(sigma) < cov.tol:
-            trace_K2 = cov.trace(1.0, 0.0, exponent=2)
-            D = numpy.matmul(X.T, X)
+        if numpy.abs(sigma) < self.cov.tol:
+            trace_K2 = self.cov.trace(1.0, 0.0, exponent=2)
+            D = numpy.matmul(self.X.T, self.X)
             Dinv = numpy.linalg.inv(D)
-            KX = cov.dot(1.0, 0.0, X, exponent=1)
-            XKX = numpy.matmul(X.T, KX)
+            KX = self.cov.dot(1.0, 0.0, self.X, exponent=1)
+            XKX = numpy.matmul(self.X.T, KX)
             XK2X = numpy.matmul(KX.T, KX)
             E = numpy.matmul(Dinv, XKX)
             E2 = numpy.matmul(E, E)
@@ -272,7 +283,7 @@ class FullLikelihood(object):
                 (eta**2)*trace_M2
 
         # Trace of K*(M**2)
-        if numpy.abs(sigma) < cov.tol:
+        if numpy.abs(sigma) < self.cov.tol:
             trace_KM = (n - numpy.trace(E))/sigma0**2
             trace_KMM = trace_KM / sigma0**2
         else:
@@ -298,7 +309,7 @@ class FullLikelihood(object):
             der2_mixed = numpy.zeros((2, scale.size), dtype=float)
 
             # Needed to compute trace (TODO)
-            S = cov.get_matrix(sigma, sigma0)
+            S = self.cov.get_matrix(sigma, sigma0)
             Sinv = numpy.linalg.inv(S)
 
             # Sp is the derivative of cov w.r.t the p-th element of scale. Spq
@@ -311,23 +322,23 @@ class FullLikelihood(object):
                 # -----------------------------------------------
 
                 # 1.1. Compute zMSpMKMz
-                SpMz = cov.dot(sigma, sigma0, Mz, derivative=[p])
-                MSpMz = M_dot(cov, Binv, Y, sigma, sigma0, SpMz)
+                SpMz = self.cov.dot(sigma, sigma0, Mz, derivative=[p])
+                MSpMz = M_dot(self.cov, Binv, Y, sigma, sigma0, SpMz)
                 zMSpMKMz = numpy.dot(SpMz, MKMz)
 
                 # 1.2. Compute zMKpMz
-                KpMz = cov.dot(1.0, 0.0, Mz, derivative=[p])
+                KpMz = self.cov.dot(1.0, 0.0, Mz, derivative=[p])
                 zMKpMz = numpy.dot(Mz, KpMz)
 
                 # 1.3. Compute trace of Kp * M
 
                 # Compute the first component of trace of Kp * Sinv (TODO)
-                Kp = cov.get_matrix(1.0, 0.0, derivative=[p])
+                Kp = self.cov.get_matrix(1.0, 0.0, derivative=[p])
                 KpSinv = numpy.matmul(Kp, Sinv)
                 trace_KpSinv, _ = imate.trace(KpSinv, method='exact')
 
                 # Compute the second component of trace of Kp * M
-                KpY = cov.dot(1.0, 0.0, Y, derivative=[p])
+                KpY = self.cov.dot(1.0, 0.0, Y, derivative=[p])
                 YtKpY = numpy.matmul(Y.T, KpY)
                 BinvYtKpY = numpy.matmul(Binv, YtKpY)
                 trace_BinvYtKpY = numpy.trace(BinvYtKpY)
@@ -338,9 +349,9 @@ class FullLikelihood(object):
                 # 1.4. Compute trace of K * M * Sp * M
 
                 # Compute first part of trace of K * M * Sp * M
-                K = cov.get_matrix(1.0, 0.0, derivative=[])
+                K = self.cov.get_matrix(1.0, 0.0, derivative=[])
                 KSinv = numpy.matmul(K, Sinv)
-                Sp = cov.get_matrix(sigma, sigma0, derivative=[p])
+                Sp = self.cov.get_matrix(sigma, sigma0, derivative=[p])
                 SpSinv = numpy.matmul(Sp, Sinv)
                 KSinvSpSinv = numpy.matmul(KSinv, SpSinv)
                 trace_KMSpM_1, _ = imate.trace(KSinvSpSinv, method='exact')
@@ -348,7 +359,7 @@ class FullLikelihood(object):
                 # Compute the second part of trace of K * M * Sp * M
                 KY = numpy.matmul(K, Y)
                 SpY = numpy.matmul(Sp, Y)
-                SinvSpY = cov.solve(sigma, sigma0, SpY)
+                SinvSpY = self.cov.solve(sigma, sigma0, SpY)
                 YtKSinvSpY = numpy.matmul(KY.T, SinvSpY)
                 C21 = numpy.matmul(Binv, YtKSinvSpY)
                 C22 = numpy.matmul(Binv, YtKSinvSpY.T)
@@ -416,22 +427,22 @@ class FullLikelihood(object):
                     if p == q:
                         SqMz = SpMz
                     else:
-                        SqMz = cov.dot(sigma, sigma0, Mz, derivative=[q])
+                        SqMz = self.cov.dot(sigma, sigma0, Mz, derivative=[q])
                     zMSqMSpMz = numpy.dot(SqMz, MSpMz)
 
                     # 2. Compute zMSpqMz
-                    SpqMz = cov.dot(sigma, sigma0, Mz, derivative=[p, q])
+                    SpqMz = self.cov.dot(sigma, sigma0, Mz, derivative=[p, q])
                     zMSpqMz = numpy.dot(Mz, SpqMz)
 
                     # 3. Computing trace of Spq * M in three steps
 
                     # Compute the first component of trace of Spq*Sinv (TODO)
-                    Spq = cov.get_matrix(sigma, sigma0, derivative=[p, q])
+                    Spq = self.cov.get_matrix(sigma, sigma0, derivative=[p, q])
                     SpqSinv = numpy.matmul(Spq, Sinv)
                     trace_SpqSinv, _ = imate.trace(SpqSinv, method='exact')
 
                     # Compute the second component of trace of Spq * M
-                    SpqY = cov.dot(sigma, sigma0, Y, derivative=[p, q])
+                    SpqY = self.cov.dot(sigma, sigma0, Y, derivative=[p, q])
                     YtSpqY = numpy.matmul(Y.T, SpqY)
                     BinvYtSpqY = numpy.matmul(Binv, YtSpqY)
                     trace_BinvYtSpqY = numpy.trace(BinvYtSpqY)
@@ -442,9 +453,9 @@ class FullLikelihood(object):
                     # 4. Compute trace of Sp * M * Sq * M
 
                     # Compute first part of trace of Sp * M * Sq * M
-                    Sp = cov.get_matrix(sigma, sigma0, derivative=[p])
+                    Sp = self.cov.get_matrix(sigma, sigma0, derivative=[p])
                     SpSinv = numpy.matmul(Sp, Sinv)
-                    Sq = cov.get_matrix(sigma, sigma0, derivative=[q])
+                    Sq = self.cov.get_matrix(sigma, sigma0, derivative=[q])
                     if p == q:
                         SqSinv = SpSinv
                     else:
@@ -459,7 +470,7 @@ class FullLikelihood(object):
                         SqY = SpY
                     else:
                         SqY = numpy.matmul(Sq, Y)
-                    SinvSqY = cov.solve(sigma, sigma0, SqY)
+                    SinvSqY = self.cov.solve(sigma, sigma0, SqY)
                     YtSpSinvSqY = numpy.matmul(SpY.T, SinvSqY)
                     C21 = numpy.matmul(Binv, YtSpSinvSqY)
                     C22 = numpy.matmul(Binv, YtSpSinvSqY.T)
@@ -507,11 +518,8 @@ class FullLikelihood(object):
     # maximize likelihood
     # ===================
 
-    @staticmethod
     def maximize_likelihood(
-            z,
-            X,
-            cov,
+            self,
             tol=1e-3,
             hyperparam_guess=[0.1, 0.1],
             optimization_method='Nelder-Mead',
@@ -530,18 +538,13 @@ class FullLikelihood(object):
         # Partial function of likelihood (with minus to make maximization to a
         # minimization).
         sign_switch = True
-        likelihood_partial_func = partial(
-                FullLikelihood.likelihood, z, X, cov, sign_switch)
+        likelihood_partial_func = partial(self.likelihood, sign_switch)
 
         # Partial function of Jacobian of likelihood (with minus sign)
-        jacobian_partial_func = partial(
-                FullLikelihood.likelihood_jacobian, z, X, cov,
-                sign_switch)
+        jacobian_partial_func = partial(self.likelihood_jacobian, sign_switch)
 
         # Partial function of Hessian of likelihood (with minus sign)
-        hessian_partial_func = partial(
-                FullLikelihood.likelihood_hessian, z, X, cov,
-                sign_switch)
+        hessian_partial_func = partial(self.likelihood_hessian, sign_switch)
 
         # Minimize
         res = scipy.optimize.minimize(likelihood_partial_func,
@@ -565,7 +568,7 @@ class FullLikelihood(object):
         if res.x.size > 2:
             scale = numpy.abs(res.x[2:])
         else:
-            scale = cov.get_scale()
+            scale = self.cov.get_scale()
 
         # Adding time to the results
         wall_time = time.time() - initial_wall_time
@@ -598,11 +601,8 @@ class FullLikelihood(object):
     # plot likelihood versus scale
     # ============================
 
-    @staticmethod
     def plot_likelihood_versus_scale(
-            z,
-            X,
-            cov,
+            self,
             result,
             other_sigmas=None):
         """
@@ -614,7 +614,7 @@ class FullLikelihood(object):
         """
 
         # This function can only plot one dimensional data.
-        dimension = cov.mixed_cor.cor.dimension
+        dimension = self.cov.mixed_cor.cor.dimension
         if dimension != 1:
             raise ValueError('To plot likelihood w.r.t "eta" and "scale", ' +
                              'the dimension of the data points should be one.')
@@ -693,33 +693,31 @@ class FullLikelihood(object):
             for j in range(scale.size):
 
                 # Set the scale
-                cov.set_scale(scale[j])
+                self.cov.set_scale(scale[j])
 
                 # Likelihood (and its perturbation w.r.t sigma)
                 for k in range(stencil_size):
                     hyperparam = numpy.r_[sigma_stencil[k], optimal_sigma0,
                                           scale[j]]
                     sign_switch = False
-                    d0_lp_perturb_sigma[k, i, j] = FullLikelihood.likelihood(
-                            z, X, cov, sign_switch, hyperparam)
+                    d0_lp_perturb_sigma[k, i, j] = self.likelihood(
+                            sign_switch, hyperparam)
 
                 # Likelihood (and its perturbation w.r.t sigma0)
                 for k in range(stencil_size):
                     hyperparam = numpy.r_[sigmas[i], sigma0_stencil[k],
                                           scale[j]]
                     sign_switch = False
-                    d0_lp_perturb_sigma0[k, i, j] = FullLikelihood.likelihood(
-                            z, X, cov, sign_switch, hyperparam)
+                    d0_lp_perturb_sigma0[k, i, j] = self.likelihood(
+                            sign_switch, hyperparam)
 
                 # First derivative of likelihood w.r.t distance scale
                 hyperparam = numpy.r_[sigmas[i], optimal_sigma0, scale[j]]
-                jacobian_ = FullLikelihood.likelihood_jacobian(
-                        z, X, cov, sign_switch, hyperparam)
+                jacobian_ = self.likelihood_jacobian(sign_switch, hyperparam)
                 d1_lp[i, j] = jacobian_[2]
 
                 # Second derivative of likelihood w.r.t distance scale
-                hessian_ = FullLikelihood.likelihood_hessian(
-                        z, X, cov, sign_switch, hyperparam)
+                hessian_ = self.likelihood_hessian(sign_switch, hyperparam)
                 d2_mixed_sigma_lp[i, j] = hessian_[0, 2]
                 d2_mixed_sigma0_lp[i, j] = hessian_[1, 2]
                 d2_lp[i, j] = hessian_[2, 2]
@@ -852,11 +850,8 @@ class FullLikelihood(object):
     # plot likelihood versus sigma
     # ============================
 
-    @staticmethod
     def plot_likelihood_versus_sigma(
-            z,
-            X,
-            cov,
+            self,
             result,
             other_scales=None):
         """
@@ -867,7 +862,7 @@ class FullLikelihood(object):
         """
 
         # This function can only plot one dimensional data.
-        dimension = cov.mixed_cor.cor.dimension
+        dimension = self.cov.mixed_cor.cor.dimension
         if dimension != 1:
             raise ValueError('To plot likelihood w.r.t "eta" and "scale", ' +
                              'the dimension of the data points should be one.')
@@ -947,36 +942,33 @@ class FullLikelihood(object):
             for k in range(stencil_size):
 
                 # Set the scale
-                cov.set_scale(scale_stencil[k])
+                self.cov.set_scale(scale_stencil[k])
 
                 for j in range(sigma.size):
                     hyperparam = numpy.r_[sigma[j], optimal_sigma0,
                                           scale_stencil[k]]
                     sign_switch = False
-                    d0_lp_perturb_scale[k, i, j] = \
-                        FullLikelihood.likelihood(
-                        z, X, cov, sign_switch, hyperparam)
+                    d0_lp_perturb_scale[k, i, j] = self.likelihood(
+                        sign_switch, hyperparam)
 
             # Likelihood (and its perturbation w.r.t sigma0)
-            cov.set_scale(scales[i])
+            self.cov.set_scale(scales[i])
             for k in range(stencil_size):
                 for j in range(sigma.size):
                     hyperparam = numpy.r_[sigma[j], sigma0_stencil[k],
                                           scales[i]]
                     sign_switch = False
-                    d0_lp_perturb_sigma0[k, i, j] = FullLikelihood.likelihood(
-                            z, X, cov, sign_switch, hyperparam)
+                    d0_lp_perturb_sigma0[k, i, j] = self.likelihood(
+                            sign_switch, hyperparam)
 
             # First derivative of likelihood w.r.t distance scale
             for j in range(sigma.size):
                 hyperparam = numpy.r_[sigma[j], optimal_sigma0, scales[i]]
-                jacobian_ = FullLikelihood.likelihood_jacobian(
-                        z, X, cov, sign_switch, hyperparam)
+                jacobian_ = self.likelihood_jacobian(sign_switch, hyperparam)
                 d1_lp[i, j] = jacobian_[0]
 
                 # Second derivative of likelihood w.r.t distance scale
-                hessian_ = FullLikelihood.likelihood_hessian(
-                        z, X, cov, sign_switch, hyperparam)
+                hessian_ = self.likelihood_hessian(sign_switch, hyperparam)
                 d2_mixed_scale_lp[i, j] = hessian_[0, 2]
                 d2_mixed_sigma0_lp[i, j] = hessian_[0, 1]
                 d2_lp[i, j] = hessian_[0, 0]
@@ -1120,11 +1112,8 @@ class FullLikelihood(object):
     # plot likelihood versus sigma0
     # =============================
 
-    @staticmethod
     def plot_likelihood_versus_sigma0(
-            z,
-            X,
-            cov,
+            self,
             result,
             other_scales=None):
         """
@@ -1135,7 +1124,7 @@ class FullLikelihood(object):
         """
 
         # This function can only plot one dimensional data.
-        dimension = cov.mixed_cor.cor.dimension
+        dimension = self.cov.mixed_cor.cor.dimension
         if dimension != 1:
             raise ValueError('To plot likelihood w.r.t "eta" and "scale", ' +
                              'the dimension of the data points should be one.')
@@ -1217,36 +1206,33 @@ class FullLikelihood(object):
             for k in range(stencil_size):
 
                 # Set the scale
-                cov.set_scale(scale_stencil[k])
+                self.cov.set_scale(scale_stencil[k])
 
                 for j in range(sigma0.size):
                     hyperparam = numpy.r_[optimal_sigma, sigma0[j],
                                           scale_stencil[k]]
                     sign_switch = False
-                    d0_lp_perturb_scale[k, i, j] = \
-                        FullLikelihood.likelihood(
-                        z, X, cov, sign_switch, hyperparam)
+                    d0_lp_perturb_scale[k, i, j] = self.likelihood(
+                        sign_switch, hyperparam)
 
             # Likelihood (and its perturbation w.r.t sigma)
-            cov.set_scale(scales[i])
+            self.cov.set_scale(scales[i])
             for k in range(stencil_size):
                 for j in range(sigma0.size):
                     hyperparam = numpy.r_[sigma_stencil[k], sigma0[j],
                                           scales[i]]
                     sign_switch = False
-                    d0_lp_perturb_sigma[k, i, j] = FullLikelihood.likelihood(
-                            z, X, cov, sign_switch, hyperparam)
+                    d0_lp_perturb_sigma[k, i, j] = self.likelihood(
+                        sign_switch, hyperparam)
 
             # First derivative of likelihood w.r.t distance scale
             for j in range(sigma0.size):
                 hyperparam = numpy.r_[sigma_stencil[k], sigma0[j], scales[i]]
-                jacobian_ = FullLikelihood.likelihood_jacobian(
-                        z, X, cov, sign_switch, hyperparam)
+                jacobian_ = self.likelihood_jacobian(sign_switch, hyperparam)
                 d1_lp[i, j] = jacobian_[1]
 
                 # Second derivative of likelihood w.r.t distance scale
-                hessian_ = FullLikelihood.likelihood_hessian(
-                        z, X, cov, sign_switch, hyperparam)
+                hessian_ = self.likelihood_hessian(sign_switch, hyperparam)
                 d2_mixed_scale_lp[i, j] = hessian_[1, 2]
                 d2_mixed_sigma_lp[i, j] = hessian_[1, 0]
                 d2_lp[i, j] = hessian_[1, 1]
@@ -1390,13 +1376,11 @@ class FullLikelihood(object):
     # plot likelihood versus sigma0 sigma
     # ===================================
 
-    @staticmethod
-    def plot_likelihood_versus_sigma0_sigma(z, X, cov, result=None):
+    def plot_likelihood_versus_sigma0_sigma(self, result=None):
         """
         2D contour plot of log likelihood versus sigma0 and sigma.
         """
 
-        print('Plotting log likelihood ...')
         load_plot_settings()
 
         # Optimal point
@@ -1405,7 +1389,7 @@ class FullLikelihood(object):
         optimal_scale = result['hyperparam']['scale']
         optimal_lp = result['optimization']['max_likelihood']
 
-        cov.set_scale(optimal_scale)
+        self.cov.set_scale(optimal_scale)
 
         # Intervals cannot contain origin point as lp is minus infinity.
         sigma0 = numpy.linspace(0.02, 0.25, 50)
@@ -1413,8 +1397,8 @@ class FullLikelihood(object):
         lp = numpy.zeros((sigma0.size, sigma.size))
         for i in range(sigma0.size):
             for j in range(sigma.size):
-                lp[i, j] = FullLikelihood.likelihood(
-                        z, X, cov, False, numpy.array([sigma[j], sigma0[i]]))
+                lp[i, j] = self.likelihood(
+                        False, numpy.array([sigma[j], sigma0[i]]))
 
         # Convert inf to nan
         lp = numpy.where(numpy.isinf(lp), numpy.nan, lp)
@@ -1567,13 +1551,11 @@ class FullLikelihood(object):
     # plot 3d likelihood versus sigma0 sigma
     # ======================================
 
-    @staticmethod
-    def plot_3d_likelihood_versus_sigma0_sigma(z, X, cov, result=None):
+    def plot_3d_likelihood_versus_sigma0_sigma(self, result=None):
         """
         Plots log likelihood versus sigma0, sigma hyperparam
         """
 
-        print('Plotting log likelihood ...')
         load_plot_settings()
 
         sigma0 = numpy.linspace(0.01, 0.25, 50)
@@ -1581,12 +1563,12 @@ class FullLikelihood(object):
         optimal_scale = result['hyperparam']['scale']
         lp = numpy.zeros((sigma0.size, sigma.size))
 
-        cov.set_scale(optimal_scale)
+        self.cov.set_scale(optimal_scale)
 
         for i in range(sigma0.size):
             for j in range(sigma.size):
-                lp[i, j] = FullLikelihood.likelihood(
-                        z, X, cov, False, numpy.array([sigma[j], sigma0[i]]))
+                lp[i, j] = self.likelihood(
+                        False, numpy.array([sigma[j], sigma0[i]]))
 
         [sigma_mesh, sigma0_mesh] = numpy.meshgrid(sigma, sigma0)
 
@@ -1600,8 +1582,7 @@ class FullLikelihood(object):
             opt_sigma = result['hyperparam']['sigma']
             opt_sigma0 = result['hyperparam']['sigma0']
             hyperparam = numpy.array([opt_sigma, opt_sigma0])
-            opt_lp = FullLikelihood.likelihood(
-                        z, X, cov, False, hyperparam)
+            opt_lp = self.likelihood(False, hyperparam)
             plt.plot(opt_sigma, opt_sigma0, opt_lp, markersize=5, marker='o',
                      markerfacecolor='red', markeredgecolor='red')
         ax.set_xlabel(r'$\sigma$')

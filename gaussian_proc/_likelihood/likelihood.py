@@ -73,79 +73,70 @@ class Likelihood(object):
                 raise ValueError('"chandrupatla" method can only be used ' +
                                  'with "profiled" likelihood method.')
 
+            likelihood = FullLikelihood(z, self.X, self.cov)
+
             # Find optimal hyperparam
-            result = FullLikelihood.maximize_likelihood(
-                    z, self.X, self.cov, tol=tol,
-                    hyperparam_guess=hyperparam_guess,
-                    optimization_method=optimization_method,
-                    verbose=verbose)
+            result = likelihood.maximize_likelihood(
+                    tol=tol, hyperparam_guess=hyperparam_guess,
+                    optimization_method=optimization_method, verbose=verbose)
 
             # Plot log likelihood
             if plot:
 
                 # Plot likelihood for scale, fixed sigma and sigma0
-                FullLikelihood.plot_likelihood_versus_scale(
-                        z, self.X, self.cov, result,
-                        other_sigmas=numpy.logspace(-1, 1, 3))
+                likelihood.plot_likelihood_versus_scale(
+                        result, other_sigmas=numpy.logspace(-1, 1, 3))
 
                 # Plot likelihood for sigma, fixed sigma0 and scale
-                FullLikelihood.plot_likelihood_versus_sigma(
-                        z, self.X, self.cov, result,
-                        other_scales=numpy.logspace(-1, 1, 3))
+                likelihood.plot_likelihood_versus_sigma(
+                        result, other_scales=numpy.logspace(-1, 1, 3))
 
                 # Plot likelihood for sigma0, fixed sigma and scale
-                FullLikelihood.plot_likelihood_versus_sigma0(
-                        z, self.X, self.cov, result,
-                        other_scales=numpy.logspace(-1, 1, 3))
+                likelihood.plot_likelihood_versus_sigma0(
+                        result, other_scales=numpy.logspace(-1, 1, 3))
 
                 # 2d plot of likelihood versus sigma0 and sigma
-                FullLikelihood.plot_likelihood_versus_sigma0_sigma(
-                        z, self.X, self.cov, result)
+                likelihood.plot_likelihood_versus_sigma0_sigma(result)
 
                 # 3D plot of likelihood
-                FullLikelihood.plot_3d_likelihood_versus_sigma0_sigma(
-                        z, self.X, self.cov, result)
+                likelihood.plot_3d_likelihood_versus_sigma0_sigma(result)
 
         elif profile_param == 'var':
 
+            likelihood = ProfileLikelihood(z, self.X, self.cov)
+
             # Find optimal hyperparam
-            result = ProfileLikelihood.maximize_likelihood(
-                    z, self.X, self.cov, tol=tol,
-                    hyperparam_guess=hyperparam_guess,
-                    optimization_method=optimization_method,
-                    verbose=verbose)
+            result = likelihood.maximize_likelihood(
+                    tol=tol, hyperparam_guess=hyperparam_guess,
+                    optimization_method=optimization_method, verbose=verbose)
 
             if plot:
                 # Plot log-lp versus eta
-                ProfileLikelihood.plot_likelihood_versus_eta(
-                        z, self.X, self.cov, result,
-                        numpy.logspace(-2, 2, 5))
+                likelihood.plot_likelihood_versus_eta(
+                        result, numpy.logspace(-2, 2, 5))
 
                 # Plot log-lp versus scale
-                ProfileLikelihood.plot_likelihood_versus_scale(
-                        z, self.X, self.cov, result,
-                        numpy.logspace(-2, 2, 5))
+                likelihood.plot_likelihood_versus_scale(
+                        result, numpy.logspace(-2, 2, 5))
 
                 # 3D Plot of log-lp function
-                ProfileLikelihood.plot_likelihood_versus_eta_scale(
-                        z, self.X, self.mixed_cor, result)
+                likelihood.plot_likelihood_versus_eta_scale(result)
 
                 # # Plot first derivative of log likelihood
-                ProfileLikelihood.plot_likelihood_der1_eta(
-                        z, self.X, self.mixed_cor, result)
+                likelihood.plot_likelihood_der1_eta(result)
 
         elif profile_param == 'var_noise':
 
+            likelihood = DoubleProfileLikelihood(z, self.X, self.cov)
+
             # Find optimal hyperparam
-            result = DoubleProfileLikelihood.maximize_likelihood(
-                    z, self.X, self.cov, tol=tol,
-                    hyperparam_guess=hyperparam_guess,
+            result = likelihood.maximize_likelihood(
+                    tol=tol, hyperparam_guess=hyperparam_guess,
                     optimization_method=optimization_method, verbose=verbose)
 
             if plot:
                 # Plot log-lp
-                DoubleProfileLikelihood.plot_likelihood_versus_scale(
-                        z, self.X, self.cov, result)
+                likelihood.plot_likelihood_versus_scale(result)
 
         else:
             raise ValueError('"profile_param" can be one of "none", ' +

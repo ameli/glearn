@@ -10,21 +10,18 @@ Notes
 ToDo
 ====
 
-* Add prior distributions for scale parameters :math:`\theta`. This requires
-  storing function and its derivatives in an instance of likelihood class.
 * Make logarithmic optimization of `eta` and `theta`. This requires storing
   function and its derivatives as member data of likelihood class.
+* Add prior distributions for scale parameters :math:`\theta`. This requires
+  storing function and its derivatives in an instance of likelihood class.
 * Add `predict` to `gaussian_process` class.
 * In ``_profile_likelihood.pyx``, in the function ``find_optimal_sigma``,
   sigma variables are computed before this function is called, like ``Y``,
   ``w``, etc. Passing these can reduce the runtime.
-* `correlation` > `_generate_sparse_correlation.pyx` > add generation of
-  the derivatives of correlation (Jacobian and Hessian). See
-  `_generate_dense_correlation.pyx`.
 
-==============
-Possible ToDos
-==============
+=====
+Ideas
+=====
 
 
 ======

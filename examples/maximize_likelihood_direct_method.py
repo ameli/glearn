@@ -62,14 +62,14 @@ def main():
 
     # Trainign options
     # profile_param = 'none'
-    # profile_param = 'var'
-    profile_param = 'var_noise'
+    profile_param = 'var'
+    # profile_param = 'var_noise'
 
     # optimization_method = 'chandrupatla'  # requires jacobian
-    optimization_method = 'Nelder-Mead'     # requires func
+    # optimization_method = 'Nelder-Mead'     # requires func
     # optimization_method = 'BFGS'          # requires func, jacobian
     # optimization_method = 'CG'            # requires func, jacobian
-    # optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
+    optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
     # optimization_method = 'dogleg'        # requires func, jacobian, hessian
     # optimization_method = 'trust-exact'   # requires func, jacobian, hessian
     # optimization_method = 'trust-ncg'     # requires func, jacobian, hessian
@@ -77,8 +77,8 @@ def main():
     # hyperparam_guess = [0.0]
     # hyperparam_guess = [0, 0.1, 0.1]
     # hyperparam_guess = [-1, 1e-1]
-    hyperparam_guess = [1.0]
-    # hyperparam_guess = [0, 0.1]
+    # hyperparam_guess = [1.0]
+    hyperparam_guess = [0, 0.1]
     # hyperparam_guess = [0.1, 0.1]
     # hyperparam_guess = [0.1, 0.1, 0.1, 0.1]
     # hyperparam_guess = [0.01, 0.01, 0.1]
@@ -86,7 +86,7 @@ def main():
     # gp.train(z, options=options, plot=False)
     gp.train(z, profile_param=profile_param,
              optimization_method=optimization_method, tol=1e-5,
-             hyperparam_guess=hyperparam_guess, verbose=False, plot=True)
+             hyperparam_guess=hyperparam_guess, verbose=False, plot=False)
 
 # ===========
 # script main

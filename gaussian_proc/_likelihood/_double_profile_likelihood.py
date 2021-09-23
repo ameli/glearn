@@ -31,15 +31,33 @@ from ._profile_likelihood import ProfileLikelihood
 # =========================
 
 class DoubleProfileLikelihood(object):
+    """
+    Likelihood function that is profiled with respect to :math:`\\sigma` and
+    :math:`\\eta` variables.
+    """
+
+    # ====
+    # init
+    # ====
+
+    def __init__(self, z, X, cov):
+        """
+        Initialization
+        """
+
+        # Attributes
+        self.z = z
+        self.X = X
+        self.cov = cov
+        self.mixed_cor = self.cov.mixed_cor
+        self.profile_likelihood = ProfileLikelihood(z, X, cov)
 
     # ==========
     # likelihood
     # ==========
 
     def likelihood(
-            z,
-            X,
-            cov,
+            self,
             sign_switch,
             log_eta_guess,
             hyperparam):
@@ -52,19 +70,17 @@ class DoubleProfileLikelihood(object):
         if isinstance(hyperparam, list):
             hyperparam = numpy.array(hyperparam)
         scale = numpy.abs(hyperparam)
-        cov.set_scale(scale)
+        self.cov.set_scale(scale)
 
         # Find optimal eta
-        eta = DoubleProfileLikelihood._find_optimal_eta(
-                z, X, cov, scale, log_eta_guess)
+        eta = self._find_optimal_eta(scale, log_eta_guess)
         log_eta = numpy.log(eta)
 
         # Construct new hyperparam that consists of both eta and scale
         hyperparam_full = numpy.r_[log_eta, scale]
 
-        # Finding the maxima.
-        lp = ProfileLikelihood.likelihood(
-                z, X, cov.mixed_cor, sign_switch, hyperparam_full)
+        # Finding the maxima
+        lp = self.profile_likelihood.likelihood(sign_switch, hyperparam_full)
 
         return lp
 
@@ -72,11 +88,8 @@ class DoubleProfileLikelihood(object):
     # likelihood jacobian
     # ===================
 
-    @staticmethod
     def likelihood_jacobian(
-            z,
-            X,
-            cov,
+            self,
             sign_switch,
             log_eta_guess,
             hyperparam):
@@ -90,19 +103,18 @@ class DoubleProfileLikelihood(object):
         if isinstance(hyperparam, list):
             hyperparam = numpy.array(hyperparam)
         scale = numpy.abs(hyperparam)
-        cov.set_scale(scale)
+        self.cov.set_scale(scale)
 
         # Find optimal eta
-        eta = DoubleProfileLikelihood._find_optimal_eta(
-                z, X, cov, scale, log_eta_guess)
+        eta = self._find_optimal_eta(scale, log_eta_guess)
         log_eta = numpy.log(eta)
 
         # Construct new hyperparam that consists of both eta and scale
         hyperparam_full = numpy.r_[log_eta, scale]
 
         # Compute first derivative w.r.t scale
-        der1_scale = ProfileLikelihood.likelihood_der1_scale(
-                z, X, cov, hyperparam_full)
+        der1_scale = self.profile_likelihood._likelihood_der1_scale(
+                hyperparam_full)
 
         # Jacobian only consists of the derivative w.r.t scale
         jacobian = der1_scale
@@ -116,8 +128,7 @@ class DoubleProfileLikelihood(object):
     # likelihood hessian
     # ==================
 
-    @staticmethod
-    def likelihood_hessian(z, X, cov, sign_switch, log_eta_guess, hyperparam):
+    def likelihood_hessian(self, sign_switch, log_eta_guess, hyperparam):
         """
         Computes Hessian w.r.t eta, and if given, scale.
         """
@@ -128,19 +139,18 @@ class DoubleProfileLikelihood(object):
         if isinstance(hyperparam, list):
             hyperparam = numpy.array(hyperparam)
         scale = numpy.abs(hyperparam)
-        cov.set_scale(scale)
+        self.cov.set_scale(scale)
 
         # Find optimal eta
-        eta = DoubleProfileLikelihood._find_optimal_eta(
-                z, X, cov, scale, log_eta_guess)
+        eta = self._find_optimal_eta(scale, log_eta_guess)
         log_eta = numpy.log(eta)
 
         # Construct new hyperparam that consists of both eta and scale
         hyperparam_full = numpy.r_[log_eta, scale]
 
         # Compute second derivative w.r.t scale
-        der2_scale = ProfileLikelihood.likelihood_der2_scale(
-                z, X, cov, hyperparam_full)
+        der2_scale = self.profile_likelihood._likelihood_der2_scale(
+                hyperparam_full)
 
         # Concatenate derivatives to form Hessian of all variables
         hessian = der2_scale
@@ -155,9 +165,7 @@ class DoubleProfileLikelihood(object):
     # ================
 
     def _find_optimal_eta(
-            z,
-            X,
-            cov,
+            self,
             scale,
             log_eta_guess=0.0,
             optimization_method='Nelder-Mead'):
@@ -165,7 +173,7 @@ class DoubleProfileLikelihood(object):
         Finds optimal eta to profile it out of the log-likelihood.
         """
 
-        cov.set_scale(scale)
+        self.cov.set_scale(scale)
 
         # # Note: When using interpolation, make sure the interval below is
         # # exactly the end points of eta_i, not less or more.
@@ -174,15 +182,13 @@ class DoubleProfileLikelihood(object):
         # interval_eta = [min_eta_guess, max_eta_guess]
         #
         # # Using root finding method on the first derivative w.r.t eta
-        # result = ProfileLikelihood.find_likelihood_der1_zeros(
-        #         z, X, cov.mixed_cor, interval_eta)
+        # result = self.profile_likelihood.find_likelihood_der1_zeros(
+        #         interval_eta)
         # eta = result['hyperparam']['eta']
 
         # optimization_method = 'Newton-CG'
-        result = ProfileLikelihood.maximize_likelihood(
-                z, X, cov,
-                tol=1e-3,
-                hyperparam_guess=[log_eta_guess],
+        result = self.profile_likelihood.maximize_likelihood(
+                tol=1e-3, hyperparam_guess=[log_eta_guess],
                 optimization_method=optimization_method)
 
         eta = result['hyperparam']['eta']
@@ -193,11 +199,8 @@ class DoubleProfileLikelihood(object):
     # maximize likelihood
     # ===================
 
-    @staticmethod
     def maximize_likelihood(
-            z,
-            X,
-            cov,
+            self,
             tol=1e-3,
             hyperparam_guess=[0.1, 0.1],
             optimization_method='Nelder-Mead',
@@ -219,19 +222,16 @@ class DoubleProfileLikelihood(object):
         # Partial function of likelihood with profiled eta. The input
         # hyperparam is only scale, not eta.
         sign_switch = True
-        likelihood_partial_func = partial(
-                DoubleProfileLikelihood.likelihood, z, X, cov, sign_switch,
-                log_eta_guess)
+        likelihood_partial_func = partial(self.likelihood, sign_switch,
+                                          log_eta_guess)
 
         # Partial function of Jacobian of likelihood (with minus sign)
-        jacobian_partial_func = partial(
-                DoubleProfileLikelihood.likelihood_jacobian, z, X, cov,
-                sign_switch, log_eta_guess)
+        jacobian_partial_func = partial(self.likelihood_jacobian, sign_switch,
+                                        log_eta_guess)
 
         # Partial function of Hessian of likelihood (with minus sign)
-        hessian_partial_func = partial(
-                DoubleProfileLikelihood.likelihood_hessian, z, X, cov,
-                sign_switch, log_eta_guess)
+        hessian_partial_func = partial(self.likelihood_hessian, sign_switch,
+                                       log_eta_guess)
 
         # Minimize
         res = scipy.optimize.minimize(
@@ -243,12 +243,10 @@ class DoubleProfileLikelihood(object):
         scale = numpy.abs(res.x)
 
         # Find optimal eta with the given scale
-        eta = DoubleProfileLikelihood._find_optimal_eta(
-                z, X, cov, scale, log_eta_guess)
+        eta = self._find_optimal_eta(scale, log_eta_guess)
 
         # Find optimal sigma and sigma0 with the optimal eta
-        sigma, sigma0 = ProfileLikelihood.find_optimal_sigma_sigma0(
-                z, X, cov.mixed_cor, eta)
+        sigma, sigma0 = self.profile_likelihood._find_optimal_sigma_sigma0(eta)
         max_lp = -res.fun
 
         # Adding time to the results
@@ -282,24 +280,17 @@ class DoubleProfileLikelihood(object):
     # plot likelihood versus scale
     # ============================
 
-    @staticmethod
-    def plot_likelihood_versus_scale(
-            z,
-            X,
-            cov,
-            result):
+    def plot_likelihood_versus_scale(self, result):
         """
         Plots log likelihood for scale parameters.
         """
 
-        dimension = cov.mixed_cor.cor.dimension
+        dimension = self.cov.mixed_cor.cor.dimension
 
         if dimension == 1:
-            DoubleProfileLikelihood.plot_likelihood_versus_scale_1d(
-                    z, X, cov, result)
+            self.plot_likelihood_versus_scale_1d(result)
         elif dimension == 2:
-            DoubleProfileLikelihood.plot_likelihood_versus_scale_2d(
-                    z, X, cov, result)
+            self.plot_likelihood_versus_scale_2d(result)
         else:
             raise ValueError('Likelihood of only 1 and 2 dimensional cases ' +
                              'can be plotted.')
@@ -308,12 +299,7 @@ class DoubleProfileLikelihood(object):
     # plot likelihood versus scale 1d
     # ===============================
 
-    @staticmethod
-    def plot_likelihood_versus_scale_1d(
-            z,
-            X,
-            cov,
-            result=None):
+    def plot_likelihood_versus_scale_1d(self, result=None):
         """
         Plots log likelihood versus sigma, eta hyperparam
         """
@@ -333,15 +319,11 @@ class DoubleProfileLikelihood(object):
         ax2 = ax[0].twinx()
 
         for j in range(scale.size):
-            cov.set_scale(scale[j])
-            lp[j] = DoubleProfileLikelihood.likelihood(
-                    z, X, cov, sign_switch, log_eta_guess,
-                    scale[j])
-            der1_lp[j] = DoubleProfileLikelihood.likelihood_jacobian(
-                    z, X, cov, sign_switch, log_eta_guess,
-                    scale[j])[0]
-            eta[j] = DoubleProfileLikelihood._find_optimal_eta(
-                    z, X, cov, scale[j], log_eta_guess)
+            self.cov.set_scale(scale[j])
+            lp[j] = self.likelihood(sign_switch, log_eta_guess, scale[j])
+            der1_lp[j] = self.likelihood_jacobian(sign_switch, log_eta_guess,
+                                                  scale[j])[0]
+            eta[j] = self._find_optimal_eta(scale[j], log_eta_guess)
 
         # Numerical derivative of likelihood
         der1_lp_numerical = (lp[2:] - lp[:-2]) / (scale[2:] - scale[:-2])
@@ -400,12 +382,7 @@ class DoubleProfileLikelihood(object):
     # plot likelihood versus scale 2d
     # ===============================
 
-    @staticmethod
-    def plot_likelihood_versus_scale_2d(
-            z,
-            X,
-            cov,
-            result=None):
+    def plot_likelihood_versus_scale_2d(self, result=None):
         """
         Plots log likelihood versus sigma, eta hyperparam
         """
@@ -426,11 +403,9 @@ class DoubleProfileLikelihood(object):
         for i in range(scale2.size):
             for j in range(scale1.size):
                 scale = [scale1[j], scale2[i]]
-                cov.set_scale(scale)
-                lp[i, j] = DoubleProfileLikelihood.likelihood(
-                        z, X, cov, sign_switch, log_eta_guess, scale)
-                eta[i, j] = DoubleProfileLikelihood._find_optimal_eta(
-                        z, X, cov, scale, log_eta_guess)
+                self.cov.set_scale(scale)
+                lp[i, j] = self.likelihood(sign_switch, log_eta_guess, scale)
+                eta[i, j] = self._find_optimal_eta(scale, log_eta_guess)
 
         # Convert inf to nan
         lp = numpy.where(numpy.isinf(lp), numpy.nan, lp)
