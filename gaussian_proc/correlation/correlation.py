@@ -40,7 +40,7 @@ class Correlation(object):
             self,
             points,
             kernel=None,
-            distance_scale=None,
+            scale=None,
             sparse=False,
             density=1e-3):
         """
@@ -77,18 +77,17 @@ class Correlation(object):
         self.matrix_size = points.shape[0]
         self.dimension = points.shape[1]
 
-        # Set distance scale. By initializing distance_scale to None in the
-        # constructor, it will be determined later as variable to the
-        # optimization problem.
-        self.distance_scale = None
-        if distance_scale is not None:
-            self.set_distance_scale(distance_scale)
+        # Set distance scale. By initializing scale to None in the constructor,
+        # it will be determined later as variable to the optimization problem.
+        self.scale = None
+        if scale is not None:
+            self.set_scale(scale)
 
         # Determine whether a new matrix needs to be computed or not. Usually,
         # this is needed when (1) this class is initialized, and (2) when the
-        # distance_scale is changed. When distance_scale_changed is True, the
-        # function _update_matrix will generate a new correlation matrix.
-        self.distance_scale_changed = True
+        # scale is changed. When scale_changed is True, the function
+        # _update_matrix will generate a new correlation matrix.
+        self.scale_changed = True
 
         # Initialize correlation matrix
         self.K_der0 = None
@@ -110,64 +109,63 @@ class Correlation(object):
         self.K_der1_updated = False
         self.K_der2_updated = False
 
-    # ==================
-    # set distance scale
-    # ==================
+    # =========
+    # set scale
+    # =========
 
-    def set_distance_scale(self, distance_scale):
+    def set_scale(self, scale):
         """
         """
 
-        # If the given distance_scale is None, do not change the existing
-        # self.distance_scale attribute. This essentially leaves
-        # self.distance_scale unchanged. If the attribute self.distance_scale
-        # is also None, this should not happen.
-        if distance_scale is None:
+        # If the given scale is None, do not change the existing self.scale
+        # attribute. This essentially leaves self.scale unchanged. If the
+        # attribute self.scale is also None, this should not happen.
+        if scale is None:
 
-            # If the attribute self.distance_scale is also None, this should
+            # If the attribute self.scale is also None, this should
             # not happen.
-            if self.distance_scale is None:
-                raise ValueError('"distance_scale" cannot be initialized ' +
-                                 'to "None" value.')
+            if self.scale is None:
+                raise ValueError('"scale" cannot be initialized to "None" ' +
+                                 'value.')
 
         else:
 
-            # Here, distance_scale is not None. Convert distance_scale to array
-            if numpy.isscalar(distance_scale):
-                if not isinstance(distance_scale, (int, numpy.integer)) and \
-                   not isinstance(distance_scale, float):
-                    raise TypeError('"distance_scale" should be float.')
+            # Here, scale is not None. Convert scale to array
+            if numpy.isscalar(scale):
+                if not isinstance(scale, (int, numpy.integer)) and \
+                   not isinstance(scale, float):
+                    raise TypeError('"scale" should be float.')
 
                 # Convert distance scale to numpy array
-                distance_scale_ = numpy.array([distance_scale], dtype=float)
+                scale_ = numpy.array([scale], dtype=float)
 
-            elif isinstance(distance_scale, list):
-                distance_scale_ = numpy.array(distance_scale)
+            elif isinstance(scale, list):
+                scale_ = numpy.array(scale)
 
-            elif isinstance(distance_scale, numpy.ndarray):
-                distance_scale_ = distance_scale
+            elif isinstance(scale, numpy.ndarray):
+                scale_ = scale
 
             else:
-                raise TypeError('"distance_scale" should be either a scalar,' +
-                                ' a list of numbers, or a numpy array.')
+                raise TypeError('"scale" should be either a scalar, a list ' +
+                                'of numbers, or a numpy array.')
 
-            # if distance_scale is an array of length one, extend the array to
+            # if scale is an array of length one, extend the array to
             # be the size of dimension
             dimension = self.points.shape[1]
-            if distance_scale_.size == 1:
+            if scale_.size == 1:
 
                 # Repeat correlation scale to an array of size dimension
-                distance_scale_ = numpy.repeat(distance_scale_, dimension)
+                scale_ = numpy.repeat(scale_, dimension)
 
-            elif distance_scale_.size != dimension:
-                # Check dimension matches the size of distance_scale array
-                raise ValueError('"distance_scale" should have the same ' +
-                                 'dimension as the "points".')
+            elif scale_.size != dimension:
+                # Check dimension matches the size of scale array
+                raise ValueError('"scale" should have the same dimension as ' +
+                                 'the "points".')
 
-            # Check if self.distance_scale should be updated
-            if any(self.distance_scale != distance_scale_):
-                self.distance_scale = distance_scale_
-                self.distance_scale_changed = True
+            # Check if self.scale should be updated
+            if any(self.scale != scale_):
+                self.scale = scale_
+                self.scale_changed = True
 
     # ===============
     # get matrix size
@@ -186,7 +184,7 @@ class Correlation(object):
 
     def get_matrix(
             self,
-            distance_scale=None,
+            scale=None,
             derivative=[],
             plot=False,
             verbose=False):
@@ -197,7 +195,7 @@ class Correlation(object):
         """
 
         # Update matrix (if needed)
-        self._update_matrix(distance_scale, derivative, plot, verbose)
+        self._update_matrix(scale, derivative, plot, verbose)
 
         if len(derivative) == 0:
             return self.K_der0
@@ -214,18 +212,18 @@ class Correlation(object):
 
     def get_affine_matrix_function(
             self,
-            distance_scale=None,
+            scale=None,
             derivative=[]):
         """
         Returns an instance of ``imate.AffineMatrixFunction`` class.
         """
 
         # Update matrix (if needed)
-        self._update_matrix(distance_scale, derivative)
+        self._update_matrix(scale, derivative)
 
         if len(derivative) == 0:
 
-            if self.K_amf_der0 is None or self.distance_scale_changed:
+            if self.K_amf_der0 is None or self.scale_changed:
                 # Create new affine matrix function object
                 self.K_amf_der0 = imate.AffineMatrixFunction(self.K_der0)
 
@@ -233,7 +231,7 @@ class Correlation(object):
 
         elif len(derivative) == 1:
 
-            if self.K_amf_der1 is None or self.distance_scale_changed:
+            if self.K_amf_der1 is None or self.scale_changed:
                 # Create new affine matrix function object
                 self.K_amf_der1 = [None] * self.dimension
                 for p in range(self.dimension):
@@ -244,7 +242,7 @@ class Correlation(object):
 
         elif len(derivative) == 2:
 
-            if self.K_amf_der2 is None or self.distance_scale_changed:
+            if self.K_amf_der2 is None or self.scale_changed:
                 # Create new affine matrix function object
                 self.K_amf_der2 = [[] for _ in range(self.dimension)]
                 for p in range(self.dimension):
@@ -261,7 +259,7 @@ class Correlation(object):
 
     def get_eigenvalues(
             self,
-            distance_scale=None,
+            scale=None,
             derivative=[]):
         """
         Returns the eigenvalues of the correlation matrix or its derivative.
@@ -275,11 +273,11 @@ class Correlation(object):
                                '"hutchinson."')
 
         # Update matrix (if needed)
-        self._update_matrix(distance_scale, derivative)
+        self._update_matrix(scale, derivative)
 
         if len(derivative) == 0:
 
-            if self.K_eig_der0 is None or self.distance_scale_changed:
+            if self.K_eig_der0 is None or self.scale_changed:
                 self.K_eig_der0 = scipy.linalg.eigh(
                         self.K_der0, eigvals_only=True, check_finite=False)
 
@@ -287,7 +285,7 @@ class Correlation(object):
 
         elif len(derivative) == 1:
 
-            if self.K_eig_der1 is None or self.distance_scale_changed:
+            if self.K_eig_der1 is None or self.scale_changed:
                 self.K_eig_der1 = [None] * self.dimension
                 for p in range(self.dimension):
                     self.K_eig_der1[p] = scipy.linalg.eigh(
@@ -297,7 +295,7 @@ class Correlation(object):
 
         elif len(derivative) == 2:
 
-            if self.K_eig_der2 is None or self.distance_scale_changed:
+            if self.K_eig_der2 is None or self.scale_changed:
                 self.K_eig_der2 = [[] for _ in range(self.dimension)]
                 for p in range(self.dimension):
                     self.K_eig_der2[p] = [None] * self.dimension
@@ -314,7 +312,7 @@ class Correlation(object):
 
     def _update_matrix(
             self,
-            distance_scale=None,
+            scale=None,
             derivative=[],
             plot=False,
             verbose=False):
@@ -328,14 +326,13 @@ class Correlation(object):
         if len(derivative) not in (0, 1, 2):
             raise ValueError('"derivative" order should be 0, 1, or 2.')
 
-        # If the given distance_scale is different than self.distance_scale,
-        # the function below will update self.distance_scale. Also, it will
-        # set self.distance_scale_changed to True.
-        self.set_distance_scale(distance_scale)
+        # If the given scale is different than self.scale, the function below
+        # will update self.scale. Also, it will set self.scale_changed to True.
+        self.set_scale(scale)
 
         # Determine whether the matrix or its derivative should be generated
         update_needed = False
-        if self.distance_scale_changed:
+        if self.scale_changed:
             update_needed = True
         elif (len(derivative) == 0) and (self.K_der0 is None):
             update_needed = True
@@ -359,16 +356,15 @@ class Correlation(object):
                 # generate correlation matrix of derivative 0
                 no_derivative = []
                 self._generate_correlation_matrix(
-                        self.distance_scale, no_derivative, self.sparse,
-                        self.density)
+                        self.scale, no_derivative, self.sparse, self.density)
 
             # The main line where new matrix is generated
             self._generate_correlation_matrix(
-                    self.distance_scale, derivative, self.sparse, self.density,
-                    plot, verbose)
+                    self.scale, derivative, self.sparse, self.density, plot,
+                    verbose)
 
-            # if distance_scale was changed, all matrices should be recomputed
-            if self.distance_scale_changed:
+            # if scale was changed, all matrices should be recomputed
+            if self.scale_changed:
                 self.K_der0_updated = False
                 self.K_der1_updated = False
                 self.K_der2_updated = False
@@ -381,10 +377,10 @@ class Correlation(object):
             elif len(derivative) == 2:
                 self.K_der2_updated = True
 
-            # If distance_scale was changed, all eigenvalues and amf have to be
+            # If scale was changed, all eigenvalues and amf have to be
             # recomputed again. So, we set them to None to signal other
             # functions that they need to be recomputed.
-            if self.distance_scale_changed:
+            if self.scale_changed:
 
                 # Affine matrix functions
                 self.K_amf_der0 = None
@@ -394,10 +390,10 @@ class Correlation(object):
                 # Eigenvalues
                 self.K_eig_der0 = None
                 self.K_eig_der1 = None
-                self.K_eig_der2 = None 
+                self.K_eig_der2 = None
 
             # Indicate that update has been done
-            self.distance_scale_changed = False
+            self.scale_changed = False
 
     # ===========================
     # generate correlation matrix
@@ -405,7 +401,7 @@ class Correlation(object):
 
     def _generate_correlation_matrix(
             self,
-            distance_scale,
+            scale,
             derivative,
             sparse,
             density,
@@ -468,12 +464,12 @@ class Correlation(object):
             ``(num_points, dimension)``.
         :type pointS: numpy-ndarray
 
-        :param distance_scale: A parameter of correlation function that scales
-            distance. It can be an array of the size of the dimension, which
-            then it specifies a correlation for each dimension axis.
-            Alternatively, it can be a scalar, which then it assumes an
-            isotropic correlation scale for all dimension axes.
-        :type distance_scale: float or numpy.ndarray
+        :param scale: A parameter of correlation function that scales distance.
+            It can be an array of the size of the dimension, which then it
+            specifies a correlation for each dimension axis. Alternatively, it
+            can be a scalar, which then it assumes an isotropic correlation
+            scale for all dimension axes.
+        :type scale: float or numpy.ndarray
 
         :param nu: The parameter :math:`\\nu` of Matern correlation kernel.
         :type nu: float
@@ -529,7 +525,7 @@ class Correlation(object):
 
         .. code-block:: python
 
-           >>> A = update_needed(size=20, distance_scale=0.3)
+           >>> A = update_needed(size=20, scale=0.3)
 
         Sparsify correlation matrix of size :math:`(20^2, 20^2)` with
         approximate density of :math:`1e-3`
@@ -555,11 +551,7 @@ class Correlation(object):
                 # The nnz of the matrix will be determined, and is not known
                 # a priori.
                 correlation_matrix = generate_sparse_correlation(
-                    self.points,
-                    self.distance_scale,
-                    self.kernel,
-                    derivative,
-                    density,
+                    self.points, self.scale, self.kernel, derivative, density,
                     verbose)
 
             else:
@@ -577,23 +569,14 @@ class Correlation(object):
                 # generated, rather, the sparsity structure of the matrix is
                 # the same as self.K_der0.
                 correlation_matrix = generate_sparse_correlation(
-                    self.points,
-                    self.distance_scale,
-                    self.kernel,
-                    derivative,
-                    density,
-                    verbose,
-                    self.K_der0)
+                    self.points, self.scale, self.kernel, derivative, density,
+                    verbose, self.K_der0)
 
         else:
 
             # Generate a dense matrix
             correlation_matrix = generate_dense_correlation(
-                self.points,
-                self.distance_scale,
-                self.kernel,
-                derivative,
-                verbose)
+                self.points, self.scale, self.kernel, derivative, verbose)
 
         # Plot Correlation Matrix
         if plot:

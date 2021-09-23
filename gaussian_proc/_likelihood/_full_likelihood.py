@@ -46,10 +46,10 @@ class FullLikelihood(object):
         sigma = hyperparam[0]
         sigma0 = hyperparam[1]
 
-        # Include derivative w.r.t distance_scale
+        # Include derivative w.r.t scale
         if hyperparam.size > 2:
-            distance_scale = numpy.abs(hyperparam[2:])
-            cov.set_distance_scale(distance_scale)
+            scale = numpy.abs(hyperparam[2:])
+            cov.set_scale(scale)
 
         n, m = X.shape
 
@@ -92,10 +92,10 @@ class FullLikelihood(object):
         sigma = hyperparam[0]
         sigma0 = hyperparam[1]
 
-        # Include derivative w.r.t distance_scale
+        # Include derivative w.r.t scale
         if hyperparam.size > 2:
-            distance_scale = numpy.abs(hyperparam[2:])
-            cov.set_distance_scale(distance_scale)
+            scale = numpy.abs(hyperparam[2:])
+            cov.set_scale(scale)
 
         n, m = X.shape
 
@@ -141,19 +141,17 @@ class FullLikelihood(object):
 
         jacobian = numpy.array([der1_sigma, der1_sigma0], dtype=float)
 
-        # Compute Jacobian w.r.t distance_scale
+        # Compute Jacobian w.r.t scale
         if hyperparam.size > 2:
 
-            der1_distance_scale = numpy.zeros((distance_scale.size, ),
-                                              dtype=float)
+            der1_scale = numpy.zeros((scale.size, ), dtype=float)
 
             # Needed to compute trace (TODO)
             S = cov.get_matrix(sigma, sigma0)
             Sinv = numpy.linalg.inv(S)
 
-            # Sp is the derivative of cov w.r.t the p-th element of
-            # distance_scale.
-            for p in range(distance_scale.size):
+            # Sp is the derivative of cov w.r.t the p-th element of scale.
+            for p in range(scale.size):
 
                 # Compute zMSpMz
                 SpMz = cov.dot(sigma, sigma0, Mz, derivative=[p])
@@ -174,10 +172,10 @@ class FullLikelihood(object):
                 trace_SpM = trace_SpSinv - trace_BinvYtSpY
 
                 # Derivative of lp w.r.t p-th element of distance scale
-                der1_distance_scale[p] = -0.5*trace_SpM + 0.5*zMSpMz
+                der1_scale[p] = -0.5*trace_SpM + 0.5*zMSpMz
 
             # Concatenate jacobian
-            jacobian = numpy.r_[jacobian, der1_distance_scale]
+            jacobian = numpy.r_[jacobian, der1_scale]
 
         # Test
         # print(jacobian)
@@ -201,10 +199,10 @@ class FullLikelihood(object):
         sigma0 = hyperparam[1]
         eta = (sigma0 / sigma)**2
 
-        # Include derivatove w.r.t distance_scale
+        # Include derivatove w.r.t scale
         if hyperparam.size > 2:
-            distance_scale = numpy.abs(hyperparam[2:])
-            cov.set_distance_scale(distance_scale)
+            scale = numpy.abs(hyperparam[2:])
+            cov.set_scale(scale)
 
         n, m = X.shape
 
@@ -290,30 +288,27 @@ class FullLikelihood(object):
                 [[der2_sigma_sigma, der2_sigma_sigma0],
                  [der2_sigma_sigma0, der2_sigma0_sigma0]], dtype=float)
 
-        # Compute Hessian w.r.t distance_scale
+        # Compute Hessian w.r.t scale
         if hyperparam.size > 2:
 
             # Initialize arrays
-            der2_distance_scale = numpy.zeros(
-                    (distance_scale.size, distance_scale.size), dtype=float)
-            der2_sigma_distance_scale = numpy.zeros((distance_scale.size),
-                                                    dtype=float)
-            der2_sigma0_distance_scale = numpy.zeros((distance_scale.size),
-                                                     dtype=float)
-            der2_mixed = numpy.zeros((2, distance_scale.size), dtype=float)
+            der2_scale = numpy.zeros((scale.size, scale.size), dtype=float)
+            der2_sigma_scale = numpy.zeros((scale.size), dtype=float)
+            der2_sigma0_scale = numpy.zeros((scale.size), dtype=float)
+            der2_mixed = numpy.zeros((2, scale.size), dtype=float)
 
             # Needed to compute trace (TODO)
             S = cov.get_matrix(sigma, sigma0)
             Sinv = numpy.linalg.inv(S)
 
-            # Sp is the derivative of cov w.r.t the p-th element of
-            # distance_scale. Spq is the second mixed derivative of S w.r.t
-            # p-th and q-th elements of distance_scale.
-            for p in range(distance_scale.size):
+            # Sp is the derivative of cov w.r.t the p-th element of scale. Spq
+            # is the second mixed derivative of S w.r.t p-th and q-th elements
+            # of scale.
+            for p in range(scale.size):
 
-                # --------------------------------------------------------
-                # 1. Compute mixed derivatives of distance_scale and sigma
-                # --------------------------------------------------------
+                # -----------------------------------------------
+                # 1. Compute mixed derivatives of scale and sigma
+                # -----------------------------------------------
 
                 # 1.1. Compute zMSpMKMz
                 SpMz = cov.dot(sigma, sigma0, Mz, derivative=[p])
@@ -372,13 +367,13 @@ class FullLikelihood(object):
                 trace_KMSpM = trace_KMSpM_1 - trace_KMSpM_21 - \
                     trace_KMSpM_22 + trace_KMSpM_3
 
-                # 1.5. Second derivatives w.r.t distance_scale
-                der2_sigma_distance_scale[p] = -0.5*trace_KpM + \
-                    0.5*trace_KMSpM - zMSpMKMz + 0.5*zMKpMz
+                # 1.5. Second derivatives w.r.t scale
+                der2_sigma_scale[p] = -0.5*trace_KpM + 0.5*trace_KMSpM - \
+                    zMSpMKMz + 0.5*zMKpMz
 
-                # ---------------------------------------------------------
-                # 2. Compute mixed derivatives of distance_scale and sigma0
-                # ---------------------------------------------------------
+                # ------------------------------------------------
+                # 2. Compute mixed derivatives of scale and sigma0
+                # ------------------------------------------------
 
                 # 2.1. Compute zMSpMMz
                 zMSpMMz = numpy.dot(SpMz, MMz)
@@ -404,18 +399,18 @@ class FullLikelihood(object):
                 trace_MSpM = trace_MSpM_1 - trace_MSpM_21 - trace_MSpM_22 + \
                     trace_MSpM_3
 
-                # 2.5. Second derivatives w.r.t distance_scale
-                der2_sigma0_distance_scale[p] = 0.5*trace_MSpM - zMSpMMz
+                # 2.5. Second derivatives w.r.t scale
+                der2_sigma0_scale[p] = 0.5*trace_MSpM - zMSpMMz
 
-                # Concatenate mixed derivatives of distance_scale and sigmas
-                der2_mixed[0, :] = der2_sigma_distance_scale
-                der2_mixed[1, :] = der2_sigma0_distance_scale
+                # Concatenate mixed derivatives of scale and sigmas
+                der2_mixed[0, :] = der2_sigma_scale
+                der2_mixed[1, :] = der2_sigma0_scale
 
-                # --------------------------------------------
-                # Compute second derivatives of distance_scale
-                # --------------------------------------------
+                # -----------------------------------
+                # Compute second derivatives of scale
+                # -----------------------------------
 
-                for q in range(p, distance_scale.size):
+                for q in range(p, scale.size):
 
                     # 1. Compute zMSqMSpMz
                     if p == q:
@@ -489,19 +484,19 @@ class FullLikelihood(object):
                     trace_SpMSqM = trace_SpMSqM_1 - trace_SpMSqM_21 - \
                         trace_SpMSqM_22 + trace_SpMSqM_3
 
-                    # 5. Second derivatives w.r.t distance_scale
-                    der2_distance_scale[p, q] = -0.5*trace_SpqM + \
-                        0.5*trace_SpMSqM - zMSqMSpMz + 0.5*zMSpqMz
+                    # 5. Second derivatives w.r.t scale
+                    der2_scale[p, q] = -0.5*trace_SpqM + 0.5*trace_SpMSqM - \
+                        zMSqMSpMz + 0.5*zMSpqMz
 
                     if p != q:
-                        der2_distance_scale[q, p] = der2_distance_scale[p, q]
+                        der2_scale[q, p] = der2_scale[p, q]
 
             # ---------------------------------
             # Concatenate all mixed derivatives
             # ---------------------------------
 
             hessian = numpy.block([[hessian, der2_mixed],
-                                   [der2_mixed.T, der2_distance_scale]])
+                                   [der2_mixed.T, der2_scale]])
 
         if sign_switch:
             hessian = -hessian
@@ -568,9 +563,9 @@ class FullLikelihood(object):
 
         # Distance scale
         if res.x.size > 2:
-            distance_scale = numpy.abs(res.x[2:])
+            scale = numpy.abs(res.x[2:])
         else:
-            distance_scale = cov.get_distance_scale()
+            scale = cov.get_scale()
 
         # Adding time to the results
         wall_time = time.time() - initial_wall_time
@@ -583,7 +578,7 @@ class FullLikelihood(object):
                 'sigma': sigma,
                 'sigma0': sigma0,
                 'eta': eta,
-                'distance_scale': distance_scale,
+                'scale': scale,
             },
             'optimization':
             {
@@ -599,31 +594,30 @@ class FullLikelihood(object):
 
         return result
 
-    # =====================================
-    # plot likelihood versus distance scale
-    # =====================================
+    # ============================
+    # plot likelihood versus scale
+    # ============================
 
     @staticmethod
-    def plot_likelihood_versus_distance_scale(
+    def plot_likelihood_versus_scale(
             z,
             X,
             cov,
             result,
             other_sigmas=None):
         """
-        Plots log likelihood versus distance_scale hyperparameter. Other
-        hyperparameters such as sigma and sigma0 are fixed. sigma is used by
-        both its optimal value and user-defined values and plots are iterated
-        by the multiple sigma values. On the other hand, sigma0 is only used
-        from its optimal value.
+        Plots log likelihood versus scale hyperparameter. Other hyperparameters
+        such as sigma and sigma0 are fixed. sigma is used by both its optimal
+        value and user-defined values and plots are iterated by the multiple
+        sigma values. On the other hand, sigma0 is only used from its optimal
+        value.
         """
 
         # This function can only plot one dimensional data.
         dimension = cov.mixed_cor.cor.dimension
         if dimension != 1:
-            raise ValueError('To plot likelihood w.r.t "eta" and ' +
-                             '"distance_scale", the dimension of the data ' +
-                             'points should be one.')
+            raise ValueError('To plot likelihood w.r.t "eta" and "scale", ' +
+                             'the dimension of the data points should be one.')
 
         load_plot_settings()
 
@@ -658,30 +652,27 @@ class FullLikelihood(object):
         center_stencil = stencil_size//2  # Index of the center of stencil
 
         # Generate lp for various distance scales
-        distance_scale = numpy.logspace(-3, 2, 100)
+        scale = numpy.logspace(-3, 2, 100)
 
         d0_lp_perturb_sigma = numpy.zeros((stencil_size, sigmas.size,
-                                          distance_scale.size), dtype=float)
+                                          scale.size), dtype=float)
         d0_lp_perturb_sigma0 = numpy.zeros((stencil_size, sigmas.size,
-                                           distance_scale.size), dtype=float)
-        d1_lp = numpy.zeros((sigmas.size, distance_scale.size), dtype=float)
-        d2_lp = numpy.zeros((sigmas.size, distance_scale.size), dtype=float)
-        d2_mixed_sigma_lp = numpy.zeros((sigmas.size, distance_scale.size),
+                                           scale.size), dtype=float)
+        d1_lp = numpy.zeros((sigmas.size, scale.size), dtype=float)
+        d2_lp = numpy.zeros((sigmas.size, scale.size), dtype=float)
+        d2_mixed_sigma_lp = numpy.zeros((sigmas.size, scale.size),
                                         dtype=float)
-        d2_mixed_sigma0_lp = numpy.zeros((sigmas.size, distance_scale.size),
+        d2_mixed_sigma0_lp = numpy.zeros((sigmas.size, scale.size),
                                          dtype=float)
         d1_lp_perturb_sigma_numerical = numpy.zeros(
-                (stencil_size, sigmas.size, distance_scale.size-2),
-                dtype=float)
+                (stencil_size, sigmas.size, scale.size-2), dtype=float)
         d1_lp_perturb_sigma0_numerical = numpy.zeros(
-                (stencil_size, sigmas.size, distance_scale.size-2),
-                dtype=float)
-        d2_lp_numerical = numpy.zeros((sigmas.size, distance_scale.size-4),
-                                      dtype=float)
+                (stencil_size, sigmas.size, scale.size-2), dtype=float)
+        d2_lp_numerical = numpy.zeros((sigmas.size, scale.size-4), dtype=float)
         d2_mixed_sigma_lp_numerical = numpy.zeros(
-                (sigmas.size, distance_scale.size-2), dtype=float)
+                (sigmas.size, scale.size-2), dtype=float)
         d2_mixed_sigma0_lp_numerical = numpy.zeros(
-                (sigmas.size, distance_scale.size-2), dtype=float)
+                (sigmas.size, scale.size-2), dtype=float)
 
         fig, ax = plt.subplots(nrows=2, ncols=3, figsize=(15, 8))
         colors = matplotlib.cm.nipy_spectral(
@@ -699,15 +690,15 @@ class FullLikelihood(object):
             sigma0_stencil = optimal_sigma0 + d_sigma0 * \
                 numpy.arange(-stencil_size//2+1, stencil_size//2+1)
 
-            for j in range(distance_scale.size):
+            for j in range(scale.size):
 
-                # Set the distance_scale
-                cov.set_distance_scale(distance_scale[j])
+                # Set the scale
+                cov.set_scale(scale[j])
 
                 # Likelihood (and its perturbation w.r.t sigma)
                 for k in range(stencil_size):
                     hyperparam = numpy.r_[sigma_stencil[k], optimal_sigma0,
-                                          distance_scale[j]]
+                                          scale[j]]
                     sign_switch = False
                     d0_lp_perturb_sigma[k, i, j] = FullLikelihood.likelihood(
                             z, X, cov, sign_switch, hyperparam)
@@ -715,14 +706,13 @@ class FullLikelihood(object):
                 # Likelihood (and its perturbation w.r.t sigma0)
                 for k in range(stencil_size):
                     hyperparam = numpy.r_[sigmas[i], sigma0_stencil[k],
-                                          distance_scale[j]]
+                                          scale[j]]
                     sign_switch = False
                     d0_lp_perturb_sigma0[k, i, j] = FullLikelihood.likelihood(
                             z, X, cov, sign_switch, hyperparam)
 
                 # First derivative of likelihood w.r.t distance scale
-                hyperparam = numpy.r_[sigmas[i], optimal_sigma0,
-                                      distance_scale[j]]
+                hyperparam = numpy.r_[sigmas[i], optimal_sigma0, scale[j]]
                 jacobian_ = FullLikelihood.likelihood_jacobian(
                         z, X, cov, sign_switch, hyperparam)
                 d1_lp[i, j] = jacobian_[2]
@@ -739,13 +729,13 @@ class FullLikelihood(object):
                 d1_lp_perturb_sigma_numerical[k, i, :] = \
                         (d0_lp_perturb_sigma[k, i, 2:] -
                          d0_lp_perturb_sigma[k, i, :-2]) / \
-                        (distance_scale[2:] - distance_scale[:-2])
+                        (scale[2:] - scale[:-2])
 
                 # Compute first derivative numerically (perturb sigma0)
                 d1_lp_perturb_sigma0_numerical[k, i, :] = \
                     (d0_lp_perturb_sigma0[k, i, 2:] -
                         d0_lp_perturb_sigma0[k, i, :-2]) / \
-                    (distance_scale[2:] - distance_scale[:-2])
+                    (scale[2:] - scale[:-2])
 
                 # Compute second mixed derivative w.r.t sigma, numerically
                 d2_mixed_sigma_lp_numerical[i, :] += \
@@ -767,11 +757,11 @@ class FullLikelihood(object):
             d2_lp_numerical[i, :] = \
                 (d1_lp_perturb_sigma_numerical[center_stencil, i, 2:] -
                  d1_lp_perturb_sigma_numerical[center_stencil, i, :-2]) / \
-                (distance_scale[3:-1] - distance_scale[1:-3])
+                (scale[3:-1] - scale[1:-3])
 
             # Find maximum of lp
             max_index = numpy.argmax(d0_lp_perturb_sigma[center_stencil, i, :])
-            optimal_distance_scale = distance_scale[max_index]
+            optimal_scale = scale[max_index]
             optimal_lp = d0_lp_perturb_sigma[center_stencil, i, max_index]
 
             # Plot
@@ -781,31 +771,26 @@ class FullLikelihood(object):
             else:
                 label = r'$\sigma=%0.2e$' % sigmas[i]
                 marker = 'o'
-            ax[0, 0].plot(distance_scale,
-                          d0_lp_perturb_sigma[center_stencil, i, :],
+            ax[0, 0].plot(scale, d0_lp_perturb_sigma[center_stencil, i, :],
                           color=colors[i], label=label)
-            ax[0, 1].plot(distance_scale, d1_lp[i, :], color=colors[i],
+            ax[0, 1].plot(scale, d1_lp[i, :], color=colors[i], label=label)
+            ax[0, 2].plot(scale, d2_lp[i, :], color=colors[i], label=label)
+            ax[1, 0].plot(scale, d2_mixed_sigma_lp[i, :], color=colors[i],
                           label=label)
-            ax[0, 2].plot(distance_scale, d2_lp[i, :], color=colors[i],
+            ax[1, 1].plot(scale, d2_mixed_sigma0_lp[i, :], color=colors[i],
                           label=label)
-            ax[1, 0].plot(distance_scale, d2_mixed_sigma_lp[i, :],
-                          color=colors[i], label=label)
-            ax[1, 1].plot(distance_scale, d2_mixed_sigma0_lp[i, :],
-                          color=colors[i], label=label)
-            ax[0, 1].plot(distance_scale[1:-1],
+            ax[0, 1].plot(scale[1:-1],
                           d1_lp_perturb_sigma_numerical[center_stencil, i, :],
                           '--', color=colors[i])
-            ax[0, 2].plot(distance_scale[2:-2], d2_lp_numerical[i, :], '--',
+            ax[0, 2].plot(scale[2:-2], d2_lp_numerical[i, :], '--',
                           color=colors[i])
-            ax[1, 0].plot(distance_scale[1:-1],
-                          d2_mixed_sigma_lp_numerical[i, :], '--',
+            ax[1, 0].plot(scale[1:-1], d2_mixed_sigma_lp_numerical[i, :], '--',
                           color=colors[i])
-            ax[1, 1].plot(distance_scale[1:-1],
-                          d2_mixed_sigma0_lp_numerical[i, :], '--',
-                          color=colors[i])
-            p = ax[0, 0].plot(optimal_distance_scale, optimal_lp, marker,
+            ax[1, 1].plot(scale[1:-1], d2_mixed_sigma0_lp_numerical[i, :],
+                          '--', color=colors[i])
+            p = ax[0, 0].plot(optimal_scale, optimal_lp, marker,
                               color=colors[i], markersize=3)
-            ax[0, 1].plot(optimal_distance_scale, 0.0,  marker,
+            ax[0, 1].plot(optimal_scale, 0.0,  marker,
                           color=colors[i], markersize=3)
 
         ax[0, 0].legend(p, [r'optimal $\theta$'])
@@ -821,11 +806,11 @@ class FullLikelihood(object):
         ax[1, 1].set_xscale('log')
 
         # Plot annotations
-        ax[0, 0].set_xlim([distance_scale[0], distance_scale[-1]])
-        ax[0, 1].set_xlim([distance_scale[0], distance_scale[-1]])
-        ax[0, 2].set_xlim([distance_scale[0], distance_scale[-1]])
-        ax[1, 0].set_xlim([distance_scale[0], distance_scale[-1]])
-        ax[1, 1].set_xlim([distance_scale[0], distance_scale[-1]])
+        ax[0, 0].set_xlim([scale[0], scale[-1]])
+        ax[0, 1].set_xlim([scale[0], scale[-1]])
+        ax[0, 2].set_xlim([scale[0], scale[-1]])
+        ax[1, 0].set_xlim([scale[0], scale[-1]])
+        ax[1, 1].set_xlim([scale[0], scale[-1]])
         ax[0, 0].set_xlabel(r'$\theta$')
         ax[0, 1].set_xlabel(r'$\theta$')
         ax[0, 2].set_xlabel(r'$\theta$')
@@ -873,46 +858,43 @@ class FullLikelihood(object):
             X,
             cov,
             result,
-            other_distance_scales=None):
+            other_scales=None):
         """
         Plots log likelihood versus sigma. Other hyperparameters are fixed.
-        Also, distance_scale is used from both its optimal value and
-        user-defined values. Plots are iterated over multiple values of
-        distance_scale. On the other hand, sigma0 is fixed to its optimal
-        value.
+        Also, scale is used from both its optimal value and user-defined
+        values. Plots are iterated over multiple values of scale. On the other
+        hand, sigma0 is fixed to its optimal value.
         """
 
         # This function can only plot one dimensional data.
         dimension = cov.mixed_cor.cor.dimension
         if dimension != 1:
-            raise ValueError('To plot likelihood w.r.t "eta" and ' +
-                             '"distance_scale", the dimension of the data ' +
-                             'points should be one.')
+            raise ValueError('To plot likelihood w.r.t "eta" and "scale", ' +
+                             'the dimension of the data points should be one.')
 
         load_plot_settings()
 
         # Optimal point
         optimal_sigma = result['hyperparam']['sigma']
         optimal_sigma0 = result['hyperparam']['sigma0']
-        optimal_distance_scale = result['hyperparam']['distance_scale']
+        optimal_scale = result['hyperparam']['scale']
 
-        # Convert distance_scale to a numpy array
-        if other_distance_scales is not None:
-            if numpy.isscalar(other_distance_scales):
-                other_distance_scales = numpy.array([other_distance_scales])
-            elif isinstance(other_distance_scales, list):
-                other_distance_scales = numpy.array(other_distance_scales)
-            elif not isinstance(other_distance_scales, numpy.ndarray):
-                raise TypeError('"other_distance_scales" should be either ' +
-                                'a scalar, list, or numpy.ndarray.')
+        # Convert scale to a numpy array
+        if other_scales is not None:
+            if numpy.isscalar(other_scales):
+                other_scales = numpy.array([other_scales])
+            elif isinstance(other_scales, list):
+                other_scales = numpy.array(other_scales)
+            elif not isinstance(other_scales, numpy.ndarray):
+                raise TypeError('"other_scales" should be either a scalar, ' +
+                                'list, or numpy.ndarray.')
 
-        # Concatenate all given distance_scales
-        if other_distance_scales is not None:
-            distance_scales = numpy.r_[optimal_distance_scale,
-                                       other_distance_scales]
+        # Concatenate all given scales
+        if other_scales is not None:
+            scales = numpy.r_[optimal_scale, other_scales]
         else:
-            distance_scales = numpy.r_[optimal_distance_scale]
-        distance_scales = numpy.sort(distance_scales)
+            scales = numpy.r_[optimal_scale]
+        scales = numpy.sort(scales)
 
         # 2nd or 4th order finite difference coefficients for first derivative
         coeff = numpy.array([-1.0/2.0, 0.0, 1.0/2.0])
@@ -926,38 +908,34 @@ class FullLikelihood(object):
         # Generate lp for various sigma
         sigma = numpy.logspace(-2, 2, 100)
 
-        d0_lp_perturb_distance_scale = numpy.zeros(
-                (stencil_size, distance_scales.size, sigma.size), dtype=float)
+        d0_lp_perturb_scale = numpy.zeros(
+                (stencil_size, scales.size, sigma.size), dtype=float)
         d0_lp_perturb_sigma0 = numpy.zeros(
-                (stencil_size, distance_scales.size, sigma.size), dtype=float)
-        d1_lp = numpy.zeros((distance_scales.size, sigma.size), dtype=float)
-        d2_lp = numpy.zeros((distance_scales.size, sigma.size), dtype=float)
-        d2_mixed_distance_scale_lp = numpy.zeros(
-                (distance_scales.size, sigma.size), dtype=float)
-        d2_mixed_sigma0_lp = numpy.zeros(
-                (distance_scales.size, sigma.size), dtype=float)
-        d1_lp_perturb_distance_scale_numerical = numpy.zeros(
-                (stencil_size, distance_scales.size, sigma.size-2),
-                dtype=float)
+                (stencil_size, scales.size, sigma.size), dtype=float)
+        d1_lp = numpy.zeros((scales.size, sigma.size), dtype=float)
+        d2_lp = numpy.zeros((scales.size, sigma.size), dtype=float)
+        d2_mixed_scale_lp = numpy.zeros((scales.size, sigma.size), dtype=float)
+        d2_mixed_sigma0_lp = numpy.zeros((scales.size, sigma.size),
+                                         dtype=float)
+        d1_lp_perturb_scale_numerical = numpy.zeros(
+                (stencil_size, scales.size, sigma.size-2), dtype=float)
         d1_lp_perturb_sigma0_numerical = numpy.zeros(
-                (stencil_size, distance_scales.size, sigma.size-2),
-                dtype=float)
-        d2_lp_numerical = numpy.zeros((distance_scales.size, sigma.size-4),
-                                      dtype=float)
-        d2_mixed_distance_scale_lp_numerical = numpy.zeros(
-                (distance_scales.size, sigma.size-2), dtype=float)
+                (stencil_size, scales.size, sigma.size-2), dtype=float)
+        d2_lp_numerical = numpy.zeros((scales.size, sigma.size-4), dtype=float)
+        d2_mixed_scale_lp_numerical = numpy.zeros(
+                (scales.size, sigma.size-2), dtype=float)
         d2_mixed_sigma0_lp_numerical = numpy.zeros(
-                (distance_scales.size, sigma.size-2), dtype=float)
+                (scales.size, sigma.size-2), dtype=float)
 
         fig, ax = plt.subplots(nrows=2, ncols=3, figsize=(15, 8))
         colors = matplotlib.cm.nipy_spectral(
-                numpy.linspace(0, 0.9, distance_scales.size))
+                numpy.linspace(0, 0.9, scales.size))
 
-        for i in range(distance_scales.size):
+        for i in range(scales.size):
 
-            # Stencil to perturb distance_scale
-            d_distance_scale = distance_scales[i] * 1e-3
-            distance_scale_stencil = distance_scales[i] + d_distance_scale * \
+            # Stencil to perturb scale
+            d_scale = scales[i] * 1e-3
+            scale_stencil = scales[i] + d_scale * \
                 numpy.arange(-stencil_size//2+1, stencil_size//2+1)
 
             # Stencil to perturb sigma0
@@ -968,31 +946,30 @@ class FullLikelihood(object):
             # Likelihood (and its perturbation w.r.t sigma)
             for k in range(stencil_size):
 
-                # Set the distance_scale
-                cov.set_distance_scale(distance_scale_stencil[k])
+                # Set the scale
+                cov.set_scale(scale_stencil[k])
 
                 for j in range(sigma.size):
                     hyperparam = numpy.r_[sigma[j], optimal_sigma0,
-                                          distance_scale_stencil[k]]
+                                          scale_stencil[k]]
                     sign_switch = False
-                    d0_lp_perturb_distance_scale[k, i, j] = \
+                    d0_lp_perturb_scale[k, i, j] = \
                         FullLikelihood.likelihood(
                         z, X, cov, sign_switch, hyperparam)
 
             # Likelihood (and its perturbation w.r.t sigma0)
-            cov.set_distance_scale(distance_scales[i])
+            cov.set_scale(scales[i])
             for k in range(stencil_size):
                 for j in range(sigma.size):
                     hyperparam = numpy.r_[sigma[j], sigma0_stencil[k],
-                                          distance_scales[i]]
+                                          scales[i]]
                     sign_switch = False
                     d0_lp_perturb_sigma0[k, i, j] = FullLikelihood.likelihood(
                             z, X, cov, sign_switch, hyperparam)
 
             # First derivative of likelihood w.r.t distance scale
             for j in range(sigma.size):
-                hyperparam = numpy.r_[sigma[j], optimal_sigma0,
-                                      distance_scales[i]]
+                hyperparam = numpy.r_[sigma[j], optimal_sigma0, scales[i]]
                 jacobian_ = FullLikelihood.likelihood_jacobian(
                         z, X, cov, sign_switch, hyperparam)
                 d1_lp[i, j] = jacobian_[0]
@@ -1000,20 +977,20 @@ class FullLikelihood(object):
                 # Second derivative of likelihood w.r.t distance scale
                 hessian_ = FullLikelihood.likelihood_hessian(
                         z, X, cov, sign_switch, hyperparam)
-                d2_mixed_distance_scale_lp[i, j] = hessian_[0, 2]
+                d2_mixed_scale_lp[i, j] = hessian_[0, 2]
                 d2_mixed_sigma0_lp[i, j] = hessian_[0, 1]
                 d2_lp[i, j] = hessian_[0, 0]
 
             for k in range(stencil_size):
-                # First derivative numerically (perturb distance_scale)
-                d1_lp_perturb_distance_scale_numerical[k, i, :] = \
-                        (d0_lp_perturb_distance_scale[k, i, 2:] -
-                         d0_lp_perturb_distance_scale[k, i, :-2]) / \
+                # First derivative numerically (perturb scale)
+                d1_lp_perturb_scale_numerical[k, i, :] = \
+                        (d0_lp_perturb_scale[k, i, 2:] -
+                         d0_lp_perturb_scale[k, i, :-2]) / \
                         (sigma[2:] - sigma[:-2])
 
                 # To take derivative w.r.t sigma**2, divide by 2*sigma.
                 for j in range(sigma.size-2):
-                    d1_lp_perturb_distance_scale_numerical[k, i, j] /= \
+                    d1_lp_perturb_scale_numerical[k, i, j] /= \
                             (2.0 * sigma[j+1])
 
                 # Compute first derivative numerically (perturb sigma0)
@@ -1027,10 +1004,9 @@ class FullLikelihood(object):
                     d1_lp_perturb_sigma0_numerical[k, i, j] /= \
                             (2.0 * sigma[j+1])
 
-                # Second mixed derivative w.r.t distance_scale, numerically
-                d2_mixed_distance_scale_lp_numerical[i, :] += coeff[k] * \
-                    d1_lp_perturb_distance_scale_numerical[k, i, :] / \
-                    d_distance_scale
+                # Second mixed derivative w.r.t scale, numerically
+                d2_mixed_scale_lp_numerical[i, :] += coeff[k] * \
+                    d1_lp_perturb_scale_numerical[k, i, :] / d_scale
 
                 # Compute second mixed derivative w.r.t sigma0, numerically
                 d2_mixed_sigma0_lp_numerical[i, :] += \
@@ -1042,10 +1018,9 @@ class FullLikelihood(object):
 
             # Compute second derivative numerically
             d2_lp_numerical[i, :] = \
-                (d1_lp_perturb_distance_scale_numerical[
-                    center_stencil, i, 2:] -
-                 d1_lp_perturb_distance_scale_numerical[
-                     center_stencil, i, :-2]) / (sigma[3:-1] - sigma[1:-3])
+                (d1_lp_perturb_scale_numerical[center_stencil, i, 2:] -
+                 d1_lp_perturb_scale_numerical[center_stencil, i, :-2]) / \
+                (sigma[3:-1] - sigma[1:-3])
 
             # To take derivative w.r.t sigma0**2, divide by 2*sigma0.
             for j in range(sigma.size-4):
@@ -1053,40 +1028,33 @@ class FullLikelihood(object):
 
             # Find maximum of lp
             max_index = numpy.argmax(
-                    d0_lp_perturb_distance_scale[center_stencil, i, :])
+                    d0_lp_perturb_scale[center_stencil, i, :])
             optimal_sigma = sigma[max_index]
-            optimal_lp = d0_lp_perturb_distance_scale[
-                    center_stencil, i, max_index]
+            optimal_lp = d0_lp_perturb_scale[center_stencil, i, max_index]
 
             # Plot
-            if any(distance_scales[i] == optimal_distance_scale):
-                label = r'$\hat{\theta}=%0.2e$' % distance_scales[i]
+            if any(scales[i] == optimal_scale):
+                label = r'$\hat{\theta}=%0.2e$' % scales[i]
                 marker = 'X'
             else:
-                label = r'$\theta=%0.2e$' % distance_scales[i]
+                label = r'$\theta=%0.2e$' % scales[i]
                 marker = 'o'
-            ax[0, 0].plot(sigma,
-                          d0_lp_perturb_distance_scale[center_stencil, i, :],
+            ax[0, 0].plot(sigma, d0_lp_perturb_scale[center_stencil, i, :],
                           color=colors[i], label=label)
-            ax[0, 1].plot(sigma, d1_lp[i, :], color=colors[i],
+            ax[0, 1].plot(sigma, d1_lp[i, :], color=colors[i], label=label)
+            ax[0, 2].plot(sigma, d2_lp[i, :], color=colors[i], label=label)
+            ax[1, 0].plot(sigma, d2_mixed_scale_lp[i, :], color=colors[i],
                           label=label)
-            ax[0, 2].plot(sigma, d2_lp[i, :], color=colors[i],
+            ax[1, 1].plot(sigma, d2_mixed_sigma0_lp[i, :], color=colors[i],
                           label=label)
-            ax[1, 0].plot(sigma, d2_mixed_distance_scale_lp[i, :],
-                          color=colors[i], label=label)
-            ax[1, 1].plot(sigma, d2_mixed_sigma0_lp[i, :],
-                          color=colors[i], label=label)
-            ax[0, 1].plot(sigma[1:-1],
-                          d1_lp_perturb_distance_scale_numerical[
-                              center_stencil, i, :], '--', color=colors[i])
+            ax[0, 1].plot(sigma[1:-1], d1_lp_perturb_scale_numerical[
+                          center_stencil, i, :], '--', color=colors[i])
             ax[0, 2].plot(sigma[2:-2], d2_lp_numerical[i, :], '--',
                           color=colors[i])
-            ax[1, 0].plot(sigma[1:-1],
-                          d2_mixed_distance_scale_lp_numerical[i, :], '--',
+            ax[1, 0].plot(sigma[1:-1], d2_mixed_scale_lp_numerical[i, :], '--',
                           color=colors[i])
-            ax[1, 1].plot(sigma[1:-1],
-                          d2_mixed_sigma0_lp_numerical[i, :], '--',
-                          color=colors[i])
+            ax[1, 1].plot(sigma[1:-1], d2_mixed_sigma0_lp_numerical[i, :],
+                          '--', color=colors[i])
             p = ax[0, 0].plot(optimal_sigma, optimal_lp, marker,
                               color=colors[i], markersize=3)
             ax[0, 1].plot(optimal_sigma, 0.0,  marker, color=colors[i],
@@ -1158,45 +1126,43 @@ class FullLikelihood(object):
             X,
             cov,
             result,
-            other_distance_scales=None):
+            other_scales=None):
         """
         Plots log likelihood versus sigma0. Other hyperparameters are fixed.
-        Also, distance_scale is used from both its optimal value and
-        user-defined values. Plots are iterated over multiple values of
-        distance_scale. On the other hand, sigma is fixed to its optimal value.
+        Also, scale is used from both its optimal value and user-defined
+        values. Plots are iterated over multiple values of scale. On the other
+        hand, sigma is fixed to its optimal value.
         """
 
         # This function can only plot one dimensional data.
         dimension = cov.mixed_cor.cor.dimension
         if dimension != 1:
-            raise ValueError('To plot likelihood w.r.t "eta" and ' +
-                             '"distance_scale", the dimension of the data ' +
-                             'points should be one.')
+            raise ValueError('To plot likelihood w.r.t "eta" and "scale", ' +
+                             'the dimension of the data points should be one.')
 
         load_plot_settings()
 
         # Optimal point
         optimal_sigma = result['hyperparam']['sigma']
         optimal_sigma0 = result['hyperparam']['sigma0']
-        optimal_distance_scale = result['hyperparam']['distance_scale']
+        optimal_scale = result['hyperparam']['scale']
 
-        # Convert distance_scale to a numpy array
-        if other_distance_scales is not None:
-            if numpy.isscalar(other_distance_scales):
-                other_distance_scales = numpy.array([other_distance_scales])
-            elif isinstance(other_distance_scales, list):
-                other_distance_scales = numpy.array(other_distance_scales)
-            elif not isinstance(other_distance_scales, numpy.ndarray):
-                raise TypeError('"other_distance_scales" should be either ' +
-                                'a scalar, list, or numpy.ndarray.')
+        # Convert scale to a numpy array
+        if other_scales is not None:
+            if numpy.isscalar(other_scales):
+                other_scales = numpy.array([other_scales])
+            elif isinstance(other_scales, list):
+                other_scales = numpy.array(other_scales)
+            elif not isinstance(other_scales, numpy.ndarray):
+                raise TypeError('"other_scales" should be either a scalar, ' +
+                                'list, or numpy.ndarray.')
 
-        # Concatenate all given distance_scales
-        if other_distance_scales is not None:
-            distance_scales = numpy.r_[optimal_distance_scale,
-                                       other_distance_scales]
+        # Concatenate all given scales
+        if other_scales is not None:
+            scales = numpy.r_[optimal_scale, other_scales]
         else:
-            distance_scales = numpy.r_[optimal_distance_scale]
-        distance_scales = numpy.sort(distance_scales)
+            scales = numpy.r_[optimal_scale]
+        scales = numpy.sort(scales)
 
         # 2nd or 4th order finite difference coefficients for first derivative
         coeff = numpy.array([-1.0/2.0, 0.0, 1.0/2.0])
@@ -1210,38 +1176,36 @@ class FullLikelihood(object):
         # Generate lp for various sigma0
         sigma0 = numpy.logspace(-2, 2, 100)
 
-        d0_lp_perturb_distance_scale = numpy.zeros(
-                (stencil_size, distance_scales.size, sigma0.size), dtype=float)
+        d0_lp_perturb_scale = numpy.zeros(
+                (stencil_size, scales.size, sigma0.size), dtype=float)
         d0_lp_perturb_sigma = numpy.zeros(
-                (stencil_size, distance_scales.size, sigma0.size), dtype=float)
-        d1_lp = numpy.zeros((distance_scales.size, sigma0.size), dtype=float)
-        d2_lp = numpy.zeros((distance_scales.size, sigma0.size), dtype=float)
-        d2_mixed_distance_scale_lp = numpy.zeros(
-                (distance_scales.size, sigma0.size), dtype=float)
-        d2_mixed_sigma_lp = numpy.zeros(
-                (distance_scales.size, sigma0.size), dtype=float)
-        d1_lp_perturb_distance_scale_numerical = numpy.zeros(
-                (stencil_size, distance_scales.size, sigma0.size-2),
-                dtype=float)
+                (stencil_size, scales.size, sigma0.size), dtype=float)
+        d1_lp = numpy.zeros((scales.size, sigma0.size), dtype=float)
+        d2_lp = numpy.zeros((scales.size, sigma0.size), dtype=float)
+        d2_mixed_scale_lp = numpy.zeros((scales.size, sigma0.size),
+                                        dtype=float)
+        d2_mixed_sigma_lp = numpy.zeros((scales.size, sigma0.size),
+                                        dtype=float)
+        d1_lp_perturb_scale_numerical = numpy.zeros(
+                (stencil_size, scales.size, sigma0.size-2), dtype=float)
         d1_lp_perturb_sigma_numerical = numpy.zeros(
-                (stencil_size, distance_scales.size, sigma0.size-2),
-                dtype=float)
-        d2_lp_numerical = numpy.zeros((distance_scales.size, sigma0.size-4),
+                (stencil_size, scales.size, sigma0.size-2), dtype=float)
+        d2_lp_numerical = numpy.zeros((scales.size, sigma0.size-4),
                                       dtype=float)
-        d2_mixed_distance_scale_lp_numerical = numpy.zeros(
-                (distance_scales.size, sigma0.size-2), dtype=float)
+        d2_mixed_scale_lp_numerical = numpy.zeros(
+                (scales.size, sigma0.size-2), dtype=float)
         d2_mixed_sigma_lp_numerical = numpy.zeros(
-                (distance_scales.size, sigma0.size-2), dtype=float)
+                (scales.size, sigma0.size-2), dtype=float)
 
         fig, ax = plt.subplots(nrows=2, ncols=3, figsize=(15, 8))
         colors = matplotlib.cm.nipy_spectral(
-                numpy.linspace(0, 0.9, distance_scales.size))
+                numpy.linspace(0, 0.9, scales.size))
 
-        for i in range(distance_scales.size):
+        for i in range(scales.size):
 
-            # Stencil to perturb distance_scale
-            d_distance_scale = distance_scales[i] * 1e-3
-            distance_scale_stencil = distance_scales[i] + d_distance_scale * \
+            # Stencil to perturb scale
+            d_scale = scales[i] * 1e-3
+            scale_stencil = scales[i] + d_scale * \
                 numpy.arange(-stencil_size//2+1, stencil_size//2+1)
 
             # Stencil to perturb sigma
@@ -1252,31 +1216,30 @@ class FullLikelihood(object):
             # Likelihood (and its perturbation w.r.t sigma0)
             for k in range(stencil_size):
 
-                # Set the distance_scale
-                cov.set_distance_scale(distance_scale_stencil[k])
+                # Set the scale
+                cov.set_scale(scale_stencil[k])
 
                 for j in range(sigma0.size):
                     hyperparam = numpy.r_[optimal_sigma, sigma0[j],
-                                          distance_scale_stencil[k]]
+                                          scale_stencil[k]]
                     sign_switch = False
-                    d0_lp_perturb_distance_scale[k, i, j] = \
+                    d0_lp_perturb_scale[k, i, j] = \
                         FullLikelihood.likelihood(
                         z, X, cov, sign_switch, hyperparam)
 
             # Likelihood (and its perturbation w.r.t sigma)
-            cov.set_distance_scale(distance_scales[i])
+            cov.set_scale(scales[i])
             for k in range(stencil_size):
                 for j in range(sigma0.size):
                     hyperparam = numpy.r_[sigma_stencil[k], sigma0[j],
-                                          distance_scales[i]]
+                                          scales[i]]
                     sign_switch = False
                     d0_lp_perturb_sigma[k, i, j] = FullLikelihood.likelihood(
                             z, X, cov, sign_switch, hyperparam)
 
             # First derivative of likelihood w.r.t distance scale
             for j in range(sigma0.size):
-                hyperparam = numpy.r_[sigma_stencil[k], sigma0[j],
-                                      distance_scales[i]]
+                hyperparam = numpy.r_[sigma_stencil[k], sigma0[j], scales[i]]
                 jacobian_ = FullLikelihood.likelihood_jacobian(
                         z, X, cov, sign_switch, hyperparam)
                 d1_lp[i, j] = jacobian_[1]
@@ -1284,20 +1247,20 @@ class FullLikelihood(object):
                 # Second derivative of likelihood w.r.t distance scale
                 hessian_ = FullLikelihood.likelihood_hessian(
                         z, X, cov, sign_switch, hyperparam)
-                d2_mixed_distance_scale_lp[i, j] = hessian_[1, 2]
+                d2_mixed_scale_lp[i, j] = hessian_[1, 2]
                 d2_mixed_sigma_lp[i, j] = hessian_[1, 0]
                 d2_lp[i, j] = hessian_[1, 1]
 
             for k in range(stencil_size):
-                # First derivative numerically (perturb distance_scale)
-                d1_lp_perturb_distance_scale_numerical[k, i, :] = \
-                        (d0_lp_perturb_distance_scale[k, i, 2:] -
-                         d0_lp_perturb_distance_scale[k, i, :-2]) / \
+                # First derivative numerically (perturb scale)
+                d1_lp_perturb_scale_numerical[k, i, :] = \
+                        (d0_lp_perturb_scale[k, i, 2:] -
+                         d0_lp_perturb_scale[k, i, :-2]) / \
                         (sigma0[2:] - sigma0[:-2])
 
                 # To take derivative w.r.t sigma**2, divide by 2*sigma0.
                 for j in range(sigma0.size-2):
-                    d1_lp_perturb_distance_scale_numerical[k, i, j] /= \
+                    d1_lp_perturb_scale_numerical[k, i, j] /= \
                             (2.0 * sigma0[j+1])
 
                 # Compute first derivative numerically (perturb sigma)
@@ -1311,10 +1274,9 @@ class FullLikelihood(object):
                     d1_lp_perturb_sigma_numerical[k, i, j] /= \
                             (2.0 * sigma0[j+1])
 
-                # Second mixed derivative w.r.t distance_scale, numerically
-                d2_mixed_distance_scale_lp_numerical[i, :] += coeff[k] * \
-                    d1_lp_perturb_distance_scale_numerical[k, i, :] / \
-                    d_distance_scale
+                # Second mixed derivative w.r.t scale, numerically
+                d2_mixed_scale_lp_numerical[i, :] += coeff[k] * \
+                    d1_lp_perturb_scale_numerical[k, i, :] / d_scale
 
                 # Compute second mixed derivative w.r.t sigma, numerically
                 d2_mixed_sigma_lp_numerical[i, :] += \
@@ -1326,10 +1288,9 @@ class FullLikelihood(object):
 
             # Compute second derivative numerically
             d2_lp_numerical[i, :] = \
-                (d1_lp_perturb_distance_scale_numerical[
-                    center_stencil, i, 2:] -
-                 d1_lp_perturb_distance_scale_numerical[
-                     center_stencil, i, :-2]) / (sigma0[3:-1] - sigma0[1:-3])
+                (d1_lp_perturb_scale_numerical[center_stencil, i, 2:] -
+                 d1_lp_perturb_scale_numerical[center_stencil, i, :-2]) / \
+                (sigma0[3:-1] - sigma0[1:-3])
 
             # To take derivative w.r.t sigma**2, divide by 2*sigma0.
             for j in range(sigma0.size-4):
@@ -1337,40 +1298,33 @@ class FullLikelihood(object):
 
             # Find maximum of lp
             max_index = numpy.argmax(
-                    d0_lp_perturb_distance_scale[center_stencil, i, :])
+                    d0_lp_perturb_scale[center_stencil, i, :])
             optimal_sigma0 = sigma0[max_index]
-            optimal_lp = d0_lp_perturb_distance_scale[
-                    center_stencil, i, max_index]
+            optimal_lp = d0_lp_perturb_scale[center_stencil, i, max_index]
 
             # Plot
-            if any(distance_scales[i] == optimal_distance_scale):
-                label = r'$\hat{\theta}=%0.2e$' % distance_scales[i]
+            if any(scales[i] == optimal_scale):
+                label = r'$\hat{\theta}=%0.2e$' % scales[i]
                 marker = 'X'
             else:
-                label = r'$\theta=%0.2e$' % distance_scales[i]
+                label = r'$\theta=%0.2e$' % scales[i]
                 marker = 'o'
-            ax[0, 0].plot(sigma0,
-                          d0_lp_perturb_distance_scale[center_stencil, i, :],
+            ax[0, 0].plot(sigma0, d0_lp_perturb_scale[center_stencil, i, :],
                           color=colors[i], label=label)
-            ax[0, 1].plot(sigma0, d1_lp[i, :], color=colors[i],
+            ax[0, 1].plot(sigma0, d1_lp[i, :], color=colors[i], label=label)
+            ax[0, 2].plot(sigma0, d2_lp[i, :], color=colors[i], label=label)
+            ax[1, 0].plot(sigma0, d2_mixed_scale_lp[i, :], color=colors[i],
                           label=label)
-            ax[0, 2].plot(sigma0, d2_lp[i, :], color=colors[i],
+            ax[1, 1].plot(sigma0, d2_mixed_sigma_lp[i, :], color=colors[i],
                           label=label)
-            ax[1, 0].plot(sigma0, d2_mixed_distance_scale_lp[i, :],
-                          color=colors[i], label=label)
-            ax[1, 1].plot(sigma0, d2_mixed_sigma_lp[i, :],
-                          color=colors[i], label=label)
-            ax[0, 1].plot(sigma0[1:-1],
-                          d1_lp_perturb_distance_scale_numerical[
-                              center_stencil, i, :], '--', color=colors[i])
+            ax[0, 1].plot(sigma0[1:-1], d1_lp_perturb_scale_numerical[
+                          center_stencil, i, :], '--', color=colors[i])
             ax[0, 2].plot(sigma0[2:-2], d2_lp_numerical[i, :], '--',
                           color=colors[i])
-            ax[1, 0].plot(sigma0[1:-1],
-                          d2_mixed_distance_scale_lp_numerical[i, :], '--',
-                          color=colors[i])
-            ax[1, 1].plot(sigma0[1:-1],
-                          d2_mixed_sigma_lp_numerical[i, :], '--',
-                          color=colors[i])
+            ax[1, 0].plot(sigma0[1:-1], d2_mixed_scale_lp_numerical[i, :],
+                          '--', color=colors[i])
+            ax[1, 1].plot(sigma0[1:-1], d2_mixed_sigma_lp_numerical[i, :],
+                          '--', color=colors[i])
             p = ax[0, 0].plot(optimal_sigma0, optimal_lp, marker,
                               color=colors[i], markersize=3)
             ax[0, 1].plot(optimal_sigma0, 0.0,  marker, color=colors[i],
@@ -1448,10 +1402,10 @@ class FullLikelihood(object):
         # Optimal point
         optimal_sigma = result['hyperparam']['sigma']
         optimal_sigma0 = result['hyperparam']['sigma0']
-        optimal_distance_scale = result['hyperparam']['distance_scale']
+        optimal_scale = result['hyperparam']['scale']
         optimal_lp = result['optimization']['max_likelihood']
 
-        cov.set_distance_scale(optimal_distance_scale)
+        cov.set_scale(optimal_scale)
 
         # Intervals cannot contain origin point as lp is minus infinity.
         sigma0 = numpy.linspace(0.02, 0.25, 50)
@@ -1561,31 +1515,26 @@ class FullLikelihood(object):
         opt_sigma0 = sigma0_fine[max_indices[0]]
         opt_sigma = sigma_fine[max_indices[1]]
         opt_lp = lp_fine[max_indices[0], max_indices[1]]
-        ax[0].plot(
-                opt_sigma, opt_sigma0, 'o', color='red', markersize=6,
-                label=r'$(\hat{\sigma}_0, \hat{\sigma})$ (by brute force on ' +
-                      r' grid)')
-        ax[1].plot(
-                opt_sigma, opt_lp, 'o', color='red',
-                label=r'$\ell(\hat{\sigma}, \hat{\sigma}_0)$ by brute force ' +
-                      r' on grid)')
-        ax[2].plot(
-                opt_sigma0, opt_lp, 'o', color='black',
-                label=r'$\ell(\hat{\sigma}_0, \hat{\sigma})$ (by brute ' +
-                      r'force on grid)')
+        ax[0].plot(opt_sigma, opt_sigma0, 'o', color='red', markersize=6,
+                   label=r'$(\hat{\sigma}_0, \hat{\sigma})$ (by brute force ' +
+                         r'on grid)')
+        ax[1].plot(opt_sigma, opt_lp, 'o', color='red',
+                   label=r'$\ell(\hat{\sigma}, \hat{\sigma}_0)$ by brute ' +
+                         r'force on grid)')
+        ax[2].plot(opt_sigma0, opt_lp, 'o', color='black',
+                   label=r'$\ell(\hat{\sigma}_0, \hat{\sigma})$ (by brute ' +
+                         r'force on grid)')
 
         # Plot optimal point as found by the profile likelihood method
         ax[0].plot(optimal_sigma, optimal_sigma0, 'X', color='black',
                    markersize=6,
                    label=r'$\max_{\sigma_0, \sigma} \ell$ (by optimization)')
-        ax[1].plot(
-                optimal_sigma, optimal_lp, 'X', color='red',
-                label=r'$\ell(\hat{\sigma}_0, \hat{\sigma})$ (by ' +
-                      r'optimization)')
-        ax[2].plot(
-                optimal_sigma0, optimal_lp, 'X', color='black',
-                label=r'$\ell(\hat{\sigma}_0, \hat{\sigma})$ (by ' +
-                      r'optimization)')
+        ax[1].plot(optimal_sigma, optimal_lp, 'X', color='red',
+                   label=r'$\ell(\hat{\sigma}_0, \hat{\sigma})$ (by ' +
+                         r'optimization)')
+        ax[2].plot(optimal_sigma0, optimal_lp, 'X', color='black',
+                   label=r'$\ell(\hat{\sigma}_0, \hat{\sigma})$ (by ' +
+                         r'optimization)')
 
         # Plot annotations
         ax[0].legend()
@@ -1629,10 +1578,10 @@ class FullLikelihood(object):
 
         sigma0 = numpy.linspace(0.01, 0.25, 50)
         sigma = numpy.linspace(0.01, 0.25, 50)
-        optimal_distance_scale = result['hyperparam']['distance_scale']
+        optimal_scale = result['hyperparam']['scale']
         lp = numpy.zeros((sigma0.size, sigma.size))
 
-        cov.set_distance_scale(optimal_distance_scale)
+        cov.set_scale(optimal_scale)
 
         for i in range(sigma0.size):
             for j in range(sigma.size):

@@ -73,28 +73,28 @@ class MixedCorrelation(object):
         self.min_eta = tol
         self.max_eta = 1.0/tol
 
-    # ==================
-    # set distance scale
-    # ==================
+    # =========
+    # set scale
+    # =========
 
-    def set_distance_scale(self, distance_scale):
+    def set_scale(self, scale):
         """
-        Sets the distance_scale attribute of coreelation matrix.
+        Sets the scale attribute of coreelation matrix.
         """
 
-        # Setting distance_scale attribute of self.cor object.
-        self.cor.set_distance_scale(distance_scale)
+        # Setting scale attribute of self.cor object.
+        self.cor.set_scale(scale)
 
-    # ==================
-    # get distance scale
-    # ==================
+    # =========
+    # get scale
+    # =========
 
-    def get_distance_scale(self):
+    def get_scale(self):
         """
         Returns distance scale of self.cor object.
         """
 
-        return self.cor.distance_scale
+        return self.cor.scale
 
     # ===============
     # get matrix size
@@ -114,13 +114,13 @@ class MixedCorrelation(object):
     def get_matrix(
             self,
             eta,
-            distance_scale=None,
+            scale=None,
             derivative=[]):
         """
         Get the matrix as a numpy array of scipy sparse array.
         """
 
-        K = self.cor.get_matrix(distance_scale, derivative)
+        K = self.cor.get_matrix(scale, derivative)
 
         # Form the mixed correlation
         if len(derivative) > 0:
@@ -140,13 +140,13 @@ class MixedCorrelation(object):
     def get_eigenvalues(
             self,
             eta,
-            distance_scale=None,
+            scale=None,
             derivative=[]):
         """
         Returns the eigenvalues of mixed correlation.
         """
 
-        K_eigenvalues = self.cor.get_eigenvalues(distance_scale, derivative)
+        K_eigenvalues = self.cor.get_eigenvalues(scale, derivative)
 
         if len(derivative) > 0:
             Kn_eigenvalues = K_eigenvalues
@@ -162,7 +162,7 @@ class MixedCorrelation(object):
     def trace(
             self,
             eta,
-            distance_scale=None,
+            scale=None,
             exponent=1,
             derivative=[],
             imate_method=None):
@@ -201,7 +201,7 @@ class MixedCorrelation(object):
         else:
 
             # Get matrix
-            K = self.cor.get_matrix(distance_scale, derivative)
+            K = self.cor.get_matrix(scale, derivative)
 
             if isinstance(exponent, (int, numpy.integer)) or \
                     exponent.is_integer() or imate_method == 'exact':
@@ -221,8 +221,7 @@ class MixedCorrelation(object):
             elif imate_method == 'eigenvalue':
 
                 # Eigenvalues of mixed correlation K + eta*I
-                Kn_eigenvalues = self.get_eigenvalues(eta, distance_scale,
-                                                      derivative)
+                Kn_eigenvalues = self.get_eigenvalues(eta, scale, derivative)
 
                 # Using eigenvalues only. Here, K will not be used.
                 trace_, _ = imate.trace(K, method=imate_method,
@@ -234,8 +233,7 @@ class MixedCorrelation(object):
             elif imate_method == 'slq':
 
                 # Get affine matrix function
-                K_amf = self.cor.get_affine_matrix_function(distance_scale,
-                                                            derivative)
+                K_amf = self.cor.get_affine_matrix_function(scale, derivative)
 
                 # Passing the affine matrix function
                 trace_, _ = imate.trace(K_amf, method=imate_method,
@@ -256,7 +254,7 @@ class MixedCorrelation(object):
             self,
             eta,
             B=None,
-            distance_scale=None,
+            scale=None,
             exponent=1,
             derivative=[],
             imate_method=None):
@@ -327,11 +325,10 @@ class MixedCorrelation(object):
             elif imate_method == 'eigenvalue':
 
                 # Get matrix
-                K = self.cor.get_matrix(distance_scale, derivative)
+                K = self.cor.get_matrix(scale, derivative)
 
                 # Eigenvalues of mixed correlation K + eta*I
-                Kn_eigenvalues = self.get_eigenvalues(eta, distance_scale,
-                                                      derivative)
+                Kn_eigenvalues = self.get_eigenvalues(eta, scale, derivative)
 
                 # Using eigenvalues only. Here, K will not be used.
                 traceinv_, _ = imate.traceinv(K, method=imate_method,
@@ -343,7 +340,7 @@ class MixedCorrelation(object):
             elif imate_method == 'cholesky':
 
                 # Form the mixed covariance
-                Kn = self.get_matrix(eta, distance_scale, derivative)
+                Kn = self.get_matrix(eta, scale, derivative)
 
                 # Calling cholesky method
                 traceinv_, _ = imate.traceinv(Kn, B, method=imate_method,
@@ -353,7 +350,7 @@ class MixedCorrelation(object):
             elif imate_method == 'hutchinson':
 
                 # Form the mixed correlation
-                Kn = self.get_matrix(eta, distance_scale, derivative)
+                Kn = self.get_matrix(eta, scale, derivative)
 
                 if len(derivative) > 0:
                     assume_matrix = 'sym'
@@ -369,8 +366,7 @@ class MixedCorrelation(object):
             elif imate_method == 'slq':
 
                 # Get affine matrix function
-                K_amf = self.cor.get_affine_matrix_function(distance_scale,
-                                                            derivative)
+                K_amf = self.cor.get_affine_matrix_function(scale, derivative)
 
                 # Passing the affine matrix function
                 traceinv_, _ = imate.traceinv(K_amf, method=imate_method,
@@ -391,7 +387,7 @@ class MixedCorrelation(object):
     def logdet(
             self,
             eta,
-            distance_scale=None,
+            scale=None,
             exponent=1,
             derivative=[],
             imate_method=None):
@@ -441,11 +437,10 @@ class MixedCorrelation(object):
             if imate_method == 'eigenvalue':
 
                 # Get matrix
-                K = self.cor.get_matrix(distance_scale, derivative)
+                K = self.cor.get_matrix(scale, derivative)
 
                 # Eigenvalues of mixed correlation K + eta*I
-                Kn_eigenvalues = self.get_eigenvalues(eta, distance_scale,
-                                                      derivative)
+                Kn_eigenvalues = self.get_eigenvalues(eta, scale, derivative)
 
                 # Using eigenvalues only. Here, K will not be used.
                 logdet_, _ = imate.logdet(K, method=imate_method,
@@ -460,7 +455,7 @@ class MixedCorrelation(object):
                 # use the cholesky method instead.
 
                 # Form the mixed correlation
-                Kn = self.get_matrix(eta, distance_scale, derivative)
+                Kn = self.get_matrix(eta, scale, derivative)
 
                 # Calling cholesky method
                 logdet_, _ = imate.logdet(Kn, method='cholesky', gram=False,
@@ -470,8 +465,7 @@ class MixedCorrelation(object):
             elif imate_method == 'slq':
 
                 # Get affine matrix function
-                K_amf = self.cor.get_affine_matrix_function(distance_scale,
-                                                            derivative)
+                K_amf = self.cor.get_affine_matrix_function(scale, derivative)
 
                 # Passing the affine matrix function
                 logdet_, _ = imate.logdet(K_amf, method=imate_method,
@@ -492,7 +486,7 @@ class MixedCorrelation(object):
             self,
             eta,
             Y,
-            distance_scale=None,
+            scale=None,
             exponent=1,
             derivative=[]):
         """
@@ -529,7 +523,7 @@ class MixedCorrelation(object):
 
         else:
             # Get matrix
-            Kn = self.get_matrix(eta, distance_scale, derivative)
+            Kn = self.get_matrix(eta, scale, derivative)
 
             if len(derivative) > 0:
                 assume_matrix = 'sym'
@@ -550,7 +544,7 @@ class MixedCorrelation(object):
             self,
             eta,
             x,
-            distance_scale=None,
+            scale=None,
             exponent=1,
             derivative=[]):
         """
@@ -596,7 +590,7 @@ class MixedCorrelation(object):
             x_copy = x.copy()
 
             # Get matrix (K only, not K + eta * I)
-            K = self.get_matrix(0.0, distance_scale, derivative)
+            K = self.get_matrix(0.0, scale, derivative)
 
             for i in range(exponent):
                 y = K.dot(x_copy)

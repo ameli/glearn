@@ -109,27 +109,27 @@ class Covariance(object):
             elif sigma0 < 0.0:
                 raise ValueError('"sigma0" cannot be negative.')
 
-    # ==================
-    # set distance scale
-    # ==================
+    # =========
+    # set scale
+    # =========
 
-    def set_distance_scale(self, distance_scale):
+    def set_scale(self, scale):
         """
-        Sets the distance_scale attribute of coreelation matrix.
+        Sets the scale attribute of coreelation matrix.
         """
 
-        self.mixed_cor.set_distance_scale(distance_scale)
+        self.mixed_cor.set_scale(scale)
 
-    # ==================
-    # get distance scale
-    # ==================
+    # =========
+    # get scale
+    # =========
 
-    def get_distance_scale(self):
+    def get_scale(self):
         """
         Returns distance scale of self.mixed_cor.cor object.
         """
 
-        return self.mixed_cor.get_distance_scale()
+        return self.mixed_cor.get_scale()
 
     # ==========
     # get matrix
@@ -139,14 +139,14 @@ class Covariance(object):
             self,
             sigma,
             sigma0,
-            distance_scale=None,
+            scale=None,
             derivative=[]):
         """
         Get the matrix as a numpy array of scipy sparse array.
         """
 
         eta = (sigma0 / sigma)**2
-        Kn = self.mixed_cor.get_matrix(eta, distance_scale, derivative)
+        Kn = self.mixed_cor.get_matrix(eta, scale, derivative)
 
         return sigma**2 * Kn
 
@@ -158,7 +158,7 @@ class Covariance(object):
             self,
             sigma,
             sigma0,
-            distance_scale=None,
+            scale=None,
             exponent=1,
             derivative=[],
             imate_method=None):
@@ -210,7 +210,7 @@ class Covariance(object):
 
             eta = (sigma0 / sigma)**2
             trace_ = sigma**(2.0*exponent) * self.mixed_cor.trace(
-                    eta, distance_scale, exponent, derivative, imate_method)
+                    eta, scale, exponent, derivative, imate_method)
 
         return trace_
 
@@ -223,7 +223,7 @@ class Covariance(object):
             sigma,
             sigma0,
             B=None,
-            distance_scale=None,
+            scale=None,
             exponent=1,
             derivative=[],
             imate_method=None):
@@ -287,8 +287,8 @@ class Covariance(object):
 
             eta = (sigma0 / sigma)**2
             traceinv_ = self.mixed_cor.traceinv(
-                    eta, B, distance_scale, exponent, derivative,
-                    imate_method) / (sigma**(2.0*exponent))
+                    eta, B, scale, exponent, derivative, imate_method) / \
+                (sigma**(2.0*exponent))
 
         return traceinv_
 
@@ -300,7 +300,7 @@ class Covariance(object):
             self,
             sigma,
             sigma0,
-            distance_scale=None,
+            scale=None,
             exponent=1,
             derivative=[],
             imate_method=None):
@@ -354,8 +354,8 @@ class Covariance(object):
 
             eta = (sigma0 / sigma)**2
             logdet_ = (2.0*exponent*n) * numpy.log(sigma) + \
-                self.mixed_cor.logdet(eta, distance_scale, exponent,
-                                      derivative, imate_method)
+                self.mixed_cor.logdet(eta, scale, exponent, derivative,
+                                      imate_method)
 
         return logdet_
 
@@ -368,7 +368,7 @@ class Covariance(object):
             sigma,
             sigma0,
             Y,
-            distance_scale=None,
+            scale=None,
             exponent=1,
             derivative=[]):
         """
@@ -421,7 +421,7 @@ class Covariance(object):
 
             eta = (sigma0 / sigma)**2
             X = self.mixed_cor.solve(
-                    eta, Y, distance_scale, exponent, derivative) / \
+                    eta, Y, scale, exponent, derivative) / \
                 (sigma**(2*exponent))
 
         return X
@@ -435,7 +435,7 @@ class Covariance(object):
             sigma,
             sigma0,
             x,
-            distance_scale=None,
+            scale=None,
             exponent=1,
             derivative=[]):
         """
@@ -487,7 +487,6 @@ class Covariance(object):
 
             eta = (sigma0 / sigma)**2
             y = (sigma**(2.0*exponent)) * \
-                self.mixed_cor.dot(eta, x, distance_scale, exponent,
-                                   derivative)
+                self.mixed_cor.dot(eta, x, scale, exponent, derivative)
 
         return y

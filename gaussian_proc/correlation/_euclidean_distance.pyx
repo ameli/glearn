@@ -26,7 +26,7 @@ __all__ = ['euclidean_distance']
 cdef double euclidean_distance(
         const double[:] point1,
         const double[:] point2,
-        const double[:] distance_scale,
+        const double[:] scale,
         const int dimension) nogil:
     """
     Returns the weighted Euclidean distance between two points.
@@ -48,6 +48,6 @@ cdef double euclidean_distance(
     cdef int dim
 
     for dim in range(dimension):
-        distance2 += ((point1[dim] - point2[dim]) / distance_scale[dim])**2
+        distance2 += ((point1[dim] - point2[dim]) / scale[dim])**2
 
     return sqrt(distance2)

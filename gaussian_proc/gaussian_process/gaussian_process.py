@@ -63,10 +63,10 @@ class GaussianProcess(object):
         Finds the hyperparameters of the Gaussian process model.
         """
 
-        # Find if distance_scale is specifies or is None. If None, the training
-        # process will find distance_scale as an unknown hyperparameter. But,
-        # if distance_scale is given, it leaves it out of hyperparameters.
-        distance_scale = self.cov.get_distance_scale()
+        # Find if scale is specifies or is None. If None, the training
+        # process will find scale as an unknown hyperparameter. But, if scale
+        # is given, it leaves it out of hyperparameters.
+        scale = self.cov.get_scale()
 
         # Number of parameters of covariance function
         if profile_param == 'none':
@@ -85,7 +85,7 @@ class GaussianProcess(object):
         if hyperparam_guess is None:
 
             # Set a default value for hyperparameter guess
-            if distance_scale is None:
+            if scale is None:
                 hyperparam_guess = [0.1, 0.1, 0.1, 0.1]
             else:
                 hyperparam_guess = [0.1, 0.1]
@@ -97,8 +97,8 @@ class GaussianProcess(object):
                 hyperparam_guess = numpy.array(hyperparam_guess)
 
             # Number of hyperparameters
-            if distance_scale is None:
-                # Finds sigma, sigma0, and all distance_scale
+            if scale is None:
+                # Finds sigma, sigma0, and all scale
                 dimension = self.cov.mixed_cor.cor.points.shape[1]
                 num_hyperparam = num_cov_hyperparam + dimension
             else:

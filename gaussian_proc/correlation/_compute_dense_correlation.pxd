@@ -23,14 +23,14 @@ cdef double compute_dense_correlation(
         const double[:] point1,
         const double[:] point2,
         const int dimension,
-        const double[:] distance_scale,
+        const double[:] scale,
         Kernel kernel) nogil
 
 # Compute dense correlation jacobian
 cdef void compute_dense_correlation_jacobian(
         const double[:, ::1] points,
         const int dimension,
-        const double[:] distance_scale,
+        const double[:] scale,
         Kernel kernel,
         double[:, :, ::1] correlation_matrix_jacobian,
         int i,
@@ -40,7 +40,7 @@ cdef void compute_dense_correlation_jacobian(
 cdef void compute_dense_correlation_hessian(
         const double[:, ::1] points,
         const int dimension,
-        const double[:] distance_scale,
+        const double[:] scale,
         Kernel kernel,
         double[:, :, :, ::1] correlation_matrix_hessian,
         int i,

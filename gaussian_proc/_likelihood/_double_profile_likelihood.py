@@ -48,19 +48,19 @@ class DoubleProfileLikelihood(object):
         used in log-likelihood function.
         """
 
-        # Here, hyperparam consists of only distance_scale, but not eta.
+        # Here, hyperparam consists of only scale, but not eta.
         if isinstance(hyperparam, list):
             hyperparam = numpy.array(hyperparam)
-        distance_scale = numpy.abs(hyperparam)
-        cov.set_distance_scale(distance_scale)
+        scale = numpy.abs(hyperparam)
+        cov.set_scale(scale)
 
         # Find optimal eta
         eta = DoubleProfileLikelihood._find_optimal_eta(
-                z, X, cov, distance_scale, log_eta_guess)
+                z, X, cov, scale, log_eta_guess)
         log_eta = numpy.log(eta)
 
-        # Construct new hyperparam that consists of both eta and distance_scale
-        hyperparam_full = numpy.r_[log_eta, distance_scale]
+        # Construct new hyperparam that consists of both eta and scale
+        hyperparam_full = numpy.r_[log_eta, scale]
 
         # Finding the maxima.
         lp = ProfileLikelihood.likelihood(
@@ -81,32 +81,31 @@ class DoubleProfileLikelihood(object):
             log_eta_guess,
             hyperparam):
         """
-        Computes Jacobian w.r.t eta, and if given, distance_scale.
+        Computes Jacobian w.r.t eta, and if given, scale.
         """
 
         # When profiling eta is enabled, derivative w.r.t eta is not needed.
-        # Compute only Jacobian w.r.t distance_scale. Also, here, the input
-        # hyperparam consists of only distance_scale (and not eta).
+        # Compute only Jacobian w.r.t scale. Also, here, the input hyperparam
+        # consists of only scale (and not eta).
         if isinstance(hyperparam, list):
             hyperparam = numpy.array(hyperparam)
-        distance_scale = numpy.abs(hyperparam)
-        cov.set_distance_scale(distance_scale)
+        scale = numpy.abs(hyperparam)
+        cov.set_scale(scale)
 
         # Find optimal eta
         eta = DoubleProfileLikelihood._find_optimal_eta(
-                z, X, cov, distance_scale, log_eta_guess)
+                z, X, cov, scale, log_eta_guess)
         log_eta = numpy.log(eta)
 
-        # Construct new hyperparam that consists of both eta and distance_scale
-        hyperparam_full = numpy.r_[log_eta, distance_scale]
+        # Construct new hyperparam that consists of both eta and scale
+        hyperparam_full = numpy.r_[log_eta, scale]
 
-        # Compute first derivative w.r.t distance_scale
-        der1_distance_scale = \
-            ProfileLikelihood.likelihood_der1_distance_scale(
-                    z, X, cov, hyperparam_full)
+        # Compute first derivative w.r.t scale
+        der1_scale = ProfileLikelihood.likelihood_der1_scale(
+                z, X, cov, hyperparam_full)
 
-        # Jacobian only consists of the derivative w.r.t distance_scale
-        jacobian = der1_distance_scale
+        # Jacobian only consists of the derivative w.r.t scale
+        jacobian = der1_scale
 
         if sign_switch:
             jacobian = -jacobian
@@ -120,32 +119,31 @@ class DoubleProfileLikelihood(object):
     @staticmethod
     def likelihood_hessian(z, X, cov, sign_switch, log_eta_guess, hyperparam):
         """
-        Computes Hessian w.r.t eta, and if given, distance_scale.
+        Computes Hessian w.r.t eta, and if given, scale.
         """
 
         # When profiling eta is enabled, derivative w.r.t eta is not needed.
-        # Compute only Jacobian w.r.t distance_scale. Also, here, the input
-        # hyperparam consists of only distance_scale (and not eta).
+        # Compute only Jacobian w.r.t scale. Also, here, the input hyperparam
+        # consists of only scale (and not eta).
         if isinstance(hyperparam, list):
             hyperparam = numpy.array(hyperparam)
-        distance_scale = numpy.abs(hyperparam)
-        cov.set_distance_scale(distance_scale)
+        scale = numpy.abs(hyperparam)
+        cov.set_scale(scale)
 
         # Find optimal eta
         eta = DoubleProfileLikelihood._find_optimal_eta(
-                z, X, cov, distance_scale, log_eta_guess)
+                z, X, cov, scale, log_eta_guess)
         log_eta = numpy.log(eta)
 
-        # Construct new hyperparam that consists of both eta and distance_scale
-        hyperparam_full = numpy.r_[log_eta, distance_scale]
+        # Construct new hyperparam that consists of both eta and scale
+        hyperparam_full = numpy.r_[log_eta, scale]
 
-        # Compute second derivative w.r.t distance_scale
-        der2_distance_scale = \
-            ProfileLikelihood.likelihood_der2_distance_scale(
-                    z, X, cov, hyperparam_full)
+        # Compute second derivative w.r.t scale
+        der2_scale = ProfileLikelihood.likelihood_der2_scale(
+                z, X, cov, hyperparam_full)
 
         # Concatenate derivatives to form Hessian of all variables
-        hessian = der2_distance_scale
+        hessian = der2_scale
 
         # if sign_switch:
         #     hessian = -hessian
@@ -160,14 +158,14 @@ class DoubleProfileLikelihood(object):
             z,
             X,
             cov,
-            distance_scale,
+            scale,
             log_eta_guess=0.0,
             optimization_method='Nelder-Mead'):
         """
         Finds optimal eta to profile it out of the log-likelihood.
         """
 
-        cov.set_distance_scale(distance_scale)
+        cov.set_scale(scale)
 
         # # Note: When using interpolation, make sure the interval below is
         # # exactly the end points of eta_i, not less or more.
@@ -215,11 +213,11 @@ class DoubleProfileLikelihood(object):
         initial_wall_time = time.time()
         initial_proc_time = time.process_time()
 
-        # When profile eta is used, hyperparam only contains distance_scale
+        # When profile eta is used, hyperparam only contains scale
         log_eta_guess = 1.0
 
         # Partial function of likelihood with profiled eta. The input
-        # hyperparam is only distance_scale, not eta.
+        # hyperparam is only scale, not eta.
         sign_switch = True
         likelihood_partial_func = partial(
                 DoubleProfileLikelihood.likelihood, z, X, cov, sign_switch,
@@ -241,12 +239,12 @@ class DoubleProfileLikelihood(object):
                 method=optimization_method, tol=tol, jac=jacobian_partial_func,
                 hess=hessian_partial_func)
 
-        # Get the optimal distance_scale
-        distance_scale = numpy.abs(res.x)
+        # Get the optimal scale
+        scale = numpy.abs(res.x)
 
-        # Find optimal eta with the given distance_scale
+        # Find optimal eta with the given scale
         eta = DoubleProfileLikelihood._find_optimal_eta(
-                z, X, cov, distance_scale, log_eta_guess)
+                z, X, cov, scale, log_eta_guess)
 
         # Find optimal sigma and sigma0 with the optimal eta
         sigma, sigma0 = ProfileLikelihood.find_optimal_sigma_sigma0(
@@ -264,7 +262,7 @@ class DoubleProfileLikelihood(object):
                 'sigma': sigma,
                 'sigma0': sigma0,
                 'eta': eta,
-                'distance_scale': distance_scale,
+                'scale': scale,
             },
             'optimization':
             {
@@ -280,38 +278,38 @@ class DoubleProfileLikelihood(object):
 
         return result
 
-    # =====================================
-    # plot likelihood versus distance scale
-    # =====================================
+    # ============================
+    # plot likelihood versus scale
+    # ============================
 
     @staticmethod
-    def plot_likelihood_versus_distance_scale(
+    def plot_likelihood_versus_scale(
             z,
             X,
             cov,
             result):
         """
-        Plots log likelihood for distance_scale parameters.
+        Plots log likelihood for scale parameters.
         """
 
         dimension = cov.mixed_cor.cor.dimension
 
         if dimension == 1:
-            DoubleProfileLikelihood.plot_likelihood_versus_distance_scale_1d(
+            DoubleProfileLikelihood.plot_likelihood_versus_scale_1d(
                     z, X, cov, result)
         elif dimension == 2:
-            DoubleProfileLikelihood.plot_likelihood_versus_distance_scale_2d(
+            DoubleProfileLikelihood.plot_likelihood_versus_scale_2d(
                     z, X, cov, result)
         else:
             raise ValueError('Likelihood of only 1 and 2 dimensional cases ' +
                              'can be plotted.')
 
-    # ========================================
-    # plot likelihood versus distance scale 1d
-    # ========================================
+    # ===============================
+    # plot likelihood versus scale 1d
+    # ===============================
 
     @staticmethod
-    def plot_likelihood_versus_distance_scale_1d(
+    def plot_likelihood_versus_scale_1d(
             z,
             X,
             cov,
@@ -323,58 +321,55 @@ class DoubleProfileLikelihood(object):
         load_plot_settings()
 
         # Generate lp for various distance scales
-        distance_scale = numpy.logspace(-3, 2, 200)
-        eta = numpy.zeros((distance_scale.size, ), dtype=float)
-        lp = numpy.zeros((distance_scale.size, ), dtype=float)
-        der1_lp = numpy.zeros((distance_scale.size, ), dtype=float)
-        der1_lp_numerical = numpy.zeros((distance_scale.size-2, ), dtype=float)
+        scale = numpy.logspace(-3, 2, 200)
+        eta = numpy.zeros((scale.size, ), dtype=float)
+        lp = numpy.zeros((scale.size, ), dtype=float)
+        der1_lp = numpy.zeros((scale.size, ), dtype=float)
+        der1_lp_numerical = numpy.zeros((scale.size-2, ), dtype=float)
         log_eta_guess = 1.0
         sign_switch = False
 
         fig, ax = plt.subplots(ncols=2, figsize=(9, 4.5))
         ax2 = ax[0].twinx()
 
-        for j in range(distance_scale.size):
-            cov.set_distance_scale(distance_scale[j])
+        for j in range(scale.size):
+            cov.set_scale(scale[j])
             lp[j] = DoubleProfileLikelihood.likelihood(
                     z, X, cov, sign_switch, log_eta_guess,
-                    distance_scale[j])
+                    scale[j])
             der1_lp[j] = DoubleProfileLikelihood.likelihood_jacobian(
                     z, X, cov, sign_switch, log_eta_guess,
-                    distance_scale[j])[0]
+                    scale[j])[0]
             eta[j] = DoubleProfileLikelihood._find_optimal_eta(
-                    z, X, cov, distance_scale[j], log_eta_guess)
+                    z, X, cov, scale[j], log_eta_guess)
 
         # Numerical derivative of likelihood
-        der1_lp_numerical = (lp[2:] - lp[:-2]) / \
-            (distance_scale[2:] - distance_scale[:-2])
+        der1_lp_numerical = (lp[2:] - lp[:-2]) / (scale[2:] - scale[:-2])
 
         # Exclude large eta
         eta[eta > 1e+16] = numpy.nan
 
         # Find maximum of lp
         max_index = numpy.argmax(lp)
-        optimal_distance_scale = distance_scale[max_index]
+        optimal_scale = scale[max_index]
         optimal_lp = lp[max_index]
 
         # Plot
-        ax[0].plot(distance_scale, lp, color='black',
+        ax[0].plot(scale, lp, color='black',
                    label=r'$\ell(\hat{\eta}, \theta)$')
-        ax[1].plot(
-            distance_scale, der1_lp, color='black', label='Analytic')
-        ax[1].plot(
-                distance_scale[1:-1], der1_lp_numerical, '--', color='black',
-                label='Numerical')
-        ax2.plot(distance_scale, eta, '--', color='black',
+        ax[1].plot(scale, der1_lp, color='black', label='Analytic')
+        ax[1].plot(scale[1:-1], der1_lp_numerical, '--', color='black',
+                   label='Numerical')
+        ax2.plot(scale, eta, '--', color='black',
                  label=r'$\hat{\eta}(\theta)$')
-        ax[0].plot(optimal_distance_scale, optimal_lp, 'o', color='black',
+        ax[0].plot(optimal_scale, optimal_lp, 'o', color='black',
                    markersize=4, label=r'$\hat{\theta}$ (brute force)')
 
         if result is not None:
-            opt_distance_scale = result['hyperparam']['distance_scale']
+            opt_scale = result['hyperparam']['scale']
             opt_lp = result['optimization']['max_likelihood']
-            ax[0].plot(opt_distance_scale, opt_lp, 'o', color='maroon',
-                       markersize=4, label=r'$\hat{\theta}$ (optimized)')
+            ax[0].plot(opt_scale, opt_lp, 'o', color='maroon', markersize=4,
+                       label=r'$\hat{\theta}$ (optimized)')
 
         # Plot annotations
         ax[0].legend(loc='lower right')
@@ -382,9 +377,9 @@ class DoubleProfileLikelihood(object):
         ax2.legend(loc='upper right')
         ax[0].set_xscale('log')
         ax[1].set_xscale('log')
-        ax[0].set_xlim([distance_scale[0], distance_scale[-1]])
-        ax[1].set_xlim([distance_scale[0], distance_scale[-1]])
-        ax2.set_xlim([distance_scale[0], distance_scale[-1]])
+        ax[0].set_xlim([scale[0], scale[-1]])
+        ax[1].set_xlim([scale[0], scale[-1]])
+        ax2.set_xlim([scale[0], scale[-1]])
         ax2.set_ylim(bottom=0.0, top=None)
         ax[0].set_xlabel(r'$\theta$')
         ax[1].set_xlabel(r'$\theta$')
@@ -401,12 +396,12 @@ class DoubleProfileLikelihood(object):
         plt.tight_layout()
         plt.show()
 
-    # ========================================
-    # plot likelihood versus distance scale 2d
-    # ========================================
+    # ===============================
+    # plot likelihood versus scale 2d
+    # ===============================
 
     @staticmethod
-    def plot_likelihood_versus_distance_scale_2d(
+    def plot_likelihood_versus_scale_2d(
             z,
             X,
             cov,
@@ -418,27 +413,24 @@ class DoubleProfileLikelihood(object):
         load_plot_settings()
 
         # Optimal point
-        optimal_distance_scale = result['hyperparam']['distance_scale']
+        optimal_scale = result['hyperparam']['scale']
 
         # Generate lp for various distance scales
-        distance_scale1 = numpy.logspace(-2, 1, 10)
-        distance_scale2 = numpy.logspace(-2, 1, 10)
-        lp = numpy.zeros((distance_scale2.size, distance_scale1.size),
-                         dtype=float)
-        eta = numpy.zeros((distance_scale2.size, distance_scale1.size),
-                          dtype=float)
+        scale1 = numpy.logspace(-2, 1, 10)
+        scale2 = numpy.logspace(-2, 1, 10)
+        lp = numpy.zeros((scale2.size, scale1.size), dtype=float)
+        eta = numpy.zeros((scale2.size, scale1.size), dtype=float)
         log_eta_guess = 1.0
         sign_switch = False
 
-        for i in range(distance_scale2.size):
-            for j in range(distance_scale1.size):
-                distance_scale = [distance_scale1[j], distance_scale2[i]]
-                cov.set_distance_scale(distance_scale)
+        for i in range(scale2.size):
+            for j in range(scale1.size):
+                scale = [scale1[j], scale2[i]]
+                cov.set_scale(scale)
                 lp[i, j] = DoubleProfileLikelihood.likelihood(
-                        z, X, cov, sign_switch, log_eta_guess,
-                        distance_scale)
+                        z, X, cov, sign_switch, log_eta_guess, scale)
                 eta[i, j] = DoubleProfileLikelihood._find_optimal_eta(
-                        z, X, cov, distance_scale, log_eta_guess)
+                        z, X, cov, scale, log_eta_guess)
 
         # Convert inf to nan
         lp = numpy.where(numpy.isinf(lp), numpy.nan, lp)
@@ -455,28 +447,22 @@ class DoubleProfileLikelihood(object):
         # Increase resolution for better contour plot
         N = 300
         f1 = scipy.interpolate.interp2d(
-                numpy.log10(distance_scale1),
-                numpy.log10(distance_scale2), lp, kind='cubic')
+                numpy.log10(scale1), numpy.log10(scale2), lp, kind='cubic')
         f2 = scipy.interpolate.interp2d(
-                numpy.log10(distance_scale1),
-                numpy.log10(distance_scale2), eta, kind='cubic')
-        distance_scale1_fine = numpy.logspace(
-                numpy.log10(distance_scale1[0]),
-                numpy.log10(distance_scale1[-1]), N)
-        distance_scale2_fine = numpy.logspace(
-                numpy.log10(distance_scale2[0]),
-                numpy.log10(distance_scale2[-1]), N)
-        x, y = numpy.meshgrid(distance_scale1_fine, distance_scale2_fine)
-        lp_fine = f1(numpy.log10(distance_scale1_fine),
-                     numpy.log10(distance_scale2_fine))
-        eta_fine = f2(numpy.log10(distance_scale1_fine),
-                      numpy.log10(distance_scale2_fine))
+                numpy.log10(scale1), numpy.log10(scale2), eta, kind='cubic')
+        scale1_fine = numpy.logspace(
+                numpy.log10(scale1[0]), numpy.log10(scale1[-1]), N)
+        scale2_fine = numpy.logspace(
+                numpy.log10(scale2[0]), numpy.log10(scale2[-1]), N)
+        x, y = numpy.meshgrid(scale1_fine, scale2_fine)
+        lp_fine = f1(numpy.log10(scale1_fine), numpy.log10(scale2_fine))
+        eta_fine = f2(numpy.log10(scale1_fine), numpy.log10(scale2_fine))
 
         # Find maximum of lp
         max_indices = numpy.unravel_index(numpy.nanargmax(lp_fine),
                                           lp_fine.shape)
-        opt_distance_scale1 = distance_scale1_fine[max_indices[1]]
-        opt_distance_scale2 = distance_scale2_fine[max_indices[0]]
+        opt_scale1 = scale1_fine[max_indices[1]]
+        opt_scale2 = scale2_fine[max_indices[0]]
         # opt_lp = lp_fine[max_indices[0], max_indices[1]]
 
         # We will plot the difference of max of Lp to Lp, called z
@@ -538,30 +524,28 @@ class DoubleProfileLikelihood(object):
         # cbar.set_ticks([0,0.3,0.6,0.9,1])
 
         # Plot max of the whole 2D array
-        ax[0].plot(opt_distance_scale1, opt_distance_scale2, 'o', color='red',
-                   markersize=6, label=r'$(\hat{\theta}_1, \hat{\theta}_2)$ ' +
-                                       r'(by brute force on grid)')
-        ax[1].plot(opt_distance_scale1, opt_distance_scale2, 'o', color='red',
-                   markersize=6, label=r'$(\hat{\theta}_1, \hat{\theta}_2)$ ' +
-                                       r'(by brute force on grid)')
+        ax[0].plot(opt_scale1, opt_scale2, 'o', color='red', markersize=6,
+                   label=r'$(\hat{\theta}_1, \hat{\theta}_2)$ (by brute ' +
+                         r'force on grid)')
+        ax[1].plot(opt_scale1, opt_scale2, 'o', color='red', markersize=6,
+                   label=r'$(\hat{\theta}_1, \hat{\theta}_2)$ (by brute ' +
+                         r'force on grid)')
 
         # Plot optimal point as found by the profile likelihood method
-        ax[0].plot(optimal_distance_scale[0], optimal_distance_scale[1], 'o',
-                   color='black', markersize=6,
-                   label=r'$(\hat{\theta}_1, \hat{\theta}_2)$ (by ' +
-                         r'optimization')
-        ax[1].plot(optimal_distance_scale[0], optimal_distance_scale[1], 'o',
-                   color='black', markersize=6,
-                   label=r'$(\hat{\theta}_1, \hat{\theta}_2)$ (by ' +
-                         r'optimization')
+        ax[0].plot(optimal_scale[0], optimal_scale[1], 'o', color='black',
+                   markersize=6, label=r'$(\hat{\theta}_1, \hat{\theta}_2)$ ' +
+                                       r'(by optimization')
+        ax[1].plot(optimal_scale[0], optimal_scale[1], 'o', color='black',
+                   markersize=6, label=r'$(\hat{\theta}_1, \hat{\theta}_2)$ ' +
+                                       r'(by optimization')
 
         # Plot annotations
         ax[0].legend()
         ax[1].legend()
-        ax[0].set_xlim([distance_scale1[0], distance_scale1[-1]])
-        ax[0].set_ylim([distance_scale2[0], distance_scale2[-1]])
-        ax[1].set_xlim([distance_scale1[0], distance_scale1[-1]])
-        ax[1].set_ylim([distance_scale2[0], distance_scale2[-1]])
+        ax[0].set_xlim([scale1[0], scale1[-1]])
+        ax[0].set_ylim([scale2[0], scale2[-1]])
+        ax[1].set_xlim([scale1[0], scale1[-1]])
+        ax[1].set_ylim([scale2[0], scale2[-1]])
         ax[0].set_xscale('log')
         ax[1].set_xscale('log')
         ax[0].set_yscale('log')

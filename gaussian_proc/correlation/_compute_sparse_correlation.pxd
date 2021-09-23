@@ -23,14 +23,14 @@ cdef double compute_sparse_correlation(
         const double[:] point1,
         const double[:] point2,
         const int dimension,
-        const double[:] distance_scale,
+        const double[:] scale,
         Kernel kernel) nogil
 
 # Compute sparse correlation jacobian
 cdef void compute_sparse_correlation_jacobian(
         const double[:, ::1] points,
         const int dimension,
-        const double[:] distance_scale,
+        const double[:] scale,
         Kernel kernel,
         int row,
         int index_pointer,
@@ -41,7 +41,7 @@ cdef void compute_sparse_correlation_jacobian(
 cdef void compute_sparse_correlation_hessian(
         const double[:, ::1] points,
         const int dimension,
-        const double[:] distance_scale,
+        const double[:] scale,
         Kernel kernel,
         int row,
         int index_pointer,

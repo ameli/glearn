@@ -38,7 +38,7 @@ cdef void _generate_correlation_matrix(
         const double[:, ::1] points,
         const int matrix_size,
         const int dimension,
-        const double[:] distance_scale,
+        const double[:] scale,
         Kernel kernel,
         const int num_threads,
         double[:, ::1] correlation_matrix) nogil:
@@ -58,9 +58,9 @@ cdef void _generate_correlation_matrix(
         is the dimension of the spatial points.
     :type dimension: int
 
-    :param distance_scale: A parameter of the correlation function that
-        scales distances.
-    :type distance_scale: double
+    :param scale: A parameter of the correlation function that scales the
+        spatial distances.
+    :type scale: double
 
     :param nu: The parameter :math:`\\nu` of Matern correlation kernel.
     :type nu: float
@@ -91,11 +91,7 @@ cdef void _generate_correlation_matrix(
 
                 # Compute correlation
                 correlation_matrix[i][j] = compute_dense_correlation(
-                        points[i][:],
-                        points[j][:],
-                        dimension,
-                        distance_scale,
-                        kernel)
+                        points[i][:], points[j][:], dimension, scale, kernel)
 
                 # Use symmetry of the correlation matrix
                 if i != j:
@@ -112,7 +108,7 @@ cdef void _generate_correlation_matrix_jacobian(
         const double[:, ::1] points,
         const int matrix_size,
         const int dimension,
-        const double[:] distance_scale,
+        const double[:] scale,
         Kernel kernel,
         const int num_threads,
         double[:, :, ::1] correlation_matrix_jacobian) nogil:
@@ -132,9 +128,9 @@ cdef void _generate_correlation_matrix_jacobian(
         is the dimension of the spatial points.
     :type dimension: int
 
-    :param distance_scale: A parameter of the correlation function that
+    :param scale: A parameter of the correlation function that
         scales distances.
-    :type distance_scale: double
+    :type scale: double
 
     :param nu: The parameter :math:`\\nu` of Matern correlation kernel.
     :type nu: float
@@ -164,12 +160,8 @@ cdef void _generate_correlation_matrix_jacobian(
             for j in range(i, matrix_size):
 
                 compute_dense_correlation_jacobian(
-                        points,
-                        dimension,
-                        distance_scale,
-                        kernel,
-                        correlation_matrix_jacobian,
-                        i, j)
+                        points, dimension, scale, kernel,
+                        correlation_matrix_jacobian, i, j)
 
                 # Use symmetry of the correlation matrix jacobian
                 if i != j:
@@ -188,7 +180,7 @@ cdef void _generate_correlation_matrix_hessian(
         const double[:, ::1] points,
         const int matrix_size,
         const int dimension,
-        const double[:] distance_scale,
+        const double[:] scale,
         Kernel kernel,
         const int num_threads,
         double[:, :, :, ::1] correlation_matrix_hessian) nogil:
@@ -208,9 +200,9 @@ cdef void _generate_correlation_matrix_hessian(
         is the dimension of the spatial points.
     :type dimension: int
 
-    :param distance_scale: A parameter of the correlation function that
-        scales distances.
-    :type distance_scale: double
+    :param scale: A parameter of the correlation function that scales the
+        spatial distances.
+    :type scale: double
 
     :param nu: The parameter :math:`\\nu` of Matern correlation kernel.
     :type nu: float
@@ -240,12 +232,8 @@ cdef void _generate_correlation_matrix_hessian(
             for j in range(i, matrix_size):
 
                 compute_dense_correlation_hessian(
-                        points,
-                        dimension,
-                        distance_scale,
-                        kernel,
-                        correlation_matrix_hessian,
-                        i, j)
+                        points, dimension, scale, kernel,
+                        correlation_matrix_hessian, i, j)
 
                 # Use symmetry of the correlation matrix jacobian
                 if i != j:
@@ -261,7 +249,7 @@ cdef void _generate_correlation_matrix_hessian(
 
 def generate_dense_correlation(
         points,
-        distance_scale,
+        scale,
         kernel,
         derivative,
         verbose):
@@ -283,9 +271,8 @@ def generate_dense_correlation(
         the dimension of the spatial points.
     :type points: numpy.ndarray
 
-    :param distance_scale: A parameter of correlation function that scales
-        distance.
-    :type distance_scale: float
+    :param scale: A parameter of correlation function that scales the distance.
+    :type scale: float
 
     :param verbose: If ``True``, prints some information during the process.
     :type verbose: bool
@@ -318,12 +305,7 @@ def generate_dense_correlation(
 
         # Dense correlation matrix
         _generate_correlation_matrix(
-                points,
-                matrix_size,
-                dimension,
-                distance_scale,
-                kernel,
-                num_threads,
+                points, matrix_size, dimension, scale, kernel, num_threads,
                 correlation_matrix)
 
         return correlation_matrix
@@ -337,12 +319,7 @@ def generate_dense_correlation(
 
         # Dense correlation matrix
         _generate_correlation_matrix_jacobian(
-                points,
-                matrix_size,
-                dimension,
-                distance_scale,
-                kernel,
-                num_threads,
+                points, matrix_size, dimension, scale, kernel, num_threads,
                 correlation_matrix_jacobian)
 
         # Slice each derivative component into a list element
@@ -361,12 +338,7 @@ def generate_dense_correlation(
 
         # Dense correlation matrix
         _generate_correlation_matrix_hessian(
-                points,
-                matrix_size,
-                dimension,
-                distance_scale,
-                kernel,
-                num_threads,
+                points, matrix_size, dimension, scale, kernel, num_threads,
                 correlation_matrix_hessian)
 
         # Slice each derivative component into a list element

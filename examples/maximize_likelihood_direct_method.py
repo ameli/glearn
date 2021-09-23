@@ -32,7 +32,7 @@ def main():
     # Generate points
     # num_points = 30
     # num_points = 95
-    num_points = 40
+    num_points = 50
     dimension = 1
     grid = True
     points = generate_points(num_points, dimension, grid)
@@ -51,7 +51,7 @@ def main():
     # kernel = Linear()
     # kernel = SquareExponential()
     # kernel = RationalQuadratic()
-    # cor = Correlation(points, kernel=kernel, distance_scale=0.2, sparse=False)
+    # cor = Correlation(points, kernel=kernel, scale=0.1, sparse=False)
     cor = Correlation(points, kernel=kernel, sparse=False)
 
     # Covariance
@@ -62,8 +62,8 @@ def main():
 
     # Trainign options
     # profile_param = 'none'
-    profile_param = 'var'
-    # profile_param = 'var_noise'
+    # profile_param = 'var'
+    profile_param = 'var_noise'
 
     # optimization_method = 'chandrupatla'  # requires jacobian
     optimization_method = 'Nelder-Mead'     # requires func
@@ -77,8 +77,8 @@ def main():
     # hyperparam_guess = [0.0]
     # hyperparam_guess = [0, 0.1, 0.1]
     # hyperparam_guess = [-1, 1e-1]
-    # hyperparam_guess = [1.0]
-    hyperparam_guess = [0, 0.1]
+    hyperparam_guess = [1.0]
+    # hyperparam_guess = [0, 0.1]
     # hyperparam_guess = [0.1, 0.1]
     # hyperparam_guess = [0.1, 0.1, 0.1, 0.1]
     # hyperparam_guess = [0.01, 0.01, 0.1]

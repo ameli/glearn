@@ -14,5 +14,5 @@
 cdef double euclidean_distance(
         const double[:] point1,
         const double[:] point2,
-        const double[:] distance_scale,
+        const double[:] scale,
         const int dimension) nogil

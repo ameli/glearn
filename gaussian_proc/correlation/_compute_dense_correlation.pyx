@@ -29,17 +29,13 @@ cdef double compute_dense_correlation(
         const double[:] point1,
         const double[:] point2,
         const int dimension,
-        const double[:] distance_scale,
+        const double[:] scale,
         Kernel kernel) nogil:
     """
     Computes the i-j entry of the correlation matrix.
     """
 
-    cdef double distance = euclidean_distance(
-            point1,
-            point2,
-            distance_scale,
-            dimension)
+    cdef double distance = euclidean_distance(point1, point2, scale, dimension)
 
     return kernel.cy_kernel(distance)
 
@@ -53,13 +49,13 @@ cdef double compute_dense_correlation(
 cdef void compute_dense_correlation_jacobian(
         const double[:, ::1] points,
         const int dimension,
-        const double[:] distance_scale,
+        const double[:] scale,
         Kernel kernel,
         double[:, :, ::1] correlation_matrix_jacobian,
         int i,
         int j) nogil:
     """
-    Computes the Jacobian of correlation with respect to distance_scale
+    Computes the Jacobian of correlation with respect to scale
     parameters.
     """
 
@@ -73,22 +69,19 @@ cdef void compute_dense_correlation_jacobian(
         return
 
     cdef double distance = euclidean_distance(
-            points[i][:],
-            points[j][:],
-            distance_scale,
-            dimension)
+            points[i][:], points[j][:], scale, dimension)
 
     # Derivative of kernel function w.r.t distance
     cdef double d1_kernel = kernel.cy_kernel_first_derivative(distance)
 
-    # Derivative of distance w.r.t one of the components of distance_scale
+    # Derivative of distance w.r.t one of the components of scale
     cdef double d1_distance
 
     for p in range(dimension):
 
-        # derivative of distance w.r.t the p-th component of distance_scale
+        # derivative of distance w.r.t the p-th component of scale
         d1_distance = -(points[i, p] - points[j, p])**2 / \
-            (distance * distance_scale[p]**3)
+            (distance * scale[p]**3)
 
         # Derivative of correlation
         correlation_matrix_jacobian[p, i, j] = d1_kernel * d1_distance
@@ -103,13 +96,13 @@ cdef void compute_dense_correlation_jacobian(
 cdef void compute_dense_correlation_hessian(
         const double[:, ::1] points,
         const int dimension,
-        const double[:] distance_scale,
+        const double[:] scale,
         Kernel kernel,
         double[:, :, :, ::1] correlation_matrix_hessian,
         int i,
         int j) nogil:
     """
-    Computes the Hessian of correlation with respect to distance_scale
+    Computes the Hessian of correlation with respect to scale
     parameters.
     """
 
@@ -123,15 +116,12 @@ cdef void compute_dense_correlation_hessian(
         return
 
     cdef double distance = euclidean_distance(
-            points[i][:],
-            points[j][:],
-            distance_scale,
-            dimension)
+            points[i][:], points[j][:], scale, dimension)
 
     cdef double d1_kernel = kernel.cy_kernel_first_derivative(distance)
     cdef double d2_kernel = kernel.cy_kernel_second_derivative(distance)
 
-    # Derivative of distance w.r.t one of the components of distance_scale
+    # Derivative of distance w.r.t one of the components of scale
     cdef double dp_distance
     cdef double dq_distance
     cdef double dpq_distance
@@ -139,26 +129,25 @@ cdef void compute_dense_correlation_hessian(
     for p in range(dimension):
         for q in range(p, dimension):
 
-            # derivative of distance w.r.t the p-th component of distance_scale
+            # derivative of distance w.r.t the p-th component of scale
             dp_distance = -(points[i, p] - points[j, p])**2 / \
-                (distance * distance_scale[p]**3)
+                (distance * scale[p]**3)
 
-            # derivative of distance w.r.t the p-th component of distance_scale
+            # derivative of distance w.r.t the p-th component of scale
             if q == p:
                 dq_distance = dp_distance
             else:
                 dq_distance = -(points[i, q] - points[j, q])**2 / \
-                    (distance * distance_scale[q]**3)
+                    (distance * scale[q]**3)
 
             # Second mixed derivative of distance w.r.t the p and q component
             if q == p:
                 dpq_distance = ((points[i, p] - points[j, p])**2 /
-                                (distance * distance_scale[p]**3)) * \
-                        (3.0 / distance_scale[p] + dp_distance / distance)
+                                (distance * scale[p]**3)) * \
+                        (3.0 / scale[p] + dp_distance / distance)
             else:
                 dpq_distance = ((points[i, p] - points[j, p])**2 /
-                                (distance**2 * distance_scale[p]**3)) * \
-                                    dq_distance
+                                (distance**2 * scale[p]**3)) * dq_distance
 
             # Second partial derivative of correlation w.r.t p and q components
             correlation_matrix_hessian[p, q, i, j] = \

@@ -41,7 +41,7 @@ cdef int _generate_correlation_matrix(
         const double[:, ::1] points,
         const int matrix_size,
         const int dimension,
-        const double[:] distance_scale,
+        const double[:] scale,
         Kernel kernel,
         const double kernel_threshold,
         const int num_threads,
@@ -73,9 +73,9 @@ cdef int _generate_correlation_matrix(
         is the dimension of the spatial points.
     :type dimension: int
 
-    :param distance_scale: A parameter of the correlation function that
-        scales distances.
-    :type distance_scale: double
+    :param scale: A parameter of the correlation function that scales spatial
+        distances.
+    :type scale: double
 
     :param nu: The parameter :math:`\\nu` of Matern correlation kernel.
     :type nu: float
@@ -153,10 +153,7 @@ cdef int _generate_correlation_matrix(
                 # Compute an element of the matrix
                 thread_data[openmp.omp_get_thread_num()] = \
                         compute_sparse_correlation(
-                                points[i][:],
-                                points[j][:],
-                                dimension,
-                                distance_scale,
+                                points[i][:], points[j][:], dimension, scale,
                                 kernel)
 
                 # Check with kernel threshold to taper out or store
@@ -214,7 +211,7 @@ cdef void _generate_correlation_matrix_jacobian(
         const double[:, ::1] points,
         const int matrix_size,
         const int dimension,
-        const double[:] distance_scale,
+        const double[:] scale,
         Kernel kernel,
         const int num_threads,
         int[:] matrix_column_indices,
@@ -243,9 +240,9 @@ cdef void _generate_correlation_matrix_jacobian(
         is the dimension of the spatial points.
     :type dimension: int
 
-    :param distance_scale: A parameter of the correlation function that
-        scales distances.
-    :type distance_scale: double
+    :param scale: A parameter of the correlation function that scales spatial
+        distances.
+    :type scale: double
 
     :param nu: The parameter :math:`\\nu` of Matern correlation kernel.
     :type nu: float
@@ -312,7 +309,7 @@ cdef void _generate_correlation_matrix_jacobian(
 
                 # Compute all jacobian derivatives for one matrix element
                 compute_sparse_correlation_jacobian(
-                        points, dimension, distance_scale, kernel, row,
+                        points, dimension, scale, kernel, row,
                         index_pointer, matrix_column_indices, matrix_data)
 
 
@@ -326,7 +323,7 @@ cdef void _generate_correlation_matrix_hessian(
         const double[:, ::1] points,
         const int matrix_size,
         const int dimension,
-        const double[:] distance_scale,
+        const double[:] scale,
         Kernel kernel,
         const int num_threads,
         int[:] matrix_column_indices,
@@ -355,9 +352,9 @@ cdef void _generate_correlation_matrix_hessian(
         is the dimension of the spatial points.
     :type dimension: int
 
-    :param distance_scale: A parameter of the correlation function that
-        scales distances.
-    :type distance_scale: double
+    :param scale: A parameter of the correlation function that scales spatial
+        distances.
+    :type scale: double
 
     :param nu: The parameter :math:`\\nu` of Matern correlation kernel.
     :type nu: float
@@ -424,7 +421,7 @@ cdef void _generate_correlation_matrix_hessian(
 
                 # Compute all hessian derivatives for one matrix element
                 compute_sparse_correlation_hessian(
-                        points, dimension, distance_scale, kernel, row,
+                        points, dimension, scale, kernel, row,
                         index_pointer, matrix_column_indices, matrix_data)
 
 
@@ -522,7 +519,7 @@ def _estimate_kernel_threshold(
         matrix_size,
         dimension,
         density,
-        distance_scale,
+        scale,
         kernel):
     """
     Estimates the kernel's tapering threshold to sparsify a dense matrix into a
@@ -586,9 +583,9 @@ def _estimate_kernel_threshold(
         actual matrix density.
     :type sparse_density: int
 
-    :param distance_scale: A parameter of correlation function that scales
+    :param scale: A parameter of correlation function that scales spatial
         distance.
-    :type distance_scale: float
+    :type scale: float
 
     :param nu: The parameter :math:`\\nu` of Matern correlation kernel.
     :type nu: float
@@ -607,13 +604,13 @@ def _estimate_kernel_threshold(
                 'Adjacency: %0.2f. Correlation matrix will become identity '
                 % (adjacency_volume) +
                 'since kernel radius is less than grid size. To increase ' +
-                'adjacency, consider increasing density or distance_scale.')
+                'adjacency, consider increasing density or scale.')
 
     # Volume of an ellipsoid with radia of the components of the correlation
     # scale is equvalent to the vlume of an d-ball with the radius of the
     # geometric mean of the correlation scale elements
-    dimesnion = distance_scale.size
-    geometric_mean_radius = numpy.prod(distance_scale)**(1.0/ dimension)
+    dimesnion = scale.size
+    geometric_mean_radius = numpy.prod(scale)**(1.0/ dimension)
     correlation_ellipsoid_volume = _ball_volume(geometric_mean_radius,
                                                 dimension)
 
@@ -647,7 +644,7 @@ def _estimate_kernel_threshold(
 
 def _estimate_max_nnz(
         matrix_size,
-        distance_scale,
+        scale,
         dimension,
         density):
     """
@@ -677,12 +674,11 @@ def _estimate_max_nnz(
     estimated_nnz = int(numpy.ceil(density * (matrix_size**2)))
 
     # Normalize correlation scale so that its largest element is one
-    normalized_distance_scale = \
-        distance_scale / numpy.max(distance_scale)
+    normalized_scale = scale / numpy.max(scale)
 
     # Get the geometric mean of the normalized correlation
     geometric_mean_radius = \
-        numpy.prod(normalized_distance_scale)**(1.0/dimension)
+        numpy.prod(normalized_scale)**(1.0/dimension)
 
     # Multiply the estimated nnz by unit hypercube over unit ball volume ratio
     unit_hypercube_volume = 1.0
@@ -699,7 +695,7 @@ def _estimate_max_nnz(
 
 def generate_sparse_correlation(
         points,
-        distance_scale,
+        scale,
         kernel,
         derivative,
         density,
@@ -723,9 +719,9 @@ def generate_sparse_correlation(
         the dimension of the spatial points.
     :type points: numpy.ndarray
 
-    :param distance_scale: A parameter of correlation function that scales
+    :param scale: A parameter of correlation function that scales spatial
         distance.
-    :type distance_scale: float
+    :type scale: float
 
     :param nu: The parameter :math:`\\nu` of Matern correlation kernel.
     :type nu: float
@@ -762,18 +758,10 @@ def generate_sparse_correlation(
 
     # kernel threshold
     kernel_threshold = _estimate_kernel_threshold(
-            matrix_size,
-            dimension,
-            density,
-            distance_scale,
-            kernel)
+            matrix_size, dimension, density, scale, kernel)
 
     # maximum nnz
-    max_nnz = _estimate_max_nnz(
-            matrix_size,
-            distance_scale,
-            dimension,
-            density)
+    max_nnz = _estimate_max_nnz(matrix_size, scale, dimension, density)
 
     success = 0
 
@@ -790,18 +778,9 @@ def generate_sparse_correlation(
 
             # Generate matrix assuming the estimated nnz is enough
             success = _generate_correlation_matrix(
-                    points,
-                    matrix_size,
-                    dimension,
-                    distance_scale,
-                    kernel,
-                    kernel_threshold,
-                    num_threads,
-                    max_nnz,
-                    nnz,
-                    matrix_row_indices,
-                    matrix_column_indices,
-                    matrix_data)
+                    points, matrix_size, dimension, scale, kernel,
+                    kernel_threshold, num_threads, max_nnz, nnz,
+                    matrix_row_indices, matrix_column_indices, matrix_data)
 
         # Double the number of pre-allocated nnz and try again
         if not bool(success):
@@ -848,15 +827,8 @@ def generate_sparse_correlation(
 
         # Generate matrix assuming the estimated nnz is enough
         _generate_correlation_matrix_jacobian(
-                points,
-                matrix_size,
-                dimension,
-                distance_scale,
-                kernel,
-                num_threads,
-                matrix_column_indices,
-                matrix_index_pointer,
-                matrix_data)
+                points, matrix_size, dimension, scale, kernel, num_threads,
+                matrix_column_indices, matrix_index_pointer, matrix_data)
 
         # Construct the correlation matrix from indices
         correlation_list_jacobian = [None] * dimension
@@ -890,15 +862,8 @@ def generate_sparse_correlation(
 
         # Generate matrix assuming the estimated nnz is enough
         _generate_correlation_matrix_hessian(
-                points,
-                matrix_size,
-                dimension,
-                distance_scale,
-                kernel,
-                num_threads,
-                matrix_column_indices,
-                matrix_index_pointer,
-                matrix_data)
+                points, matrix_size, dimension, scale, kernel, num_threads,
+                matrix_column_indices, matrix_index_pointer, matrix_data)
 
         # Construct the correlation matrix from indices
         correlation_list_hessian = [[] for _ in range(dimension)]
