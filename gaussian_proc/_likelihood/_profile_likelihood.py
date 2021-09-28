@@ -24,7 +24,6 @@ from .._utilities.plot_utilities import *                    # noqa: F401, F403
 from .._utilities.plot_utilities import load_plot_settings, save_plot, plt, \
         mark_inset, InsetPosition, matplotlib, make_axes_locatable
 from ._root_finding import find_interval_with_sign_change, chandrupatla_method
-from ._likelihood_utilities import M_dot
 import imate
 import warnings
 
@@ -51,15 +50,170 @@ class ProfileLikelihood(object):
         # Attributes
         self.z = z
         self.X = X
-        self.cov = cov
-        self.mixed_cor = self.cov.mixed_cor
+        self.mixed_cor = cov.mixed_cor
 
-        # Member data
-        self.use_logscale = True
-        self.hyperparam = None
-        self.lp = None
-        self.dlp_deta = None
-        self.d2lp_deta2 = None
+        # Configuration
+        self.hyperparam_tol = 1e-8
+        self.use_log_eta = True
+        self.use_log_scale = True
+
+        # Store ell, its Jacobian and Hessian.
+        self.ell = None
+        self.ell_jacobian = None
+        self.ell_hessian = None
+
+        # Store hyperparam used to compute ell, its Jacobian and Hessian.
+        self.ell_hyperparam = None
+        self.ell_jacobian_hyperparam = None
+        self.ell_hessian_hyperparam = None
+
+        # Internal settings
+        self.max_eta = 1e+16
+        self.min_eta = 1e-16
+
+    # =================
+    # eta to hyperparam
+    # =================
+
+    def _eta_to_hyperparam(self, eta):
+        """
+        Sets hyperparam from eta. eta is always given as natural scale (i.e.,
+        not as in log scale). If self.use_log_eta is True, hyperparam is set
+        as log10 of eta, otherwise, just as eta.
+        """
+
+        # If logscale is used, output hyperparam is log of eta.
+        if self.use_log_eta:
+            hyperparam = numpy.log10(numpy.abs(eta))
+        else:
+            hyperparam = numpy.abs(eta)
+
+        return hyperparam
+
+    # =================
+    # hyperparam to eta
+    # =================
+
+    def _hyperparam_to_eta(self, hyperparam):
+        """
+        Sets eta from hyperparam. If self.use_log_eta is True, hyperparam is
+        the log10 of eta, hence, 10**hyperparam is set to eta. If
+        self.use_log_eta is False, hyperparam is directly set to eta.
+        """
+
+        # Using only the first component (if an array is given)
+        if numpy.isscalar(hyperparam):
+            hyperparam_ = hyperparam
+        else:
+            hyperparam_ = hyperparam[0]
+
+        # If logscale is used, input hyperparam is log of eta.
+        if self.use_log_eta:
+            eta = 10.0**hyperparam_
+        else:
+            eta = numpy.abs(hyperparam_)
+
+        return eta
+
+    # ===================
+    # scale to hyperparam
+    # ===================
+
+    def _scale_to_hyperparam(self, scale):
+        """
+        Sets hyperparam from scale. scale is always given with no log-scale
+        If self.use_log_eta is True, hyperparam is set as log10 of scale,
+        otherwise, just as scale.
+        """
+
+        # If logscale is used, output hyperparam is log of scale.
+        if self.use_log_scale:
+            hyperparam = numpy.log10(numpy.abs(scale))
+        else:
+            hyperparam = numpy.abs(scale)
+
+        return hyperparam
+
+    # ===================
+    # hyperparam to scale
+    # ===================
+
+    def _hyperparam_to_scale(self, hyperparam):
+        """
+        Sets scale from hyperparam. If self.use_log_eta is True, hyperparam is
+        the log10 of scale, hence, 10**hyperparam is set to scale. If
+        self.use_log_eta is False, hyperparam is directly set to scale.
+        """
+
+        # If logscale is used, input hyperparam is log of the scale.
+        if self.use_log_scale:
+            scale = 10.0**hyperparam
+        else:
+            scale = numpy.abs(hyperparam)
+
+        return scale
+
+    # =====
+    # M dot
+    # =====
+
+    def M_dot(self, Binv, Y, eta, z):
+        """
+        Multiplies the matrix :math:`\\mathbf{M}` by a given vector
+        :math:`\\boldsymbol{z}`. The matrix :math:`\\mathbf{M}` is defined by
+
+        .. math::
+
+            \\mathbf{M} = \\boldsymbol{\\Sigma}^{-1} \\mathbf{P},
+
+        where the covarance matrix :math:`\\boldsymbol{\\Sigmna}` is defined by
+
+        .. math::
+
+            \\boldsymbol{\\Sigma} = \\sigma^2 \\mathbf{K} +
+            \\sigma_0^2 \\mathbf{I},
+
+        and the projection matrix :math:`\\mathbf{P}` is defined by
+
+        .. math::
+
+            \\mathbf{P} = \\mathbf{I} - \\mathbf{X} (\\mathbf{X}^{\\intercal}
+            \\boldsymbol{\\Sigma}^{-1}) \\mathbf{X})^{-1}
+            \\mathbf{X}^{\\intercal} \\boldsymbol{\\Sigma}^{-1}.
+
+        :param cov: An object of class :class:`Covariance` which represents
+            the operator :math:`\\sigma^2 \\mathbf{K} +
+            \\sigma_0^2 \\mathbf{I}`.
+        :type cov: gaussian_proc.Covariance
+
+        :param Binv: The inverse of matrix
+            :math:`\\mathbf{B} = \\mathbf{X}^{\\intercal} \\mathbf{Y}`.
+        :type Binv: numpy.ndarray
+
+        :param Y: The matrix
+            :math:`\\mathbf{Y} = \\boldsymbol{\\Sigma}^{-1} \\mathbf{X}`.
+        :type Y: numpy.ndarray
+
+        :param sigma: The parameter :math:`\\sigma`.
+        :type sigma: float
+
+        :param sigma0: The parameter :math:`\\sigma_0`.
+        :type sigma0: float
+
+        :param z: The data column vector.
+        :type z: numpy.ndarray
+        """
+
+        # Computing w = Sinv*z, where S is sigma**2 * K + sigma0**2 * I
+        w = self.mixed_cor.solve(eta, z)
+
+        # Computing Mz
+        Ytz = numpy.matmul(Y.T, z)
+        Binv_Ytz = numpy.matmul(Binv, Ytz)
+        Y_Binv_Ytz = numpy.matmul(Y, Binv_Ytz)
+        Mz = w - Y_Binv_Ytz
+
+        return Mz
 
     # ==========
     # Likelihood
@@ -79,32 +233,35 @@ class ProfileLikelihood(object):
 
         hyperparam = [eta, scale[0], scale[1], ...]
 
-        sign_switch changes the sign of the output from lp to -lp. When True,
+        sign_switch changes the sign of the output from ell to -ell. When True,
         this is used to minimizing (instead of maximizing) the negative of
         log-likelihood function.
         """
 
+        # Check if likelihood is already computed for an identical hyperparam
+        if (self.ell_hyperparam is not None) and \
+                (self.ell is not None) and \
+                (hyperparam.size == self.ell_hyperparam.size) and \
+                numpy.allclose(hyperparam, self.ell_hyperparam,
+                               atol=self.hyperparam_tol):
+            if sign_switch:
+                return -self.ell
+            else:
+                return self.ell
+
+        # Get eta
+        eta = self._hyperparam_to_eta(hyperparam)
+
+        # Extract scale from hyperparam
         if (not numpy.isscalar(hyperparam)) and (hyperparam.size > 1):
-            scale = numpy.abs(hyperparam[1:])
-            self.cov.set_scale(scale)
 
-        # Get log_eta
-        if numpy.isscalar(hyperparam):
-            log_eta = hyperparam
-        else:
-            log_eta = hyperparam[0]
-
-        # Change log_eta to eta
-        if numpy.isneginf(log_eta):
-            eta = 0.0
-        else:
-            eta = 10.0**log_eta
-        # eta = numpy.abs(log_eta)  # Test
+            # Set scale of the covariance object
+            scale = self._hyperparam_to_scale(hyperparam[1:])
+            self.mixed_cor.set_scale(scale)
 
         n, m = self.X.shape
 
-        max_eta = 1e+16
-        if numpy.abs(eta) >= max_eta:
+        if numpy.abs(eta) >= self.max_eta:
 
             B = numpy.matmul(self.X.T, self.X)
             Binv = numpy.linalg.inv(B)
@@ -114,7 +271,7 @@ class ProfileLikelihood(object):
             sigma0 = self._find_optimal_sigma0()
 
             # Log likelihood
-            lp = -0.5*(n-m)*numpy.log(2.0*numpy.pi) \
+            ell = -0.5*(n-m)*numpy.log(2.0*numpy.pi) \
                 - (n-m)*numpy.log(sigma0) - 0.5*logdet_Binv - 0.5*(n-m)
 
         else:
@@ -125,21 +282,25 @@ class ProfileLikelihood(object):
             # Compute log det (X.T Kn_inv X)
             Y = self.mixed_cor.solve(eta, self.X)
 
-            XtKninvX = numpy.matmul(self.X.T, Y)
-            logdet_XtKninvX = numpy.log(numpy.linalg.det(XtKninvX))
+            B = numpy.matmul(self.X.T, Y)
+            logdet_B = numpy.log(numpy.linalg.det(B))
 
             # Log likelihood
-            lp = -0.5*(n-m)*numpy.log(2.0*numpy.pi) \
+            ell = -0.5*(n-m)*numpy.log(2.0*numpy.pi) \
                 - (n-m)*numpy.log(sigma) - 0.5*logdet_Kn \
-                - 0.5*logdet_XtKninvX \
+                - 0.5*logdet_B \
                 - 0.5*(n-m)
 
-        # If lp is used in scipy.optimize.minimize, change the sign to obtain
-        # the minimum of -lp
-        if sign_switch:
-            lp = -lp
+        # Store ell to member data (without sign-switch).
+        self.ell = ell
+        self.ell_hyperparam = hyperparam
 
-        return lp
+        # If ell is used in scipy.optimize.minimize, change the sign to obtain
+        # the minimum of -ell
+        if sign_switch:
+            ell = -ell
+
+        return ell
 
     # ===================
     # likelihood der1 eta
@@ -147,28 +308,20 @@ class ProfileLikelihood(object):
 
     def _likelihood_der1_eta(self, hyperparam):
         """
-        lp is the log likelihood probability. lp_deta is d(lp)/d(eta), is the
-        derivative of lp with respect to eta when the optimal value of sigma is
-        substituted in the likelihood function per given eta.
+        ell is the log likelihood probability. dell_deta is d(ell)/d(eta),
+        which is the derivative of ell with respect to eta when the optimal
+        value of sigma is substituted in the likelihood function per given eta.
         """
 
-        # hyperparam
-        if numpy.isscalar(hyperparam):
-            log_eta = hyperparam
-        else:
-            log_eta = hyperparam[0]
-
-        # Change log_eta to eta
-        if numpy.isneginf(log_eta):
-            eta = 0.0
-        else:
-            eta = 10.0**log_eta
-        # eta = numpy.abs(log_eta)  # Test
+        # Get eta
+        eta = self._hyperparam_to_eta(hyperparam)
 
         # Include derivative w.r.t scale
         if (not numpy.isscalar(hyperparam)) and (hyperparam.size > 1):
-            scale = numpy.abs(hyperparam[1:])
-            self.cov.set_scale(scale)
+
+            # Set scale of the covariance object
+            scale = self._hyperparam_to_scale(hyperparam[1:])
+            self.mixed_cor.set_scale(scale)
 
         # Compute Kn_inv*X and Kn_inv*z
         Y = self.mixed_cor.solve(eta, self.X)
@@ -176,7 +329,7 @@ class ProfileLikelihood(object):
 
         n, m = self.X.shape
 
-        # Splitting M into M1 and M2. Here, we compute M2
+        # Compute Mz
         B = numpy.matmul(self.X.T, Y)
         Binv = numpy.linalg.inv(B)
         Ytz = numpy.matmul(Y.T, self.z)
@@ -194,23 +347,13 @@ class ProfileLikelihood(object):
         zMz = numpy.dot(self.z, Mz)
         zM2z = numpy.dot(Mz, Mz)
         sigma2 = zMz/(n-m)
-        dlp_deta = -0.5*(trace_M - zM2z/sigma2)
-
-        # Because we use xi = log_eta instead of eta as the variable, the
-        # derivative of lp w.r.t log_eta is dlp_deta * deta_dxi, and
-        # deta_dxi is eta * lob(10).
-        # dlp_deta = dlp_deta * eta * numpy.log(10.0)
-
-        # Test
-        # log_eta = hyperparam[0]
-        # eta = 10.0**log_eta
-        # dlp_deta *= eta * numpy.log(10.0)
+        dell_deta = -0.5*(trace_M - zM2z/sigma2)
 
         # Return as scalar or array of length one
         if numpy.isscalar(hyperparam):
-            return dlp_deta
+            return dell_deta
         else:
-            return numpy.array([dlp_deta], dtype=float)
+            return numpy.array([dell_deta], dtype=float)
 
     # ===================
     # likelihood der2 eta
@@ -218,27 +361,20 @@ class ProfileLikelihood(object):
 
     def _likelihood_der2_eta(self, hyperparam):
         """
-        The second derivative of lp is computed as a function of only eta.
+        The second derivative of ell is computed as a function of only eta.
         Here, we substituted optimal value of sigma, which is self is a
         function of eta.
         """
 
-        # hyperparam
-        if numpy.isscalar(hyperparam):
-            log_eta = hyperparam
-        else:
-            log_eta = hyperparam[0]
-
-        # Change log_eta to eta
-        if numpy.isneginf(log_eta):
-            eta = 0.0
-        else:
-            eta = 10.0**log_eta
+        # Get eta
+        eta = self._hyperparam_to_eta(hyperparam)
 
         # Include derivative w.r.t scale
         if (not numpy.isscalar(hyperparam)) and (hyperparam.size > 1):
-            scale = numpy.abs(hyperparam[1:])
-            self.cov.set_scale(scale)
+
+            # Set scale of the covariance object
+            scale = self._hyperparam_to_scale(hyperparam[1:])
+            self.mixed_cor.set_scale(scale)
 
         Y = self.mixed_cor.solve(eta, self.X)
         V = self.mixed_cor.solve(eta, Y)
@@ -246,7 +382,7 @@ class ProfileLikelihood(object):
 
         n, m = self.X.shape
 
-        # Splitting M
+        # Compute M*z
         B = numpy.matmul(self.X.T, Y)
         Binv = numpy.linalg.inv(B)
         Ytz = numpy.matmul(Y.T, self.z)
@@ -270,7 +406,7 @@ class ProfileLikelihood(object):
         trace_AA = numpy.trace(AA)
         trace_M2 = trace_Kn2inv - 2.0*trace_C + trace_AA
 
-        # Find z.T * M**3 * z
+        # Compute M*M*z
         YtMz = numpy.matmul(Y.T, Mz)
         Binv_YtMz = numpy.matmul(Binv, YtMz)
         Y_Binv_YtMz = numpy.matmul(Y, Binv_YtMz)
@@ -282,27 +418,27 @@ class ProfileLikelihood(object):
         zM2z = numpy.dot(Mz, Mz)
         zM3z = numpy.dot(Mz, MMz)
         sigma2 = zMz / (n-m)
-        # d2lp_deta2 = 0.5*(trace_M2 * zM2z - 2.0*trace_M * zM3z)
+        # d2ell_deta2 = 0.5*(trace_M2 * zM2z - 2.0*trace_M * zM3z)
 
         # Warning: this relation is the second derivative only at optimal eta,
         # where the first derivative vanishes. It does not require the
-        # computation of zM2z. But, for plotting, or using hessian in
+        # computation of zM2z. But, for plotting, or using Hessian in
         # scipy.optimize.minimize, this formula must not be used, because it is
         # not the actual second derivative everywhere else other than optimal
         # point of eta.
-        # d2lp_deta2 = (0.5/sigma2) * \
+        # d2ell_deta2 = (0.5/sigma2) * \
         #     ((trace_M2/(n-m) + (trace_M/(n-m))**2) * zMz - 2.0*zM3z)
 
         # This relation is the actual second derivative. Use this relation for
-        # the hessian in scipy.optimize.minimize.
-        d2lp_deta2 = 0.5 * \
+        # the Hessian in scipy.optimize.minimize.
+        d2ell_deta2 = 0.5 * \
             (trace_M2 - 2.0*zM3z/sigma2 + zM2z**2/((n-m)*sigma2**2))
 
         # Return as scalar or array of length one
         if numpy.isscalar(hyperparam):
-            return d2lp_deta2
+            return d2ell_deta2
         else:
-            return numpy.array([[d2lp_deta2]], dtype=float)
+            return numpy.array([[d2ell_deta2]], dtype=float)
 
     # =====================
     # likelihood der1 scale
@@ -310,69 +446,67 @@ class ProfileLikelihood(object):
 
     def _likelihood_der1_scale(self, hyperparam):
         """
-        lp is the log likelihood probability. lp_dscale is d(lp)/d(theta), is
-        the derivative of lp with respect to the distance scale (theta).
+        ell is the log likelihood probability. ell_dscale is d(ell)/d(theta),
+        is the derivative of ell with respect to the distance scale (theta).
         """
 
-        # Get log_eta
-        if numpy.isscalar(hyperparam):
-            log_eta = hyperparam
-        else:
-            log_eta = hyperparam[0]
-        eta = 10.0**log_eta
-        scale = numpy.abs(hyperparam[1:])
-        self.cov.set_scale(scale)
+        # Get eta
+        eta = self._hyperparam_to_eta(hyperparam)
+
+        # Set scale of the covariance object
+        scale = self._hyperparam_to_scale(hyperparam[1:])
+        self.mixed_cor.set_scale(scale)
 
         # Initialize jacobian
-        der1_scale = numpy.zeros((scale.size, ), dtype=float)
+        dell_dscale = numpy.zeros((scale.size, ), dtype=float)
 
-        # Find optimal sigma based on eta. Then compute sigma0
+        # Find optimal sigma for the given eta.
         sigma, sigma0 = self._find_optimal_sigma_sigma0(eta)
 
         n, m = self.X.shape
 
-        # Computing Y=Sinv*X and w=Sinv*z.
-        Y = self.cov.solve(sigma, sigma0, self.X)
+        # Computing Y=Kninv*X
+        Y = self.mixed_cor.solve(eta, self.X)
 
         # B is Xt * Y
         B = numpy.matmul(self.X.T, Y)
         Binv = numpy.linalg.inv(B)
 
         # Compute Mz
-        Mz = M_dot(self.cov, Binv, Y, sigma, sigma0, self.z)
+        Mz = self.M_dot(Binv, Y, eta, self.z)
 
         # Needed to compute trace (TODO)
-        S = self.cov.get_matrix(sigma, sigma0)
-        Sinv = numpy.linalg.inv(S)
+        Kn = self.mixed_cor.get_matrix(eta)
+        Kninv = numpy.linalg.inv(Kn)
 
-        # Sp is the derivative of cov w.r.t the p-th element of scale.
+        # Knp is the derivative of mixed_cor (Kn) w.r.t p-th element of scale.
         for p in range(scale.size):
 
             # Compute zMSpMz
-            SpMz = self.cov.dot(sigma, sigma0, Mz, derivative=[p])
-            zMSpMz = numpy.dot(Mz, SpMz)
+            KnpMz = self.mixed_cor.dot(eta, Mz, derivative=[p])
+            zMKnpMz = numpy.dot(Mz, KnpMz)
 
-            # Compute the first component of trace of Sp * M (TODO)
-            Sp = self.cov.get_matrix(sigma, sigma0, derivative=[p])
+            # Compute the first component of trace of Knp * M (TODO)
+            Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
 
-            SpSinv = Sp @ Sinv
-            trace_SpSinv, _ = imate.trace(SpSinv, method='exact')
-            # trace_SpSinv = self.cov.traceinv(sigma, sigma0, Sp,
-            #                                  imate_method='hutchinson')
+            KnpKninv = Knp @ Kninv
+            trace_KnpKninv, _ = imate.trace(KnpKninv, method='exact')
+            # trace_KnpKninv = self.cov.traceinv(
+            #         eta, Knp, imate_method='hutchinson')
 
-            # Compute the second component of trace of Sp * M
-            SpY = self.cov.dot(sigma, sigma0, Y, derivative=[p])
-            YtSpY = numpy.matmul(Y.T, SpY)
-            BinvYtSpY = numpy.matmul(Binv, YtSpY)
-            trace_BinvYtSpY = numpy.trace(BinvYtSpY)
+            # Compute the second component of trace of Knp * M
+            KnpY = self.mixed_cor.dot(eta, Y, derivative=[p])
+            YtKnpY = numpy.matmul(Y.T, KnpY)
+            BinvYtKnpY = numpy.matmul(Binv, YtKnpY)
+            trace_BinvYtKnpY = numpy.trace(BinvYtKnpY)
 
-            # Compute trace of Sp * M
-            trace_SpM = trace_SpSinv - trace_BinvYtSpY
+            # Compute trace of Knp * M
+            trace_KnpM = trace_KnpKninv - trace_BinvYtKnpY
 
-            # Derivative of lp w.r.t p-th element of distance scale
-            der1_scale[p] = -0.5*trace_SpM + 0.5*zMSpMz
+            # Derivative of ell w.r.t p-th element of distance scale
+            dell_dscale[p] = -0.5*trace_KnpM + 0.5*zMKnpMz / sigma**2
 
-        return der1_scale
+        return dell_dscale
 
     # =====================
     # likelihood der2 scale
@@ -380,138 +514,137 @@ class ProfileLikelihood(object):
 
     def _likelihood_der2_scale(self, hyperparam):
         """
-        lp is the log likelihood probability. der2_scale is d2(lp)/d(theta2),
-        is the second derivative of lp with respect to the distance scale
+        ell is the log likelihood probability. der2_scale is d2(ell)/d(theta2),
+        is the second derivative of ell with respect to the distance scale
         (theta). The output is a 2D array of the size of scale.
         """
 
-        # Get log_eta
-        if numpy.isscalar(hyperparam):
-            log_eta = hyperparam
-        else:
-            log_eta = hyperparam[0]
-        eta = 10.0**log_eta
-        scale = numpy.abs(hyperparam[1:])
-        self.cov.set_scale(scale)
+        # Get eta
+        eta = self._hyperparam_to_eta(hyperparam)
 
-        # Initialize hessian
-        der2_scale = numpy.zeros((scale.size, scale.size), dtype=float)
+        # Set scale of the covariance object
+        scale = self._hyperparam_to_scale(hyperparam[1:])
+        self.mixed_cor.set_scale(scale)
+
+        # Initialize Hessian
+        d2ell_dscale2 = numpy.zeros((scale.size, scale.size), dtype=float)
 
         # Find optimal sigma based on eta. Then compute sigma0
         sigma, sigma0 = self._find_optimal_sigma_sigma0(eta)
 
         n, m = self.X.shape
 
-        # Computing Y=Sinv*X and w=Sinv*z.
-        Y = self.cov.solve(sigma, sigma0, self.X)
+        # Computing Y=Kninv*X
+        Y = self.mixed_cor.solve(eta, self.X)
 
         # B is Xt * Y
         B = numpy.matmul(self.X.T, Y)
         Binv = numpy.linalg.inv(B)
 
         # Compute Mz
-        Mz = M_dot(self.cov, Binv, Y, sigma, sigma0, self.z)
+        Mz = self.M_dot(Binv, Y, eta, self.z)
 
         # Needed to compute trace (TODO)
-        S = self.cov.get_matrix(sigma, sigma0)
-        Sinv = numpy.linalg.inv(S)
+        Kn = self.mixed_cor.get_matrix(eta)
+        Kninv = numpy.linalg.inv(Kn)
 
-        # Sp is the derivative of cov w.r.t the p-th element of scale.
+        # Knp is the derivative of mixed_cor (Kn) w.r.t p-th element of scale.
         for p in range(scale.size):
 
-            SpMz = self.cov.dot(sigma, sigma0, Mz, derivative=[p])
-            MSpMz = M_dot(self.cov, Binv, Y, sigma, sigma0, SpMz)
+            KnpMz = self.mixed_cor.dot(eta, Mz, derivative=[p])
+            MKnpMz = self.M_dot(Binv, Y, eta, KnpMz)
 
             for q in range(scale.size):
 
                 # 1. Compute zMSqMSpMz
                 if p == q:
-                    SqMz = SpMz
+                    KnqMz = KnpMz
                 else:
-                    SqMz = self.cov.dot(sigma, sigma0, Mz, derivative=[q])
-                zMSqMSpMz = numpy.dot(SqMz, MSpMz)
+                    KnqMz = self.mixed_cor.dot(eta, Mz, derivative=[q])
+                zMKnqMKnpMz = numpy.dot(KnqMz, MKnpMz)
 
-                # 2. Compute zMSpqMz
-                SpqMz = self.cov.dot(sigma, sigma0, Mz, derivative=[p, q])
-                zMSpqMz = numpy.dot(Mz, SpqMz)
+                # 2. Compute zMKnpqMz
+                KnpqMz = self.mixed_cor.dot(eta, Mz, derivative=[p, q])
+                zMKnpqMz = numpy.dot(Mz, KnpqMz)
 
-                # 3. Computing trace of Spq * M in three steps
+                # 3. Computing trace of Knpq * M in three steps
 
-                # Compute the first component of trace of Spq * Sinv (TODO)
-                Spq = self.cov.get_matrix(sigma, sigma0, derivative=[p, q])
-                SpqSinv = Spq @ Sinv
-                trace_SpqSinv, _ = imate.trace(SpqSinv, method='exact')
+                # Compute the first component of trace of Knpq * Kninv (TODO)
+                Knpq = self.mixed_cor.get_matrix(eta, derivative=[p, q])
+                KnpqKninv = Knpq @ Kninv
+                trace_KnpqKninv, _ = imate.trace(KnpqKninv, method='exact')
 
-                # Compute the second component of trace of Spq * M
-                SpqY = self.cov.dot(sigma, sigma0, Y, derivative=[p, q])
-                YtSpqY = numpy.matmul(Y.T, SpqY)
-                BinvYtSpqY = numpy.matmul(Binv, YtSpqY)
-                trace_BinvYtSpqY = numpy.trace(BinvYtSpqY)
+                # Compute the second component of trace of Knpq * M
+                KnpqY = self.mixed_cor.dot(eta, Y, derivative=[p, q])
+                YtKnpqY = numpy.matmul(Y.T, KnpqY)
+                BinvYtKnpqY = numpy.matmul(Binv, YtKnpqY)
+                trace_BinvYtKnpqY = numpy.trace(BinvYtKnpqY)
 
-                # Compute trace of Spq * M
-                trace_SpqM = trace_SpqSinv - trace_BinvYtSpqY
+                # Compute trace of Knpq * M
+                trace_KnpqM = trace_KnpqKninv - trace_BinvYtKnpqY
 
-                # 4. Compute trace of Sp * M * Sq * M
+                # 4. Compute trace of Knp * M * Knq * M
 
-                # Compute first part of trace of Sp * M * Sq * M
-                Sp = self.cov.get_matrix(sigma, sigma0, derivative=[p])
-                SpSinv = Sp @ Sinv
-                Sq = self.cov.get_matrix(sigma, sigma0, derivative=[q])
+                # Compute first part of trace of Knp * M * Knq * M
+                Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
+                KnpKninv = Knp @ Kninv
+                Knq = self.mixed_cor.get_matrix(eta, derivative=[q])
                 if p == q:
-                    SqSinv = SpSinv
+                    KnqKninv = KnpKninv
                 else:
-                    SqSinv = Sq @ Sinv
-                SpSinvSqSinv = numpy.matmul(SpSinv, SqSinv)
-                trace_SpMSqM_1, _ = imate.trace(SpSinvSqSinv,
-                                                method='exact')
+                    KnqKninv = Knq @ Kninv
+                KnpKninvKnqKninv = numpy.matmul(KnpKninv, KnqKninv)
+                trace_KnpMKnqM_1, _ = imate.trace(KnpKninvKnqKninv,
+                                                  method='exact')
 
-                # Compute the second part of trace of Sp * M * Sq * M
-                SpY = Sp @ Y
+                # Compute the second part of trace of Knp * M * Knq * M
+                KnpY = Knp @ Y
                 if p == q:
-                    SqY = SpY
+                    KnqY = KnpY
                 else:
-                    SqY = Sq @ Y
-                SinvSqY = self.cov.solve(sigma, sigma0, SqY)
-                YtSpSinvSqY = numpy.matmul(SpY.T, SinvSqY)
-                C21 = numpy.matmul(Binv, YtSpSinvSqY)
-                C22 = numpy.matmul(Binv, YtSpSinvSqY.T)
-                trace_SpMSqM_21 = numpy.trace(C21)
-                trace_SpMSqM_22 = numpy.trace(C22)
+                    KnqY = Knq @ Y
+                KninvKnqY = self.mixed_cor.solve(eta, KnqY)
+                YtKnpKninvKnqY = numpy.matmul(KnpY.T, KninvKnqY)
+                C21 = numpy.matmul(Binv, YtKnpKninvKnqY)
+                C22 = numpy.matmul(Binv, YtKnpKninvKnqY.T)
+                trace_KnpMKnqM_21 = numpy.trace(C21)
+                trace_KnpMKnqM_22 = numpy.trace(C22)
 
-                # Compute the third part of trace of Sp * M * Sq * M
-                YtSpY = numpy.matmul(Y.T, SpY)
+                # Compute the third part of trace of Knp * M * Knq * M
+                YtKnpY = numpy.matmul(Y.T, KnpY)
                 if p == q:
-                    YtSqY = YtSpY
+                    YtKnqY = YtKnpY
                 else:
-                    YtSqY = numpy.matmul(Y.T, SqY)
-                Dp = numpy.matmul(Binv, YtSpY)
+                    YtKnqY = numpy.matmul(Y.T, KnqY)
+                Dp = numpy.matmul(Binv, YtKnpY)
                 if p == q:
                     Dq = Dp
                 else:
-                    Dq = numpy.matmul(Binv, YtSqY)
+                    Dq = numpy.matmul(Binv, YtKnqY)
                 D = numpy.matmul(Dp, Dq)
-                trace_SpMSqM_3 = numpy.trace(D)
+                trace_KnpMKnqM_3 = numpy.trace(D)
 
                 # Compute trace of Sp * M * Sq * M
-                trace_SpMSqM = trace_SpMSqM_1 - trace_SpMSqM_21 - \
-                    trace_SpMSqM_22 + trace_SpMSqM_3
+                trace_KnpMKnqM = trace_KnpMKnqM_1 - trace_KnpMKnqM_21 - \
+                    trace_KnpMKnqM_22 + trace_KnpMKnqM_3
 
                 # 5. Second "local" derivatives w.r.t scale
-                local_der2_scale = -0.5*trace_SpqM + 0.5*trace_SpMSqM - \
-                    zMSqMSpMz + 0.5*zMSpqMz
+                local_d2ell_dscale2 = -0.5*trace_KnpqM + 0.5*trace_KnpMKnqM + \
+                    (0.5*zMKnpqMz - zMKnqMKnpMz) / sigma**2
 
                 # Computing total second derivative
-                MSqMz = M_dot(self.cov, Binv, Y, sigma, sigma0, SqMz)
-
-                dp_log_sigma2 = -numpy.dot(self.z, MSpMz) / (n-m)
-                dq_log_sigma2 = -numpy.dot(self.z, MSqMz) / (n-m)
-                der2_scale[p, q] = local_der2_scale + \
+                dp_log_sigma2 = -numpy.dot(Mz, KnpMz) / ((n-m)*sigma**2)
+                if p == q:
+                    dq_log_sigma2 = dp_log_sigma2
+                else:
+                    dq_log_sigma2 = -numpy.dot(Mz, KnqMz) / ((n-m)*sigma**2)
+                d2ell_dscale2[p, q] = local_d2ell_dscale2 + \
                     0.5 * (n-m) * dp_log_sigma2 * dq_log_sigma2
 
                 if p != q:
-                    der2_scale[q, p] = der2_scale[p, q]
+                    d2ell_dscale2[q, p] = d2ell_dscale2[p, q]
 
-        return der2_scale
+        return d2ell_dscale2
 
     # =====================
     # likelihood der2 mixed
@@ -519,67 +652,65 @@ class ProfileLikelihood(object):
 
     def _likelihood_der2_mixed(self, hyperparam):
         """
-        lp is the log likelihood probability. der2_mixed is the mixed second
-        derivative w.r.t eta and scale. The output is a 1D vector of the size
-        of scale.
+        ell is the log likelihood probability. d2ell_deta_dscale is the mixed
+        second derivative w.r.t eta and scale. The output is a 1D vector of the
+        size of scale.
         """
 
-        # Get log_eta
-        if numpy.isscalar(hyperparam):
-            log_eta = hyperparam
-        else:
-            log_eta = hyperparam[0]
-        eta = 10.0**log_eta
-        scale = numpy.abs(hyperparam[1:])
-        self.cov.set_scale(scale)
+        # Get eta
+        eta = self._hyperparam_to_eta(hyperparam)
+
+        # Set scale of the covariance object
+        scale = self._hyperparam_to_scale(hyperparam[1:])
+        self.mixed_cor.set_scale(scale)
 
         # Initialize mixed derivative as 2D array with one row.
-        der2_mixed = numpy.zeros((1, scale.size), dtype=float)
+        d2ell_deta_dscale = numpy.zeros((1, scale.size), dtype=float)
 
-        # Find optimal sigma based on eta. Then compute sigma0
+        # Find optimal sigma based on eta.
         sigma, sigma0 = self._find_optimal_sigma_sigma0(eta)
 
         n, m = self.X.shape
 
-        # Computing Y=Sinv*X and w=Sinv*z.
-        Y = self.cov.solve(sigma, sigma0, self.X)
+        # Computing Y=Sinv*X.
+        Y = self.mixed_cor.solve(eta, self.X)
         YtY = numpy.matmul(Y.T, Y)
-        V = self.cov.solve(sigma, sigma0, Y)
+        V = self.mixed_cor.solve(eta, Y)
 
         # B is Xt * Y
         B = numpy.matmul(self.X.T, Y)
         Binv = numpy.linalg.inv(B)
 
         # Compute Mz and MMz
-        Mz = M_dot(self.cov, Binv, Y, sigma, sigma0, self.z)
-        MMz = M_dot(self.cov, Binv, Y, sigma, sigma0, Mz)
+        Mz = self.M_dot(Binv, Y, eta, self.z)
+        MMz = self.M_dot(Binv, Y, eta, Mz)
         zMMz = numpy.dot(Mz, Mz)
 
         # Needed to compute trace (TODO)
-        S = self.cov.get_matrix(sigma, sigma0)
-        Sinv = numpy.linalg.inv(S)
-        Sinv2 = Sinv @ Sinv
+        Kn = self.mixed_cor.get_matrix(eta)
+        Kninv = numpy.linalg.inv(Kn)
+        Kninv2 = Kninv @ Kninv
 
-        # Sp is the derivative of cov w.r.t the p-th element of scale.
+        # Knp is the derivative of mixed_cor (Kn) w.r.t p-th element of scale.
         for p in range(scale.size):
 
-            # Compute zMSpMMz
-            SpMz = self.cov.dot(sigma, sigma0, Mz, derivative=[p])
-            zMSpMz = numpy.dot(Mz, SpMz)
-            zMSpMMz = numpy.dot(SpMz, MMz)
+            # Compute zMKnpMMz
+            KnpMz = self.mixed_cor.dot(eta, Mz, derivative=[p])
+            zMKnpMz = numpy.dot(Mz, KnpMz)
+            zMKnpMMz = numpy.dot(KnpMz, MMz)
 
-            # Compute trace of SpSinv2
-            Sp = self.cov.get_matrix(sigma, sigma0, derivative=[p])
-            SpSinv2 = Sp @ Sinv2
-            trace_SpSinv2, _ = imate.trace(SpSinv2, method='exact')
+            # Compute trace of KnpKninv2
+            Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
+            KnpKninv2 = Knp @ Kninv2
+            trace_KnpKninv2, _ = imate.trace(KnpKninv2, method='exact')
 
             # Compute traces
-            SpY = self.cov.dot(sigma, sigma0, Y, derivative=[p])
-            YtSpY = numpy.matmul(Y.T, SpY)
-            VtSpY = numpy.matmul(V.T, SpY)
-            C1 = numpy.matmul(Binv, VtSpY)
-            C2 = numpy.matmul(Binv, VtSpY.T)
-            D1 = numpy.matmul(Binv, YtSpY)
+            KnpY = self.mixed_cor.dot(eta, Y, derivative=[p])
+            YtKnpY = numpy.matmul(Y.T, KnpY)
+            VtKnpY = numpy.matmul(V.T, KnpY)
+            C1 = numpy.matmul(Binv, VtKnpY)
+            C2 = numpy.matmul(Binv, VtKnpY.T)
+            D1 = numpy.matmul(Binv, YtKnpY)
             D2 = numpy.matmul(Binv, YtY)
             D = numpy.matmul(D1, D2)
 
@@ -588,13 +719,14 @@ class ProfileLikelihood(object):
             trace_D = numpy.trace(D)
 
             # Compute trace of M * Sp * M
-            trace_MSpM = trace_SpSinv2 - trace_C1 - trace_C2 + trace_D
+            trace_MKnpM = trace_KnpKninv2 - trace_C1 - trace_C2 + trace_D
 
             # Compute mixed derivative
-            der2_mixed[p] = sigma**2 * (0.5*trace_MSpM - zMSpMMz +
-                                        (0.5/(n-m)) * zMMz * zMSpMz)
+            local_d2ell_deta_dscale = 0.5*trace_MKnpM - zMKnpMMz / sigma**2
+            d2ell_deta_dscale[p] = local_d2ell_deta_dscale + \
+                (0.5/((n-m)*sigma**4)) * zMMz * zMKnpMz
 
-        return der2_mixed
+        return d2ell_deta_dscale
 
     # ===================
     # likelihood jacobian
@@ -605,19 +737,46 @@ class ProfileLikelihood(object):
         Computes Jacobian w.r.t eta, and if given, scale.
         """
 
-        # Derivative w.r.t eta
-        der1_eta = self._likelihood_der1_eta(hyperparam)
+        # Check if Jacobian is already computed for an identical hyperparam
+        if (self.ell_jacobian_hyperparam is not None) and \
+                (self.ell_jacobian is not None) and \
+                (hyperparam.size == self.ell_jacobian_hyperparam.size) and \
+                numpy.allclose(hyperparam, self.ell_jacobian_hyperparam,
+                               atol=self.hyperparam_tol):
+            if sign_switch:
+                return -self.ell_jacobian
+            else:
+                return self.ell_jacobian
 
-        jacobian = der1_eta
+        # Compute first derivative w.r.t eta
+        dell_deta = self._likelihood_der1_eta(hyperparam)
+
+        # Because we use xi = log_eta instead of eta as the variable, the
+        # derivative of ell w.r.t log_eta should be taken into account.
+        if self.use_log_eta:
+            eta = self._hyperparam_to_eta(hyperparam[0])
+            dell_deta = dell_deta * eta * numpy.log(10.0)
+
+        jacobian = dell_deta
 
         # Compute Jacobian w.r.t scale
         if hyperparam.size > 1:
 
             # Compute first derivative w.r.t scale
-            der1_scale = self._likelihood_der1_scale(hyperparam)
+            dell_dscale = self._likelihood_der1_scale(hyperparam)
+
+            # Convert derivative w.r.t log of scale
+            if self.use_log_scale:
+                scale = self._hyperparam_to_scale(hyperparam[1:])
+                dell_dscale = numpy.multiply(dell_dscale, scale) * \
+                    numpy.log(10.0)
 
             # Concatenate derivatives of eta and scale if needed
-            jacobian = numpy.r_[jacobian, der1_scale]
+            jacobian = numpy.r_[dell_deta, dell_dscale]
+
+        # Store Jacobian to member data (without sign-switch).
+        self.ell_jacobian = jacobian
+        self.ell_jacobian_hyperparam = hyperparam
 
         if sign_switch:
             jacobian = -jacobian
@@ -633,24 +792,82 @@ class ProfileLikelihood(object):
         Computes Hessian w.r.t eta, and if given, scale.
         """
 
-        der2_eta = self._likelihood_der2_eta(hyperparam)
+        # Check if Hessian is already computed for an identical hyperparam
+        if (self.ell_hessian_hyperparam is not None) and \
+                (self.ell_hessian is not None) and \
+                (hyperparam.size == self.ell_hessian_hyperparam.size) and \
+                numpy.allclose(hyperparam, self.ell_hessian_hyperparam,
+                               atol=self.hyperparam_tol):
+            if sign_switch:
+                return -self.ell_hessian
+            else:
+                return self.ell_hessian
 
-        # hessian here is a 2D array of size 1
-        hessian = der2_eta
+        # Compute second derivative w.r.t eta
+        d2ell_deta2 = self._likelihood_der2_eta(hyperparam)
+
+        # To convert derivative to log scale, Jacobian is needed. Note: The
+        # Jacobian itself is already converted to log scale.
+        if self.use_log_eta or self.use_log_scale:
+            jacobian_ = self.likelihood_jacobian(False, hyperparam)
+
+        # Because we use xi = log_eta instead of eta as the variable, the
+        # derivative of ell w.r.t log_eta should be taken into account.
+        if self.use_log_eta:
+            eta = self._hyperparam_to_eta(hyperparam[0])
+            dell_deta = jacobian_[0]
+
+            # Convert second derivative to log scale (Note: dell_deta is
+            # already in log scale)
+            d2ell_deta2 = d2ell_deta2 * eta**2 * numpy.log(10.0)**2 + \
+                dell_deta * numpy.log(10.0)
+
+        # Hessian here is a 2D array of size 1.
+        hessian = d2ell_deta2
 
         # Compute Hessian w.r.t scale
         if hyperparam.size > 1:
 
             # Compute second derivative w.r.t scale
-            der2_scale = self._likelihood_der2_scale(hyperparam)
+            d2ell_dscale2 = self._likelihood_der2_scale(hyperparam)
+
+            if self.use_log_scale:
+                scale = self._hyperparam_to_scale(hyperparam[1:])
+                dell_dscale = jacobian_[1:]
+
+                for p in range(scale.size):
+                    for q in range(scale.size):
+                        if p == q:
+
+                            # dell_dscale is already converted to logscale
+                            d2ell_dscale2[p, q] = d2ell_dscale2[p, q] * \
+                                scale[p]**2 * (numpy.log(10.0)**2) + \
+                                dell_dscale * numpy.log(10.0)
+                        else:
+                            d2ell_dscale2[p, q] = d2ell_dscale2[p, q] * \
+                                scale[p] * scale[q] * (numpy.log(10.0)**2)
 
             # Compute second mixed derivative w.r.t scale and eta
-            der2_mixed = self._likelihood_der2_mixed(hyperparam)
+            d2ell_deta_dscale = self._likelihood_der2_mixed(hyperparam)
+
+            if self.use_log_eta:
+                eta = self._hyperparam_to_eta(hyperparam[0])
+                d2ell_deta_dscale = d2ell_deta_dscale * eta * numpy.log(10.0)
+
+            if self.use_log_scale:
+                scale = self._hyperparam_to_scale(hyperparam[1:])
+                for p in range(scale.size):
+                    d2ell_deta_dscale[p] = d2ell_deta_dscale[p] * \
+                        scale[p] * numpy.log(10.0)
 
             # Concatenate derivatives to form Hessian of all variables
             hessian = numpy.block(
-                    [[hessian, der2_mixed],
-                     [der2_mixed.T, der2_scale]])
+                    [[d2ell_deta2, d2ell_deta_dscale],
+                     [d2ell_deta_dscale.T, d2ell_dscale2]])
+
+        # Store hessian to member data (without sign-switch).
+        self.ell_hessian = hessian
+        self.ell_hessian_hyperparam = hyperparam
 
         if sign_switch:
             hessian = -hessian
@@ -666,9 +883,7 @@ class ProfileLikelihood(object):
         Based on a given eta, finds optimal sigma and sigma0.
         """
 
-        max_eta = 1e+16
-        min_eta = 1e-16
-        if numpy.abs(eta) > max_eta:
+        if numpy.abs(eta) > self.max_eta:
 
             # eta is very large. Use Asymptotic relation
             sigma0 = self._find_optimal_sigma0()
@@ -684,7 +899,7 @@ class ProfileLikelihood(object):
             sigma = self._find_optimal_sigma(eta)
 
             # Find sigma0
-            if numpy.abs(eta) < min_eta:
+            if numpy.abs(eta) < self.min_eta:
                 sigma0 = 0.0
             else:
                 sigma0 = numpy.sqrt(eta) * sigma
@@ -744,7 +959,7 @@ class ProfileLikelihood(object):
             max_iterations=100,
             num_bracket_trials=3):
         """
-        root finding of the derivative of lp.
+        root finding of the derivative of ell.
 
         The log likelihood function is implicitly a function of eta. We have
         substituted the value of optimal sigma, which itself is a function of
@@ -763,7 +978,7 @@ class ProfileLikelihood(object):
                                            num_bracket_trials, args=(), )
 
         if bracket_found:
-            # There is a sign change in the interval of eta. Find root of lp
+            # There is a sign change in the interval of eta. Find root of ell
             # derivative
 
             # Find roots using Brent method
@@ -780,15 +995,15 @@ class ProfileLikelihood(object):
                                       eps_a=tol, maxiter=max_iterations)
 
             # Extract results
-            # eta = 10**res.root                       # Use with Brent
-            eta = 10**res['root']                      # Use with Chandrupatla
+            # eta = self._hyperparam_to_eta(res.root)   # Use with Brent
+            eta = self._hyperparam_to_eta(res['root'])  # Use with Chandrupatla
             sigma, sigma0 = self._find_optimal_sigma_sigma0(eta)
             iter = res['iterations']
 
             # Check second derivative
             # success = True
-            # d2lp_deta2 = self._likelihood_der2_eta(eta)
-            # if d2lp_deta2 < 0:
+            # d2ell_deta2 = self._likelihood_der2_eta(eta)
+            # if d2ell_deta2 < 0:
             #     success = True
             # else:
             #     success = False
@@ -800,38 +1015,38 @@ class ProfileLikelihood(object):
             # Evaluate the function in intervals
             eta_left = bracket[0]
             eta_right = bracket[1]
-            dlp_deta_left = bracket_values[0]
-            dlp_deta_right = bracket_values[1]
+            dell_deta_left = bracket_values[0]
+            dell_deta_right = bracket_values[1]
 
             # Second derivative of log likelihood at eta = zero, using either
             # of the two methods below:
             eta_zero = 0.0
             # method 1: directly from analytical equation
-            d2lp_deta2_zero_eta = self._likelihood_der2_eta(eta_zero)
+            d2ell_deta2_zero_eta = self._likelihood_der2_eta(eta_zero)
 
             # method 2: using forward differencing from first derivative
-            # dlp_deta_zero_eta = self._likelihood_der1_eta(
+            # dell_deta_zero_eta = self._likelihood_der1_eta(
             #         numpy.log10(eta_zero))
-            # d2lp_deta2_zero_eta = \
-            #         (dlp_deta_lowest_eta - dlp_deta_zero_eta) / eta_lowest
+            # d2ell_deta2_zero_eta = \
+            #         (dell_deta_lowest_eta - dell_deta_zero_eta) / eta_lowest
 
-            # print('dL/deta   at eta = 0.0:\t %0.2f'%dlp_deta_zero_eta)
+            # print('dL/deta   at eta = 0.0:\t %0.2f'%dell_deta_zero_eta)
             print('dL/deta   at eta = %0.2e:\t %0.2f'
-                  % (eta_left, dlp_deta_left))
+                  % (eta_left, dell_deta_left))
             print('dL/deta   at eta = %0.2e:\t %0.16f'
-                  % (eta_right, dlp_deta_right))
+                  % (eta_right, dell_deta_right))
             print('d2L/deta2 at eta = 0.0:\t %0.2f'
-                  % d2lp_deta2_zero_eta)
+                  % d2ell_deta2_zero_eta)
 
             # No sign change. Can not find a root
-            if (dlp_deta_left > 0) and (dlp_deta_right > 0):
-                if d2lp_deta2_zero_eta > 0:
+            if (dell_deta_left > 0) and (dell_deta_right > 0):
+                if d2ell_deta2_zero_eta > 0:
                     eta = 0.0
                 else:
                     eta = numpy.inf
 
-            elif (dlp_deta_left < 0) and (dlp_deta_right < 0):
-                if d2lp_deta2_zero_eta < 0:
+            elif (dell_deta_left < 0) and (dell_deta_right < 0):
+                if d2ell_deta2_zero_eta < 0:
                     eta = 0.0
                 else:
                     eta = numpy.inf
@@ -882,24 +1097,35 @@ class ProfileLikelihood(object):
         initial_wall_time = time.time()
         initial_proc_time = time.process_time()
 
+        # Convert eta to log of eta in hyperparam (if use_log_eta is True)
+        eta_guess = hyperparam_guess[0]
+        hyperparam_guess[0] = self._eta_to_hyperparam(eta_guess)
+
+        # Convert scale to log of scale in hyperparam (if use_log_scale True)
+        if (not numpy.isscalar(hyperparam_guess)) and \
+                (len(hyperparam_guess) > 1):
+            scale_guess = hyperparam_guess[1:]
+            hyperparam_guess[1:] = self._scale_to_hyperparam(scale_guess)
+
         if optimization_method == 'chandrupatla':
 
-            if len(hyperparam_guess) > 1:
+            if (not numpy.isscalar(hyperparam_guess)) and \
+                    (len(hyperparam_guess) > 1):
+
                 warnings.warn('"chandrupatla" method does not optimize ' +
                               '"scale". The "distance scale in the given ' +
                               '"hyperparam_guess" will be ignored. To ' +
                               'optimize distance scale with "chandrupatla"' +
                               'method, set "profile_eta" to True.')
-                scale_guess = hyperparam_guess[1:]
-                if self.cov.get_scale() is None:
-                    self.cov.set_scale(scale_guess)
+
+                if self.mixed_cor.get_scale() is None:
+                    self.mixed_cor.set_scale(scale_guess)
                     warnings.warn('"scale" is set based on the guess value.')
 
             # Note: When using interpolation, make sure the interval below is
             # exactly the end points of eta_i, not less or more.
-            log_eta_guess = hyperparam_guess[0]
-            min_eta_guess = numpy.min([1e-4, 10.0**log_eta_guess * 1e-2])
-            max_eta_guess = numpy.max([1e+3, 10.0**log_eta_guess * 1e+2])
+            min_eta_guess = numpy.min([1e-4, eta_guess * 1e-2])
+            max_eta_guess = numpy.max([1e+3, eta_guess * 1e+2])
             interval_eta = [min_eta_guess, max_eta_guess]
 
             # Using root finding method on the first derivative w.r.t eta
@@ -910,7 +1136,7 @@ class ProfileLikelihood(object):
                     False, result['hyperparam']['eta'])
 
             # The distance scale used in this method is the same as its guess.
-            result['hyperparam']['scale'] = self.cov.get_scale()
+            result['hyperparam']['scale'] = self.mixed_cor.get_scale()
 
         else:
             # Partial function of likelihood (with minus to make maximization
@@ -934,20 +1160,15 @@ class ProfileLikelihood(object):
                                           hess=hessian_partial_func)
 
             # Extract res
-            log_eta = res.x[0]
-            if numpy.isneginf(log_eta):
-                eta = 0.0
-            else:
-                eta = 10.0**log_eta
-            # eta = log_eta   # Test
+            eta = self._hyperparam_to_eta(res.x[0])
             sigma, sigma0 = self._find_optimal_sigma_sigma0(eta)
-            max_lp = -res.fun
+            max_ell = -res.fun
 
             # Distance scale
             if res.x.size > 1:
-                scale = numpy.abs(res.x[1:])
+                scale = self._hyperparam_to_scale(res.x[1:])
             else:
-                scale = self.cov.get_scale()
+                scale = self.mixed_cor.get_scale()
 
             # Output dictionary
             result = {
@@ -960,7 +1181,7 @@ class ProfileLikelihood(object):
                 },
                 'optimization':
                 {
-                    'max_likelihood': max_lp,
+                    'max_likelihood': max_ell,
                     'iter': res.nit,
                 }
             }
@@ -989,7 +1210,7 @@ class ProfileLikelihood(object):
         """
 
         # This function can only plot one dimensional data.
-        dimension = self.cov.mixed_cor.cor.dimension
+        dimension = self.mixed_cor.cor.dimension
         if dimension != 1:
             raise ValueError('To plot likelihood w.r.t "eta" and "scale", ' +
                              'the dimension of the data points should be one.')
@@ -1025,21 +1246,27 @@ class ProfileLikelihood(object):
         stencil_size = coeff.size
         center_stencil = stencil_size//2  # Index of the center of stencil
 
-        # Generate lp for various distance scales
+        # Generate ell for various distance scales
         scale = numpy.logspace(-3, 2, 100)
 
-        d0_lp = numpy.zeros((stencil_size, etas.size, scale.size),
-                            dtype=float)
-        d1_lp = numpy.zeros((etas.size, scale.size), dtype=float)
-        d2_lp = numpy.zeros((etas.size, scale.size), dtype=float)
-        d2_mixed_lp = numpy.zeros((etas.size, scale.size),
-                                  dtype=float)
-        d1_lp_numerical = numpy.zeros((stencil_size, etas.size, scale.size-2),
-                                      dtype=float)
-        d2_lp_numerical = numpy.zeros((etas.size, scale.size-4),
-                                      dtype=float)
-        d2_mixed_lp_numerical = numpy.zeros((etas.size, scale.size-2),
-                                            dtype=float)
+        # The variable on the abscissa to take derivative with respect to it.
+        if self.use_log_scale:
+            scale_x = numpy.log10(scale)
+        else:
+            scale_x = scale
+
+        d0_ell = numpy.zeros((stencil_size, etas.size, scale.size),
+                             dtype=float)
+        d1_ell = numpy.zeros((etas.size, scale.size), dtype=float)
+        d2_ell = numpy.zeros((etas.size, scale.size), dtype=float)
+        d2_mixed_ell = numpy.zeros((etas.size, scale.size),
+                                   dtype=float)
+        d1_ell_numerical = numpy.zeros((stencil_size, etas.size, scale.size-2),
+                                       dtype=float)
+        d2_ell_numerical = numpy.zeros((etas.size, scale.size-4),
+                                       dtype=float)
+        d2_mixed_ell_numerical = numpy.zeros((etas.size, scale.size-2),
+                                             dtype=float)
 
         fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(10, 8))
         colors = matplotlib.cm.nipy_spectral(
@@ -1048,50 +1275,62 @@ class ProfileLikelihood(object):
         for i in range(etas.size):
 
             # Stencil to perturb eta
-            d_eta = etas[i] * 1e-3
-            eta_stencil = etas[i] + \
-                d_eta * numpy.arange(-stencil_size//2+1, stencil_size//2+1)
+            if self.use_log_eta:
+                log_eta = numpy.log10(etas[i])
+                d_eta = log_eta * 1e-3
+                eta_stencil = 10.0**(
+                        log_eta + d_eta *
+                        numpy.arange(-stencil_size//2+1, stencil_size//2+1))
+            else:
+                d_eta = etas[i] * 1e-3
+                eta_stencil = etas[i] + \
+                    d_eta * numpy.arange(-stencil_size//2+1, stencil_size//2+1)
 
             for j in range(scale.size):
 
                 # Set the scale
-                self.cov.set_scale(scale[j])
+                self.mixed_cor.set_scale(scale[j])
 
                 # Likelihood (first index, center_stencil, means the main etas)
                 for k in range(stencil_size):
-                    d0_lp[k, i, j] = self.likelihood(
-                            False, numpy.log10(eta_stencil[k]))
+                    d0_ell[k, i, j] = self.likelihood(
+                            False, self._eta_to_hyperparam(eta_stencil[k]))
 
                 # First derivative of likelihood w.r.t distance scale
-                hyperparam = numpy.r_[numpy.log10(etas[i]), scale[j]]
-                d1_lp[i, j] = self._likelihood_der1_scale(hyperparam)[0]
+                sign_switch = False
+                hyperparam = numpy.r_[
+                        self._eta_to_hyperparam(etas[i]),
+                        self._scale_to_hyperparam(scale[j])]
+                d1_ell[i, j] = self.likelihood_jacobian(
+                        sign_switch, hyperparam)[1]
 
                 # Second derivative of likelihood w.r.t distance scale
-                d2_lp[i, j] = self._likelihood_der2_scale(hyperparam)[0, 0]
+                hessian_ = self.likelihood_hessian(sign_switch, hyperparam)
+                d2_ell[i, j] = hessian_[1, 1]
 
                 # Second mixed derivative of likelihood w.r.t distance scale
-                d2_mixed_lp[i, j] = self._likelihood_der2_mixed(hyperparam)[0]
+                d2_mixed_ell[i, j] = hessian_[0, 1]
 
             for k in range(stencil_size):
                 # Compute first derivative numerically
-                d1_lp_numerical[k, i, :] = \
-                        (d0_lp[k, i, 2:] - d0_lp[k, i, :-2]) / \
-                        (scale[2:] - scale[:-2])
+                d1_ell_numerical[k, i, :] = \
+                        (d0_ell[k, i, 2:] - d0_ell[k, i, :-2]) / \
+                        (scale_x[2:] - scale_x[:-2])
 
                 # Second mixed derivative numerically (finite difference)
-                d2_mixed_lp_numerical[i, :] += \
-                    coeff[k] * d1_lp_numerical[k, i, :] / d_eta
+                d2_mixed_ell_numerical[i, :] += \
+                    coeff[k] * d1_ell_numerical[k, i, :] / d_eta
 
             # Compute second derivative numerically
-            d2_lp_numerical[i, :] = \
-                (d1_lp_numerical[center_stencil, i, 2:] -
-                 d1_lp_numerical[center_stencil, i, :-2]) / \
-                (scale[3:-1] - scale[1:-3])
+            d2_ell_numerical[i, :] = \
+                (d1_ell_numerical[center_stencil, i, 2:] -
+                 d1_ell_numerical[center_stencil, i, :-2]) / \
+                (scale_x[3:-1] - scale_x[1:-3])
 
-            # Find maximum of lp
-            max_index = numpy.argmax(d0_lp[center_stencil, i, :])
+            # Find maximum of ell
+            max_index = numpy.argmax(d0_ell[center_stencil, i, :])
             optimal_scale = scale[max_index]
-            optimal_lp = d0_lp[center_stencil, i, max_index]
+            optimal_ell = d0_ell[center_stencil, i, max_index]
 
             # Plot
             if etas[i] == optimal_eta:
@@ -1100,19 +1339,19 @@ class ProfileLikelihood(object):
             else:
                 label = r'$\eta=%0.2e$' % etas[i]
                 marker = 'o'
-            ax[0, 0].plot(scale, d0_lp[center_stencil, i, :], color=colors[i],
+            ax[0, 0].plot(scale, d0_ell[center_stencil, i, :], color=colors[i],
                           label=label)
-            ax[0, 1].plot(scale, d1_lp[i, :], color=colors[i], label=label)
-            ax[1, 0].plot(scale, d2_lp[i, :], color=colors[i], label=label)
-            ax[1, 1].plot(scale, d2_mixed_lp[i, :], color=colors[i],
+            ax[0, 1].plot(scale, d1_ell[i, :], color=colors[i], label=label)
+            ax[1, 0].plot(scale, d2_ell[i, :], color=colors[i], label=label)
+            ax[1, 1].plot(scale, d2_mixed_ell[i, :], color=colors[i],
                           label=label)
-            ax[0, 1].plot(scale[1:-1], d1_lp_numerical[center_stencil, i, :],
+            ax[0, 1].plot(scale[1:-1], d1_ell_numerical[center_stencil, i, :],
                           '--', color=colors[i])
-            ax[1, 0].plot(scale[2:-2], d2_lp_numerical[i, :], '--',
+            ax[1, 0].plot(scale[2:-2], d2_ell_numerical[i, :], '--',
                           color=colors[i])
-            ax[1, 1].plot(scale[1:-1], d2_mixed_lp_numerical[i, :], '--',
+            ax[1, 1].plot(scale[1:-1], d2_mixed_ell_numerical[i, :], '--',
                           color=colors[i])
-            p = ax[0, 0].plot(optimal_scale, optimal_lp, marker,
+            p = ax[0, 0].plot(optimal_scale, optimal_ell, marker,
                               color=colors[i], markersize=3)
             ax[0, 1].plot(optimal_scale, 0.0,  marker, color=colors[i],
                           markersize=3)
@@ -1126,6 +1365,10 @@ class ProfileLikelihood(object):
         ax[0, 1].set_xscale('log')
         ax[1, 0].set_xscale('log')
         ax[1, 1].set_xscale('log')
+        ax[0, 0].set_yscale('linear')
+        ax[0, 1].set_yscale('linear')
+        ax[1, 0].set_yscale('linear')
+        ax[1, 1].set_yscale('linear')
 
         # Plot annotations
         ax[0, 0].set_xlim([scale[0], scale[-1]])
@@ -1137,13 +1380,41 @@ class ProfileLikelihood(object):
         ax[1, 0].set_xlabel(r'$\theta$')
         ax[1, 1].set_xlabel(r'$\theta$')
         ax[0, 0].set_ylabel(r'$\ell(\theta | \eta)$')
-        ax[0, 1].set_ylabel(
-            r'$\frac{\mathrm{d} \ell(\theta | \eta)}{\mathrm{d} \theta}$')
-        ax[1, 0].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} \theta^2}$')
-        ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} \theta ' +
-            r'\mathrm{d} \eta}$')
+
+        if self.use_log_scale:
+            ax[0, 1].set_ylabel(
+                r'$\frac{\mathrm{d} \ell(\theta | \eta)}{\mathrm{d} ' +
+                r'(\ln\theta)}$')
+        else:
+            ax[0, 1].set_ylabel(
+                r'$\frac{\mathrm{d} \ell(\theta | \eta)}{\mathrm{d} \theta}$')
+
+        if self.use_log_scale:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} ' +
+                r'(\ln\theta)^2}$')
+        else:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} ' +
+                r'\theta^2}$')
+
+        if self.use_log_scale and self.use_log_eta:
+            ax[1, 1].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} ' +
+                r'(\ln \theta) \mathrm{d} (\ln \eta)}$')
+        elif self.use_log_scale:
+            ax[1, 1].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} ' +
+                r'(\ln\theta) \mathrm{d} \eta}$')
+        elif self.use_log_eta:
+            ax[1, 1].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} ' +
+                r'\theta \mathrm{d} (\ln \eta)}$')
+        else:
+            ax[1, 1].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} ' +
+                r'\theta \mathrm{d} \eta}$')
+
         ax[0, 0].set_title(r'Log likelihood function for fixed $\eta$')
         ax[0, 1].set_title(r'First derivative of log likelihood for fixed ' +
                            r'$\eta$')
@@ -1172,7 +1443,7 @@ class ProfileLikelihood(object):
         """
 
         # This function can only plot one dimensional data.
-        dimension = self.cov.mixed_cor.cor.dimension
+        dimension = self.mixed_cor.cor.dimension
         if dimension != 1:
             raise ValueError('To plot likelihood w.r.t "eta" and "scale", ' +
                              'the dimension of the data points should be one.')
@@ -1209,16 +1480,23 @@ class ProfileLikelihood(object):
         center_stencil = stencil_size//2  # Index of the center of stencil
 
         eta = numpy.logspace(-3, 3, 100)
-        d0_lp = numpy.zeros((stencil_size, scales.size, eta.size,),
-                            dtype=float)
-        d1_lp = numpy.zeros((scales.size, eta.size,), dtype=float)
-        d2_lp = numpy.zeros((scales.size, eta.size,), dtype=float)
-        d2_mixed_lp = numpy.zeros((scales.size, eta.size), dtype=float)
-        d1_lp_numerical = numpy.zeros((stencil_size, scales.size, eta.size-2,),
-                                      dtype=float)
-        d2_lp_numerical = numpy.zeros((scales.size, eta.size-4,), dtype=float)
-        d2_mixed_lp_numerical = numpy.zeros((scales.size, eta.size-2),
-                                            dtype=float)
+
+        # The variable on the abscissa to take derivative with respect to it.
+        if self.use_log_eta:
+            x_eta = numpy.log10(eta)
+        else:
+            x_eta = eta
+
+        d0_ell = numpy.zeros((stencil_size, scales.size, eta.size,),
+                             dtype=float)
+        d1_ell = numpy.zeros((scales.size, eta.size,), dtype=float)
+        d2_ell = numpy.zeros((scales.size, eta.size,), dtype=float)
+        d2_mixed_ell = numpy.zeros((scales.size, eta.size), dtype=float)
+        d1_ell_numerical = numpy.zeros(
+                (stencil_size, scales.size, eta.size-2,), dtype=float)
+        d2_ell_numerical = numpy.zeros((scales.size, eta.size-4,), dtype=float)
+        d2_mixed_ell_numerical = numpy.zeros((scales.size, eta.size-2),
+                                             dtype=float)
 
         fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(10, 8))
         colors = matplotlib.cm.nipy_spectral(
@@ -1227,57 +1505,68 @@ class ProfileLikelihood(object):
         for i in range(scales.size):
 
             # Stencil to perturb scale
-            d_scale = scales[i] * 1e-3
-            scale_stencil = scales[i] + \
-                d_scale * numpy.arange(-stencil_size//2+1, stencil_size//2+1)
+            if self.use_log_scale:
+                log_scale = numpy.log10(scales[i])
+                d_scale = log_scale * 1e-3
+                scale_stencil = 10.0**(
+                        log_scale + d_scale *
+                        numpy.arange(-stencil_size//2+1, stencil_size//2+1))
+            else:
+                d_scale = scales[i] * 1e-3
+                scale_stencil = scales[i] + d_scale * \
+                    numpy.arange(-stencil_size//2+1, stencil_size//2+1)
 
             # Iterate over the perturbations of scale
             for k in range(stencil_size):
 
                 # Set the perturbed distance scale
-                self.cov.set_scale(scale_stencil[k])
+                self.mixed_cor.set_scale(scale_stencil[k])
 
                 for j in range(eta.size):
 
                     # Likelihood
-                    d0_lp[k, i, j] = self.likelihood(
-                            False, numpy.log10(eta[j]))
+                    d0_ell[k, i, j] = self.likelihood(
+                            False, self._eta_to_hyperparam(eta[j]))
 
                     if k == center_stencil:
+
+                        hyperparam = numpy.r_[
+                                self._eta_to_hyperparam(eta[j]),
+                                self._scale_to_hyperparam(scale_stencil[k])]
+
                         # First derivative w.r.t eta
-                        d1_lp[i, j] = self._likelihood_der1_eta(
-                                numpy.log10(eta[j]))
+                        sign_switch = False
+                        d1_ell[i, j] = self.likelihood_jacobian(
+                                sign_switch, hyperparam)[0]
 
                         # Second derivative w.r.t eta
-                        d2_lp[i, j] = self._likelihood_der2_eta(
-                                numpy.log10(eta[j]))
+                        hessian_ = self.likelihood_hessian(
+                                sign_switch, hyperparam)
+                        d2_ell[i, j] = hessian_[0, 0]
 
                         # Second mixed derivative w.r.t distance scale and eta
-                        hyperparam = numpy.r_[numpy.log10(eta[j]),
-                                              scale_stencil[k]]
-                        d2_mixed_lp[i, j] = self._likelihood_der2_mixed(
-                                hyperparam)[0]
+                        d2_mixed_ell[i, j] = hessian_[0, 1]
 
             for k in range(stencil_size):
                 # Compute first derivative numerically
-                d1_lp_numerical[k, i, :] = \
-                    (d0_lp[k, i, 2:] - d0_lp[k, i, :-2]) / \
-                    (eta[2:] - eta[:-2])
+                d1_ell_numerical[k, i, :] = \
+                    (d0_ell[k, i, 2:] - d0_ell[k, i, :-2]) / \
+                    (x_eta[2:] - x_eta[:-2])
 
                 # Second mixed derivative numerically (finite difference)
-                d2_mixed_lp_numerical[i, :] += \
-                    coeff[k] * d1_lp_numerical[k, i, :] / d_scale
+                d2_mixed_ell_numerical[i, :] += \
+                    coeff[k] * d1_ell_numerical[k, i, :] / d_scale
 
             # Compute second derivative numerically
-            d2_lp_numerical[i, :] = \
-                (d1_lp_numerical[center_stencil, i, 2:] -
-                 d1_lp_numerical[center_stencil, i, :-2]) / \
-                (eta[3:-1] - eta[1:-3])
+            d2_ell_numerical[i, :] = \
+                (d1_ell_numerical[center_stencil, i, 2:] -
+                 d1_ell_numerical[center_stencil, i, :-2]) / \
+                (x_eta[3:-1] - x_eta[1:-3])
 
-            # Find maximum of lp
-            max_index = numpy.argmax(d0_lp[center_stencil, i, :])
+            # Find maximum of ell
+            max_index = numpy.argmax(d0_ell[center_stencil, i, :])
             optimal_eta = eta[max_index]
-            optimal_lp = d0_lp[center_stencil, i, max_index]
+            optimal_ell = d0_ell[center_stencil, i, max_index]
 
             if scales[i] == optimal_scale:
                 label = r'$\hat{\theta} = %0.2e$' % scales[i]
@@ -1286,18 +1575,19 @@ class ProfileLikelihood(object):
                 label = r'$\theta = %0.2e$' % scales[i]
                 marker = 'o'
 
-            ax[0, 0].plot(eta, d0_lp[center_stencil, i, :], color=colors[i],
+            ax[0, 0].plot(eta, d0_ell[center_stencil, i, :], color=colors[i],
                           label=label)
-            ax[0, 1].plot(eta, d1_lp[i, :], color=colors[i], label=label)
-            ax[1, 0].plot(eta, d2_lp[i, :], color=colors[i], label=label)
-            ax[1, 1].plot(eta, d2_mixed_lp[i, :], color=colors[i], label=label)
-            ax[0, 1].plot(eta[1:-1], d1_lp_numerical[center_stencil, i, :],
+            ax[0, 1].plot(eta, d1_ell[i, :], color=colors[i], label=label)
+            ax[1, 0].plot(eta, d2_ell[i, :], color=colors[i], label=label)
+            ax[1, 1].plot(eta, d2_mixed_ell[i, :], color=colors[i],
+                          label=label)
+            ax[0, 1].plot(eta[1:-1], d1_ell_numerical[center_stencil, i, :],
                           '--', color=colors[i])
-            ax[1, 0].plot(eta[2:-2], d2_lp_numerical[i, :], '--',
+            ax[1, 0].plot(eta[2:-2], d2_ell_numerical[i, :], '--',
                           color=colors[i])
-            ax[1, 1].plot(eta[1:-1], d2_mixed_lp_numerical[i, :], '--',
+            ax[1, 1].plot(eta[1:-1], d2_mixed_ell_numerical[i, :], '--',
                           color=colors[i])
-            p = ax[0, 0].plot(optimal_eta, optimal_lp, marker,
+            p = ax[0, 0].plot(optimal_eta, optimal_ell, marker,
                               color=colors[i], markersize=3)
             ax[0, 1].plot(optimal_eta, 0.0, marker, color=colors[i],
                           markersize=3)
@@ -1317,18 +1607,49 @@ class ProfileLikelihood(object):
         ax[0, 1].set_xscale('log')
         ax[1, 0].set_xscale('log')
         ax[1, 1].set_xscale('log')
+        ax[0, 0].set_yscale('linear')
+        ax[0, 1].set_yscale('linear')
+        ax[1, 0].set_yscale('linear')
+        ax[1, 1].set_yscale('linear')
         ax[0, 0].set_xlabel(r'$\eta$')
         ax[0, 1].set_xlabel(r'$\eta$')
         ax[1, 0].set_xlabel(r'$\eta$')
         ax[1, 1].set_xlabel(r'$\eta$')
         ax[0, 0].set_ylabel(r'$\ell(\eta | \theta)$')
-        ax[0, 1].set_ylabel(
-            r'$\frac{\mathrm{d}\ell(\eta | \theta)}{\mathrm{d}\eta}$')
-        ax[1, 0].set_ylabel(
-            r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d}\eta^2}$')
-        ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d}\eta ' +
-            r'\mathrm{d} \theta}$')
+
+        if self.use_log_eta:
+            ax[0, 1].set_ylabel(
+                r'$\frac{\mathrm{d}\ell(\eta | \theta)}{\mathrm{d} ' +
+                r'(\ln \eta)}$')
+        else:
+            ax[0, 1].set_ylabel(
+                r'$\frac{\mathrm{d}\ell(\eta | \theta)}{\mathrm{d}\eta}$')
+
+        if self.use_log_eta:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d} ' +
+                r'(\ln \eta)^2}$')
+        else:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d} \eta^2}$')
+
+        if self.use_log_eta and self.use_log_scale:
+            ax[1, 1].set_ylabel(
+                r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d} ' +
+                r'(\ln \eta) \mathrm{d} (\ln \theta)}$')
+        elif self.use_log_eta:
+            ax[1, 1].set_ylabel(
+                r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d} ' +
+                r'(\ln \eta) \mathrm{d} \theta}$')
+        elif self.use_log_scale:
+            ax[1, 1].set_ylabel(
+                r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d}\eta ' +
+                r'\mathrm{d} (\ln \theta)}$')
+        else:
+            ax[1, 1].set_ylabel(
+                r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d}\eta ' +
+                r'\mathrm{d} \theta}$')
+
         ax[0, 0].set_title(r'Log likelihood for fixed $\theta$')
         ax[0, 1].set_title(r'First derivative of log likelihood for ' +
                            r'fixed $\theta$')
@@ -1354,7 +1675,7 @@ class ProfileLikelihood(object):
         """
 
         # This function can only plot one dimensional data.
-        dimension = self.cov.mixed_cor.cor.dimension
+        dimension = self.mixed_cor.cor.dimension
         if dimension != 1:
             raise ValueError('To plot likelihood w.r.t "eta" and "scale", ' +
                              'the dimension of the data points should be one.')
@@ -1364,40 +1685,41 @@ class ProfileLikelihood(object):
         # Optimal point
         optimal_eta = result['hyperparam']['eta']
         optimal_scale = result['hyperparam']['scale']
-        optimal_lp = result['optimization']['max_likelihood']
+        optimal_ell = result['optimization']['max_likelihood']
 
         eta = numpy.logspace(-3, 3, 50)
         scale = numpy.logspace(-3, 2, 50)
-        lp = numpy.zeros((scale.size, eta.size), dtype=float)
+        ell = numpy.zeros((scale.size, eta.size), dtype=float)
 
-        # Compute lp
+        # Compute ell
         for i in range(scale.size):
-            self.cov.set_scale(scale[i])
+            self.mixed_cor.set_scale(scale[i])
             for j in range(eta.size):
-                lp[i, j] = self.likelihood(False, numpy.log10(eta[j]))
+                ell[i, j] = self.likelihood(
+                        False, self._eta_to_hyperparam(eta[j]))
 
         # Convert inf to nan
-        lp = numpy.where(numpy.isinf(lp), numpy.nan, lp)
+        ell = numpy.where(numpy.isinf(ell), numpy.nan, ell)
 
         # Smooth data for finer plot
         # sigma_ = [2, 2]  # in unit of data pixel size
-        # lp = scipy.ndimage.filters.gaussian_filter(
-        #         lp, sigma_, mode='nearest')
+        # ell = scipy.ndimage.filters.gaussian_filter(
+        #         ell, sigma_, mode='nearest')
 
         # Increase resolution for better contour plot
         N = 300
         f = scipy.interpolate.interp2d(
-                numpy.log10(eta), numpy.log10(scale), lp, kind='cubic')
+                numpy.log10(eta), numpy.log10(scale), ell, kind='cubic')
         scale_fine = numpy.logspace(numpy.log10(scale[0]),
                                     numpy.log10(scale[-1]), N)
         eta_fine = numpy.logspace(numpy.log10(eta[0]), numpy.log10(eta[-1]), N)
         x, y = numpy.meshgrid(eta_fine, scale_fine)
-        lp_fine = f(numpy.log10(eta_fine), numpy.log10(scale_fine))
+        ell_fine = f(numpy.log10(eta_fine), numpy.log10(scale_fine))
 
-        # We will plot the difference of max of Lp to Lp, called z
-        # max_lp = numpy.abs(numpy.max(lp_fine))
-        # z = max_lp - lp_fine
-        z = lp_fine
+        # We will plot the difference of max of ell to ell, called z
+        # max_ell = numpy.abs(numpy.max(ell_fine))
+        # z = max_ell - ell_fine
+        z = ell_fine
 
         # Cut data
         # cut_data = 0.92
@@ -1443,45 +1765,45 @@ class ProfileLikelihood(object):
 
         # Find max for each fixed eta
         opt_scale1 = numpy.zeros((eta_fine.size, ), dtype=float)
-        opt_lp1 = numpy.zeros((eta_fine.size, ), dtype=float)
-        opt_lp1[:] = numpy.nan
+        opt_ell1 = numpy.zeros((eta_fine.size, ), dtype=float)
+        opt_ell1[:] = numpy.nan
         for j in range(eta_fine.size):
-            if numpy.all(numpy.isnan(lp_fine[:, j])):
+            if numpy.all(numpy.isnan(ell_fine[:, j])):
                 continue
-            max_index = numpy.nanargmax(lp_fine[:, j])
+            max_index = numpy.nanargmax(ell_fine[:, j])
             opt_scale1[j] = scale_fine[max_index]
-            opt_lp1[j] = lp_fine[max_index, j]
+            opt_ell1[j] = ell_fine[max_index, j]
         ax[0].plot(eta_fine, opt_scale1, color='red',
                    label=r'$\hat{\theta}(\eta)$')
-        ax[1].plot(eta_fine, opt_lp1, color='red')
+        ax[1].plot(eta_fine, opt_ell1, color='red')
 
         # Find max for each fixed scale
         opt_eta2 = numpy.zeros((scale_fine.size, ), dtype=float)
-        opt_lp2 = numpy.zeros((scale_fine.size, ), dtype=float)
-        opt_lp2[:] = numpy.nan
+        opt_ell2 = numpy.zeros((scale_fine.size, ), dtype=float)
+        opt_ell2[:] = numpy.nan
         for i in range(scale_fine.size):
-            if numpy.all(numpy.isnan(lp_fine[i, :])):
+            if numpy.all(numpy.isnan(ell_fine[i, :])):
                 continue
-            max_index = numpy.nanargmax(lp_fine[i, :])
+            max_index = numpy.nanargmax(ell_fine[i, :])
             opt_eta2[i] = eta_fine[max_index]
-            opt_lp2[i] = lp_fine[i, max_index]
+            opt_ell2[i] = ell_fine[i, max_index]
         ax[0].plot(opt_eta2, scale_fine, color='black',
                    label=r'$\hat{\eta}(\theta)$')
-        ax[2].plot(scale_fine, opt_lp2, color='black')
+        ax[2].plot(scale_fine, opt_ell2, color='black')
 
         # Plot max of the whole 2D array
-        max_indices = numpy.unravel_index(numpy.nanargmax(lp_fine),
-                                          lp_fine.shape)
+        max_indices = numpy.unravel_index(numpy.nanargmax(ell_fine),
+                                          ell_fine.shape)
         opt_scale = scale_fine[max_indices[0]]
         opt_eta = eta_fine[max_indices[1]]
-        opt_lp = lp_fine[max_indices[0], max_indices[1]]
+        opt_ell = ell_fine[max_indices[0], max_indices[1]]
         ax[0].plot(opt_eta, opt_scale, 'o', color='red', markersize=6,
                    label=r'$(\hat{\eta}, \hat{\theta})$ (by brute force on ' +
                          r'grid)')
-        ax[1].plot(opt_eta, opt_lp, 'o', color='red',
+        ax[1].plot(opt_eta, opt_ell, 'o', color='red',
                    label=r'$\ell(\hat{\eta}, \hat{\theta})$ (by brute force ' +
                          r'on grid)')
-        ax[2].plot(opt_scale, opt_lp, 'o', color='red',
+        ax[2].plot(opt_scale, opt_ell, 'o', color='red',
                    label=r'$\ell(\hat{\eta}, \hat{\theta})$ (by brute force ' +
                          r'on grid)')
 
@@ -1489,9 +1811,9 @@ class ProfileLikelihood(object):
         ax[0].plot(optimal_eta, optimal_scale, 'o', color='black',
                    markersize=6,
                    label=r'$\max_{\eta, \theta} \ell$ (by optimization)')
-        ax[1].plot(optimal_eta, optimal_lp, 'o', color='black',
+        ax[1].plot(optimal_eta, optimal_ell, 'o', color='black',
                    label=r'$\ell(\hat{\eta}, \hat{\theta})$ (by optimization)')
-        ax[2].plot(optimal_scale, optimal_lp, 'o', color='black',
+        ax[2].plot(optimal_scale, optimal_ell, 'o', color='black',
                    label=r'$\ell(\hat{\eta}, \hat{\theta})$ (by optimization)')
 
         # Plot annotations
@@ -1541,11 +1863,11 @@ class ProfileLikelihood(object):
         # print('Eigenvalues of K:')
         # print(eigenvalue_smallest)
         # print(eigenvalue_largest)
-        dlp_deta_upper_bound = 0.5*(n-m) * \
+        dell_deta_upper_bound = 0.5*(n-m) * \
             (1/(eta+eigenvalue_smallest) - 1/(eta+eigenvalue_largest))
-        dlp_deta_lower_bound = -dlp_deta_upper_bound
+        dell_deta_lower_bound = -dell_deta_upper_bound
 
-        return dlp_deta_upper_bound, dlp_deta_lower_bound
+        return dell_deta_upper_bound, dell_deta_lower_bound
 
     # ==========================
     # compute asymptote der1 eta
@@ -1622,8 +1944,6 @@ class ProfileLikelihood(object):
         where the derivative is zero.
         """
 
-        print('Plot first derivative ...')
-
         load_plot_settings()
 
         # Optimal point
@@ -1662,13 +1982,14 @@ class ProfileLikelihood(object):
             eta = numpy.logspace(log_eta_start, log_eta_end, 100)
 
         # Compute derivative of L
-        dlp_deta = numpy.zeros(eta.size)
+        dell_deta = numpy.zeros(eta.size)
         for i in range(eta.size):
-            dlp_deta[i] = self._likelihood_der1_eta(numpy.log10(eta[i]))
+            dell_deta[i] = self._likelihood_der1_eta(
+                    self._eta_to_hyperparam(eta[i]))
 
         # Compute upper and lower bound of derivative
         K = self.mixed_cor.get_matrix(0.0)
-        dlp_deta_upper_bound, dlp_deta_lower_bound = \
+        dell_deta_upper_bound, dell_deta_lower_bound = \
             self._compute_bounds_der1_eta(K, eta)
 
         # Compute asymptote of first derivative, using both first and second
@@ -1678,23 +1999,23 @@ class ProfileLikelihood(object):
             x = eta_high_res
         except NameError:
             x = numpy.logspace(1, log_eta_end, 100)
-        dlp_deta_asymptote_1, dlp_deta_asymptote_2, roots_1, roots_2 = \
+        dell_deta_asymptote_1, dell_deta_asymptote_2, roots_1, roots_2 = \
             self._compute_asymptote_der1_eta(K, x)
 
         # Main plot
         fig, ax1 = plt.subplots()
-        ax1.semilogx(eta, dlp_deta_upper_bound, '--', color='black',
+        ax1.semilogx(eta, dell_deta_upper_bound, '--', color='black',
                      label='Upper bound')
-        ax1.semilogx(eta, dlp_deta_lower_bound, '-.', color='black',
+        ax1.semilogx(eta, dell_deta_lower_bound, '-.', color='black',
                      label='Lower bound')
-        ax1.semilogx(eta, dlp_deta, color='black', label='Exact')
+        ax1.semilogx(eta, dell_deta, color='black', label='Exact')
         if plot_optimal_eta:
             ax1.semilogx(optimal_eta, 0, '.', marker='o', markersize=4,
                          color='black')
 
         # Min of plot limit
         # ax1.set_yticks(numpy.r_[numpy.arange(-120, 1, 40), 20])
-        max_plot = numpy.max(dlp_deta)
+        max_plot = numpy.max(dell_deta)
         max_plot_lim = numpy.ceil(numpy.abs(max_plot)/10.0) * \
             10.0*numpy.sign(max_plot)
 
@@ -1727,19 +2048,19 @@ class ProfileLikelihood(object):
                 mark_inset(ax1, ax2, loc1=3, loc2=1, facecolor='none',
                            edgecolor='0.5')
 
-            ax2.semilogx(eta, numpy.abs(dlp_deta_upper_bound), '--',
+            ax2.semilogx(eta, numpy.abs(dell_deta_upper_bound), '--',
                          color='black')
-            ax2.semilogx(eta, numpy.abs(dlp_deta_lower_bound), '-.',
+            ax2.semilogx(eta, numpy.abs(dell_deta_lower_bound), '-.',
                          color='black')
-            ax2.semilogx(x, dlp_deta_asymptote_1,
+            ax2.semilogx(x, dell_deta_asymptote_1,
                          label=r'$1^{\text{st}}$ order asymptote',
                          color='chocolate')
-            ax2.semilogx(x, dlp_deta_asymptote_2,
+            ax2.semilogx(x, dell_deta_asymptote_2,
                          label=r'$2^{\text{nd}}$ order asymptote',
                          color='olivedrab')
             ax2.semilogx(eta_high_res,
-                         dlp_deta[eta_low_res_left.size:
-                                  eta_low_res_left.size+eta_high_res.size],
+                         dell_deta[eta_low_res_left.size:
+                                   eta_low_res_left.size+eta_high_res.size],
                          color='black')
             ax2.semilogx(optimal_eta, 0, marker='o', markersize=6, linewidth=0,
                          color='white', markerfacecolor='black',
@@ -1757,7 +2078,7 @@ class ProfileLikelihood(object):
             # plt.setp(ax2.get_yticklabels(), backgroundcolor='white')
 
             # Find suitable range for plot limits
-            min_plot = numpy.abs(numpy.min(dlp_deta))
+            min_plot = numpy.abs(numpy.min(dell_deta))
             min_plot_base = 10**numpy.floor(numpy.log10(numpy.abs(min_plot)))
             # min_plot_lim = numpy.ceil(min_plot/min_plot_base)*min_plot_base
             min_plot_lim = numpy.ceil(min_plot/min_plot_base + 1.0) * \

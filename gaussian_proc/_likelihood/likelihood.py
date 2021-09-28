@@ -98,9 +98,6 @@ class Likelihood(object):
                 # 2d plot of likelihood versus sigma0 and sigma
                 likelihood.plot_likelihood_versus_sigma0_sigma(result)
 
-                # 3D plot of likelihood
-                likelihood.plot_3d_likelihood_versus_sigma0_sigma(result)
-
         elif profile_param == 'var':
 
             likelihood = ProfileLikelihood(z, self.X, self.cov)

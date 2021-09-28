@@ -51,7 +51,7 @@ def main():
     # kernel = Linear()
     # kernel = SquareExponential()
     # kernel = RationalQuadratic()
-    # cor = Correlation(points, kernel=kernel, scale=0.1, sparse=False)
+    # cor = Correlation(points, kernel=kernel, scale=0.07, sparse=False)
     cor = Correlation(points, kernel=kernel, sparse=False)
 
     # Covariance
@@ -61,8 +61,8 @@ def main():
     gp = GaussianProcess(mean, cov)
 
     # Trainign options
-    # profile_param = 'none'
-    profile_param = 'var'
+    profile_param = 'none'
+    # profile_param = 'var'
     # profile_param = 'var_noise'
 
     # optimization_method = 'chandrupatla'  # requires jacobian
@@ -74,19 +74,18 @@ def main():
     # optimization_method = 'trust-exact'   # requires func, jacobian, hessian
     # optimization_method = 'trust-ncg'     # requires func, jacobian, hessian
 
-    # hyperparam_guess = [0.0]
+    # hyperparam_guess = [1.0]
     # hyperparam_guess = [0, 0.1, 0.1]
     # hyperparam_guess = [-1, 1e-1]
     # hyperparam_guess = [1.0]
-    hyperparam_guess = [0, 0.1]
     # hyperparam_guess = [0.1, 0.1]
     # hyperparam_guess = [0.1, 0.1, 0.1, 0.1]
-    # hyperparam_guess = [0.01, 0.01, 0.1]
+    hyperparam_guess = [0.01, 0.01, 0.1]
 
     # gp.train(z, options=options, plot=False)
     gp.train(z, profile_param=profile_param,
              optimization_method=optimization_method, tol=1e-5,
-             hyperparam_guess=hyperparam_guess, verbose=False, plot=False)
+             hyperparam_guess=hyperparam_guess, verbose=False, plot=True)
 
 # ===========
 # script main

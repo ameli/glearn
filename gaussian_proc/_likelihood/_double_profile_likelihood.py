@@ -52,6 +52,20 @@ class DoubleProfileLikelihood(object):
         self.mixed_cor = self.cov.mixed_cor
         self.profile_likelihood = ProfileLikelihood(z, X, cov)
 
+        # Configuration
+        self.hyperparam_tol = 1e-8
+        self.use_logscale = True
+
+        # Store ell, its Jacobian and Hessian.
+        self.ell = None
+        self.ell_jacobian = None
+        self.ell_hessian = None
+
+        # Store hyperparam used to compute ell, its Jacobian and Hessian.
+        self.ell_hyperparam = None
+        self.ell_jacobian_hyperparam = None
+        self.ell_hessian_hyperparam = None
+
     # ==========
     # likelihood
     # ==========
@@ -65,6 +79,17 @@ class DoubleProfileLikelihood(object):
         Variable eta is profiled out, meaning that optimal value of eta is
         used in log-likelihood function.
         """
+
+        # Check if likelihood is already computed for an identical hyperparam
+        if (self.ell_hyperparam is not None) and \
+                (self.ell is not None) and \
+                (hyperparam.size == self.ell_hyperparam.size) and \
+                numpy.allclose(hyperparam, self.ell_hyperparam,
+                               atol=self.hyperparam_tol):
+            if sign_switch:
+                return -self.ell
+            else:
+                return self.ell
 
         # Here, hyperparam consists of only scale, but not eta.
         if isinstance(hyperparam, list):
@@ -80,9 +105,13 @@ class DoubleProfileLikelihood(object):
         hyperparam_full = numpy.r_[log_eta, scale]
 
         # Finding the maxima
-        lp = self.profile_likelihood.likelihood(sign_switch, hyperparam_full)
+        ell = self.profile_likelihood.likelihood(sign_switch, hyperparam_full)
 
-        return lp
+        # Store ell to member data (without sign-switch).
+        self.ell = ell
+        self.ell_hyperparam = hyperparam
+
+        return ell
 
     # ===================
     # likelihood jacobian
@@ -96,6 +125,17 @@ class DoubleProfileLikelihood(object):
         """
         Computes Jacobian w.r.t eta, and if given, scale.
         """
+
+        # Check if Jacobian is already computed for an identical hyperparam
+        if (self.ell_jacobian_hyperparam is not None) and \
+                (self.ell_jacobian is not None) and \
+                (hyperparam.size == self.ell_jacobian_hyperparam.size) and \
+                numpy.allclose(hyperparam, self.ell_jacobian_hyperparam,
+                               atol=self.hyperparam_tol):
+            if sign_switch:
+                return -self.ell_jacobian
+            else:
+                return self.ell_jacobian
 
         # When profiling eta is enabled, derivative w.r.t eta is not needed.
         # Compute only Jacobian w.r.t scale. Also, here, the input hyperparam
@@ -119,6 +159,10 @@ class DoubleProfileLikelihood(object):
         # Jacobian only consists of the derivative w.r.t scale
         jacobian = der1_scale
 
+        # Store jacobian to member data (without sign-switch).
+        self.ell_jacobian = jacobian
+        self.ell_jacobian_hyperparam = hyperparam
+
         if sign_switch:
             jacobian = -jacobian
 
@@ -132,6 +176,17 @@ class DoubleProfileLikelihood(object):
         """
         Computes Hessian w.r.t eta, and if given, scale.
         """
+
+        # Check if Hessian is already computed for an identical hyperparam
+        if (self.ell_hessian_hyperparam is not None) and \
+                (self.ell_hessian is not None) and \
+                (hyperparam.size == self.ell_hessian_hyperparam.size) and \
+                numpy.allclose(hyperparam, self.ell_hessian_hyperparam,
+                               atol=self.hyperparam_tol):
+            if sign_switch:
+                return -self.ell_hessian
+            else:
+                return self.ell_hessian
 
         # When profiling eta is enabled, derivative w.r.t eta is not needed.
         # Compute only Jacobian w.r.t scale. Also, here, the input hyperparam
@@ -155,8 +210,12 @@ class DoubleProfileLikelihood(object):
         # Concatenate derivatives to form Hessian of all variables
         hessian = der2_scale
 
-        # if sign_switch:
-        #     hessian = -hessian
+        # Store hessian to member data (without sign-switch).
+        self.ell_hessian = hessian
+        self.ell_hessian_hyperparam = hyperparam
+
+        if sign_switch:
+            hessian = -hessian
 
         return hessian
 
@@ -247,7 +306,7 @@ class DoubleProfileLikelihood(object):
 
         # Find optimal sigma and sigma0 with the optimal eta
         sigma, sigma0 = self.profile_likelihood._find_optimal_sigma_sigma0(eta)
-        max_lp = -res.fun
+        max_ell = -res.fun
 
         # Adding time to the results
         wall_time = time.time() - initial_wall_time
@@ -264,7 +323,7 @@ class DoubleProfileLikelihood(object):
             },
             'optimization':
             {
-                'max_likelihood': max_lp,
+                'max_likelihood': max_ell,
                 'iter': res.nit,
             },
             'time':
@@ -306,12 +365,12 @@ class DoubleProfileLikelihood(object):
 
         load_plot_settings()
 
-        # Generate lp for various distance scales
+        # Generate ell for various distance scales
         scale = numpy.logspace(-3, 2, 200)
         eta = numpy.zeros((scale.size, ), dtype=float)
-        lp = numpy.zeros((scale.size, ), dtype=float)
-        der1_lp = numpy.zeros((scale.size, ), dtype=float)
-        der1_lp_numerical = numpy.zeros((scale.size-2, ), dtype=float)
+        ell = numpy.zeros((scale.size, ), dtype=float)
+        der1_ell = numpy.zeros((scale.size, ), dtype=float)
+        der1_ell_numerical = numpy.zeros((scale.size-2, ), dtype=float)
         log_eta_guess = 1.0
         sign_switch = False
 
@@ -320,37 +379,37 @@ class DoubleProfileLikelihood(object):
 
         for j in range(scale.size):
             self.cov.set_scale(scale[j])
-            lp[j] = self.likelihood(sign_switch, log_eta_guess, scale[j])
-            der1_lp[j] = self.likelihood_jacobian(sign_switch, log_eta_guess,
-                                                  scale[j])[0]
+            ell[j] = self.likelihood(sign_switch, log_eta_guess, scale[j])
+            der1_ell[j] = self.likelihood_jacobian(sign_switch, log_eta_guess,
+                                                   scale[j])[0]
             eta[j] = self._find_optimal_eta(scale[j], log_eta_guess)
 
         # Numerical derivative of likelihood
-        der1_lp_numerical = (lp[2:] - lp[:-2]) / (scale[2:] - scale[:-2])
+        der1_ell_numerical = (ell[2:] - ell[:-2]) / (scale[2:] - scale[:-2])
 
         # Exclude large eta
         eta[eta > 1e+16] = numpy.nan
 
-        # Find maximum of lp
-        max_index = numpy.argmax(lp)
+        # Find maximum of ell
+        max_index = numpy.argmax(ell)
         optimal_scale = scale[max_index]
-        optimal_lp = lp[max_index]
+        optimal_ell = ell[max_index]
 
         # Plot
-        ax[0].plot(scale, lp, color='black',
+        ax[0].plot(scale, ell, color='black',
                    label=r'$\ell(\hat{\eta}, \theta)$')
-        ax[1].plot(scale, der1_lp, color='black', label='Analytic')
-        ax[1].plot(scale[1:-1], der1_lp_numerical, '--', color='black',
+        ax[1].plot(scale, der1_ell, color='black', label='Analytic')
+        ax[1].plot(scale[1:-1], der1_ell_numerical, '--', color='black',
                    label='Numerical')
         ax2.plot(scale, eta, '--', color='black',
                  label=r'$\hat{\eta}(\theta)$')
-        ax[0].plot(optimal_scale, optimal_lp, 'o', color='black',
+        ax[0].plot(optimal_scale, optimal_ell, 'o', color='black',
                    markersize=4, label=r'$\hat{\theta}$ (brute force)')
 
         if result is not None:
             opt_scale = result['hyperparam']['scale']
-            opt_lp = result['optimization']['max_likelihood']
-            ax[0].plot(opt_scale, opt_lp, 'o', color='maroon', markersize=4,
+            opt_ell = result['optimization']['max_likelihood']
+            ax[0].plot(opt_scale, opt_ell, 'o', color='maroon', markersize=4,
                        label=r'$\hat{\theta}$ (optimized)')
 
         # Plot annotations
@@ -392,10 +451,10 @@ class DoubleProfileLikelihood(object):
         # Optimal point
         optimal_scale = result['hyperparam']['scale']
 
-        # Generate lp for various distance scales
+        # Generate ell for various distance scales
         scale1 = numpy.logspace(-2, 1, 10)
         scale2 = numpy.logspace(-2, 1, 10)
-        lp = numpy.zeros((scale2.size, scale1.size), dtype=float)
+        ell = numpy.zeros((scale2.size, scale1.size), dtype=float)
         eta = numpy.zeros((scale2.size, scale1.size), dtype=float)
         log_eta_guess = 1.0
         sign_switch = False
@@ -404,25 +463,25 @@ class DoubleProfileLikelihood(object):
             for j in range(scale1.size):
                 scale = [scale1[j], scale2[i]]
                 self.cov.set_scale(scale)
-                lp[i, j] = self.likelihood(sign_switch, log_eta_guess, scale)
+                ell[i, j] = self.likelihood(sign_switch, log_eta_guess, scale)
                 eta[i, j] = self._find_optimal_eta(scale, log_eta_guess)
 
         # Convert inf to nan
-        lp = numpy.where(numpy.isinf(lp), numpy.nan, lp)
+        ell = numpy.where(numpy.isinf(ell), numpy.nan, ell)
         eta = numpy.where(numpy.isinf(eta), numpy.nan, eta)
         eta[eta > 1e+16] = numpy.nan
 
         # Smooth data for finer plot
         # sigma_ = [2, 2]  # in unit of data pixel size
-        # lp = scipy.ndimage.filters.gaussian_filter(
-        #         lp, sigma_, mode='nearest')
+        # ell = scipy.ndimage.filters.gaussian_filter(
+        #         ell, sigma_, mode='nearest')
         # eta = scipy.ndimage.filters.gaussian_filter(
         #         eta, sigma_, mode='nearest')
 
         # Increase resolution for better contour plot
         N = 300
         f1 = scipy.interpolate.interp2d(
-                numpy.log10(scale1), numpy.log10(scale2), lp, kind='cubic')
+                numpy.log10(scale1), numpy.log10(scale2), ell, kind='cubic')
         f2 = scipy.interpolate.interp2d(
                 numpy.log10(scale1), numpy.log10(scale2), eta, kind='cubic')
         scale1_fine = numpy.logspace(
@@ -430,19 +489,19 @@ class DoubleProfileLikelihood(object):
         scale2_fine = numpy.logspace(
                 numpy.log10(scale2[0]), numpy.log10(scale2[-1]), N)
         x, y = numpy.meshgrid(scale1_fine, scale2_fine)
-        lp_fine = f1(numpy.log10(scale1_fine), numpy.log10(scale2_fine))
+        ell_fine = f1(numpy.log10(scale1_fine), numpy.log10(scale2_fine))
         eta_fine = f2(numpy.log10(scale1_fine), numpy.log10(scale2_fine))
 
-        # Find maximum of lp
-        max_indices = numpy.unravel_index(numpy.nanargmax(lp_fine),
-                                          lp_fine.shape)
+        # Find maximum of ell
+        max_indices = numpy.unravel_index(numpy.nanargmax(ell_fine),
+                                          ell_fine.shape)
         opt_scale1 = scale1_fine[max_indices[1]]
         opt_scale2 = scale2_fine[max_indices[0]]
-        # opt_lp = lp_fine[max_indices[0], max_indices[1]]
+        # opt_ell = ell_fine[max_indices[0], max_indices[1]]
 
-        # We will plot the difference of max of Lp to Lp, called z
-        # z = max_lp - lp_fine
-        z = lp_fine
+        # We will plot the difference of max of ell to ell, called z
+        # z = max_ell - ell_fine
+        z = ell_fine
 
         # Cut data
         # cut_data = 0.92
