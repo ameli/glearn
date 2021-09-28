@@ -1023,24 +1023,24 @@ class FullLikelihood(object):
         ax[0, 2].set_xlabel(r'$\theta$')
         ax[1, 0].set_xlabel(r'$\theta$')
         ax[1, 1].set_xlabel(r'$\theta$')
-        ax[0, 0].set_ylabel(r'$\ell(\theta | \sigma^2, sigma_0^2)$')
+        ax[0, 0].set_ylabel(r'$\ell(\theta | \sigma^2, \sigma_0^2)$')
 
         if self.use_log_scale:
             ax[0, 1].set_ylabel(
-                r'$\frac{\mathrm{d} \ell(\theta | \sigma^2, sigma_0^2)} ' +
+                r'$\frac{\mathrm{d} \ell(\theta | \sigma^2, \sigma_0^2)} ' +
                 r'{\mathrm{d} (\ln \theta)}$')
         else:
             ax[0, 1].set_ylabel(
-                r'$\frac{\mathrm{d} \ell(\theta | \sigma^2, sigma_0^2)} ' +
+                r'$\frac{\mathrm{d} \ell(\theta | \sigma^2, \sigma_0^2)} ' +
                 r'{\mathrm{d} \theta}$')
 
         if self.use_log_scale:
             ax[0, 2].set_ylabel(
-                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, sigma_0^2)} ' +
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
                 r'{\mathrm{d} (\ln \theta)^2}$')
         else:
             ax[0, 2].set_ylabel(
-                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, sigma_0^2)} ' +
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
                 r'{\mathrm{d} \theta^2}$')
 
         if self.use_log_scale:
@@ -1062,7 +1062,7 @@ class FullLikelihood(object):
                 r'{\mathrm{d} \theta \mathrm{d} {\sigma_0}^2}$')
 
         ax[0, 0].set_title(r'Log likelihood function, given ' +
-                           r'$(\sigma^2, \sigma_0^2$ ')
+                           r'$(\sigma^2, \sigma_0^2)$ ')
         ax[0, 1].set_title(r'First derivative of log likelihood, given ' +
                            r'$(\sigma^2, \sigma_0^2)$')
         ax[0, 2].set_title(r'Second derivative of log likelihood, given' +

@@ -482,7 +482,7 @@ class ProfileLikelihood(object):
         # Knp is the derivative of mixed_cor (Kn) w.r.t p-th element of scale.
         for p in range(scale.size):
 
-            # Compute zMSpMz
+            # Compute zMKnpMz
             KnpMz = self.mixed_cor.dot(eta, Mz, derivative=[p])
             zMKnpMz = numpy.dot(Mz, KnpMz)
 
@@ -556,7 +556,7 @@ class ProfileLikelihood(object):
 
             for q in range(scale.size):
 
-                # 1. Compute zMSqMSpMz
+                # 1. Compute zMKnqMKnpMz
                 if p == q:
                     KnqMz = KnpMz
                 else:
@@ -624,7 +624,7 @@ class ProfileLikelihood(object):
                 D = numpy.matmul(Dp, Dq)
                 trace_KnpMKnqM_3 = numpy.trace(D)
 
-                # Compute trace of Sp * M * Sq * M
+                # Compute trace of Knp * M * Knq * M
                 trace_KnpMKnqM = trace_KnpMKnqM_1 - trace_KnpMKnqM_21 - \
                     trace_KnpMKnqM_22 + trace_KnpMKnqM_3
 
@@ -672,7 +672,7 @@ class ProfileLikelihood(object):
 
         n, m = self.X.shape
 
-        # Computing Y=Sinv*X.
+        # Computing Y=Kninv*X.
         Y = self.mixed_cor.solve(eta, self.X)
         YtY = numpy.matmul(Y.T, Y)
         V = self.mixed_cor.solve(eta, Y)
@@ -718,7 +718,7 @@ class ProfileLikelihood(object):
             trace_C2 = numpy.trace(C2)
             trace_D = numpy.trace(D)
 
-            # Compute trace of M * Sp * M
+            # Compute trace of M * Knp * M
             trace_MKnpM = trace_KnpKninv2 - trace_C1 - trace_C2 + trace_D
 
             # Compute mixed derivative
@@ -768,8 +768,9 @@ class ProfileLikelihood(object):
             # Convert derivative w.r.t log of scale
             if self.use_log_scale:
                 scale = self._hyperparam_to_scale(hyperparam[1:])
-                dell_dscale = numpy.multiply(dell_dscale, scale) * \
-                    numpy.log(10.0)
+                for p in range(scale.size):
+                    dell_dscale[p] = dell_dscale[p] * scale[p] * \
+                        numpy.log(10.0)
 
             # Concatenate derivatives of eta and scale if needed
             jacobian = numpy.r_[dell_deta, dell_dscale]
@@ -1810,7 +1811,7 @@ class ProfileLikelihood(object):
         # Plot optimal point as found by the profile likelihood method
         ax[0].plot(optimal_eta, optimal_scale, 'o', color='black',
                    markersize=6,
-                   label=r'$\max_{\eta, \theta} \ell$ (by optimization)')
+                   label=r'$(\hat{\eta}, \hat{\theta})$ (by optimization)')
         ax[1].plot(optimal_eta, optimal_ell, 'o', color='black',
                    label=r'$\ell(\hat{\eta}, \hat{\theta})$ (by optimization)')
         ax[2].plot(optimal_scale, optimal_ell, 'o', color='black',
@@ -1828,10 +1829,10 @@ class ProfileLikelihood(object):
         ax[1].set_xscale('log')
         ax[2].set_xscale('log')
         ax[0].set_yscale('log')
-        ax[0].set_xlabel(r'$\log_{10}(\eta)$')
-        ax[1].set_xlabel(r'$\log_{10}(\eta)$')
-        ax[2].set_xlabel(r'$\log_{10}(\theta)$')
-        ax[0].set_ylabel(r'$\log_{10}(\theta)$')
+        ax[0].set_xlabel(r'$\eta$')
+        ax[1].set_xlabel(r'$\eta$')
+        ax[2].set_xlabel(r'$\theta$')
+        ax[0].set_ylabel(r'$\theta$')
         ax[1].set_ylabel(r'$\ell(\eta, \hat{\theta}(\eta))$')
         ax[2].set_ylabel(r'$\ell(\hat{\eta}(\theta), \theta)$')
         ax[0].set_title('Log likelihood function')
@@ -1927,10 +1928,6 @@ class ProfileLikelihood(object):
         roots_2 = numpy.sort(numpy.real(
             roots_2[numpy.abs(numpy.imag(roots_2)) < 1e-10]))
 
-        print('asymptote roots:')
-        print(roots_1)
-        print(roots_2)
-
         return asymptote_1_order, asymptote_2_order, roots_1, roots_2
 
     # ========================
@@ -1948,6 +1945,8 @@ class ProfileLikelihood(object):
 
         # Optimal point
         optimal_eta = result['hyperparam']['eta']
+        optimal_scale = result['hyperparam']['scale']
+        self.mixed_cor.set_scale(optimal_scale)
 
         if (optimal_eta != 0) and (not numpy.isinf(optimal_eta)):
             plot_optimal_eta = True
@@ -2003,7 +2002,7 @@ class ProfileLikelihood(object):
             self._compute_asymptote_der1_eta(K, x)
 
         # Main plot
-        fig, ax1 = plt.subplots()
+        fig, ax1 = plt.subplots(figsize=(6, 4.5))
         ax1.semilogx(eta, dell_deta_upper_bound, '--', color='black',
                      label='Upper bound')
         ax1.semilogx(eta, dell_deta_lower_bound, '-.', color='black',
@@ -2114,12 +2113,13 @@ class ProfileLikelihood(object):
             for h, l in zip(*ax.get_legend_handles_labels()):
                 handles.append(h)
                 labels.append(l)
-        plt.legend(handles, labels, frameon=False, fontsize='small',
-                   loc='upper left', bbox_to_anchor=(1.2, 1.04))
+        lg = plt.legend(handles, labels, frameon=False, fontsize='small',
+                        loc='upper left', bbox_to_anchor=(1.2, 1.04))
 
         # Save plots
-        # plt.tight_layout()
+        plt.tight_layout()
         filename = 'likelihood_first_derivative'
-        save_plot(plt, filename, transparent_background=False, pdf=True)
+        save_plot(plt, filename, transparent_background=False, pdf=True,
+                  bbox_extra_artists=(lg, ))
 
         plt.show()

@@ -102,7 +102,12 @@ def load_plot_settings():
 # save plot
 # =========
 
-def save_plot(plt, filename, transparent_background=True, pdf=True):
+def save_plot(
+        plt,
+        filename,
+        transparent_background=True,
+        pdf=True,
+        bbox_extra_artists=None):
     """
     Saves plot as svg format in the current working directory.
 
@@ -137,7 +142,7 @@ def save_plot(plt, filename, transparent_background=True, pdf=True):
             plt.savefig(
                     save_fullname_pdf,
                     transparent=transparent_background,
-                    bbox_inches='tight')
+                    bbox_extra_artists=bbox_extra_artists, bbox_inches='tight')
             print('Plot saved to "%s".' % (save_fullname_pdf))
     else:
         print('Cannot save plot to %s. Directory is not writable.' % save_dir)

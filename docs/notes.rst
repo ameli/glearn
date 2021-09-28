@@ -10,19 +10,55 @@ Notes
 ToDo
 ====
 
-* Make logarithmic optimization of `eta` and `theta`. This requires storing
-  function and its derivatives as member data of likelihood class.
-* Add prior distributions for scale parameters :math:`\theta`. This requires
-  storing function and its derivatives in an instance of likelihood class.
-* Add `predict` to `gaussian_process` class.
+---------------
+Store Variables
+---------------
+
+* In full likelihood method, separate Jacobian and Hessian to smaller functions
+  for the derivative of each component.
+* In profile and full method, avoid recomputing ``Y``, ``Binv``, and ``Mz`` by
+  storing these variables as attribute.
 * In ``_profile_likelihood.pyx``, in the function ``find_optimal_sigma``,
   sigma variables are computed before this function is called, like ``Y``,
   ``w``, etc. Passing these can reduce the runtime.
+
+-----
+Prior
+-----
+
+* Add prior distributions for scale parameters :math:`\theta`. This requires
+  storing function and its derivatives in an instance of likelihood class.
+* A class like ``posterior`` might be needed, with a method ``maximize``, in
+  which we modify a derived class from the ``scipy.optimize.minimize``.
+
+-------
+Predict
+-------
+
+* Add ``predict`` to ``gaussian_process`` class.
+
+-----------------
+Hutchinson Method
+-----------------
+
+* In imate package, complete Hutchinson's method to compute trace of
+  Ainv * B1 * Ainv * B2.
+* In profile and full likelihood methods, implement Hutchinson's method to
+  compute the trace of some matrices related to the derivative of scale.
+
+--------------------
+Asymptotic Relations
+--------------------
+
+* Use asymptotic derivatives w.r.t eta to find ``eta_guess`` (used in
+  ``hyperparam_guess``) when user does not provide a guess for eta.
 
 =====
 Ideas
 =====
 
+* Does asymptotic relation exists for derivative w.r.t theta? If yes, its zero
+  can be used to initialize theta_guess, similar to eta_guess.
 
 ======
 Issues

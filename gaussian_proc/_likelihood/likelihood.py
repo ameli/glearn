@@ -119,7 +119,7 @@ class Likelihood(object):
                 # 3D Plot of log-lp function
                 likelihood.plot_likelihood_versus_eta_scale(result)
 
-                # # Plot first derivative of log likelihood
+                # Plot first derivative of log likelihood
                 likelihood.plot_likelihood_der1_eta(result)
 
         elif profile_param == 'var_noise':
