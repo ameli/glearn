@@ -159,14 +159,15 @@ class ProfileLikelihood(object):
 
     def M_dot(self, Binv, Y, eta, z):
         """
-        Multiplies the matrix :math:`\\mathbf{M}` by a given vector
+        Multiplies the matrix :math:`\\mathbf{M}_{1,\\eta}` by a given vector
         :math:`\\boldsymbol{z}`. The matrix :math:`\\mathbf{M}` is defined by
 
         .. math::
 
-            \\mathbf{M} = \\boldsymbol{\\Sigma}^{-1} \\mathbf{P},
+            \\mathbf{M}_{1, \\eta} = \\boldsymbol{\\K}_{\\eta}^{-1} \\mathbf{P}
 
-        where the covarance matrix :math:`\\boldsymbol{\\Sigmna}` is defined by
+        where the covariance matrix :math:`\\boldsymbol{\\Sigmna}` is defined
+        by
 
         .. math::
 
@@ -832,6 +833,7 @@ class ProfileLikelihood(object):
             # Compute second derivative w.r.t scale
             d2ell_dscale2 = self._likelihood_der2_scale(hyperparam)
 
+            # Convert derivative w.r.t log of scale (if needed)
             if self.use_log_scale:
                 scale = self._hyperparam_to_scale(hyperparam[1:])
                 dell_dscale = jacobian_[1:]
