@@ -71,6 +71,24 @@ class ProfileLikelihood(object):
         self.max_eta = 1e+16
         self.min_eta = 1e-16
 
+        # Interval variables that are shared between class methods
+        self.Y = None
+        self.B = None
+        self.Binv = None
+        self.Mz = None
+        self.MMz = None
+        self.sigma2 = None
+        self.sigma02 = None
+        self.Kninv = None
+        self.KnpKninv = None
+
+        # Hyperparameter which the interval variables in the above were
+        # computed based upon it.
+        self.Y_B_Mz_hyperparam = None
+        self.sigma_hyperparam = None
+        self.MMz_hyperparam = None
+        self.Kninv_KnpKninv_hyperparam = None
+
     # =================
     # eta to hyperparam
     # =================
@@ -216,6 +234,228 @@ class ProfileLikelihood(object):
 
         return Mz
 
+    # =============
+    # update Y B Mz
+    # =============
+
+    def _update_Y_B_Mz(self, hyperparam):
+        """
+        Computes Y, B, Binv, and Mz. These variables are shared among many of
+        the functions, hence their values are stored as the class attribute to
+        avoid re-computation when the hyperparam is the same.
+        """
+
+        # Check if likelihood is already computed for an identical hyperparam
+        if (self.Y is None) or \
+                (self.B is None) or \
+                (self.Binv is None) or \
+                (self.Mz is None) or \
+                (self.Y_B_Mz_hyperparam is None) or \
+                (hyperparam.size != self.Y_B_Mz_hyperparam.size) or \
+                (not numpy.allclose(hyperparam, self.Y_B_Mz_hyperparam,
+                                    atol=self.hyperparam_tol)):
+
+            # hyperparameters
+            eta = self._hyperparam_to_eta(hyperparam)
+
+            # Include derivative w.r.t scale
+            if (not numpy.isscalar(hyperparam)) and (hyperparam.size > 1):
+
+                # Set scale of the covariance object
+                scale = self._hyperparam_to_scale(hyperparam[1:])
+                self.mixed_cor.set_scale(scale)
+
+            # Variables to compute/update
+            self.Y = self.mixed_cor.solve(eta, self.X)
+            self.B = numpy.matmul(self.X.T, self.Y)
+            self.Binv = numpy.linalg.inv(self.B)
+            self.Mz = self.M_dot(self.Binv, self.Y, eta, self.z)
+
+            # Update the current hyperparam
+            self.Y_B_Mz_hyperparam = hyperparam
+
+    # =========================
+    # find optimal sigma sigma0
+    # =========================
+
+    def _find_optimal_sigma_sigma0(self, hyperparam):
+        """
+        Based on a given eta, finds optimal sigma and sigma0.
+        """
+
+        # Get eta
+        eta = self._hyperparam_to_eta(hyperparam)
+
+        if numpy.abs(eta) > self.max_eta:
+
+            # eta is very large. Use Asymptotic relation
+            sigma02 = self._find_optimal_sigma02()
+
+            if numpy.isinf(eta):
+                sigma2 = 0.
+            else:
+                sigma2 = sigma02 / eta
+
+        else:
+
+            # Find sigma2
+            sigma2 = self._find_optimal_sigma2(hyperparam)
+
+            # Find sigma02
+            if numpy.abs(eta) < self.min_eta:
+                sigma02 = 0.0
+            else:
+                sigma02 = eta * sigma2
+
+        sigma = numpy.sqrt(sigma2)
+        sigma0 = numpy.sqrt(sigma02)
+
+        return sigma, sigma0
+
+    # ===================
+    # find optimal sigma2
+    # ===================
+
+    def _find_optimal_sigma2(self, hyperparam):
+        """
+        Finds optimal sigma2 either if eta is large or not. As a product, this
+        function also computes Y, Binv, and Mz and stores them into the class
+        attribute.
+        """
+
+        # Get eta
+        eta = self._hyperparam_to_eta(hyperparam)
+
+        if numpy.isinf(eta):
+            self.sigma2 = 0.0
+
+        elif numpy.abs(eta) > self.max_eta:
+
+            # eta is very large. Use Asymptotic relation
+            sigma02 = self._find_optimal_sigma02()
+            self.sigma2 = sigma02 / eta
+
+        else:
+
+            # Check if sigma2 is already computed for an identical hyperparam
+            if (self.sigma2 is None) or \
+                    (self.sigma2_hyperparam is None) or \
+                    (hyperparam.size != self.sigma2_hyperparam.size) or \
+                    (not numpy.allclose(hyperparam, self.sigma2_hyperparam,
+                                        atol=self.hyperparam_tol)):
+
+                # Make sure Y, Binv, Mz are updated. for the given hyperparam
+                self._update_Y_B_Mz(hyperparam)
+
+                n, m = self.X.shape
+                self.sigma2 = numpy.dot(self.z, self.Mz) / (n-m)
+
+                # Update hyperparam
+                self.sigma2_hyperparam = hyperparam
+
+        return self.sigma2
+
+    # ====================
+    # find optimal sigma02
+    # ====================
+
+    def _find_optimal_sigma02(self):
+        """
+        When eta is very large, we assume sigma is zero. Thus, sigma0 is
+        computed by this function.
+
+        This function does not require update of self.mixed_cor with
+        hyperparameters.
+        """
+
+        # Note: this sigma0 is only when eta is at infinity. Hence, computing
+        # it does not require eta, update of self.mixed_cor, or update of Y, B,
+        # Mz. Hence, once it is computed, it can be reused even if other
+        # variables like eta changed. Here, it suffice to only check of
+        # self.sigma0 is None to compute it for the first time. On next calls,
+        # it does not have to be recomputed.
+        if self.sigma02 is None:
+            n, m = self.X.shape
+            B = numpy.matmul(self.X.T, self.X)
+            Binv = numpy.linalg.inv(B)
+            Xtz = numpy.matmul(self.X.T, self.z)
+            BinvXtz = numpy.matmul(self.X, numpy.matmul(Binv, Xtz))
+            self.sigma02 = numpy.dot(self.z, self.z-BinvXtz) / (n-m)
+
+        return self.sigma02
+
+    # ==========
+    # update MMz
+    # ==========
+
+    def _update_MMz(self, hyperparam):
+        """
+        Computes MMz.
+        """
+
+        # Check if likelihood is already computed for an identical hyperparam
+        if (self.MMz is None) or \
+                (hyperparam.size != self.MMz_hyperparam.size) or \
+                (not numpy.allclose(hyperparam, self.MMz_hyperparam,
+                                    atol=self.hyperparam_tol)):
+
+            # Get eta
+            eta = self._hyperparam_to_eta(hyperparam)
+
+            # Include derivative w.r.t scale
+            if (not numpy.isscalar(hyperparam)) and (hyperparam.size > 1):
+
+                # Set scale of the covariance object
+                scale = self._hyperparam_to_scale(hyperparam[1:])
+                self.mixed_cor.set_scale(scale)
+
+            # Update Y, Binv, Mz
+            self._update_Y_B_Mz(hyperparam)
+
+            # Compute M*M*z
+            self.MMz = self.M_dot(self.Binv, self.Y, eta, self.Mz)
+
+            # Update the current hyperparam
+            self.MMz_hyperparam = hyperparam
+
+    # =====================
+    # update Kninv KnpKninv
+    # =====================
+
+    def _update_Kninv_KnpKninv(self, hyperparam):
+        """
+        Compute Kninv, KnpKninv.
+        """
+
+        # Check if likelihood is already computed for an identical hyperparam
+        if (self.Kninv is None) or \
+                (self.KnpKninv is None) or \
+                (self.Kninv_KnpKninv_hyperparam is None) or \
+                (hyperparam.size != self.Kninv_KnpKninv_hyperparam.size) or \
+                (not numpy.allclose(hyperparam, self.Kninv_KnpKninv_hyperparam,
+                                    atol=self.hyperparam_tol)):
+
+            # Get eta
+            eta = self._hyperparam_to_eta(hyperparam)
+
+            # Set scale of the covariance object
+            scale = self._hyperparam_to_scale(hyperparam[1:])
+            self.mixed_cor.set_scale(scale)
+
+            # Update Kninv
+            Kn = self.mixed_cor.get_matrix(eta)
+            self.Kninv = numpy.linalg.inv(Kn)
+
+            # Initialize KnpKninv as list of size of scale.size
+            self.KnpKninv = [None] * scale.size
+
+            for p in range(scale.size):
+                Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
+                self.KnpKninv[p] = Knp @ self.Kninv
+
+            # Update the current hyperparam
+            self.Kninv_KnpKninv_hyperparam = hyperparam
+
     # ==========
     # Likelihood
     # ==========
@@ -264,31 +504,32 @@ class ProfileLikelihood(object):
 
         if numpy.abs(eta) >= self.max_eta:
 
+            # TODO : Binv here can be incorporated into find_optimal_sigma02
             B = numpy.matmul(self.X.T, self.X)
             Binv = numpy.linalg.inv(B)
             logdet_Binv = numpy.log(numpy.linalg.det(Binv))
 
-            # Optimal sigma0 when eta is very large
-            sigma0 = self._find_optimal_sigma0()
+            # Optimal sigma02 when eta is very large
+            sigma02 = self._find_optimal_sigma02()
 
             # Log likelihood
             ell = -0.5*(n-m)*numpy.log(2.0*numpy.pi) \
-                - (n-m)*numpy.log(sigma0) - 0.5*logdet_Binv - 0.5*(n-m)
+                - 0.5*(n-m)*numpy.log(sigma02) - 0.5*logdet_Binv - 0.5*(n-m)
 
         else:
 
-            sigma = self._find_optimal_sigma(eta)
+            # Update Y, B, Mz (all needed for computing optimal sigma2)
+            self._update_Y_B_Mz(hyperparam)
+
+            # Fidn (or update) optimal sigma2
+            sigma2 = self._find_optimal_sigma2(hyperparam)
+
             logdet_Kn = self.mixed_cor.logdet(eta)
-
-            # Compute log det (X.T Kn_inv X)
-            Y = self.mixed_cor.solve(eta, self.X)
-
-            B = numpy.matmul(self.X.T, Y)
-            logdet_B = numpy.log(numpy.linalg.det(B))
+            logdet_B = numpy.log(numpy.linalg.det(self.B))
 
             # Log likelihood
             ell = -0.5*(n-m)*numpy.log(2.0*numpy.pi) \
-                - (n-m)*numpy.log(sigma) - 0.5*logdet_Kn \
+                - 0.5*(n-m)*numpy.log(sigma2) - 0.5*logdet_Kn \
                 - 0.5*logdet_B \
                 - 0.5*(n-m)
 
@@ -324,30 +565,22 @@ class ProfileLikelihood(object):
             scale = self._hyperparam_to_scale(hyperparam[1:])
             self.mixed_cor.set_scale(scale)
 
-        # Compute Kn_inv*X and Kn_inv*z
-        Y = self.mixed_cor.solve(eta, self.X)
-        w = self.mixed_cor.solve(eta, self.z)
+        # Update Y, Binv, Mz
+        self._update_Y_B_Mz(hyperparam)
+
+        # Find optimal sigma2
+        sigma2 = self._find_optimal_sigma2(hyperparam)
 
         n, m = self.X.shape
 
-        # Compute Mz
-        B = numpy.matmul(self.X.T, Y)
-        Binv = numpy.linalg.inv(B)
-        Ytz = numpy.matmul(Y.T, self.z)
-        Binv_Ytz = numpy.matmul(Binv, Ytz)
-        Y_Binv_Ytz = numpy.matmul(Y, Binv_Ytz)
-        Mz = w - Y_Binv_Ytz
-
         # Traces
         trace_Kninv = self.mixed_cor.traceinv(eta)
-        YtY = numpy.matmul(Y.T, Y)
-        trace_BinvYtY = numpy.trace(numpy.matmul(Binv, YtY))
+        YtY = numpy.matmul(self.Y.T, self.Y)
+        trace_BinvYtY = numpy.trace(numpy.matmul(self.Binv, YtY))
         trace_M = trace_Kninv - trace_BinvYtY
 
         # Derivative of log likelihood
-        zMz = numpy.dot(self.z, Mz)
-        zM2z = numpy.dot(Mz, Mz)
-        sigma2 = zMz/(n-m)
+        zM2z = numpy.dot(self.Mz, self.Mz)
         dell_deta = -0.5*(trace_M - zM2z/sigma2)
 
         # Return as scalar or array of length one
@@ -377,48 +610,33 @@ class ProfileLikelihood(object):
             scale = self._hyperparam_to_scale(hyperparam[1:])
             self.mixed_cor.set_scale(scale)
 
-        Y = self.mixed_cor.solve(eta, self.X)
-        V = self.mixed_cor.solve(eta, Y)
-        w = self.mixed_cor.solve(eta, self.z)
+        # Update Y, Binv, Mz
+        self._update_Y_B_Mz(hyperparam)
+
+        # Find optimal sigma2
+        sigma2 = self._find_optimal_sigma2(hyperparam)
+
+        V = self.mixed_cor.solve(eta, self.Y)
 
         n, m = self.X.shape
 
-        # Compute M*z
-        B = numpy.matmul(self.X.T, Y)
-        Binv = numpy.linalg.inv(B)
-        Ytz = numpy.matmul(Y.T, self.z)
-        Binv_Ytz = numpy.matmul(Binv, Ytz)
-        Y_Binv_Ytz = numpy.matmul(Y, Binv_Ytz)
-        Mz = w - Y_Binv_Ytz
-
-        # Trace of M
-        # trace_Kninv = self.mixed_cor.traceinv(eta)
-        YtY = numpy.matmul(Y.T, Y)
-        A = numpy.matmul(Binv, YtY)
-        # trace_A = numpy.trace(A)
-        # trace_M = trace_Kninv - trace_A
-
         # Trace of M**2
         trace_Kn2inv = self.mixed_cor.traceinv(eta, exponent=2)
-        YtV = numpy.matmul(Y.T, V)
-        C = numpy.matmul(Binv, YtV)
+        YtY = numpy.matmul(self.Y.T, self.Y)
+        YtV = numpy.matmul(self.Y.T, V)
+        C = numpy.matmul(self.Binv, YtV)
         trace_C = numpy.trace(C)
+        A = numpy.matmul(self.Binv, YtY)
         AA = numpy.matmul(A, A)
         trace_AA = numpy.trace(AA)
         trace_M2 = trace_Kn2inv - 2.0*trace_C + trace_AA
 
-        # Compute M*M*z
-        YtMz = numpy.matmul(Y.T, Mz)
-        Binv_YtMz = numpy.matmul(Binv, YtMz)
-        Y_Binv_YtMz = numpy.matmul(Y, Binv_YtMz)
-        v = self.mixed_cor.solve(eta, Mz)
-        MMz = v - Y_Binv_YtMz
+        # Compute (or update) MMz
+        self._update_MMz(hyperparam)
 
         # Second derivative (only at the location of zero first derivative)
-        zMz = numpy.dot(self.z, Mz)
-        zM2z = numpy.dot(Mz, Mz)
-        zM3z = numpy.dot(Mz, MMz)
-        sigma2 = zMz / (n-m)
+        zM2z = numpy.dot(self.Mz, self.Mz)
+        zM3z = numpy.dot(self.Mz, self.MMz)
         # d2ell_deta2 = 0.5*(trace_M2 * zM2z - 2.0*trace_M * zM3z)
 
         # Warning: this relation is the second derivative only at optimal eta,
@@ -461,51 +679,40 @@ class ProfileLikelihood(object):
         # Initialize jacobian
         dell_dscale = numpy.zeros((scale.size, ), dtype=float)
 
-        # Find optimal sigma for the given eta.
-        sigma, sigma0 = self._find_optimal_sigma_sigma0(eta)
+        # Update Y, Binv, Mz
+        self._update_Y_B_Mz(hyperparam)
+
+        # Find optimal sigma2
+        sigma2 = self._find_optimal_sigma2(hyperparam)
 
         n, m = self.X.shape
 
-        # Computing Y=Kninv*X
-        Y = self.mixed_cor.solve(eta, self.X)
-
-        # B is Xt * Y
-        B = numpy.matmul(self.X.T, Y)
-        Binv = numpy.linalg.inv(B)
-
-        # Compute Mz
-        Mz = self.M_dot(Binv, Y, eta, self.z)
-
-        # Needed to compute trace (TODO)
-        Kn = self.mixed_cor.get_matrix(eta)
-        Kninv = numpy.linalg.inv(Kn)
+        # Compute (or update) Kninv and KnpKninv
+        self._update_Kninv_KnpKninv(hyperparam)
 
         # Knp is the derivative of mixed_cor (Kn) w.r.t p-th element of scale.
         for p in range(scale.size):
 
-            # Compute zMKnpMz
-            KnpMz = self.mixed_cor.dot(eta, Mz, derivative=[p])
-            zMKnpMz = numpy.dot(Mz, KnpMz)
-
-            # Compute the first component of trace of Knp * M (TODO)
-            Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
-
-            KnpKninv = Knp @ Kninv
-            trace_KnpKninv, _ = imate.trace(KnpKninv, method='exact')
+            trace_KnpKninv, _ = imate.trace(self.KnpKninv[p], method='exact')
+            # Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
             # trace_KnpKninv = self.cov.traceinv(
             #         eta, Knp, imate_method='hutchinson')
 
             # Compute the second component of trace of Knp * M
-            KnpY = self.mixed_cor.dot(eta, Y, derivative=[p])
-            YtKnpY = numpy.matmul(Y.T, KnpY)
-            BinvYtKnpY = numpy.matmul(Binv, YtKnpY)
+            KnpY = self.mixed_cor.dot(eta, self.Y, derivative=[p])
+            YtKnpY = numpy.matmul(self.Y.T, KnpY)
+            BinvYtKnpY = numpy.matmul(self.Binv, YtKnpY)
             trace_BinvYtKnpY = numpy.trace(BinvYtKnpY)
 
             # Compute trace of Knp * M
             trace_KnpM = trace_KnpKninv - trace_BinvYtKnpY
 
+            # Compute zMKnpMz
+            KnpMz = self.mixed_cor.dot(eta, self.Mz, derivative=[p])
+            zMKnpMz = numpy.dot(self.Mz, KnpMz)
+
             # Derivative of ell w.r.t p-th element of distance scale
-            dell_dscale[p] = -0.5*trace_KnpM + 0.5*zMKnpMz / sigma**2
+            dell_dscale[p] = -0.5*trace_KnpM + 0.5*zMKnpMz / sigma2
 
         return dell_dscale
 
@@ -530,30 +737,22 @@ class ProfileLikelihood(object):
         # Initialize Hessian
         d2ell_dscale2 = numpy.zeros((scale.size, scale.size), dtype=float)
 
-        # Find optimal sigma based on eta. Then compute sigma0
-        sigma, sigma0 = self._find_optimal_sigma_sigma0(eta)
+        # Update Y, Binv, Mz
+        self._update_Y_B_Mz(hyperparam)
+
+        # Find optimal sigma2
+        sigma2 = self._find_optimal_sigma2(hyperparam)
 
         n, m = self.X.shape
 
-        # Computing Y=Kninv*X
-        Y = self.mixed_cor.solve(eta, self.X)
-
-        # B is Xt * Y
-        B = numpy.matmul(self.X.T, Y)
-        Binv = numpy.linalg.inv(B)
-
-        # Compute Mz
-        Mz = self.M_dot(Binv, Y, eta, self.z)
-
-        # Needed to compute trace (TODO)
-        Kn = self.mixed_cor.get_matrix(eta)
-        Kninv = numpy.linalg.inv(Kn)
+        # Compute (or update) Kninv and KnpKninv
+        self._update_Kninv_KnpKninv(hyperparam)
 
         # Knp is the derivative of mixed_cor (Kn) w.r.t p-th element of scale.
         for p in range(scale.size):
 
-            KnpMz = self.mixed_cor.dot(eta, Mz, derivative=[p])
-            MKnpMz = self.M_dot(Binv, Y, eta, KnpMz)
+            KnpMz = self.mixed_cor.dot(eta, self.Mz, derivative=[p])
+            MKnpMz = self.M_dot(self.Binv, self.Y, eta, KnpMz)
 
             for q in range(scale.size):
 
@@ -561,24 +760,24 @@ class ProfileLikelihood(object):
                 if p == q:
                     KnqMz = KnpMz
                 else:
-                    KnqMz = self.mixed_cor.dot(eta, Mz, derivative=[q])
+                    KnqMz = self.mixed_cor.dot(eta, self.Mz, derivative=[q])
                 zMKnqMKnpMz = numpy.dot(KnqMz, MKnpMz)
 
                 # 2. Compute zMKnpqMz
-                KnpqMz = self.mixed_cor.dot(eta, Mz, derivative=[p, q])
-                zMKnpqMz = numpy.dot(Mz, KnpqMz)
+                KnpqMz = self.mixed_cor.dot(eta, self.Mz, derivative=[p, q])
+                zMKnpqMz = numpy.dot(self.Mz, KnpqMz)
 
                 # 3. Computing trace of Knpq * M in three steps
 
                 # Compute the first component of trace of Knpq * Kninv (TODO)
                 Knpq = self.mixed_cor.get_matrix(eta, derivative=[p, q])
-                KnpqKninv = Knpq @ Kninv
+                KnpqKninv = Knpq @ self.Kninv
                 trace_KnpqKninv, _ = imate.trace(KnpqKninv, method='exact')
 
                 # Compute the second component of trace of Knpq * M
-                KnpqY = self.mixed_cor.dot(eta, Y, derivative=[p, q])
-                YtKnpqY = numpy.matmul(Y.T, KnpqY)
-                BinvYtKnpqY = numpy.matmul(Binv, YtKnpqY)
+                KnpqY = self.mixed_cor.dot(eta, self.Y, derivative=[p, q])
+                YtKnpqY = numpy.matmul(self.Y.T, KnpqY)
+                BinvYtKnpqY = numpy.matmul(self.Binv, YtKnpqY)
                 trace_BinvYtKnpqY = numpy.trace(BinvYtKnpqY)
 
                 # Compute trace of Knpq * M
@@ -587,41 +786,37 @@ class ProfileLikelihood(object):
                 # 4. Compute trace of Knp * M * Knq * M
 
                 # Compute first part of trace of Knp * M * Knq * M
-                Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
-                KnpKninv = Knp @ Kninv
-                Knq = self.mixed_cor.get_matrix(eta, derivative=[q])
-                if p == q:
-                    KnqKninv = KnpKninv
-                else:
-                    KnqKninv = Knq @ Kninv
-                KnpKninvKnqKninv = numpy.matmul(KnpKninv, KnqKninv)
+                KnpKninvKnqKninv = numpy.matmul(self.KnpKninv[p],
+                                                self.KnpKninv[q])
                 trace_KnpMKnqM_1, _ = imate.trace(KnpKninvKnqKninv,
                                                   method='exact')
 
                 # Compute the second part of trace of Knp * M * Knq * M
-                KnpY = Knp @ Y
+                Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
+                KnpY = Knp @ self.Y
                 if p == q:
                     KnqY = KnpY
                 else:
-                    KnqY = Knq @ Y
+                    Knq = self.mixed_cor.get_matrix(eta, derivative=[q])
+                    KnqY = Knq @ self.Y
                 KninvKnqY = self.mixed_cor.solve(eta, KnqY)
                 YtKnpKninvKnqY = numpy.matmul(KnpY.T, KninvKnqY)
-                C21 = numpy.matmul(Binv, YtKnpKninvKnqY)
-                C22 = numpy.matmul(Binv, YtKnpKninvKnqY.T)
+                C21 = numpy.matmul(self.Binv, YtKnpKninvKnqY)
+                C22 = numpy.matmul(self.Binv, YtKnpKninvKnqY.T)
                 trace_KnpMKnqM_21 = numpy.trace(C21)
                 trace_KnpMKnqM_22 = numpy.trace(C22)
 
                 # Compute the third part of trace of Knp * M * Knq * M
-                YtKnpY = numpy.matmul(Y.T, KnpY)
+                YtKnpY = numpy.matmul(self.Y.T, KnpY)
                 if p == q:
                     YtKnqY = YtKnpY
                 else:
-                    YtKnqY = numpy.matmul(Y.T, KnqY)
-                Dp = numpy.matmul(Binv, YtKnpY)
+                    YtKnqY = numpy.matmul(self.Y.T, KnqY)
+                Dp = numpy.matmul(self.Binv, YtKnpY)
                 if p == q:
                     Dq = Dp
                 else:
-                    Dq = numpy.matmul(Binv, YtKnqY)
+                    Dq = numpy.matmul(self.Binv, YtKnqY)
                 D = numpy.matmul(Dp, Dq)
                 trace_KnpMKnqM_3 = numpy.trace(D)
 
@@ -631,14 +826,15 @@ class ProfileLikelihood(object):
 
                 # 5. Second "local" derivatives w.r.t scale
                 local_d2ell_dscale2 = -0.5*trace_KnpqM + 0.5*trace_KnpMKnqM + \
-                    (0.5*zMKnpqMz - zMKnqMKnpMz) / sigma**2
+                    (0.5*zMKnpqMz - zMKnqMKnpMz) / sigma2
 
                 # Computing total second derivative
-                dp_log_sigma2 = -numpy.dot(Mz, KnpMz) / ((n-m)*sigma**2)
+                dp_log_sigma2 = -numpy.dot(self.Mz, KnpMz) / ((n-m)*sigma2)
                 if p == q:
                     dq_log_sigma2 = dp_log_sigma2
                 else:
-                    dq_log_sigma2 = -numpy.dot(Mz, KnqMz) / ((n-m)*sigma**2)
+                    dq_log_sigma2 = -numpy.dot(self.Mz, KnqMz) / \
+                        ((n-m)*sigma2)
                 d2ell_dscale2[p, q] = local_d2ell_dscale2 + \
                     0.5 * (n-m) * dp_log_sigma2 * dq_log_sigma2
 
@@ -668,37 +864,36 @@ class ProfileLikelihood(object):
         # Initialize mixed derivative as 2D array with one row.
         d2ell_deta_dscale = numpy.zeros((1, scale.size), dtype=float)
 
-        # Find optimal sigma based on eta.
-        sigma, sigma0 = self._find_optimal_sigma_sigma0(eta)
+        # Update Y, Binv, Mz
+        self._update_Y_B_Mz(hyperparam)
+
+        # Find optimal sigma2
+        sigma2 = self._find_optimal_sigma2(hyperparam)
 
         n, m = self.X.shape
 
         # Computing Y=Kninv*X.
-        Y = self.mixed_cor.solve(eta, self.X)
-        YtY = numpy.matmul(Y.T, Y)
-        V = self.mixed_cor.solve(eta, Y)
+        YtY = numpy.matmul(self.Y.T, self.Y)
+        V = self.mixed_cor.solve(eta, self.Y)
 
-        # B is Xt * Y
-        B = numpy.matmul(self.X.T, Y)
-        Binv = numpy.linalg.inv(B)
+        # Compute (or update) MMz
+        self._update_MMz(hyperparam)
 
         # Compute Mz and MMz
-        Mz = self.M_dot(Binv, Y, eta, self.z)
-        MMz = self.M_dot(Binv, Y, eta, Mz)
-        zMMz = numpy.dot(Mz, Mz)
+        zMMz = numpy.dot(self.Mz, self.Mz)
 
-        # Needed to compute trace (TODO)
-        Kn = self.mixed_cor.get_matrix(eta)
-        Kninv = numpy.linalg.inv(Kn)
-        Kninv2 = Kninv @ Kninv
+        # Compute (or update) Kninv and KnpKninv
+        self._update_Kninv_KnpKninv(hyperparam)
+
+        Kninv2 = self.Kninv @ self.Kninv
 
         # Knp is the derivative of mixed_cor (Kn) w.r.t p-th element of scale.
         for p in range(scale.size):
 
             # Compute zMKnpMMz
-            KnpMz = self.mixed_cor.dot(eta, Mz, derivative=[p])
-            zMKnpMz = numpy.dot(Mz, KnpMz)
-            zMKnpMMz = numpy.dot(KnpMz, MMz)
+            KnpMz = self.mixed_cor.dot(eta, self.Mz, derivative=[p])
+            zMKnpMz = numpy.dot(self.Mz, KnpMz)
+            zMKnpMMz = numpy.dot(KnpMz, self.MMz)
 
             # Compute trace of KnpKninv2
             Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
@@ -706,13 +901,13 @@ class ProfileLikelihood(object):
             trace_KnpKninv2, _ = imate.trace(KnpKninv2, method='exact')
 
             # Compute traces
-            KnpY = self.mixed_cor.dot(eta, Y, derivative=[p])
-            YtKnpY = numpy.matmul(Y.T, KnpY)
+            KnpY = self.mixed_cor.dot(eta, self.Y, derivative=[p])
+            YtKnpY = numpy.matmul(self.Y.T, KnpY)
             VtKnpY = numpy.matmul(V.T, KnpY)
-            C1 = numpy.matmul(Binv, VtKnpY)
-            C2 = numpy.matmul(Binv, VtKnpY.T)
-            D1 = numpy.matmul(Binv, YtKnpY)
-            D2 = numpy.matmul(Binv, YtY)
+            C1 = numpy.matmul(self.Binv, VtKnpY)
+            C2 = numpy.matmul(self.Binv, VtKnpY.T)
+            D1 = numpy.matmul(self.Binv, YtKnpY)
+            D2 = numpy.matmul(self.Binv, YtY)
             D = numpy.matmul(D1, D2)
 
             trace_C1 = numpy.trace(C1)
@@ -723,9 +918,9 @@ class ProfileLikelihood(object):
             trace_MKnpM = trace_KnpKninv2 - trace_C1 - trace_C2 + trace_D
 
             # Compute mixed derivative
-            local_d2ell_deta_dscale = 0.5*trace_MKnpM - zMKnpMMz / sigma**2
+            local_d2ell_deta_dscale = 0.5*trace_MKnpM - zMKnpMMz / sigma2
             d2ell_deta_dscale[p] = local_d2ell_deta_dscale + \
-                (0.5/((n-m)*sigma**4)) * zMMz * zMKnpMz
+                (0.5/((n-m)*sigma2**2)) * zMMz * zMKnpMz
 
         return d2ell_deta_dscale
 
@@ -877,85 +1072,11 @@ class ProfileLikelihood(object):
 
         return hessian
 
-    # =========================
-    # find optimal sigma sigma0
-    # =========================
-
-    def _find_optimal_sigma_sigma0(self, eta):
-        """
-        Based on a given eta, finds optimal sigma and sigma0.
-        """
-
-        if numpy.abs(eta) > self.max_eta:
-
-            # eta is very large. Use Asymptotic relation
-            sigma0 = self._find_optimal_sigma0()
-
-            if numpy.isinf(eta):
-                sigma = 0.
-            else:
-                sigma = sigma0 / numpy.sqrt(eta)
-
-        else:
-
-            # Find sigma
-            sigma = self._find_optimal_sigma(eta)
-
-            # Find sigma0
-            if numpy.abs(eta) < self.min_eta:
-                sigma0 = 0.0
-            else:
-                sigma0 = numpy.sqrt(eta) * sigma
-
-        return sigma, sigma0
-
-    # ==================
-    # find optimal sigma
-    # ==================
-
-    def _find_optimal_sigma(self, eta):
-        """
-        When eta is *not* very large, finds optimal sigma.
-        """
-
-        Y = self.mixed_cor.solve(eta, self.X)
-        w = self.mixed_cor.solve(eta, self.z)
-
-        n, m = self.X.shape
-        B = numpy.matmul(self.X.T, Y)
-        Binv = numpy.linalg.inv(B)
-        Ytz = numpy.matmul(Y.T, self.z)
-        v = numpy.matmul(Y, numpy.matmul(Binv, Ytz))
-        sigma2 = numpy.dot(self.z, w-v) / (n-m)
-        sigma = numpy.sqrt(sigma2)
-
-        return sigma
-
-    # ===================
-    # find optimal sigma0
-    # ===================
-
-    def _find_optimal_sigma0(self):
-        """
-        When eta is very large, we assume sigma is zero. Thus, sigma0 is
-        computed by this function.
-        """
-
-        n, m = self.X.shape
-        B = numpy.matmul(self.X.T, self.X)
-        Binv = numpy.linalg.inv(B)
-        Xtz = numpy.matmul(self.X.T, self.z)
-        v = numpy.matmul(self.X, numpy.matmul(Binv, Xtz))
-        sigma02 = numpy.dot(self.z, self.z-v) / (n-m)
-        sigma0 = numpy.sqrt(sigma02)
-
-        return sigma0
-
     # ==========================
     # find likelihood der1 zeros
     # ==========================
 
-    def find_likelihood_der1_zeros(
+    def _find_likelihood_der1_zeros(
             self,
             interval_eta,
             tol=1e-6,
@@ -1164,7 +1285,8 @@ class ProfileLikelihood(object):
 
             # Extract res
             eta = self._hyperparam_to_eta(res.x[0])
-            sigma, sigma0 = self._find_optimal_sigma_sigma0(eta)
+
+            sigma, sigma0 = self._find_optimal_sigma_sigma0(res.x)
             max_ell = -res.fun
 
             # Distance scale
@@ -1280,7 +1402,7 @@ class ProfileLikelihood(object):
             # Stencil to perturb eta
             if self.use_log_eta:
                 log_eta = numpy.log10(etas[i])
-                d_eta = log_eta * 1e-3
+                d_eta = numpy.max([numpy.abs(log_eta) * 1e-3, 1e-4])
                 eta_stencil = 10.0**(
                         log_eta + d_eta *
                         numpy.arange(-stencil_size//2+1, stencil_size//2+1))
@@ -1510,7 +1632,7 @@ class ProfileLikelihood(object):
             # Stencil to perturb scale
             if self.use_log_scale:
                 log_scale = numpy.log10(scales[i])
-                d_scale = log_scale * 1e-3
+                d_scale = numpy.max([numpy.abs(log_scale) * 1e-3, 1e-4])
                 scale_stencil = 10.0**(
                         log_scale + d_scale *
                         numpy.arange(-stencil_size//2+1, stencil_size//2+1))

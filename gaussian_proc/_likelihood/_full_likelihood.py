@@ -1417,7 +1417,7 @@ class FullLikelihood(object):
             # Stencil to perturb scale
             if self.use_log_scale:
                 log_scale = numpy.log10(scales[i])
-                d_scale = log_scale * 1e-3
+                d_scale = numpy.max([numpy.abs(log_scale) * 1e-3, 1e-4])
                 scale_stencil = 10.0**(
                         log_scale + d_scale *
                         numpy.arange(-stencil_size//2+1, stencil_size//2+1))
@@ -1703,7 +1703,7 @@ class FullLikelihood(object):
             # Stencil to perturb scale
             if self.use_log_scale:
                 log_scale = numpy.log10(scales[i])
-                d_scale = log_scale * 1e-3
+                d_scale = numpy.max([numpy.abs(log_scale) * 1e-3, 1e-4])
                 scale_stencil = 10.0**(
                         log_scale + d_scale *
                         numpy.arange(-stencil_size//2+1, stencil_size//2+1))
