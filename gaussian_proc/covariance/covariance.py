@@ -281,7 +281,7 @@ class Covariance(object):
                             / (sigma0**(2.0*exponent))
 
         else:
-            # Derivative eliminates sigma0^2 I term.
+            # Derivative eliminates sigma0^2*I term.
             if len(derivative) > 0:
                 sigma0 = 0.0
 
