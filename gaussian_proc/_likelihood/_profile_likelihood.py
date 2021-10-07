@@ -58,6 +58,17 @@ class ProfileLikelihood(object):
         self.use_log_eta = True
         self.use_log_scale = True
 
+        # Determine to compute traceinv (only for some of inner computations of
+        # derivatives w.r.t scale) using direct inversion of matrices or with
+        # Hutchinson method (a stochastic method).
+        if self.mixed_cor.imate_method in ['hutchinson', 'slq']:
+            # Use Hutchinson method (note: SLQ method cannot be used).
+            self.stochastic_traceinv = True
+        else:
+            # For the rest of methods (like eigenvalue, cholesky, etc),
+            # compute traceinv directly by matrix inversion.
+            self.stochastic_traceinv = False
+
         # Store ell, its Jacobian and Hessian.
         self.ell = None
         self.ell_jacobian = None
@@ -728,15 +739,23 @@ class ProfileLikelihood(object):
         n, m = self.X.shape
 
         # Compute (or update) Kninv and KnpKninv
-        self._update_Kninv_KnpKninv(hyperparam)
+        if not self.stochastic_traceinv:
+            self._update_Kninv_KnpKninv(hyperparam)
 
         # Knp is the derivative of mixed_cor (Kn) w.r.t p-th element of scale.
         for p in range(scale.size):
 
-            trace_KnpKninv, _ = imate.trace(self.KnpKninv[p], method='exact')
-            # Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
-            # trace_KnpKninv = self.cov.traceinv(
-            #         eta, Knp, imate_method='hutchinson')
+            if self.stochastic_traceinv:
+                # Compute traceinv using stochastic estimation method. Note
+                # that since Knp is not positive-definite, we cannot use
+                # Cholesky method in imate. The only viable option is
+                # Hutchinson's method.
+                Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
+                trace_KnpKninv = self.mixed_cor.traceinv(
+                        eta, B=Knp, imate_method='hutchinson')
+            else:
+                trace_KnpKninv, _ = imate.trace(self.KnpKninv[p],
+                                                method='exact')
 
             # Compute the second component of trace of Knp * M
             KnpY = self.mixed_cor.dot(eta, self.Y, derivative=[p])
@@ -786,7 +805,8 @@ class ProfileLikelihood(object):
         n, m = self.X.shape
 
         # Compute (or update) Kninv and KnpKninv
-        self._update_Kninv_KnpKninv(hyperparam)
+        if not self.stochastic_traceinv:
+            self._update_Kninv_KnpKninv(hyperparam)
 
         # Knp is the derivative of mixed_cor (Kn) w.r.t p-th element of scale.
         for p in range(scale.size):
@@ -809,10 +829,14 @@ class ProfileLikelihood(object):
 
                 # 3. Computing trace of Knpq * M in three steps
 
-                # Compute the first component of trace of Knpq * Kninv (TODO)
+                # Compute the first component of trace of Knpq * Kninv
                 Knpq = self.mixed_cor.get_matrix(eta, derivative=[p, q])
-                KnpqKninv = Knpq @ self.Kninv
-                trace_KnpqKninv, _ = imate.trace(KnpqKninv, method='exact')
+                if self.stochastic_traceinv:
+                    trace_KnpqKninv = self.mixed_cor.traceinv(
+                            eta, B=Knpq, imate_method='hutchinson')
+                else:
+                    KnpqKninv = Knpq @ self.Kninv
+                    trace_KnpqKninv, _ = imate.trace(KnpqKninv, method='exact')
 
                 # Compute the second component of trace of Knpq * M
                 KnpqY = self.mixed_cor.dot(eta, self.Y, derivative=[p, q])
@@ -826,18 +850,22 @@ class ProfileLikelihood(object):
                 # 4. Compute trace of Knp * M * Knq * M
 
                 # Compute first part of trace of Knp * M * Knq * M
-                KnpKninvKnqKninv = numpy.matmul(self.KnpKninv[p],
-                                                self.KnpKninv[q])
-                trace_KnpMKnqM_1, _ = imate.trace(KnpKninvKnqKninv,
-                                                  method='exact')
+                Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
+                Knq = self.mixed_cor.get_matrix(eta, derivative=[q])
+                if self.stochastic_traceinv:
+                    trace_KnpMKnqM_1 = self.mixed_cor.traceinv(
+                            eta, B=Knq, C=Knp, imate_method='hutchinson')
+                else:
+                    KnpKninvKnqKninv = numpy.matmul(self.KnpKninv[p],
+                                                    self.KnpKninv[q])
+                    trace_KnpMKnqM_1, _ = imate.trace(KnpKninvKnqKninv,
+                                                      method='exact')
 
                 # Compute the second part of trace of Knp * M * Knq * M
-                Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
                 KnpY = Knp @ self.Y
                 if p == q:
                     KnqY = KnpY
                 else:
-                    Knq = self.mixed_cor.get_matrix(eta, derivative=[q])
                     KnqY = Knq @ self.Y
                 KninvKnqY = self.mixed_cor.solve(eta, KnqY)
                 YtKnpKninvKnqY = numpy.matmul(KnpY.T, KninvKnqY)
@@ -923,9 +951,12 @@ class ProfileLikelihood(object):
         zMMz = numpy.dot(self.Mz, self.Mz)
 
         # Compute (or update) Kninv and KnpKninv
-        self._update_Kninv_KnpKninv(hyperparam)
+        if not self.stochastic_traceinv:
+            self._update_Kninv_KnpKninv(hyperparam)
+            Kninv2 = self.Kninv @ self.Kninv
 
-        Kninv2 = self.Kninv @ self.Kninv
+        # Common variables in the for loop below
+        D2 = numpy.matmul(self.Binv, YtY)
 
         # Knp is the derivative of mixed_cor (Kn) w.r.t p-th element of scale.
         for p in range(scale.size):
@@ -937,8 +968,12 @@ class ProfileLikelihood(object):
 
             # Compute trace of KnpKninv2
             Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
-            KnpKninv2 = Knp @ Kninv2
-            trace_KnpKninv2, _ = imate.trace(KnpKninv2, method='exact')
+            if self.stochastic_traceinv:
+                trace_KnpKninv2 = self.mixed_cor.traceinv(
+                        eta, B=Knp, exponent=2, imate_method='hutchinson')
+            else:
+                KnpKninv2 = Knp @ Kninv2
+                trace_KnpKninv2, _ = imate.trace(KnpKninv2, method='exact')
 
             # Compute traces
             KnpY = self.mixed_cor.dot(eta, self.Y, derivative=[p])
@@ -947,7 +982,6 @@ class ProfileLikelihood(object):
             C1 = numpy.matmul(self.Binv, VtKnpY)
             C2 = numpy.matmul(self.Binv, VtKnpY.T)
             D1 = numpy.matmul(self.Binv, YtKnpY)
-            D2 = numpy.matmul(self.Binv, YtY)
             D = numpy.matmul(D1, D2)
 
             trace_C1 = numpy.trace(C1)

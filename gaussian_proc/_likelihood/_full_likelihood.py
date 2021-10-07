@@ -47,6 +47,17 @@ class FullLikelihood(object):
         self.hyperparam_tol = 1e-8
         self.use_log_scale = True
 
+        # Determine to compute traceinv (only for some of inner computations of
+        # derivatives w.r.t scale) using direct inversion of matrices or with
+        # Hutchinson method (a stochastic method).
+        if self.cov.imate_method in ['hutchinson', 'slq']:
+            # Use Hutchinson method (note: SLQ method cannot be used).
+            self.stochastic_traceinv = True
+        else:
+            # For the rest of methods (like eigenvalue, cholesky, etc),
+            # compute traceinv directly by matrix inversion.
+            self.stochastic_traceinv = False
+
         # Store ell, its Jacobian and Hessian.
         self.ell = None
         self.ell_jacobian = None
@@ -557,7 +568,8 @@ class FullLikelihood(object):
         self._update_Y_B_Mz(hyperparam)
 
         # Compute Sinv, SpSinv
-        self._update_Sinv_SpSinv(hyperparam)
+        if not self.stochastic_traceinv:
+            self._update_Sinv_SpSinv(hyperparam)
 
         # Sp is the derivative of cov w.r.t the p-th element of scale.
         for p in range(scale.size):
@@ -566,8 +578,18 @@ class FullLikelihood(object):
             SpMz = self.cov.dot(sigma, sigma0, self.Mz, derivative=[p])
             zMSpMz = numpy.dot(self.Mz, SpMz)
 
-            # Compute the first component of trace of Sp * Sinv (TODO)
-            trace_SpSinv, _ = imate.trace(self.SpSinv[p], method='exact')
+            # Compute the first component of trace of Sp * M
+            if self.stochastic_traceinv:
+                # Compute traceinv using stochastic estimation method. Note
+                # that since Sp is not positive-definite, we cannot use
+                # Cholesky method in imate. The only viable option is
+                # Hutchinson's method.
+                Sp = self.cov.get_matrix(sigma, sigma0, derivative=[p])
+                trace_SpSinv = self.cov.traceinv(sigma, sigma0, B=Sp,
+                                                 imate_method='hutchinson')
+            else:
+                # Using exact method (compute inverse directly)
+                trace_SpSinv, _ = imate.trace(self.SpSinv[p], method='exact')
 
             # Compute the second component of trace of Sp * M
             SpY = self.cov.dot(sigma, sigma0, self.Y, derivative=[p])
@@ -615,11 +637,16 @@ class FullLikelihood(object):
         # Compute MMz, KMz, MKMz
         self._update_MMz_KMz_MKMz(hyperparam)
 
-        # Compute Sinv, SpSinv
-        self._update_Sinv_SpSinv(hyperparam)
-
+        # Common variables
         K = self.cov.get_matrix(1.0, 0.0, derivative=[])
-        KSinv = numpy.matmul(K, self.Sinv)
+        KY = self.cov.dot(1.0, 0.0, self.Y)
+        YtKY = numpy.matmul(self.Y.T, KY)
+        Dk = numpy.matmul(self.Binv, YtKY)
+
+        # Compute Sinv, SpSinv
+        if not self.stochastic_traceinv:
+            self._update_Sinv_SpSinv(hyperparam)
+            KSinv = numpy.matmul(K, self.Sinv)
 
         # Sp is the derivative of cov w.r.t the p-th element of scale. Spq
         # is the second mixed derivative of S w.r.t p-th and q-th elements
@@ -640,9 +667,21 @@ class FullLikelihood(object):
 
             # 1.3. Compute trace of Kp * M
 
-            # Compute the first component of trace of Kp * Sinv (TODO)
-            KpSinv = self.SpSinv[p] / sigma**2
-            trace_KpSinv, _ = imate.trace(KpSinv, method='exact')
+            # Compute the first component of trace of Kp * M
+            if self.stochastic_traceinv:
+
+                # Computing traceinv using either cholesky or hutchinson
+                Sp = self.cov.get_matrix(sigma, sigma0, derivative=[p])
+                Kp = Sp / sigma**2
+
+                # Note that since Kp is not positive-definite, we cannot use
+                # Cholesky method in imate. The only viable option is
+                # Hutchinson's method.
+                trace_KpSinv = self.cov.traceinv(sigma, sigma0, B=Kp,
+                                                 imate_method='hutchinson')
+            else:
+                KpSinv = self.SpSinv[p] / sigma**2
+                trace_KpSinv, _ = imate.trace(KpSinv, method='exact')
 
             # Compute the second component of trace of Kp * M
             KpY = self.cov.dot(1.0, 0.0, self.Y, derivative=[p])
@@ -656,13 +695,16 @@ class FullLikelihood(object):
             # 1.4. Compute trace of K * M * Sp * M
 
             # Compute first part of trace of K * M * Sp * M
-            K = self.cov.get_matrix(1.0, 0.0, derivative=[])
-            KSinv = numpy.matmul(K, self.Sinv)
-            KSinvSpSinv = numpy.matmul(KSinv, self.SpSinv[p])
-            trace_KMSpM_1, _ = imate.trace(KSinvSpSinv, method='exact')
+            if self.stochastic_traceinv:
+                # Compute traceinv with stochastic estimation method
+                trace_KMSpM_1 = self.cov.traceinv(sigma, sigma0, B=Sp, C=K,
+                                                  imate_method='hutchinson')
+            else:
+                # Compute traceinv using direct computation of inverse matrix
+                KSinvSpSinv = numpy.matmul(KSinv, self.SpSinv[p])
+                trace_KMSpM_1, _ = imate.trace(KSinvSpSinv, method='exact')
 
             # Compute the second part of trace of K * M * Sp * M
-            KY = self.cov.dot(1.0, 0.0, self.Y)
             SpY = self.cov.dot(sigma, sigma0, self.Y, derivative=[p])
             SinvSpY = self.cov.solve(sigma, sigma0, SpY)
             YtKSinvSpY = numpy.matmul(KY.T, SinvSpY)
@@ -672,9 +714,7 @@ class FullLikelihood(object):
             trace_KMSpM_22 = numpy.trace(C22)
 
             # Compute the third part of trace of K * M * Sp * M
-            YtKY = numpy.matmul(self.Y.T, KY)
             YtSpY = numpy.matmul(self.Y.T, SpY)
-            Dk = numpy.matmul(self.Binv, YtKY)
             Dp = numpy.matmul(self.Binv, YtSpY)
             D = numpy.matmul(Dk, Dp)
             trace_KMSpM_3 = numpy.trace(D)
@@ -697,8 +737,17 @@ class FullLikelihood(object):
             # 2.4. Compute trace of M * Sp * M
 
             # Compute first part of trace of M * Sp * M
-            SinvSpSinv = numpy.matmul(self.Sinv, self.SpSinv[p])
-            trace_MSpM_1, _ = imate.trace(SinvSpSinv, method='exact')
+            if self.stochastic_traceinv:
+                # Compute traceinv using stochastic estimation method. Note
+                # that since Sp is not positive-definite, we cannot use
+                # Cholesky method in imate. The only viable option is
+                # Hutchinson's method.
+                trace_MSpM_1 = self.cov.traceinv(sigma, sigma0, B=Sp,
+                                                 exponent=2,
+                                                 imate_method='hutchinson')
+            else:
+                SinvSpSinv = numpy.matmul(self.Sinv, self.SpSinv[p])
+                trace_MSpM_1, _ = imate.trace(SinvSpSinv, method='exact')
 
             # Compute the second part of trace of M * Sp * M
             YtSinvSpY = numpy.matmul(self.Y.T, SinvSpY)
@@ -748,7 +797,8 @@ class FullLikelihood(object):
         self._update_Y_B_Mz(hyperparam)
 
         # Compute Sinv, SpSinv
-        self._update_Sinv_SpSinv(hyperparam)
+        if not self.stochastic_traceinv:
+            self._update_Sinv_SpSinv(hyperparam)
 
         for p in range(scale.size):
 
@@ -771,10 +821,18 @@ class FullLikelihood(object):
 
                 # 3. Computing trace of Spq * M in three steps
 
-                # Compute the first component of trace of Spq*Sinv (TODO)
+                # Compute the first component of trace of Spq * M
                 Spq = self.cov.get_matrix(sigma, sigma0, derivative=[p, q])
-                SpqSinv = numpy.matmul(Spq, self.Sinv)
-                trace_SpqSinv, _ = imate.trace(SpqSinv, method='exact')
+                if self.stochastic_traceinv:
+                    # Compute traceinv using stochastic estimation method. Note
+                    # that since Spq is not positive-definite, we cannot use
+                    # Cholesky method in imate. The only viable option is
+                    # Hutchinson's method.
+                    trace_SpqSinv = self.cov.traceinv(
+                            sigma, sigma0, B=Spq, imate_method='hutchinson')
+                else:
+                    SpqSinv = numpy.matmul(Spq, self.Sinv)
+                    trace_SpqSinv, _ = imate.trace(SpqSinv, method='exact')
 
                 # Compute the second component of trace of Spq * M
                 SpqY = self.cov.dot(sigma, sigma0, self.Y, derivative=[p, q])
@@ -789,9 +847,14 @@ class FullLikelihood(object):
 
                 # Compute first part of trace of Sp * M * Sq * M
                 Sq = self.cov.get_matrix(sigma, sigma0, derivative=[q])
-                SpSinvSqSinv = numpy.matmul(self.SpSinv[p], self.SpSinv[q])
-                trace_SpMSqM_1, _ = imate.trace(SpSinvSqSinv,
-                                                method='exact')
+                if self.stochastic_traceinv:
+                    trace_SpMSqM_1 = self.cov.traceinv(
+                            sigma, sigma0, B=Sq, C=Sp,
+                            imate_method='hutchinson')
+                else:
+                    SpSinvSqSinv = numpy.matmul(self.SpSinv[p], self.SpSinv[q])
+                    trace_SpMSqM_1, _ = imate.trace(SpSinvSqSinv,
+                                                    method='exact')
 
                 # Compute the second part of trace of Sp * M * Sq * M
                 SpY = numpy.matmul(Sp, self.Y)
@@ -997,11 +1060,6 @@ class FullLikelihood(object):
                                       method=optimization_method, tol=tol,
                                       jac=jacobian_partial_func,
                                       hess=hessian_partial_func)
-
-        print(res)
-
-        print('Iter: %d, Eval: %d, Success: %s'
-              % (res.nit, res.nfev, res.success))
 
         # Extract res
         sigma = numpy.abs(res.x[0])

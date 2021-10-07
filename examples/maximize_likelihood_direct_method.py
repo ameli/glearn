@@ -62,8 +62,8 @@ def main():
 
     # Trainign options
     # profile_param = 'none'
-    # profile_param = 'var'
-    profile_param = 'var_noise'
+    profile_param = 'var'
+    # profile_param = 'var_noise'
 
     # optimization_method = 'chandrupatla'  # requires jacobian
     # optimization_method = 'Nelder-Mead'     # requires func
@@ -77,8 +77,8 @@ def main():
     # hyperparam_guess = [1.0]
     # hyperparam_guess = [0, 0.1, 0.1]
     # hyperparam_guess = [-1, 1e-1]
-    hyperparam_guess = [1.0]
-    # hyperparam_guess = [0.1, 0.1]
+    # hyperparam_guess = [1.0]
+    hyperparam_guess = [0.1, 0.1]
     # hyperparam_guess = [0.1, 0.1, 0.1, 0.1]
     # hyperparam_guess = [0.01, 0.01, 0.1]
 

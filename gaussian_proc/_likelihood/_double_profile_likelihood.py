@@ -70,9 +70,9 @@ class DoubleProfileLikelihood(object):
         # Optimization method used to find optimal eta in profile_likelihood
         # self.optimization_method = 'chandrupatla'  # needs jac
         # self.optimization_method = 'Nelder-Mead'   # needs func
-        self.optimization_method = 'BFGS'          # needs func, jac
+        # self.optimization_method = 'BFGS'          # needs func, jac
         # self.optimization_method = 'CG'            # needs func, jac
-        # self.optimization_method = 'Newton-CG'        # needs func, jac, hess
+        self.optimization_method = 'Newton-CG'       # needs func, jac, hess
         # self.optimization_method = 'dogleg'        # needs func, jac, hess
         # self.optimization_method = 'trust-exact'   # needs func, jac, hess
         # self.optimization_method = 'trust-ncg'     # needs func, jac, hess

@@ -13,6 +13,7 @@
 
 import numpy
 import scipy.sparse
+from scipy.sparse import isspmatrix
 from scipy.special import binom
 import imate
 from ._linear_solver import linear_solver
@@ -36,6 +37,7 @@ class MixedCorrelation(object):
         """
         """
 
+        # Set attributes
         self.cor = cor
         self.interpolate = interpolate
         self.interpolant_points = interpolant_points
@@ -177,7 +179,7 @@ class MixedCorrelation(object):
         real number.
         """
 
-        # Overwriting imate method, if given.
+        # Overwriting imate method, if not given.
         if imate_method is None:
             imate_method = self.imate_method
 
@@ -254,6 +256,7 @@ class MixedCorrelation(object):
             self,
             eta,
             B=None,
+            C=None,
             scale=None,
             exponent=1,
             derivative=[],
@@ -271,17 +274,25 @@ class MixedCorrelation(object):
         assumed.
         """
 
-        # Overwriting imate method, if given.
+        # Overwriting imate method, if not given.
         if imate_method is None:
             imate_method = self.imate_method
 
-        # When B is not None, eigenvalue and slq methods cannot be used.
-        if (B is not None) and (imate_method in ['eigenvalue', 'slq']):
-            raise NotImplementedError('Computing traceinv of mixed ' +
-                                      'correlation matrix using "eigenvalue"' +
-                                      'or "slq" methods, when B is not ' +
-                                      'is not implemented. Use "cholesky" ' +
-                                      'or "hutchinson" methods instead.')
+        # When B is given, only Cholesky and Hutchinson methods can be used.
+        if B is not None:
+            if imate_method == 'eigenvalue':
+                # Change method to a similar non-stochastic method
+                imate_method = 'cholesky'
+            elif imate_method == 'slq':
+                # Change method to a similar stochastic method
+                imate_method = 'hutchinson'
+
+        # When C is given, only Hutchinson method can be used.
+        if C is not None:
+            imate_method = 'hutchinson'
+
+        if (B is None) and (C is not None):
+            raise ValueError('When "C" is given, "B" should also be given.')
 
         if (exponent > 1) and (len(derivative) > 0):
             raise NotImplementedError('If "exponent" is larger than one, ' +
@@ -293,20 +304,42 @@ class MixedCorrelation(object):
             traceinv_ = numpy.nan
 
         elif exponent == 0:
-            # Matrix is identity.
+            # Matrix is identity, derivative is zero.
             if B is None:
                 # B is identity
                 n = self.cor.get_matrix_size()
                 traceinv_ = n
             else:
-                traceinv_ = imate.trace(B, method='exact')
+                # B is not identity
+                if C is None:
+                    traceinv_ = imate.trace(B, method='exact')
+                else:
+                    # C is not identity. Compute trace of C*B
+                    if isspmatrix(C):
+                        traceinv_ = numpy.sum(C.multiply(B.T).data)
+                    else:
+                        traceinv_ = numpy.sum(numpy.multiply(C, B.T))
 
         elif numpy.abs(eta) >= self.max_eta:
             if B is None:
                 # B is identity
-                traceinv_ = self.get_matrix_size() / eta
+                traceinv_ = self.get_matrix_size() / (eta**exponent)
             else:
-                traceinv_ = imate.trace(B, method='exact') / eta
+                # B is not identity
+                if C is None:
+                    traceinv_ = imate.trace(B, method='exact') / \
+                            (eta**exponent)
+                else:
+                    # C is not identity. Compute trace of C*B divided by
+                    # eta**(2.0*exponent) since when C is given, there are two
+                    # matrix A.
+                    if isspmatrix(C):
+                        traceinv_ = numpy.sum(C.multiply(B.T).data) / \
+                                (eta**(2.0*exponent))
+
+                    else:
+                        traceinv_ = numpy.sum(numpy.multiply(C, B.T)) / \
+                                (eta**(2.0*exponent))
 
         else:
 
@@ -319,8 +352,8 @@ class MixedCorrelation(object):
                 else:
                     raise NotImplementedError('Interpolating traceinv of ' +
                                               'mixed correlation matrix ' +
-                                              'when B is not identity, is ' +
-                                              'not implemented.')
+                                              'when B (or C) is not ' +
+                                              'identity, is not implemented.')
 
             elif imate_method == 'eigenvalue':
 
@@ -358,7 +391,7 @@ class MixedCorrelation(object):
                     assume_matrix = 'sym_pos'
 
                 # Calling cholesky method
-                traceinv_, _ = imate.traceinv(Kn, B, method=imate_method,
+                traceinv_, _ = imate.traceinv(Kn, B, C, method=imate_method,
                                               exponent=exponent, gram=False,
                                               assume_matrix=assume_matrix,
                                               **self.imate_options)
@@ -408,7 +441,7 @@ class MixedCorrelation(object):
             instead.
         """
 
-        # Overwriting imate method, if given.
+        # Overwriting imate method, if not given.
         if imate_method is None:
             imate_method = self.imate_method
 

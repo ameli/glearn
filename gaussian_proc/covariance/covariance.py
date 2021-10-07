@@ -50,10 +50,14 @@ class Covariance(object):
         self.sigma0 = sigma0
         self.tol = tol
 
+        # Options for imate
+        self.imate_method = imate_method
+        self.imate_options = imate_options
+
         # Mixed correlation (K + eta I)
         self.mixed_cor = MixedCorrelation(self.cor, interpolate=interpolate,
-                                          imate_method=imate_method,
-                                          imate_options=imate_options)
+                                          imate_method=self.imate_method,
+                                          imate_options=self.imate_options)
 
     # ===============
     # Check arguments
@@ -223,6 +227,7 @@ class Covariance(object):
             sigma,
             sigma0,
             B=None,
+            C=None,
             scale=None,
             exponent=1,
             derivative=[],
@@ -247,6 +252,9 @@ class Covariance(object):
           assumed.
         """
 
+        if (B is None) and (C is not None):
+            raise ValueError('When "C" is given, "B" should also be given.')
+
         if (exponent > 1) and (len(derivative) > 0):
             raise NotImplementedError('If "exponent" is larger than one, ' +
                                       '"derivative" should be zero (using ' +
@@ -257,13 +265,21 @@ class Covariance(object):
             traceinv_ = numpy.nan
 
         elif exponent == 0:
-            # Matrix is identity.
+            # Matrix is identity, derivative is zero.
             if B is None:
                 # B is identity
                 n = self.mixed_cor.get_matrix_size()
                 traceinv_ = n
             else:
-                traceinv_ = imate.trace(B, method='exact')
+                # B is not identity.
+                if C is None:
+                    traceinv_ = imate.trace(B, method='exact')
+                else:
+                    # C is not identity. Compute trace of C*B
+                    if isspmatrix(C):
+                        traceinv_ = numpy.sum(C.multiply(B.T).data)
+                    else:
+                        traceinv_ = numpy.sum(numpy.multiply(C, B.T))
 
         elif numpy.abs(sigma) < self.tol:
 
@@ -277,8 +293,20 @@ class Covariance(object):
                     n = self.mixed_cor.get_matrix_size()
                     traceinv_ = n / (sigma0**(2.0*exponent))
                 else:
-                    traceinv_ = imate.trace(B, method='exact') \
-                            / (sigma0**(2.0*exponent))
+                    # B is not identity
+                    if C is None:
+                        traceinv_ = imate.trace(B, method='exact') / \
+                                (sigma0**(2.0*exponent))
+                    else:
+                        # C is not indentity. Compute trace of C*B devided by
+                        # sigma0**4 (becase when we have C, there are to
+                        # matrix A).
+                        if isspmatrix(C):
+                            traceinv_ = numpy.sum(C.multiply(B.T).data) / \
+                                    (sigma0**(4.0*exponent))
+                        else:
+                            traceinv_ = numpy.sum(numpy.multiply(C, B.T)) / \
+                                    (sigma0**(4.0*exponent))
 
         else:
             # Derivative eliminates sigma0^2*I term.
@@ -287,8 +315,12 @@ class Covariance(object):
 
             eta = (sigma0 / sigma)**2
             traceinv_ = self.mixed_cor.traceinv(
-                    eta, B, scale, exponent, derivative, imate_method) / \
-                (sigma**(2.0*exponent))
+                    eta, B, C, scale, exponent, derivative, imate_method)
+            if C is None:
+                traceinv_ /= sigma**(2.0*exponent)
+            else:
+                # When C is given, there are two A matrices (C*Ainv*B*Ainv)
+                traceinv_ /= sigma**(4.0*exponent)
 
         return traceinv_
 
