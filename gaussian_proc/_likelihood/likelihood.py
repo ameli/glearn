@@ -29,114 +29,154 @@ class Likelihood(object):
     # init
     # ====
 
-    def __init__(self, mean, cov):
+    def __init__(
+            self,
+            mean,
+            cov,
+            z,
+            profile_hyperparam='var',
+            log_hyperparam=True):
         """
         """
 
+        # Input attributes
         self.mean = mean
         self.cov = cov
+        self.z = z
+        self.profile_hyperparam = profile_hyperparam
 
+        # Member data
         self.X = self.mean.X
         self.mixed_cor = self.cov.mixed_cor
+
+        # Set likelihood method depending on the type of profile.
+        if self.profile_hyperparam == 'none':
+            self.likelihood_method = FullLikelihood(self.z, self.X, self.cov,
+                                                    log_hyperparam)
+        elif self.profile_hyperparam == 'var':
+            self.likelihood_method = \
+                ProfileLikelihood(self.z, self.X, self.cov, log_hyperparam)
+        elif self.profile_hyperparam == 'var_noise':
+            self.likelihood_method_ = \
+                DoubleProfileLikelihood(self.z, self.X, self.cov,
+                                        log_hyperparam)
+        else:
+            raise ValueError('"profile_hyperparam" can be one of "none", ' +
+                             '"var", or "var_noise".')
+
+        # Attributes of self.likelihood_method
+        self.scale_index = self.likelihood_method.scale_index
+
+    # ============================
+    # hyperparam to log hyperparam
+    # ============================
+
+    def hyperparam_to_log_hyperparam(self, hyperparam):
+        """
+        Converts the input hyperparameters to their log10, if this is enabled
+        by ``self.use_scale``.
+
+        If is assumed that the input hyperparam is not in log scale, and it
+        containts either of the following form:
+
+        * [sigma, sigma0]
+        * [sigma, sigma0, scale1, scale2, ...]
+        """
+
+        return self.likelihood_method.hyperparam_to_log_hyperparam(hyperparam)
+
+    # ==================
+    # extract hyperparam
+    # ==================
+
+    def extract_hyperparam(self, hyperparam):
+        """
+        It is assumed the input hyperparam might be in the log10 scale, and
+        may or may not contain scales. The output will be converted to non-log
+        format and will include scale, regardless if the input has scale or
+        not.
+        """
+
+        return self.likelihood_method.extract_hyperparam(hyperparam)
 
     # ==========
     # likelihood
     # ==========
 
-    def likelihood(self, z, hyperparam):
+    def likelihood(self, sign_switch, hyperparam):
         """
+        Returns the log-likelihood function.
         """
 
-        sign_switch = False
-        return FullLikelihood.likelihood(z, self.X, self.cov, sign_switch,
-                                         hyperparam)
+        return self.likelihood_method.likelihood(sign_switch, hyperparam)
 
     # ===================
-    # maximize likelihood
+    # likelihood jacobian
     # ===================
 
-    def maximize_likelihood(
-            self,
-            z,
-            hyperparam_guess,
-            profile_param='var',
-            optimization_method='Newton-CG',
-            tol=1e-3,
-            verbose=False,
-            plot=False):
+    def likelihood_jacobian(self, sign_switch, hyperparam):
         """
+        Returns the Jacobian of log-likelihood function.
         """
 
-        if profile_param == 'none':
+        return self.likelihood_method.likelihood_jacobian(sign_switch,
+                                                          hyperparam)
 
-            if optimization_method == 'chandrupatla':
-                raise ValueError('"chandrupatla" method can only be used ' +
-                                 'with "profiled" likelihood method.')
+    # ==================
+    # likelihood hessian
+    # ==================
 
-            likelihood = FullLikelihood(z, self.X, self.cov)
+    def likelihood_hessian(self, sign_switch, hyperparam):
+        """
+        Returns the Hessian of log-likelihood function.
+        """
 
-            # Find optimal hyperparam
-            result = likelihood.maximize_likelihood(
-                    tol=tol, hyperparam_guess=hyperparam_guess,
-                    optimization_method=optimization_method, verbose=verbose)
+        return self.likelihood_method.likelihood_hessian(sign_switch,
+                                                         hyperparam)
 
-            # Plot log likelihood
-            if plot:
+    # ====
+    # plot
+    # ====
 
-                # Plot likelihood for scale, fixed sigma and sigma0
-                likelihood.plot_likelihood_versus_scale(
-                        result, other_sigmas=numpy.logspace(-1, 1, 3))
+    def plot(self, result):
+        """
+        Plot likelihood function and its derivatives.
+        """
 
-                # Plot likelihood for sigma, fixed sigma0 and scale
-                likelihood.plot_likelihood_versus_sigma(
-                        result, other_scales=numpy.logspace(-1, 1, 3))
+        if self.profile_hyperparam == 'none':
 
-                # Plot likelihood for sigma0, fixed sigma and scale
-                likelihood.plot_likelihood_versus_sigma0(
-                        result, other_scales=numpy.logspace(-1, 1, 3))
+            # Plot likelihood for scale, fixed sigma and sigma0
+            self.likelihood_method.plot_likelihood_versus_scale(
+                    result, other_sigmas=numpy.logspace(-1, 1, 3))
 
-                # 2d plot of likelihood versus sigma0 and sigma
-                likelihood.plot_likelihood_versus_sigma0_sigma(result)
+            # Plot likelihood for sigma, fixed sigma0 and scale
+            self.likelihood_method.plot_likelihood_versus_sigma(
+                    result, other_scales=numpy.logspace(-1, 1, 3))
 
-        elif profile_param == 'var':
+            # Plot likelihood for sigma0, fixed sigma and scale
+            self.likelihood_method.plot_likelihood_versus_sigma0(
+                    result, other_scales=numpy.logspace(-1, 1, 3))
 
-            likelihood = ProfileLikelihood(z, self.X, self.cov)
+            # 2d plot of likelihood versus sigma0 and sigma
+            self.likelihood_method.plot_likelihood_versus_sigma0_sigma(result)
 
-            # Find optimal hyperparam
-            result = likelihood.maximize_likelihood(
-                    tol=tol, hyperparam_guess=hyperparam_guess,
-                    optimization_method=optimization_method, verbose=verbose)
+        elif self.profile_hyperparam == 'var':
 
-            if plot:
-                # Plot log-lp versus eta
-                likelihood.plot_likelihood_versus_eta(
-                        result, numpy.logspace(-2, 2, 5))
+            # Plot log-lp versus eta
+            self.likelihood_method.plot_likelihood_versus_eta(
+                    result, numpy.logspace(-2, 2, 5))
 
-                # Plot log-lp versus scale
-                likelihood.plot_likelihood_versus_scale(
-                        result, numpy.logspace(-2, 2, 5))
+            # Plot log-lp versus scale
+            self.likelihood_method.plot_likelihood_versus_scale(
+                    result, numpy.logspace(-2, 2, 5))
 
-                # 3D Plot of log-lp function
-                likelihood.plot_likelihood_versus_eta_scale(result)
+            # 3D Plot of log-lp function
+            self.likelihood_method.plot_likelihood_versus_eta_scale(result)
 
-                # Plot first derivative of log likelihood
-                likelihood.plot_likelihood_der1_eta(result)
+            # Plot first derivative of log likelihood
+            self.likelihood_method.plot_likelihood_der1_eta(result)
 
-        elif profile_param == 'var_noise':
+        elif self.profile_hyperparam == 'var_noise':
 
-            likelihood = DoubleProfileLikelihood(z, self.X, self.cov)
-
-            # Find optimal hyperparam
-            result = likelihood.maximize_likelihood(
-                    tol=tol, hyperparam_guess=hyperparam_guess,
-                    optimization_method=optimization_method, verbose=verbose)
-
-            if plot:
-                # Plot log-lp
-                likelihood.plot_likelihood_versus_scale(result)
-
-        else:
-            raise ValueError('"profile_param" can be one of "none", ' +
-                             '"var", or "var_noise".')
-
-        return result
+            # Plot log-lp
+            self.likelihood_method.plot_likelihood_versus_scale(result)

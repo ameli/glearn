@@ -17,6 +17,8 @@ from ._generate_dense_correlation import generate_dense_correlation
 from ._generate_sparse_correlation import generate_sparse_correlation
 from ..kernels import Kernel, Matern
 import imate
+from ..priors.prior import Prior
+from ..priors.uniform import Uniform
 
 try:
     from .._utilities.plot_utilities import matplotlib, plt
@@ -79,15 +81,30 @@ class Correlation(object):
 
         # Set distance scale. By initializing scale to None in the constructor,
         # it will be determined later as variable to the optimization problem.
-        self.scale = None
-        if scale is not None:
+        if numpy.isscalar(scale) or isinstance(scale, list) or \
+                isinstance(scale, numpy.ndarray):
+            # Input scale is given as a known numeric value.
+            self.current_scale = None
+            self.scale_prior = None
+
+            # Setting current_scale
             self.set_scale(scale)
+
+        elif isinstance(scale, Prior):
+            # Input scale is in the form of a prior distribution.
+            self.current_scale = None
+            self.scale_prior = scale
+
+        else:
+            # Set scale to be a uniform improper prior if nothing is given.
+            self.current_scale = None
+            self.scale_prior = Uniform()
 
         # Determine whether a new matrix needs to be computed or not. Usually,
         # this is needed when (1) this class is initialized, and (2) when the
-        # scale is changed. When scale_changed is True, the function
+        # scale is changed. When current_scale_changed is True, the function
         # _update_matrix will generate a new correlation matrix.
-        self.scale_changed = True
+        self.current_scale_changed = True
 
         # Initialize correlation matrix
         self.K_der0 = None
@@ -110,6 +127,21 @@ class Correlation(object):
         self.K_der2_updated = False
 
     # =========
+    # get scale
+    # =========
+
+    def get_scale(self):
+        """
+        Returns the current scale of the correlation. The current scale is an
+        actual numeric value, not a prior distribution function.
+        """
+
+        # if self.current_scale is None:
+        #     raise ValueError('"scale" of correlation object is None.')
+
+        return self.current_scale
+
+    # =========
     # set scale
     # =========
 
@@ -117,16 +149,16 @@ class Correlation(object):
         """
         """
 
-        # If the given scale is None, do not change the existing self.scale
-        # attribute. This essentially leaves self.scale unchanged. If the
-        # attribute self.scale is also None, this should not happen.
+        # If the given scale is None, do not change the existing
+        # self.current_scale attribute. This essentially leaves
+        # self.current_scale unchanged. If the attribute self.current_scale is
+        # also None, this should not happen.
         if scale is None:
 
-            # If the attribute self.scale is also None, this should
-            # not happen.
-            if self.scale is None:
-                raise ValueError('"scale" cannot be initialized to "None" ' +
-                                 'value.')
+            # If the attribute self.current_scale is also None, this should not
+            # happen.
+            if self.current_scale is None:
+                raise ValueError('"scale" hyperparameter is undetermined.')
 
         else:
 
@@ -163,9 +195,9 @@ class Correlation(object):
                                  'the "points".')
 
             # Check if self.scale should be updated
-            if any(self.scale != scale_):
-                self.scale = scale_
-                self.scale_changed = True
+            if any(self.current_scale != scale_):
+                self.current_scale = scale_
+                self.current_scale_changed = True
 
     # ===============
     # get matrix size
@@ -223,7 +255,7 @@ class Correlation(object):
 
         if len(derivative) == 0:
 
-            if self.K_amf_der0 is None or self.scale_changed:
+            if self.K_amf_der0 is None or self.current_scale_changed:
                 # Create new affine matrix function object
                 self.K_amf_der0 = imate.AffineMatrixFunction(self.K_der0)
 
@@ -231,7 +263,7 @@ class Correlation(object):
 
         elif len(derivative) == 1:
 
-            if self.K_amf_der1 is None or self.scale_changed:
+            if self.K_amf_der1 is None or self.current_scale_changed:
                 # Create new affine matrix function object
                 self.K_amf_der1 = [None] * self.dimension
                 for p in range(self.dimension):
@@ -242,7 +274,7 @@ class Correlation(object):
 
         elif len(derivative) == 2:
 
-            if self.K_amf_der2 is None or self.scale_changed:
+            if self.K_amf_der2 is None or self.current_scale_changed:
                 # Create new affine matrix function object
                 self.K_amf_der2 = [[] for _ in range(self.dimension)]
                 for p in range(self.dimension):
@@ -277,7 +309,7 @@ class Correlation(object):
 
         if len(derivative) == 0:
 
-            if self.K_eig_der0 is None or self.scale_changed:
+            if self.K_eig_der0 is None or self.current_scale_changed:
                 self.K_eig_der0 = scipy.linalg.eigh(
                         self.K_der0, eigvals_only=True, check_finite=False)
 
@@ -285,7 +317,7 @@ class Correlation(object):
 
         elif len(derivative) == 1:
 
-            if self.K_eig_der1 is None or self.scale_changed:
+            if self.K_eig_der1 is None or self.current_scale_changed:
                 self.K_eig_der1 = [None] * self.dimension
                 for p in range(self.dimension):
                     self.K_eig_der1[p] = scipy.linalg.eigh(
@@ -295,7 +327,7 @@ class Correlation(object):
 
         elif len(derivative) == 2:
 
-            if self.K_eig_der2 is None or self.scale_changed:
+            if self.K_eig_der2 is None or self.current_scale_changed:
                 self.K_eig_der2 = [[] for _ in range(self.dimension)]
                 for p in range(self.dimension):
                     self.K_eig_der2[p] = [None] * self.dimension
@@ -326,13 +358,14 @@ class Correlation(object):
         if len(derivative) not in (0, 1, 2):
             raise ValueError('"derivative" order should be 0, 1, or 2.')
 
-        # If the given scale is different than self.scale, the function below
-        # will update self.scale. Also, it will set self.scale_changed to True.
+        # If the given scale is different than self.current_scale, the function
+        # below will update self.current_scale. Also, it will set
+        # self.current_scale_changed to True.
         self.set_scale(scale)
 
         # Determine whether the matrix or its derivative should be generated
         update_needed = False
-        if self.scale_changed:
+        if self.current_scale_changed:
             update_needed = True
         elif (len(derivative) == 0) and (self.K_der0 is None):
             update_needed = True
@@ -356,15 +389,16 @@ class Correlation(object):
                 # generate correlation matrix of derivative 0
                 no_derivative = []
                 self._generate_correlation_matrix(
-                        self.scale, no_derivative, self.sparse, self.density)
+                        self.current_scale, no_derivative, self.sparse,
+                        self.density)
 
             # The main line where new matrix is generated
             self._generate_correlation_matrix(
-                    self.scale, derivative, self.sparse, self.density, plot,
-                    verbose)
+                    self.current_scale, derivative, self.sparse, self.density,
+                    plot, verbose)
 
             # if scale was changed, all matrices should be recomputed
-            if self.scale_changed:
+            if self.current_scale_changed:
                 self.K_der0_updated = False
                 self.K_der1_updated = False
                 self.K_der2_updated = False
@@ -380,7 +414,7 @@ class Correlation(object):
             # If scale was changed, all eigenvalues and amf have to be
             # recomputed again. So, we set them to None to signal other
             # functions that they need to be recomputed.
-            if self.scale_changed:
+            if self.current_scale_changed:
 
                 # Affine matrix functions
                 self.K_amf_der0 = None
@@ -393,7 +427,7 @@ class Correlation(object):
                 self.K_eig_der2 = None
 
             # Indicate that update has been done
-            self.scale_changed = False
+            self.current_scale_changed = False
 
     # ===========================
     # generate correlation matrix
@@ -551,8 +585,8 @@ class Correlation(object):
                 # The nnz of the matrix will be determined, and is not known
                 # a priori.
                 correlation_matrix = generate_sparse_correlation(
-                    self.points, self.scale, self.kernel, derivative, density,
-                    verbose)
+                    self.points, self.current_scale, self.kernel, derivative,
+                    density, verbose)
 
             else:
                 # We use the same sparsity structure of self.K_der0 in the
@@ -569,14 +603,15 @@ class Correlation(object):
                 # generated, rather, the sparsity structure of the matrix is
                 # the same as self.K_der0.
                 correlation_matrix = generate_sparse_correlation(
-                    self.points, self.scale, self.kernel, derivative, density,
-                    verbose, self.K_der0)
+                    self.points, self.currnet_scale, self.kernel, derivative,
+                    density, verbose, self.K_der0)
 
         else:
 
             # Generate a dense matrix
             correlation_matrix = generate_dense_correlation(
-                self.points, self.scale, self.kernel, derivative, verbose)
+                self.points, self.current_scale, self.kernel, derivative,
+                verbose)
 
         # Plot Correlation Matrix
         if plot:

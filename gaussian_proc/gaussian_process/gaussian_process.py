@@ -12,7 +12,7 @@
 # =======
 
 import numpy
-from .._likelihood import Likelihood
+from ._posterior import Posterior
 
 
 # ================
@@ -44,7 +44,6 @@ class GaussianProcess(object):
 
         self.mean = mean
         self.cov = cov
-        self.likelihood = Likelihood(mean, cov)
 
     # =====
     # train
@@ -53,9 +52,10 @@ class GaussianProcess(object):
     def train(
             self,
             z,
-            optimization_method='Newton-CG',
-            profile_param='var',
             hyperparam_guess=None,
+            profile_hyperparam='var',
+            log_hyperparam=True,
+            optimization_method='Newton-CG',
             tol=1e-3,
             verbose=False,
             plot=False):
@@ -69,19 +69,19 @@ class GaussianProcess(object):
         scale = self.cov.get_scale()
 
         # Number of parameters of covariance function
-        if profile_param == 'none':
+        if profile_hyperparam == 'none':
             # hyperparameters are sigma and sigma0
             num_cov_hyperparam = 2
-        elif profile_param == 'var':
+        elif profile_hyperparam == 'var':
             # hyperparameter is eta
             num_cov_hyperparam = 1
-        elif profile_param == 'var_noise':
+        elif profile_hyperparam == 'var_noise':
             num_cov_hyperparam = 0
         else:
-            raise ValueError('"profile_param" can be one of "none", ' +
+            raise ValueError('"profile_hyperparam" can be one of "none", ' +
                              '"var", or "var_noise".')
 
-        # Prepare hyparameter guess
+        # Prepare hyperparameter guess
         if hyperparam_guess is None:
 
             # Set a default value for hyperparameter guess
@@ -108,12 +108,21 @@ class GaussianProcess(object):
             # check the size of input hyperparam_guess
             if hyperparam_guess.size != num_hyperparam:
                 raise ValueError('The size of "hyperparam_guess" does not' +
-                                 'match the number of hyprparameters.')
+                                 'match the number of hyperparameters.')
 
-        result = self.likelihood.maximize_likelihood(
-                z, hyperparam_guess=hyperparam_guess,
+        # Create a posterior object
+        posterior = Posterior(self.mean, self.cov, z,
+                              profile_hyperparam=profile_hyperparam,
+                              log_hyperparam=log_hyperparam)
+
+        # Maximize posterior w.r.t hyperparameters
+        result = posterior.maximize_posterior(
+                hyperparam_guess=hyperparam_guess,
                 optimization_method=optimization_method, tol=tol,
-                profile_param=profile_param, verbose=verbose, plot=plot)
+                verbose=verbose)
+
+        if plot:
+            posterior.plot(result)
 
         import pprint
         pprint.pprint(result)

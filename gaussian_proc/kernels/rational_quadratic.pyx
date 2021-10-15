@@ -74,10 +74,10 @@ cdef class RationalQuadratic(Kernel):
         :rtype: double
         """
 
-        cdef double k = 1.0 + x**2 / (2.0 * self.alpha)
+        cdef double k = 1.0 / (1.0 + x**2 / (2.0 * self.alpha))
 
         if self.alpha != 1.0:
-            k = k**(-self.alpha)
+            k = k**(self.alpha)
 
         return k
 
@@ -90,8 +90,8 @@ cdef class RationalQuadratic(Kernel):
         First derivative of kernel.
         """
 
-        cdef double k = 1.0 + x**2 / (2.0 * self.alpha)
-        return -x * k**(-self.alpha-1.0)
+        cdef double k = 1.0 / (1.0 + x**2 / (2.0 * self.alpha))
+        return -x * k**(self.alpha+1.0)
 
     # ===========================
     # cy kernel second derivative
@@ -102,6 +102,6 @@ cdef class RationalQuadratic(Kernel):
         Second derivative of kernel.
         """
 
-        cdef double k = 1.0 + x**2 / (2.0 * self.alpha)
-        return x**2 * (1.0 + 1.0/self.alpha) * k**(-self.alpha-2.0) - \
-            k**(-self.alpha-1.0)
+        cdef double k = 1.0 / (1.0 + x**2 / (2.0 * self.alpha))
+        return x**2 * (1.0 + 1.0/self.alpha) * k**(self.alpha+2.0) - \
+            k**(self.alpha+1.0)

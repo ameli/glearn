@@ -67,6 +67,7 @@ def _check_import():
 
 try:
     from .mean import LinearModel
+    from .priors import Uniform
     from .correlation import Correlation                           # noqa: E402
     from .covariance import Covariance                             # noqa: E402
     from .gaussian_process import GaussianProcess                  # noqa: E402
@@ -78,6 +79,7 @@ except Exception as e:
 
     raise e
 
-__all__ = ['LinearModel', 'Correlation', 'Covariance', 'GaussianProcess']
+__all__ = ['LinearModel', 'Uniform', 'Correlation', 'Covariance',
+           'GaussianProcess']
 
 from.__version__ import __version__                                # noqa: F401

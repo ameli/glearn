@@ -11,17 +11,12 @@
 # Imports
 # =======
 
-import time
 import numpy
 import scipy
 import scipy.linalg
 import scipy.sparse
 import scipy.sparse.linalg
-import scipy.optimize
-from functools import partial
-from ._root_finding import find_interval_with_sign_change, chandrupatla_method
 import imate
-import warnings
 
 
 # ==================
@@ -43,7 +38,7 @@ class ProfileLikelihood(object):
     # init
     # ====
 
-    def __init__(self, z, X, cov):
+    def __init__(self, z, X, cov, log_hyperparam=True):
         """
         Initialization.
         """
@@ -53,10 +48,20 @@ class ProfileLikelihood(object):
         self.X = X
         self.mixed_cor = cov.mixed_cor
 
+        # The index in hyperparam array where scale starts. In this class,
+        # hyperparam is of the form [eta, scale], hence, scale starts at index
+        # 1.
+        self.scale_index = 1
+
         # Configuration
         self.hyperparam_tol = 1e-8
-        self.use_log_eta = True
-        self.use_log_scale = True
+
+        if log_hyperparam:
+            self.use_log_eta = True
+            self.use_log_scale = True
+        else:
+            self.use_log_eta = False
+            self.use_log_scale = False
 
         # Determine to compute traceinv (only for some of inner computations of
         # derivatives w.r.t scale) using direct inversion of matrices or with
@@ -190,7 +195,7 @@ class ProfileLikelihood(object):
     def _scale_to_hyperparam(self, scale):
         """
         Sets hyperparam from scale. scale is always given with no log-scale
-        If self.use_log_eta is True, hyperparam is set as log10 of scale,
+        If self.use_log_scale is True, hyperparam is set as log10 of scale,
         otherwise, just as scale.
         """
 
@@ -220,6 +225,64 @@ class ProfileLikelihood(object):
             scale = numpy.abs(hyperparam)
 
         return scale
+
+    # ============================
+    # hyperparam to log hyperparam
+    # ============================
+
+    def hyperparam_to_log_hyperparam(self, hyperparam):
+        """
+        Converts the input hyperparameters to their log10, if this is enabled
+        by ``self.use_log_eta`` and ``self.use_scale``.
+
+        If is assumed that the input hyperparam is not in log scale, and it
+        containts either of the following form:
+
+        * [eta]
+        * [eta, scale1, scale2, ...]
+        """
+
+        if numpy.isscalar(hyperparam):
+            hyperparam = numpy.array([hyperparam], dtype=float)
+        elif isinstance(hyperparam, list):
+            hyperparam = numpy.aray(hyperparam, dtype=float)
+
+        # Convert eta to log10 of eta
+        if self.use_log_eta:
+            eta = hyperparam[0]
+            hyperparam[0] = self._eta_to_hyperparam(eta)
+
+        # Convert scale to log10 of scale
+        if hyperparam.size > self.scale_index:
+            if self.use_log_scale:
+                scale = hyperparam[self.scale_index:]
+                hyperparam[self.scale_index:] = \
+                    self._scale_to_hyperparam(scale)
+
+        return hyperparam
+
+    # ==================
+    # extract hyperparam
+    # ==================
+
+    def extract_hyperparam(self, hyperparam):
+        """
+        It is assumed the input hyperparam might be in the log10 scale, and
+        may or may not contain scales. The output will be converted to non-log
+        format and will include scale, regardless if the input has scale or
+        not.
+        """
+
+        eta = self._hyperparam_to_eta(hyperparam[0])
+
+        sigma, sigma0 = self._find_optimal_sigma_sigma0(hyperparam)
+
+        if hyperparam.size > self.scale_index:
+            scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
+        else:
+            scale = self.mixed_cor.get_scale()
+
+        return sigma, sigma0, eta, scale
 
     # =====
     # M dot
@@ -309,10 +372,12 @@ class ProfileLikelihood(object):
             eta = self._hyperparam_to_eta(hyperparam)
 
             # Include derivative w.r.t scale
-            if (not numpy.isscalar(hyperparam)) and (hyperparam.size > 1):
+            if (not numpy.isscalar(hyperparam)) and \
+                    (hyperparam.size > self.scale_index):
 
                 # Set scale of the covariance object
-                scale = self._hyperparam_to_scale(hyperparam[1:])
+                scale = self._hyperparam_to_scale(
+                        hyperparam[self.scale_index:])
                 self.mixed_cor.set_scale(scale)
 
             # Variables to compute/update
@@ -453,10 +518,12 @@ class ProfileLikelihood(object):
             eta = self._hyperparam_to_eta(hyperparam)
 
             # Include derivative w.r.t scale
-            if (not numpy.isscalar(hyperparam)) and (hyperparam.size > 1):
+            if (not numpy.isscalar(hyperparam)) and \
+                    (hyperparam.size > self.scale_index):
 
                 # Set scale of the covariance object
-                scale = self._hyperparam_to_scale(hyperparam[1:])
+                scale = self._hyperparam_to_scale(
+                        hyperparam[self.scale_index:])
                 self.mixed_cor.set_scale(scale)
 
             # Update Y, Binv, Mz
@@ -489,7 +556,7 @@ class ProfileLikelihood(object):
             eta = self._hyperparam_to_eta(hyperparam)
 
             # Set scale of the covariance object
-            scale = self._hyperparam_to_scale(hyperparam[1:])
+            scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
             self.mixed_cor.set_scale(scale)
 
             # Update Kninv
@@ -545,10 +612,11 @@ class ProfileLikelihood(object):
         eta = self._hyperparam_to_eta(hyperparam)
 
         # Extract scale from hyperparam
-        if (not numpy.isscalar(hyperparam)) and (hyperparam.size > 1):
+        if (not numpy.isscalar(hyperparam)) and \
+                (hyperparam.size > self.scale_index):
 
             # Set scale of the covariance object
-            scale = self._hyperparam_to_scale(hyperparam[1:])
+            scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
             self.mixed_cor.set_scale(scale)
 
         n, m = self.X.shape
@@ -610,10 +678,11 @@ class ProfileLikelihood(object):
         eta = self._hyperparam_to_eta(hyperparam)
 
         # Include derivative w.r.t scale
-        if (not numpy.isscalar(hyperparam)) and (hyperparam.size > 1):
+        if (not numpy.isscalar(hyperparam)) and \
+                (hyperparam.size > self.scale_index):
 
             # Set scale of the covariance object
-            scale = self._hyperparam_to_scale(hyperparam[1:])
+            scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
             self.mixed_cor.set_scale(scale)
 
         # Update Y, Binv, Mz
@@ -655,10 +724,11 @@ class ProfileLikelihood(object):
         eta = self._hyperparam_to_eta(hyperparam)
 
         # Include derivative w.r.t scale
-        if (not numpy.isscalar(hyperparam)) and (hyperparam.size > 1):
+        if (not numpy.isscalar(hyperparam)) and \
+                (hyperparam.size > self.scale_index):
 
             # Set scale of the covariance object
-            scale = self._hyperparam_to_scale(hyperparam[1:])
+            scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
             self.mixed_cor.set_scale(scale)
 
         # Update Y, Binv, Mz
@@ -724,7 +794,7 @@ class ProfileLikelihood(object):
         eta = self._hyperparam_to_eta(hyperparam)
 
         # Set scale of the covariance object
-        scale = self._hyperparam_to_scale(hyperparam[1:])
+        scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
         self.mixed_cor.set_scale(scale)
 
         # Initialize jacobian
@@ -790,7 +860,7 @@ class ProfileLikelihood(object):
         eta = self._hyperparam_to_eta(hyperparam)
 
         # Set scale of the covariance object
-        scale = self._hyperparam_to_scale(hyperparam[1:])
+        scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
         self.mixed_cor.set_scale(scale)
 
         # Initialize Hessian
@@ -926,7 +996,7 @@ class ProfileLikelihood(object):
         eta = self._hyperparam_to_eta(hyperparam)
 
         # Set scale of the covariance object
-        scale = self._hyperparam_to_scale(hyperparam[1:])
+        scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
         self.mixed_cor.set_scale(scale)
 
         # Initialize mixed derivative as 2D array with one row.
@@ -1030,14 +1100,15 @@ class ProfileLikelihood(object):
         jacobian = dell_deta
 
         # Compute Jacobian w.r.t scale
-        if hyperparam.size > 1:
+        if hyperparam.size > self.scale_index:
 
             # Compute first derivative w.r.t scale
             dell_dscale = self._likelihood_der1_scale(hyperparam)
 
             # Convert derivative w.r.t log of scale
             if self.use_log_scale:
-                scale = self._hyperparam_to_scale(hyperparam[1:])
+                scale = self._hyperparam_to_scale(
+                        hyperparam[self.scale_index:])
                 for p in range(scale.size):
                     dell_dscale[p] = dell_dscale[p] * scale[p] * \
                         numpy.log(10.0)
@@ -1097,15 +1168,16 @@ class ProfileLikelihood(object):
         hessian = d2ell_deta2
 
         # Compute Hessian w.r.t scale
-        if hyperparam.size > 1:
+        if hyperparam.size > self.scale_index:
 
             # Compute second derivative w.r.t scale
             d2ell_dscale2 = self._likelihood_der2_scale(hyperparam)
 
             # Convert derivative w.r.t log of scale (if needed)
             if self.use_log_scale:
-                scale = self._hyperparam_to_scale(hyperparam[1:])
-                dell_dscale = jacobian_[1:]
+                scale = self._hyperparam_to_scale(
+                        hyperparam[self.scale_index:])
+                dell_dscale = jacobian_[self.scale_index:]
 
                 for p in range(scale.size):
                     for q in range(scale.size):
@@ -1114,7 +1186,7 @@ class ProfileLikelihood(object):
                             # dell_dscale is already converted to logscale
                             d2ell_dscale2[p, q] = d2ell_dscale2[p, q] * \
                                 scale[p]**2 * (numpy.log(10.0)**2) + \
-                                dell_dscale * numpy.log(10.0)
+                                dell_dscale[p] * numpy.log(10.0)
                         else:
                             d2ell_dscale2[p, q] = d2ell_dscale2[p, q] * \
                                 scale[p] * scale[q] * (numpy.log(10.0)**2)
@@ -1127,7 +1199,8 @@ class ProfileLikelihood(object):
                 d2ell_deta_dscale = d2ell_deta_dscale * eta * numpy.log(10.0)
 
             if self.use_log_scale:
-                scale = self._hyperparam_to_scale(hyperparam[1:])
+                scale = self._hyperparam_to_scale(
+                        hyperparam[self.scale_index:])
                 for p in range(scale.size):
                     d2ell_deta_dscale[p] = d2ell_deta_dscale[p] * \
                         scale[p] * numpy.log(10.0)
@@ -1145,256 +1218,6 @@ class ProfileLikelihood(object):
             hessian = -hessian
 
         return hessian
-
-    # ==========================
-    # find likelihood der1 zeros
-    # ==========================
-
-    def _find_likelihood_der1_zeros(
-            self,
-            interval_eta,
-            tol=1e-6,
-            max_iterations=100,
-            num_bracket_trials=3):
-        """
-        root finding of the derivative of ell.
-
-        The log likelihood function is implicitly a function of eta. We have
-        substituted the value of optimal sigma, which itself is a function of
-        eta.
-        """
-
-        # Find an interval that the function changes sign before finding its
-        # root (known as bracketing the function)
-        log_eta_start = numpy.log10(interval_eta[0])
-        log_eta_end = numpy.log10(interval_eta[1])
-
-        # Initial points
-        bracket = [log_eta_start, log_eta_end]
-        bracket_found, bracket, bracket_values = \
-            find_interval_with_sign_change(self._likelihood_der1_eta, bracket,
-                                           num_bracket_trials, args=(), )
-
-        if bracket_found:
-            # There is a sign change in the interval of eta. Find root of ell
-            # derivative
-
-            # Find roots using Brent method
-            # method = 'brentq'
-            # res = scipy.optimize.root_scalar(self._likelihood_der1_eta,
-            #                                  bracket=bracket, method=method,
-            #                                  xtol=tol)
-            # print('Iter: %d, Eval: %d, Converged: %s'
-            #         % (res.iterations, res.function_calls, res.converged))
-
-            # Find roots using Chandraputala method
-            res = chandrupatla_method(self._likelihood_der1_eta, bracket,
-                                      bracket_values, verbose=False, eps_m=tol,
-                                      eps_a=tol, maxiter=max_iterations)
-
-            # Extract results
-            # eta = self._hyperparam_to_eta(res.root)   # Use with Brent
-            eta = self._hyperparam_to_eta(res['root'])  # Use with Chandrupatla
-            sigma, sigma0 = self._find_optimal_sigma_sigma0(eta)
-            iter = res['iterations']
-
-            # Check second derivative
-            # success = True
-            # d2ell_deta2 = self._likelihood_der2_eta(eta)
-            # if d2ell_deta2 < 0:
-            #     success = True
-            # else:
-            #     success = False
-
-        else:
-            # bracket with sign change was not found.
-            iter = 0
-
-            # Evaluate the function in intervals
-            eta_left = bracket[0]
-            eta_right = bracket[1]
-            dell_deta_left = bracket_values[0]
-            dell_deta_right = bracket_values[1]
-
-            # Second derivative of log likelihood at eta = zero, using either
-            # of the two methods below:
-            eta_zero = 0.0
-            # method 1: directly from analytical equation
-            d2ell_deta2_zero_eta = self._likelihood_der2_eta(eta_zero)
-
-            # method 2: using forward differencing from first derivative
-            # dell_deta_zero_eta = self._likelihood_der1_eta(
-            #         numpy.log10(eta_zero))
-            # d2ell_deta2_zero_eta = \
-            #         (dell_deta_lowest_eta - dell_deta_zero_eta) / eta_lowest
-
-            # print('dL/deta   at eta = 0.0:\t %0.2f'%dell_deta_zero_eta)
-            print('dL/deta   at eta = %0.2e:\t %0.2f'
-                  % (eta_left, dell_deta_left))
-            print('dL/deta   at eta = %0.2e:\t %0.16f'
-                  % (eta_right, dell_deta_right))
-            print('d2L/deta2 at eta = 0.0:\t %0.2f'
-                  % d2ell_deta2_zero_eta)
-
-            # No sign change. Can not find a root
-            if (dell_deta_left > 0) and (dell_deta_right > 0):
-                if d2ell_deta2_zero_eta > 0:
-                    eta = 0.0
-                else:
-                    eta = numpy.inf
-
-            elif (dell_deta_left < 0) and (dell_deta_right < 0):
-                if d2ell_deta2_zero_eta < 0:
-                    eta = 0.0
-                else:
-                    eta = numpy.inf
-
-            # Check eta
-            if not (eta == 0 or numpy.isinf(eta)):
-                raise ValueError('eta must be zero or inf at this point.')
-
-            # Find sigma and sigma0
-            sigma, sigma0 = self._find_optimal_sigma_sigma0(eta)
-
-        # Output dictionary
-        result = {
-            'hyperparam':
-            {
-                'sigma': sigma,
-                'sigma0': sigma0,
-                'eta': eta,
-                'scale': None
-            },
-            'optimization':
-            {
-                'max_likelihood': None,
-                'iter': iter
-            }
-        }
-
-        return result
-
-    # ===================
-    # maximize likelihood
-    # ===================
-
-    def maximize_likelihood(
-            self,
-            tol=1e-3,
-            hyperparam_guess=[0.1, 0.1],
-            optimization_method='Nelder-Mead',
-            verbose=False):
-        """
-        Maximizing the log-likelihood function over the space of parameters
-        sigma and sigma0
-
-        In this function, hyperparam = [sigma, sigma0].
-        """
-
-        # Keeping times
-        initial_wall_time = time.time()
-        initial_proc_time = time.process_time()
-
-        # Convert eta to log of eta in hyperparam (if use_log_eta is True)
-        eta_guess = hyperparam_guess[0]
-        hyperparam_guess[0] = self._eta_to_hyperparam(eta_guess)
-
-        # Convert scale to log of scale in hyperparam (if use_log_scale True)
-        if (not numpy.isscalar(hyperparam_guess)) and \
-                (len(hyperparam_guess) > 1):
-            scale_guess = hyperparam_guess[1:]
-            hyperparam_guess[1:] = self._scale_to_hyperparam(scale_guess)
-
-        if optimization_method == 'chandrupatla':
-
-            if (not numpy.isscalar(hyperparam_guess)) and \
-                    (len(hyperparam_guess) > 1):
-
-                warnings.warn('"chandrupatla" method does not optimize ' +
-                              '"scale". The "distance scale in the given ' +
-                              '"hyperparam_guess" will be ignored. To ' +
-                              'optimize distance scale with "chandrupatla"' +
-                              'method, set "profile_eta" to True.')
-
-                if self.mixed_cor.get_scale() is None:
-                    self.mixed_cor.set_scale(scale_guess)
-                    warnings.warn('"scale" is set based on the guess value.')
-
-            # Note: When using interpolation, make sure the interval below is
-            # exactly the end points of eta_i, not less or more.
-            min_eta_guess = numpy.min([1e-4, eta_guess * 1e-2])
-            max_eta_guess = numpy.max([1e+3, eta_guess * 1e+2])
-            interval_eta = [min_eta_guess, max_eta_guess]
-
-            # Using root finding method on the first derivative w.r.t eta
-            result = self._find_likelihood_der1_zeros(interval_eta)
-
-            # Finding the maxima. This isn't necessary and affects run time
-            result['optimization']['max_likelihood'] = self.likelihood(
-                    False, result['hyperparam']['eta'])
-
-            # The distance scale used in this method is the same as its guess.
-            result['hyperparam']['scale'] = self.mixed_cor.get_scale()
-
-        else:
-            # Partial function of likelihood (with minus to make maximization
-            # to a minimization).
-            sign_switch = True
-            likelihood_partial_func = partial(self.likelihood, sign_switch)
-
-            # Partial function of Jacobian of likelihood (with minus sign)
-            jacobian_partial_func = partial(self.likelihood_jacobian,
-                                            sign_switch)
-
-            # Partial function of Hessian of likelihood (with minus sign)
-            hessian_partial_func = partial(self.likelihood_hessian,
-                                           sign_switch)
-
-            # Minimize
-            res = scipy.optimize.minimize(likelihood_partial_func,
-                                          hyperparam_guess,
-                                          method=optimization_method, tol=tol,
-                                          jac=jacobian_partial_func,
-                                          hess=hessian_partial_func)
-
-            # Extract res
-            eta = self._hyperparam_to_eta(res.x[0])
-
-            sigma, sigma0 = self._find_optimal_sigma_sigma0(res.x)
-            max_ell = -res.fun
-
-            # Distance scale
-            if res.x.size > 1:
-                scale = self._hyperparam_to_scale(res.x[1:])
-            else:
-                scale = self.mixed_cor.get_scale()
-
-            # Output dictionary
-            result = {
-                'hyperparam':
-                {
-                    'sigma': sigma,
-                    'sigma0': sigma0,
-                    'eta': eta,
-                    'scale': scale,
-                },
-                'optimization':
-                {
-                    'max_likelihood': max_ell,
-                    'iter': res.nit,
-                }
-            }
-
-        # Adding time to the results
-        wall_time = time.time() - initial_wall_time
-        proc_time = time.process_time() - initial_proc_time
-
-        result['time'] = {
-            'wall_time': wall_time,
-            'proc_time': proc_time
-        }
-
-        return result
 
     # =======================
     # compute bounds der1 eta
@@ -1417,7 +1240,7 @@ class ProfileLikelihood(object):
         # print(eigenvalue_smallest)
         # print(eigenvalue_largest)
         dell_deta_upper_bound = 0.5*(n-m) * \
-            (1/(eta+eigenvalue_smallest) - 1/(eta+eigenvalue_largest))
+            (1.0/(eta+eigenvalue_smallest) - 1.0/(eta+eigenvalue_largest))
         dell_deta_lower_bound = -dell_deta_upper_bound
 
         return dell_deta_upper_bound, dell_deta_lower_bound

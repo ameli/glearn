@@ -11,10 +11,7 @@
 # Imports
 # =======
 
-import time
 import numpy
-import scipy.optimize
-from functools import partial
 import imate
 
 
@@ -33,7 +30,7 @@ class FullLikelihood(object):
     # init
     # ====
 
-    def __init__(self, z, X, cov):
+    def __init__(self, z, X, cov, log_hyperparam=True):
         """
         Initialization.
         """
@@ -43,9 +40,18 @@ class FullLikelihood(object):
         self.X = X
         self.cov = cov
 
+        # The index in hyperparam array where scale starts. In this class,
+        # hyperparam is of the form [sigma, sigma0, scale], hence, scale
+        # starts at index 2.
+        self.scale_index = 2
+
         # Configuration
         self.hyperparam_tol = 1e-8
-        self.use_log_scale = True
+
+        if log_hyperparam:
+            self.use_log_scale = True
+        else:
+            self.use_log_scale = False
 
         # Determine to compute traceinv (only for some of inner computations of
         # derivatives w.r.t scale) using direct inversion of matrices or with
@@ -112,9 +118,9 @@ class FullLikelihood(object):
 
     def _hyperparam_to_scale(self, hyperparam):
         """
-        Sets scale from hyperparam. If self.use_log_eta is True, hyperparam is
-        the log10 of scale, hence, 10**hyperparam is set to scale. If
-        self.use_log_eta is False, hyperparam is directly set to scale.
+        Sets scale from hyperparam. If self.use_log_scale is True, hyperparam
+        is the log10 of scale, hence, 10**hyperparam is set to scale. If
+        self.use_log_scale is False, hyperparam is directly set to scale.
         """
 
         # If logscale is used, input hyperparam is log of the scale.
@@ -124,6 +130,59 @@ class FullLikelihood(object):
             scale = numpy.abs(hyperparam)
 
         return scale
+
+    # ============================
+    # hyperparam to log hyperparam
+    # ============================
+
+    def hyperparam_to_log_hyperparam(self, hyperparam):
+        """
+        Converts the input hyperparameters to their log10, if this is enabled
+        by ``self.use_scale``.
+
+        If is assumed that the input hyperparam is not in log scale, and it
+        containts either of the following form:
+
+        * [sigma, sigma0]
+        * [sigma, sigma0, scale1, scale2, ...]
+        """
+
+        if numpy.isscalar(hyperparam):
+            hyperparam = numpy.array([hyperparam], dtype=float)
+        elif isinstance(hyperparam, list):
+            hyperparam = numpy.aray(hyperparam, dtype=float)
+
+        # Convert scale to log10 of scale
+        if hyperparam.size > self.scale_index:
+            if self.use_log_scale:
+                scale = hyperparam[self.scale_index:]
+                hyperparam[self.scale_index:] = \
+                    self._scale_to_hyperparam(scale)
+
+        return hyperparam
+
+    # ==================
+    # extract hyperparam
+    # ==================
+
+    def extract_hyperparam(self, hyperparam):
+        """
+        It is assumed the input hyperparam might be in the log10 scale, and
+        may or may not contain scales. The output will be converted to non-log
+        format and will include scale, regardless if the input has scale or
+        not.
+        """
+
+        sigma = numpy.abs(hyperparam[0])
+        sigma0 = numpy.abs(hyperparam[1])
+        eta = (sigma0/sigma)**2
+
+        if hyperparam.size > self.scale_index:
+            scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
+        else:
+            scale = self.cov.get_scale()
+
+        return sigma, sigma0, eta, scale
 
     # =====
     # M dot
@@ -214,8 +273,9 @@ class FullLikelihood(object):
             sigma0 = hyperparam[1]
 
             # Include derivative w.r.t scale
-            if hyperparam.size > 2:
-                scale = self._hyperparam_to_scale(hyperparam[2:])
+            if hyperparam.size > self.scale_index:
+                scale = self._hyperparam_to_scale(
+                        hyperparam[self.scale_index:])
                 self.cov.set_scale(scale)
 
             # Variables to compute/update
@@ -250,8 +310,9 @@ class FullLikelihood(object):
             sigma0 = hyperparam[1]
 
             # Set scale of the covariance object
-            if hyperparam.size > 2:
-                scale = self._hyperparam_to_scale(hyperparam[2:])
+            if hyperparam.size > self.scale_index:
+                scale = self._hyperparam_to_scale(
+                        hyperparam[self.scale_index:])
                 self.cov.set_scale(scale)
 
             # Variables to update
@@ -283,8 +344,9 @@ class FullLikelihood(object):
             sigma0 = hyperparam[1]
 
             # Set scale of the covariance object
-            if hyperparam.size > 2:
-                scale = self._hyperparam_to_scale(hyperparam[2:])
+            if hyperparam.size > self.scale_index:
+                scale = self._hyperparam_to_scale(
+                        hyperparam[self.scale_index:])
                 self.cov.set_scale(scale)
 
             # Compute trace of M
@@ -322,7 +384,7 @@ class FullLikelihood(object):
             sigma0 = hyperparam[1]
 
             # Set scale of the covariance object
-            scale = self._hyperparam_to_scale(hyperparam[2:])
+            scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
             self.cov.set_scale(scale)
 
             # Update variables
@@ -345,11 +407,15 @@ class FullLikelihood(object):
 
     def likelihood(self, sign_switch, hyperparam):
         """
-        Here we use direct parameter, sigma and sigma0
+        Returns the log-likelihood function.
 
-        sign_switch change s the sign of the output from ell to -ell. When
-        True, this is used to minimizing (instead of maximizing) the negative
-        of log-likelihood function.
+        Hyperparam are in one of the two forms:
+        * [sigma, sigma0]
+        * [sigma, sigma0, scale0, scale1, ...]
+
+        ``sign_switch`` changes the sign of the output from ``ell`` to
+        ``-ell``. When ``True``, this is used to minimizing (instead of
+        maximizing) the negative of log-likelihood function.
         """
 
         # Check if likelihood is already computed for an identical hyperparam
@@ -368,8 +434,8 @@ class FullLikelihood(object):
         sigma0 = hyperparam[1]
 
         # Include derivative w.r.t scale
-        if hyperparam.size > 2:
-            scale = self._hyperparam_to_scale(hyperparam[2:])
+        if hyperparam.size > self.scale_index:
+            scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
             self.cov.set_scale(scale)
 
         n, m = self.X.shape
@@ -415,8 +481,8 @@ class FullLikelihood(object):
         sigma0 = hyperparam[1]
 
         # Set scale of the covariance object
-        if hyperparam.size > 2:
-            scale = self._hyperparam_to_scale(hyperparam[2:])
+        if hyperparam.size > self.scale_index:
+            scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
             self.cov.set_scale(scale)
 
         n, m = self.X.shape
@@ -469,8 +535,8 @@ class FullLikelihood(object):
         eta = (sigma0 / sigma)**2
 
         # Include derivative w.r.t scale
-        if hyperparam.size > 2:
-            scale = self._hyperparam_to_scale(hyperparam[2:])
+        if hyperparam.size > self.scale_index:
+            scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
             self.cov.set_scale(scale)
 
         n, m = self.X.shape
@@ -559,7 +625,7 @@ class FullLikelihood(object):
         sigma0 = hyperparam[1]
 
         # Set scale of the covariance object
-        scale = self._hyperparam_to_scale(hyperparam[2:])
+        scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
         self.cov.set_scale(scale)
 
         dell_dscale = numpy.zeros((scale.size, ), dtype=float)
@@ -620,7 +686,7 @@ class FullLikelihood(object):
         sigma0 = hyperparam[1]
 
         # Set scale of the covariance object
-        scale = self._hyperparam_to_scale(hyperparam[2:])
+        scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
         self.cov.set_scale(scale)
 
         # Initialize arrays
@@ -787,7 +853,7 @@ class FullLikelihood(object):
         sigma0 = hyperparam[1]
 
         # Set scale of the covariance object
-        scale = self._hyperparam_to_scale(hyperparam[2:])
+        scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
         self.cov.set_scale(scale)
 
         # Initialize output array
@@ -921,14 +987,15 @@ class FullLikelihood(object):
         jacobian = self._likelihood_der1_sigmas(hyperparam)
 
         # Compute Jacobian w.r.t scale
-        if hyperparam.size > 2:
+        if hyperparam.size > self.scale_index:
 
             # Compute first derivative w.r.t scale
             dell_dscale = self._likelihood_der1_scale(hyperparam)
 
             # Convert derivative w.r.t log of scale
             if self.use_log_scale:
-                scale = self._hyperparam_to_scale(hyperparam[2:])
+                scale = self._hyperparam_to_scale(
+                        hyperparam[self.scale_index:])
                 for p in range(scale.size):
                     dell_dscale[p] = dell_dscale[p] * scale[p] * \
                         numpy.log(10.0)
@@ -968,7 +1035,7 @@ class FullLikelihood(object):
         hessian = self._likelihood_der2_sigmas(hyperparam)
 
         # Compute Hessian w.r.t scale
-        if hyperparam.size > 2:
+        if hyperparam.size > self.scale_index:
 
             # Compute second derivative w.r.t scale
             d2ell_dscale2 = self._likelihood_der2_scale(hyperparam)
@@ -979,7 +1046,8 @@ class FullLikelihood(object):
             # Convert derivative w.r.t log of scale (if needed)
             if self.use_log_scale:
 
-                scale = self._hyperparam_to_scale(hyperparam[2:])
+                scale = self._hyperparam_to_scale(
+                        hyperparam[self.scale_index:])
 
                 for p in range(scale.size):
                     # Mixed derivative of scale and sigma
@@ -994,8 +1062,8 @@ class FullLikelihood(object):
                 # The Jacobian itself is already converted to log scale.
                 jacobian_ = self.likelihood_jacobian(False, hyperparam)
 
-                # Second derivative w.r.t eta
-                dell_dscale = jacobian_[2:]
+                # Second derivative w.r.t scale
+                dell_dscale = jacobian_[self.scale_index:]
 
                 for p in range(scale.size):
                     for q in range(scale.size):
@@ -1004,7 +1072,7 @@ class FullLikelihood(object):
                             # dell_dscale is already converted to logscale
                             d2ell_dscale2[p, q] = d2ell_dscale2[p, q] * \
                                 scale[p]**2 * (numpy.log(10.0)**2) + \
-                                dell_dscale * numpy.log(10.0)
+                                dell_dscale[p] * numpy.log(10.0)
                         else:
                             d2ell_dscale2[p, q] = d2ell_dscale2[p, q] * \
                                 scale[p] * scale[q] * (numpy.log(10.0)**2)
@@ -1021,81 +1089,3 @@ class FullLikelihood(object):
             hessian = -hessian
 
         return hessian
-
-    # ===================
-    # maximize likelihood
-    # ===================
-
-    def maximize_likelihood(
-            self,
-            tol=1e-3,
-            hyperparam_guess=[0.1, 0.1],
-            optimization_method='Nelder-Mead',
-            verbose=False):
-        """
-        Maximizing the log-likelihood function over the space of parameters
-        sigma and sigma0
-
-        In this function, hyperparam = [sigma, sigma0].
-        """
-
-        # Keeping times
-        initial_wall_time = time.time()
-        initial_proc_time = time.process_time()
-
-        # Partial function of likelihood (with minus to make maximization to a
-        # minimization).
-        sign_switch = True
-        likelihood_partial_func = partial(self.likelihood, sign_switch)
-
-        # Partial function of Jacobian of likelihood (with minus sign)
-        jacobian_partial_func = partial(self.likelihood_jacobian, sign_switch)
-
-        # Partial function of Hessian of likelihood (with minus sign)
-        hessian_partial_func = partial(self.likelihood_hessian, sign_switch)
-
-        # Minimize
-        res = scipy.optimize.minimize(likelihood_partial_func,
-                                      hyperparam_guess,
-                                      method=optimization_method, tol=tol,
-                                      jac=jacobian_partial_func,
-                                      hess=hessian_partial_func)
-
-        # Extract res
-        sigma = numpy.abs(res.x[0])
-        sigma0 = numpy.abs(res.x[1])
-        eta = (sigma0/sigma)**2
-        max_ell = -res.fun
-
-        # Distance scale
-        if res.x.size > 2:
-            scale = self._hyperparam_to_scale(res.x[2:])
-        else:
-            scale = self.cov.get_scale()
-
-        # Adding time to the results
-        wall_time = time.time() - initial_wall_time
-        proc_time = time.process_time() - initial_proc_time
-
-        # Output dictionary
-        result = {
-            'hyperparam':
-            {
-                'sigma': sigma,
-                'sigma0': sigma0,
-                'eta': eta,
-                'scale': scale,
-            },
-            'optimization':
-            {
-                'max_likelihood': max_ell,
-                'iter': res.nit,
-            },
-            'time':
-            {
-                'wall_time': wall_time,
-                'proc_time': proc_time
-            }
-        }
-
-        return result

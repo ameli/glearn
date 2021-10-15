@@ -18,6 +18,8 @@ from gaussian_proc.sample_data import generate_points, generate_data
 from gaussian_proc.mean import LinearModel
 from gaussian_proc.kernels import Matern, Exponential, SquareExponential, \
         RationalQuadratic, Linear
+from gaussian_proc.priors import Uniform, Cauchy, StudentT, Erlang, \
+        Gamma, InverseGamma, Normal, BetaPrime
 from gaussian_proc import Correlation
 from gaussian_proc import Covariance
 from gaussian_proc import GaussianProcess
@@ -45,6 +47,16 @@ def main():
     # Mean
     mean = LinearModel.design(points, polynomial_degree=2)
 
+    # Prior for scale of correlation
+    # scale_prior = Uniform()
+    # scale_prior = HalfCauchy()
+    # scale_prior = StudentT()
+    # scale_prior = InverseGamma()
+    # scale_prior = Normal()
+    # scale_prior = Erlang()
+    scale_prior = BetaPrime()
+    # scale_prior.plot()
+
     # Correlation
     # kernel = Matern()
     kernel = Exponential()
@@ -52,7 +64,8 @@ def main():
     # kernel = SquareExponential()
     # kernel = RationalQuadratic()
     # cor = Correlation(points, kernel=kernel, scale=0.07, sparse=False)
-    cor = Correlation(points, kernel=kernel, sparse=False)
+    # cor = Correlation(points, kernel=kernel, sparse=False)
+    cor = Correlation(points, kernel=kernel, scale=scale_prior, sparse=False)
 
     # Covariance
     cov = Covariance(cor, imate_method='cholesky')
@@ -60,10 +73,10 @@ def main():
     # Gaussian process
     gp = GaussianProcess(mean, cov)
 
-    # Trainign options
-    # profile_param = 'none'
-    profile_param = 'var'
-    # profile_param = 'var_noise'
+    # Training options
+    # profile_hyperparam = 'none'
+    profile_hyperparam = 'var'
+    # profile_hyperparam = 'var_noise'
 
     # optimization_method = 'chandrupatla'  # requires jacobian
     # optimization_method = 'Nelder-Mead'     # requires func
@@ -83,9 +96,9 @@ def main():
     # hyperparam_guess = [0.01, 0.01, 0.1]
 
     # gp.train(z, options=options, plot=False)
-    gp.train(z, profile_param=profile_param,
+    gp.train(z, profile_hyperparam=profile_hyperparam, log_hyperparam=True,
              optimization_method=optimization_method, tol=1e-5,
-             hyperparam_guess=hyperparam_guess, verbose=False, plot=True)
+             hyperparam_guess=hyperparam_guess, verbose=False, plot=False)
 
 # ===========
 # script main

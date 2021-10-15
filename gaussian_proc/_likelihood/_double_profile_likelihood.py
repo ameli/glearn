@@ -39,7 +39,7 @@ class DoubleProfileLikelihood(object):
     # init
     # ====
 
-    def __init__(self, z, X, cov):
+    def __init__(self, z, X, cov, log_hyperparam=True):
         """
         Initialization
         """
@@ -51,9 +51,17 @@ class DoubleProfileLikelihood(object):
         self.mixed_cor = self.cov.mixed_cor
         self.profile_likelihood = ProfileLikelihood(z, X, cov)
 
+        # The index in hyperparam array where scale starts. In this class,
+        # hyperparam is of the form [scale], hence, scale starts at index 0.
+        self.scale_index = 0
+
         # Configuration
         self.hyperparam_tol = 1e-8
-        self.use_log_scale = True
+
+        if log_hyperparam:
+            self.use_log_scale = True
+        else:
+            self.use_log_scale = False
 
         # Store ell, its Jacobian and Hessian.
         self.optimal_eta = None
@@ -352,7 +360,7 @@ class DoubleProfileLikelihood(object):
                         # dell_dscale is already converted to logscale
                         d2ell_dscale2[p, q] = d2ell_dscale2[p, q] * \
                             scale[p]**2 * (numpy.log(10.0)**2) + \
-                            dell_dscale * numpy.log(10.0)
+                            dell_dscale[p] * numpy.log(10.0)
                     else:
                         d2ell_dscale2[p, q] = d2ell_dscale2[p, q] * \
                             scale[p] * scale[q] * (numpy.log(10.0)**2)

@@ -96,7 +96,7 @@ class MixedCorrelation(object):
         Returns distance scale of self.cor object.
         """
 
-        return self.cor.scale
+        return self.cor.get_scale()
 
     # ===============
     # get matrix size
