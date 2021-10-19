@@ -19,6 +19,7 @@ import scipy.sparse
 import scipy.sparse.linalg
 import scipy.optimize
 from functools import partial
+from ._base_likelihood import BaseLikelihood
 from ._profile_likelihood import ProfileLikelihood
 
 
@@ -26,30 +27,30 @@ from ._profile_likelihood import ProfileLikelihood
 # Double Profile Likelihood
 # =========================
 
-class DoubleProfileLikelihood(object):
+class DoubleProfileLikelihood(BaseLikelihood):
     """
     Likelihood function that is profiled with respect to :math:`\\sigma` and
     :math:`\\eta` variables.
     """
 
     # Import plot-related methods of this class implemented in a separate file
-    from ._double_profile_likelihood_plots import plot_likelihood_versus_scale
+    from ._double_profile_likelihood_plots import plot
 
     # ====
     # init
     # ====
 
-    def __init__(self, z, X, cov, log_hyperparam=True):
+    def __init__(self, mean, cov, z, log_hyperparam=True):
         """
         Initialization
         """
 
+        # Super class constructor sets self.z, self.X, self.cov, self.mixed_cor
+        super().__init__(mean, cov, z)
+
         # Attributes
-        self.z = z
-        self.X = X
-        self.cov = cov
-        self.mixed_cor = self.cov.mixed_cor
-        self.profile_likelihood = ProfileLikelihood(z, X, cov)
+        self.profile_likelihood = ProfileLikelihood(mean, cov, z,
+                                                    log_hyperparam)
 
         # The index in hyperparam array where scale starts. In this class,
         # hyperparam is of the form [scale], hence, scale starts at index 0.

@@ -126,3 +126,14 @@ class GaussianProcess(object):
 
         import pprint
         pprint.pprint(result)
+
+    # =======
+    # predict
+    # =======
+
+    def predict(self, z_star, dual=False):
+        """
+        Regression with Gaussian process on new data points.
+        """
+
+        pass

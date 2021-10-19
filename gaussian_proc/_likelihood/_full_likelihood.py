@@ -13,32 +13,29 @@
 
 import numpy
 import imate
+from ._base_likelihood import BaseLikelihood
 
 
 # ===============
 # Full Likelihood
 # ===============
 
-class FullLikelihood(object):
+class FullLikelihood(BaseLikelihood):
 
     # Import plot-related methods of this class implemented in a separate file
-    from ._full_likelihood_plots import plot_likelihood_versus_scale, \
-        plot_likelihood_versus_sigma, plot_likelihood_versus_sigma0, \
-        plot_likelihood_versus_sigma0_sigma
+    from ._full_likelihood_plots import plot
 
     # ====
     # init
     # ====
 
-    def __init__(self, z, X, cov, log_hyperparam=True):
+    def __init__(self, mean, cov, z, log_hyperparam=True):
         """
         Initialization.
         """
 
-        # Attributes
-        self.z = z
-        self.X = X
-        self.cov = cov
+        # Super class constructor sets self.z, self.X, self.cov, self.mixed_cor
+        super().__init__(mean, cov, z)
 
         # The index in hyperparam array where scale starts. In this class,
         # hyperparam is of the form [sigma, sigma0, scale], hence, scale

@@ -18,11 +18,35 @@ from .._utilities.plot_utilities import load_plot_settings, save_plot, plt, \
         mark_inset, InsetPosition, matplotlib, make_axes_locatable
 
 
+# ====
+# plot
+# ====
+
+def plot(profile_likelihood, result):
+    """
+    Plot likelihood function and its derivatives.
+    """
+
+    # Plot log-lp versus eta
+    _plot_likelihood_versus_eta(
+            profile_likelihood, result, numpy.logspace(-2, 2, 5))
+
+    # Plot log-lp versus scale
+    _plot_likelihood_versus_scale(
+            profile_likelihood, result, numpy.logspace(-2, 2, 5))
+
+    # 3D Plot of log-lp function
+    _plot_likelihood_versus_eta_scale(profile_likelihood, result)
+
+    # Plot first derivative of log likelihood
+    _plot_likelihood_der1_eta(profile_likelihood, result)
+
+
 # ============================
 # plot likelihood versus scale
 # ============================
 
-def plot_likelihood_versus_scale(
+def _plot_likelihood_versus_scale(
         profile_likelihood,
         result,
         other_etas=None):
@@ -249,7 +273,7 @@ def plot_likelihood_versus_scale(
 # plot likelihood versus eta
 # ==========================
 
-def plot_likelihood_versus_eta(
+def _plot_likelihood_versus_eta(
         profile_likelihood,
         result,
         other_scales=None):
@@ -483,7 +507,7 @@ def plot_likelihood_versus_eta(
 # plot likelihood versus eta scale
 # ================================
 
-def plot_likelihood_versus_eta_scale(profile_likelihood, result):
+def _plot_likelihood_versus_eta_scale(profile_likelihood, result):
     """
     Plots log likelihood versus sigma and eta hyperparam.
     """
@@ -499,7 +523,7 @@ def plot_likelihood_versus_eta_scale(profile_likelihood, result):
     # Optimal point
     optimal_eta = result['hyperparam']['eta']
     optimal_scale = result['hyperparam']['scale']
-    optimal_ell = result['optimization']['max_likelihood']
+    optimal_ell = result['optimization']['max_posterior']
 
     eta = numpy.logspace(-3, 3, 50)
     scale = numpy.logspace(-3, 2, 50)
@@ -660,7 +684,7 @@ def plot_likelihood_versus_eta_scale(profile_likelihood, result):
 # plot likelihood der1 eta
 # ========================
 
-def plot_likelihood_der1_eta(profile_likelihood, result):
+def _plot_likelihood_der1_eta(profile_likelihood, result):
     """
     Plots the derivative of log likelihood as a function of eta. Also it shows
     where the optimal eta is, which is the location where the derivative is

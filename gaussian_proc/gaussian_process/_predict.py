@@ -7,6 +7,17 @@
 # of this source tree.
 
 
-from .likelihood import likelihood
+# =======
+# Imports
+# =======
 
-__all__ = ['likelihood']
+
+# =======
+# predict
+# =======
+
+def _predict():
+    """
+    """
+
+    pass

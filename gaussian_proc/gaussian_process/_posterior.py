@@ -13,9 +13,9 @@
 
 import numpy
 from functools import partial
-from .._likelihood import Likelihood
-from .._likelihood._profile_likelihood import ProfileLikelihood
 from ._root_finding import find_interval_with_sign_change, chandrupatla_method
+from .._likelihood.likelihood import likelihood
+from .._likelihood._profile_likelihood import ProfileLikelihood
 from ._minimize import minimize
 import warnings
 
@@ -44,10 +44,8 @@ class Posterior(object):
         Initialization.
         """
 
-        self.z = z
-        self.mean = mean
-        self.likelihood = Likelihood(mean, cov, z, profile_hyperparam,
-                                     log_hyperparam)
+        self.likelihood = likelihood(mean, cov, z, log_hyperparam,
+                                     profile_hyperparam)
 
         if cov.cor.scale_prior is not None:
             self.prior = cov.cor.scale_prior

@@ -17,36 +17,33 @@ import scipy.linalg
 import scipy.sparse
 import scipy.sparse.linalg
 import imate
+from ._base_likelihood import BaseLikelihood
 
 
 # ==================
 # Profile Likelihood
 # ==================
 
-class ProfileLikelihood(object):
+class ProfileLikelihood(BaseLikelihood):
     """
     Likelihood function that is profiled with respect to :math:`\\sigma`
     variable.
     """
 
     # Import plot-related methods of this class implemented in a separate file
-    from ._profile_likelihood_plots import plot_likelihood_versus_eta, \
-        plot_likelihood_versus_scale, plot_likelihood_versus_eta_scale, \
-        plot_likelihood_der1_eta
+    from ._profile_likelihood_plots import plot
 
     # ====
     # init
     # ====
 
-    def __init__(self, z, X, cov, log_hyperparam=True):
+    def __init__(self, mean, cov, z, log_hyperparam=True):
         """
         Initialization.
         """
 
-        # Attributes
-        self.z = z
-        self.X = X
-        self.mixed_cor = cov.mixed_cor
+        # Super class constructor sets self.z, self.X, self.cov, self.mixed_cor
+        super().__init__(mean, cov, z)
 
         # The index in hyperparam array where scale starts. In this class,
         # hyperparam is of the form [eta, scale], hence, scale starts at index

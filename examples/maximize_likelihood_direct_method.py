@@ -48,13 +48,13 @@ def main():
     mean = LinearModel.design(points, polynomial_degree=2)
 
     # Prior for scale of correlation
-    # scale_prior = Uniform()
-    # scale_prior = HalfCauchy()
+    scale_prior = Uniform()
+    # scale_prior = Cauchy()
     # scale_prior = StudentT()
     # scale_prior = InverseGamma()
     # scale_prior = Normal()
     # scale_prior = Erlang()
-    scale_prior = BetaPrime()
+    # scale_prior = BetaPrime()
     # scale_prior.plot()
 
     # Correlation
@@ -68,7 +68,11 @@ def main():
     cor = Correlation(points, kernel=kernel, scale=scale_prior, sparse=False)
 
     # Covariance
-    cov = Covariance(cor, imate_method='cholesky')
+    # imate_method = 'eigenvalue'
+    imate_method = 'cholesky'
+    # imate_method = 'hutchinson'
+    # imate_method = 'slq'
+    cov = Covariance(cor, imate_method=imate_method)
 
     # Gaussian process
     gp = GaussianProcess(mean, cov)
@@ -98,7 +102,7 @@ def main():
     # gp.train(z, options=options, plot=False)
     gp.train(z, profile_hyperparam=profile_hyperparam, log_hyperparam=True,
              optimization_method=optimization_method, tol=1e-5,
-             hyperparam_guess=hyperparam_guess, verbose=False, plot=False)
+             hyperparam_guess=hyperparam_guess, verbose=False, plot=True)
 
 # ===========
 # script main

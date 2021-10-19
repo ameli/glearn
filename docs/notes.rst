@@ -10,11 +10,17 @@ Notes
 ToDo
 ====
 
+* likelihood factory object.
+* likelihood tic toc measure elapsed time and process time of computing imate.
+* pass imate config settings from cov object interface.
+
+
 -------
 Predict
 -------
 
-* Add ``predict`` to ``gaussian_process`` class.
+* Add ``predict`` to ``gaussian_process`` class. Option ``uncertainty`` to
+  Tr
 
 --------------------
 Asymptotic Relations

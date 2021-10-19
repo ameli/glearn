@@ -18,11 +18,36 @@ from .._utilities.plot_utilities import load_plot_settings, plt, matplotlib, \
         make_axes_locatable
 
 
+# ====
+# plot
+# ====
+
+def plot(full_likelihood, result):
+    """
+    Plot likelihood function and its derivatives.
+    """
+
+    # Plot likelihood for scale, fixed sigma and sigma0
+    _plot_likelihood_versus_scale(
+            full_likelihood, result, other_sigmas=numpy.logspace(-1, 1, 3))
+
+    # Plot likelihood for sigma, fixed sigma0 and scale
+    _plot_likelihood_versus_sigma(
+            full_likelihood, result, other_scales=numpy.logspace(-1, 1, 3))
+
+    # Plot likelihood for sigma0, fixed sigma and scale
+    _plot_likelihood_versus_sigma0(
+            full_likelihood, result, other_scales=numpy.logspace(-1, 1, 3))
+
+    # 2d plot of likelihood versus sigma0 and sigma
+    _plot_likelihood_versus_sigma0_sigma(full_likelihood, result)
+
+
 # ============================
 # plot likelihood versus scale
 # ============================
 
-def plot_likelihood_versus_scale(
+def _plot_likelihood_versus_scale(
         full_likelihood,
         result,
         other_sigmas=None):
@@ -310,7 +335,7 @@ def plot_likelihood_versus_scale(
 # plot likelihood versus sigma
 # ============================
 
-def plot_likelihood_versus_sigma(
+def _plot_likelihood_versus_sigma(
         full_likelihood,
         result,
         other_scales=None):
@@ -593,7 +618,7 @@ def plot_likelihood_versus_sigma(
 # plot likelihood versus sigma0
 # =============================
 
-def plot_likelihood_versus_sigma0(
+def _plot_likelihood_versus_sigma0(
         full_likelihood,
         result,
         other_scales=None):
@@ -872,7 +897,7 @@ def plot_likelihood_versus_sigma0(
 # plot likelihood versus sigma0 sigma
 # ===================================
 
-def plot_likelihood_versus_sigma0_sigma(full_likelihood, result=None):
+def _plot_likelihood_versus_sigma0_sigma(full_likelihood, result=None):
     """
     2D contour plot of log likelihood versus sigma0 and sigma.
     """
@@ -883,7 +908,7 @@ def plot_likelihood_versus_sigma0_sigma(full_likelihood, result=None):
     optimal_sigma = result['hyperparam']['sigma']
     optimal_sigma0 = result['hyperparam']['sigma0']
     optimal_scale = result['hyperparam']['scale']
-    optimal_ell = result['optimization']['max_likelihood']
+    optimal_ell = result['optimization']['max_posterior']
 
     full_likelihood.cov.set_scale(optimal_scale)
 

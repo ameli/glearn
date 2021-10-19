@@ -18,11 +18,23 @@ from .._utilities.plot_utilities import load_plot_settings, plt, matplotlib, \
         make_axes_locatable
 
 
+# ====
+# plot
+# ====
+
+def plot(double_profile_likelihood, result):
+    """
+    Plot likelihood function and its derivatives.
+    """
+
+    _plot_likelihood_versus_scale(double_profile_likelihood, result)
+
+
 # ============================
 # plot likelihood versus scale
 # ============================
 
-def plot_likelihood_versus_scale(double_profile_likelihood, result):
+def _plot_likelihood_versus_scale(double_profile_likelihood, result):
     """
     Plots log likelihood for scale parameters.
     """
@@ -110,7 +122,7 @@ def _plot_likelihood_versus_scale_1d(double_profile_likelihood, result=None):
 
     if result is not None:
         opt_scale = result['hyperparam']['scale']
-        opt_ell = result['optimization']['max_likelihood']
+        opt_ell = result['optimization']['max_posterior']
         ax[0, 0].plot(opt_scale, opt_ell, 'o', color='maroon', markersize=4,
                       label=r'$\hat{\theta}$ (optimized)')
 
