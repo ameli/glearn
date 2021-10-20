@@ -32,7 +32,7 @@ class StudentT(Prior):
     # init
     # ====
 
-    def __init__(self, dof=1.0, half=True):
+    def __init__(self, dof=1.0, half=False):
         """
         Initialization.
         """

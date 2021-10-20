@@ -28,7 +28,7 @@ class Normal(Prior):
     # init
     # ====
 
-    def __init__(self, mean=0.0, std=1.0, half=True):
+    def __init__(self, mean=0.0, std=1.0, half=False):
         """
         Initialization.
         """

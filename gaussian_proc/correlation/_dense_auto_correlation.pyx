@@ -25,7 +25,7 @@ from ..kernels cimport Kernel
 cimport cython
 cimport openmp
 
-__all__ = ['generate_dense_correlation']
+__all__ = ['dense_auto_correlation']
 
 
 # ===========================
@@ -243,16 +243,16 @@ cdef void _generate_correlation_matrix_hessian(
                                 correlation_matrix_hessian[q][p][i][j]
 
 
-# ==========================
-# generate dense correlation
-# ==========================
+# ======================
+# dense auto correlation
+# ======================
 
-def generate_dense_correlation(
+def dense_auto_correlation(
         points,
         scale,
         kernel,
         derivative,
-        verbose):
+        test_points=None):
     """
     Generates a dense correlation matrix.
 
@@ -288,10 +288,6 @@ def generate_dense_correlation(
     # size of data and the correlation matrix
     matrix_size = points.shape[0]
     dimension = points.shape[1]
-
-    if verbose:
-        print('Generated dense correlation matirx of size: %d.'
-              % (matrix_size))
 
     # Get number of CPU threads
     num_threads = multiprocessing.cpu_count()

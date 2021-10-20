@@ -25,7 +25,7 @@ class Prior(object):
     Base class for prior distributions.
     """
 
-    def __init__(self, half=True):
+    def __init__(self, half=False):
         """
         Initialization.
         """

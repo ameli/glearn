@@ -28,11 +28,13 @@ class Uniform(Prior):
     # init
     # ====
 
-    def __init__(self, a=0, b=numpy.inf, half=True):
+    def __init__(self, a=0, b=numpy.inf):
         """
         Initialization.
         """
 
+        # This distribution does not have half distribution
+        half = False
         super().__init__(half)
 
         # Check arguments

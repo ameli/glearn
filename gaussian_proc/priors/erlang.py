@@ -29,11 +29,13 @@ class Erlang(Prior):
     # init
     # ====
 
-    def __init__(self, shape=1.0, rate=1.0, half=True):
+    def __init__(self, shape=1.0, rate=1.0):
         """
         Initialization.
         """
 
+        # This distribution does not have half distribution
+        half = False
         super().__init__(half)
 
         # Check arguments

@@ -13,8 +13,10 @@
 
 import numpy
 import scipy.linalg
-from ._generate_dense_correlation import generate_dense_correlation
-from ._generate_sparse_correlation import generate_sparse_correlation
+from ._dense_auto_correlation import dense_auto_correlation
+from ._dense_cross_correlation import dense_cross_correlation
+from ._sparse_auto_correlation import sparse_auto_correlation
+from ._sparse_cross_correlation import sparse_cross_correlation
 from ..kernels import Kernel, Matern
 import imate
 from ..priors.prior import Prior
@@ -217,9 +219,7 @@ class Correlation(object):
     def get_matrix(
             self,
             scale=None,
-            derivative=[],
-            plot=False,
-            verbose=False):
+            derivative=[]):
         """
         Returns the correlation matrix. If the correlation is not available as
         a matrix, it generates the matrix from the kernel and spatial distance
@@ -227,7 +227,7 @@ class Correlation(object):
         """
 
         # Update matrix (if needed)
-        self._update_matrix(scale, derivative, plot, verbose)
+        self._update_matrix(scale, derivative)
 
         if len(derivative) == 0:
             return self.K_der0
@@ -345,9 +345,7 @@ class Correlation(object):
     def _update_matrix(
             self,
             scale=None,
-            derivative=[],
-            plot=False,
-            verbose=False):
+            derivative=[]):
         """
         If the matrix has not been generated before, or if the matrix settings
         has changed, this function generates a new matrix. It returns the
@@ -389,13 +387,10 @@ class Correlation(object):
                 # generate correlation matrix of derivative 0
                 no_derivative = []
                 self._generate_correlation_matrix(
-                        self.current_scale, no_derivative, self.sparse,
-                        self.density)
+                        self.current_scale, no_derivative)
 
             # The main line where new matrix is generated
-            self._generate_correlation_matrix(
-                    self.current_scale, derivative, self.sparse, self.density,
-                    plot, verbose)
+            self._generate_correlation_matrix(self.current_scale, derivative)
 
             # if scale was changed, all matrices should be recomputed
             if self.current_scale_changed:
@@ -436,157 +431,26 @@ class Correlation(object):
     def _generate_correlation_matrix(
             self,
             scale,
-            derivative,
-            sparse,
-            density,
-            plot,
-            verbose):
+            derivative):
         """
-        Generates symmetric and positive-definite matrix.
-
-        **Correlation Function:**
-
-        The generated matrix is a correlation matrix based on Matern
-        correlation of spatial distance of a list of points in the unit
-        hypercube. The Matern correlation function accepts the correlation
-        scale parameter :math:`\\rho \\in (0,1]`. Smaller decorrelation
-        produces correlation matrix that is closer to the identity matrix.
-
-        **Sparsification:**
-
-        The values of the correlation matrix are between :math:`0` and
-        :math:`1`. To sparsify the matrix, the correlation kernel below a
-        certain threshold value is set to zero to which tapers the correlation
-        kernel. Such threshold can be set through the parameter ``density``,
-        which sets an approximate density of the non-zero elements of the
-        sparse matrix.
-
-        .. note::
-
-            Setting a too small ``density`` might eradicate the
-            positive-definiteness of the correlation matrix.
-
-        **Plotting:**
-
-        If the option ``plot`` is set to ``True``, it plots the generated
-        matrix.
-
-        * If no graphical backend exists (such as running the code on a remote
-          server or manually disabling the X11 backend), the plot will not be
-          shown, rather, it will be saved as an ``svg`` file in the current
-          directory.
-        * If the executable ``latex`` is on the path, the plot is rendered
-          using :math:`\\rm\\LaTeX`, which then, it takes longer to produce the
-          plot.
-        * If :math:`\\rm\\LaTeX` is not installed, it uses any available
-          San-Serif font to render the plot.
-
-       .. note::
-
-           To manually disable interactive plot display, and save the plot as
-           ``SVG`` instead, add the following in the very beginning of your
-           code before importing ``imate``:
-
-           .. code-block:: python
-
-               >>> import os
-               >>> os.environ['IMATE_NO_DISPLAY'] = 'True'
-
-        :param correlation: A 2D array of coordinates of points. The
-            correlation matrix is generated from the euclidean distance of the
-            points. The ``points`` array has the shape
-            ``(num_points, dimension)``.
-        :type pointS: numpy-ndarray
-
-        :param scale: A parameter of correlation function that scales distance.
-            It can be an array of the size of the dimension, which then it
-            specifies a correlation for each dimension axis. Alternatively, it
-            can be a scalar, which then it assumes an isotropic correlation
-            scale for all dimension axes.
-        :type scale: float or numpy.ndarray
-
-        :param nu: The parameter :math:`\\nu` of Matern correlation kernel.
-        :type nu: float
-
-        :param sparse: Flag to indicate the correlation matrix should be
-            sparse or dense matrix. If set to ``True``, you may also specify
-            ``density``.
-        :type parse: bool
-
-        :param density: Specifies an approximate density of the non-zero
-            elements of the generated sparse matrix. The actual density of the
-            matrix may not be exactly the same as this value.
-        :rtype: double
-
-        :param plot: If ``True``, the matrix will be plotted.
-        :type Plot: bool
-
-        :param verbose: If ``True``, prints some information during the
-            process.
-        :type verbose: bool
-
-        :return: Correlation matrix.
-        :rtype: numpy.ndarray or scipy.sparse.csc
-
-        **Example:**
-
-        Generate a matrix of the shape ``(20,20)`` by mutual correlation of a
-        set of :math:`20` points in the unit interval:
-
-        .. code-block:: python
-
-           >>> from imate import update_needed
-           >>> A = update_needed(20)
-
-        Generate a matrix of the shape :math:`(20^2, 20^2)` by mutual
-        correlation of a grid of :math:`20 \\times 20` points in the unit
-        square:
-
-        .. code-block:: python
-
-           >>> from imate import update_needed
-           >>> A = update_needed(20, dimension=20)
-
-        Generate a correlation matrix of shape ``(20, 20)`` based on 20 random
-        points in unit square:
-
-        .. code-block:: python
-
-           >>> A = update_needed(size=20, dimension=20, grid=False)
-
-        Generate a matrix of shape ``(20, 20)`` with spatial :math:`20` points
-        that are more correlated:
-
-        .. code-block:: python
-
-           >>> A = update_needed(size=20, scale=0.3)
-
-        Sparsify correlation matrix of size :math:`(20^2, 20^2)` with
-        approximate density of :math:`1e-3`
-
-        .. code-block:: python
-
-           >>> A = update_needed(size=20, dimension=2, sparse=True,
-           ...                     density=1e-3)
-
-        Plot a dense matrix of size :math:`(30^2, 30^2)` by
-
-        .. code-block:: python
-
-            >>> A = update_needed(size=30, dimension=2, plot=True)
+        Generates auto-correlation matrix between training points and
+        themselves. This matrix is square.
         """
+
+        if len(derivative) > 2:
+            raise ValueError('"derivative" order should be 0, 1, or 2.')
 
         # Compute the correlation between the set of points
-        if sparse:
+        if self.sparse:
 
             # Generate a sparse matrix
             if len(derivative) == 0:
                 # This generates a new correlation matrix (no derivative).
                 # The nnz of the matrix will be determined, and is not known
                 # a priori.
-                correlation_matrix = generate_sparse_correlation(
+                correlation_matrix = sparse_auto_correlation(
                     self.points, self.current_scale, self.kernel, derivative,
-                    density, verbose)
+                    self.density, correlation_matrix=None)
 
             else:
                 # We use the same sparsity structure of self.K_der0 in the
@@ -602,20 +466,15 @@ class Correlation(object):
                 # matrix that was calculated before. No new sparcity is
                 # generated, rather, the sparsity structure of the matrix is
                 # the same as self.K_der0.
-                correlation_matrix = generate_sparse_correlation(
+                correlation_matrix = sparse_auto_correlation(
                     self.points, self.currnet_scale, self.kernel, derivative,
-                    density, verbose, self.K_der0)
+                    self.density, correlation_matrix=self.K_der0)
 
         else:
 
             # Generate a dense matrix
-            correlation_matrix = generate_dense_correlation(
-                self.points, self.current_scale, self.kernel, derivative,
-                verbose)
-
-        # Plot Correlation Matrix
-        if plot:
-            self._plot_matrix(correlation_matrix, sparse, verbose)
+            correlation_matrix = dense_auto_correlation(
+                self.points, self.current_scale, self.kernel, derivative)
 
         if len(derivative) == 0:
             self.K_der0 = correlation_matrix
@@ -623,16 +482,44 @@ class Correlation(object):
             self.K_der1 = correlation_matrix
         elif len(derivative) == 2:
             self.K_der2 = correlation_matrix
-        else:
-            raise ValueError('"derivative" order should be 0, 1, or 2.')
 
-    # ===========
-    # plot matrix
-    # ===========
+    # =================
+    # cross correlation
+    # =================
 
-    def _plot_matrix(self, matrix, sparse, verbose=False):
+    def cross_correlation(self, test_points):
         """
-        Plots a given matrix.
+        Computes the cross-correlation between the training points (points
+        which this object is initialized with), and a given set of test points.
+        This matrix is rectangular.
+        """
+
+        # Compute the correlation between the set of points
+        if self.sparse:
+
+            # This generates a new correlation matrix (no derivative).
+            # The nnz of the matrix will be determined, and is not known
+            # a priori.
+            correlation_matrix = sparse_cross_correlation(
+                self.points, test_points, self.current_scale, self.kernel,
+                self.density)
+
+        else:
+
+            # Generate a dense matrix
+            correlation_matrix = dense_cross_correlation(
+                self.points, test_points, self.current_scale, self.kernel)
+
+        return correlation_matrix
+
+    # ====
+    # plot
+    # ====
+
+    def plot(self, derivative=[]):
+        """
+        Plots the (auto) correlation matrix, which it the correlation matrix
+        between self.points and themselves.
 
         If the matrix is a sparse, it plots all non-zero elements with single
         color regardless of their values, and leaves the zero elements white.
@@ -660,10 +547,13 @@ class Correlation(object):
         else:
             raise ImportError("Cannot load plot settings.")
 
+        # Get correlation matrix
+        matrix = self.get_matrix(derivative=derivative)
+
         # Figure
         fig, ax = plt.subplots(figsize=(6, 4))
 
-        if sparse:
+        if self.sparse:
             # Plot sparse matrix
             p = ax.spy(matrix, markersize=1, color='blue', rasterized=True)
         else:
@@ -683,4 +573,4 @@ class Correlation(object):
             plt.show()
         else:
             # write the plot as SVG file in the current working directory
-            save_plot(plt, 'CorrelationMatrix', transparent_background=True)
+            save_plot(plt, 'correlation', transparent_background=True)

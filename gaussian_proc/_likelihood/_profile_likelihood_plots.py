@@ -28,18 +28,18 @@ def plot(profile_likelihood, result):
     """
 
     # Plot log-lp versus eta
-    _plot_likelihood_versus_eta(
-            profile_likelihood, result, numpy.logspace(-2, 2, 5))
-
+    # _plot_likelihood_versus_eta(
+    #         profile_likelihood, result, numpy.logspace(-2, 2, 5))
+    #
     # Plot log-lp versus scale
-    _plot_likelihood_versus_scale(
-            profile_likelihood, result, numpy.logspace(-2, 2, 5))
+    # _plot_likelihood_versus_scale(
+    #         profile_likelihood, result, numpy.logspace(-2, 2, 5))
 
-    # 3D Plot of log-lp function
+    # Contour Plot of log-lp function
     _plot_likelihood_versus_eta_scale(profile_likelihood, result)
 
     # Plot first derivative of log likelihood
-    _plot_likelihood_der1_eta(profile_likelihood, result)
+    # _plot_likelihood_der1_eta(profile_likelihood, result)
 
 
 # ============================
