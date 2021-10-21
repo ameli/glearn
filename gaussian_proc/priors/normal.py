@@ -77,6 +77,24 @@ class Normal(Prior):
 
         return mean, std
 
+    # ========================
+    # suggest hyperparam guess
+    # ========================
+
+    def suggest_hyperparam_guess(self):
+        """
+        Suggests a guess for the hyperparam based on the prior distribution.
+        """
+
+        if self.half:
+            # For half-normal distirubiton, use std as inital hypepram guess.
+            hyperparam_guess = self.std
+        else:
+            # Otherwise, use its mean.
+            hyperparam_guess = self.mean
+
+        return hyperparam_guess
+
     # ===========
     # check param
     # ===========

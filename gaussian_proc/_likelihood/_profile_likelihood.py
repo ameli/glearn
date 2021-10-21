@@ -242,7 +242,7 @@ class ProfileLikelihood(BaseLikelihood):
         if numpy.isscalar(hyperparam):
             hyperparam = numpy.array([hyperparam], dtype=float)
         elif isinstance(hyperparam, list):
-            hyperparam = numpy.aray(hyperparam, dtype=float)
+            hyperparam = numpy.array(hyperparam, dtype=float)
 
         # Convert eta to log10 of eta
         if self.use_log_eta:
@@ -637,7 +637,7 @@ class ProfileLikelihood(BaseLikelihood):
             # Update Y, B, Mz (all needed for computing optimal sigma2)
             self._update_Y_B_Mz(hyperparam)
 
-            # Fidn (or update) optimal sigma2
+            # Find (or update) optimal sigma2
             sigma2 = self._find_optimal_sigma2(hyperparam)
 
             logdet_Kn = self.mixed_cor.logdet(eta)
@@ -1220,12 +1220,13 @@ class ProfileLikelihood(BaseLikelihood):
     # compute bounds der1 eta
     # =======================
 
-    def _compute_bounds_der1_eta(self, K, eta):
+    def _compute_bounds_der1_eta(self, eta):
         """
         Upper and lower bound.
         """
 
         n, m = self.X.shape
+        K = self.mixed_cor.get_matrix(0.0)
         eigenvalue_smallest = scipy.linalg.eigh(K, eigvals_only=True,
                                                 check_finite=False,
                                                 subset_by_index=[0, 0])[0]
@@ -1246,7 +1247,7 @@ class ProfileLikelihood(BaseLikelihood):
     # compute asymptote der1 eta
     # ==========================
 
-    def _compute_asymptote_der1_eta(self, K, eta):
+    def _compute_asymptote_der1_eta(self, eta):
         """
         Computes first and second order asymptote to the first derivative of
         log marginal likelihood function.
@@ -1256,9 +1257,8 @@ class ProfileLikelihood(BaseLikelihood):
         asymptote_1_order = numpy.empty(eta.size)
         asymptote_2_order = numpy.empty(eta.size)
 
-        n, m = self.X.shape
-        I = numpy.eye(n)                                           # noqa: E741
-        # Im = numpy.eye(m)
+        K = self.mixed_cor.get_matrix(0.0)
+        I = self.mixed_cor.I                                       # noqa: E741
         Q = self.X @ numpy.linalg.inv(self.X.T @ self.X) @ self.X.T
         R = I - Q
         N = K @ R
@@ -1266,6 +1266,7 @@ class ProfileLikelihood(BaseLikelihood):
         N3 = N2 @ N
         N4 = N3 @ N
 
+        n, m = self.X.shape
         mtrN = numpy.trace(N)/(n-m)
         mtrN2 = numpy.trace(N2)/(n-m)
 

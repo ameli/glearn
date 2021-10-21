@@ -41,9 +41,6 @@ class Erlang(Prior):
         # Check arguments
         self.shape, self.rate = self._check_arguments(shape, rate)
 
-        # Mean of distribution (could be used for initial hyperparam guess)
-        self.mean = self.shape / self.rate
-
     # ===============
     # check arguments
     # ===============
@@ -88,6 +85,24 @@ class Erlang(Prior):
 
         return shape, rate
 
+    # ========================
+    # suggest hyperparam guess
+    # ========================
+
+    def suggest_hyperparam_guess(self):
+        """
+        Suggests a guess for the hyperparam based on the prior distribution.
+        """
+
+        hyperparam_guess = numpy.zeros_like(self.shape)
+
+        for i in range(self.shape):
+            # Mean of distribution (could be used for initial hyperparam guess)
+            mean = self.shape[i] / self.rate[i]
+            hyperparam_guess[i] = mean
+
+        return hyperparam_guess
+
     # ===========
     # check param
     # ===========
@@ -105,8 +120,7 @@ class Erlang(Prior):
         elif isinstance(x, numpy.ndarray):
             x_ = x
         else:
-            raise TypeError('"x" should be scalar, list, or numpy ' +
-                            'array.')
+            raise TypeError('"x" should be scalar, list, or numpy array.')
 
         # Match the size of self.rate and self.shape with size of input x
         if x_.size == self.rate.size and x_.size == self.shape.size:

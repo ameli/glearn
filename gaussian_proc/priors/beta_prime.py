@@ -41,12 +41,6 @@ class BetaPrime(Prior):
         # Check arguments
         self.alpha, self.beta = self._check_arguments(alpha, beta)
 
-        # Mean of distribution (could be used for initial hyperparam guess)
-        if self.beta > 1.0:
-            self.mean = self.alpha / (self.beta - 1.0)
-        else:
-            self.mean = numpy.nan
-
     # ===============
     # check arguments
     # ===============
@@ -87,6 +81,31 @@ class BetaPrime(Prior):
             raise ValueError('"beta" should be positive.')
 
         return alpha, beta
+
+    # ========================
+    # suggest hyperparam guess
+    # ========================
+
+    def suggest_hyperparam_guess(self):
+        """
+        Suggests a guess for the hyperparam based on the prior distribution.
+        """
+
+        hyperparam_guess = numpy.zeros_like(self.shape)
+
+        for i in range(self.shape):
+            # Mean or mode could be used for initial hyperparam guess
+            if self.beta[i] > 1.0:
+                mean = self.alpha[i] / (self.beta[i] - 1.0)
+                hyperparam_guess[i] = mean
+            elif self.alpha[i] >= 1.0:
+                mode = (self.alpha[i] - 1.0) / (self.beta[i] + 1.0)
+                hyperparam_guess[i] = mode
+            else:
+                # mean and mode are infinity. Just set any finite number
+                hyperparam_guess[i] = 1.0
+
+        return hyperparam_guess
 
     # ===========
     # check param

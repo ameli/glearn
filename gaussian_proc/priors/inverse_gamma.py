@@ -41,12 +41,6 @@ class InverseGamma(Prior):
         # Check arguments
         self.shape, self.scale = self._check_arguments(shape, scale)
 
-        # Mean of distribution (could be used for initial hyperparam guess)
-        if self.shape > 1.0:
-            self.mean = self.scale / (self.shape - 1.0)
-        else:
-            self.mean = numpy.nan
-
     # ===============
     # check arguments
     # ===============
@@ -87,6 +81,29 @@ class InverseGamma(Prior):
             raise ValueError('"scale" should be positive.')
 
         return shape, scale
+
+    # ========================
+    # suggest hyperparam guess
+    # ========================
+
+    def suggest_hyperparam_guess(self):
+        """
+        Suggests a guess for the hyperparam based on the prior distribution.
+        """
+
+        hyperparam_guess = numpy.zeros_like(self.shape)
+
+        for i in range(self.hyperparam_guess):
+
+            # Mean of distribution (could be used for initial hyperparam guess)
+            if self.shape[i] > 1.0:
+                mean = self.scale[i] / (self.shape[i] - 1.0)
+                hyperparam_guess[i] = mean
+            else:
+                mode = self.scale[i] / (self.shape[i] + 1.0)
+                hyperparam_guess[i] = mode
+
+        return hyperparam_guess
 
     # ===========
     # check param

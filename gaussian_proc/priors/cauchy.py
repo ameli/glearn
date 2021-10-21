@@ -38,9 +38,6 @@ class Cauchy(Prior):
         # Check arguments
         self.median, self.scale = self._check_arguments(median, scale)
 
-        # Mean of distribution (could be used for initial hyperparam guess)
-        self.mean = numpy.nan
-
     # ===============
     # check arguments
     # ===============
@@ -79,6 +76,23 @@ class Cauchy(Prior):
             raise ValueError('"scale" should be positive.')
 
         return median, scale
+
+    # ========================
+    # suggest hyperparam guess
+    # ========================
+
+    def suggest_hyperparam_guess(self):
+        """
+        Suggests a guess for the hyperparam based on the prior distribution.
+        """
+
+        # Mediam of distribution (could be used for initial hyperparam guess)
+        if self.half:
+            hyperparam_guess = self.scale
+        else:
+            hyperparam_guess = self.median
+
+        return hyperparam_guess
 
     # ===========
     # check param

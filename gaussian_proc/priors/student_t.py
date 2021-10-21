@@ -42,12 +42,6 @@ class StudentT(Prior):
         # Check arguments
         self.dof = self._check_arguments(dof)
 
-        # Mean of distribution (could be used for initial hyperparam guess)
-        if dof > 1.0:
-            self.mean = 0.0
-        else:
-            self.mean = numpy.nan
-
     # ===============
     # check arguments
     # ===============
@@ -74,6 +68,34 @@ class StudentT(Prior):
             raise ValueError('"dof" should be positive.')
 
         return dof
+
+    # ========================
+    # suggest hyperparam guess
+    # ========================
+
+    def suggest_hyperparam_guess(self):
+        """
+        Suggests a guess for the hyperparam based on the prior distribution.
+        """
+
+        hyperparam_guess = numpy.zeros_like(self.dof)
+
+        for i in range(hyperparam_guess.size):
+
+            # std of distribution (could be used for initial hyperparam guess)
+            if self.dof[i] > 2.0:
+                std = numpy.sqrt(self.dof[i] / (self.dof[i] - 2.0))
+
+                if self.half:
+                    std = std * numpy.sqrt(2.0)
+
+                hyperparam_guess[i] = std
+
+            else:
+                # mean and std are infinity. Just pick any finite number
+                hyperparam_guess[i] = 1.0
+
+        return hyperparam_guess
 
     # ===========
     # check param

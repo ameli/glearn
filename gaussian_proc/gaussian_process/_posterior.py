@@ -298,7 +298,7 @@ class Posterior(object):
                 'scale': scale,
             }
 
-            # Add extracted hyperparam to the otput dictionary
+            # Add extracted hyperparam to the output dictionary
             res['hyperparam'] = hyperparam_dict
 
         return res

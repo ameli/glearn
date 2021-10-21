@@ -28,18 +28,18 @@ def plot(profile_likelihood, result):
     """
 
     # Plot log-lp versus eta
-    # _plot_likelihood_versus_eta(
-    #         profile_likelihood, result, numpy.logspace(-2, 2, 5))
-    #
-    # Plot log-lp versus scale
-    # _plot_likelihood_versus_scale(
-    #         profile_likelihood, result, numpy.logspace(-2, 2, 5))
+    _plot_likelihood_versus_eta(
+            profile_likelihood, result, numpy.logspace(-2, 2, 5))
+
+    Plot log-lp versus scale
+    _plot_likelihood_versus_scale(
+            profile_likelihood, result, numpy.logspace(-2, 2, 5))
 
     # Contour Plot of log-lp function
     _plot_likelihood_versus_eta_scale(profile_likelihood, result)
 
     # Plot first derivative of log likelihood
-    # _plot_likelihood_der1_eta(profile_likelihood, result)
+    _plot_likelihood_der1_eta(profile_likelihood, result)
 
 
 # ============================
@@ -736,9 +736,8 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
                 profile_likelihood._eta_to_hyperparam(eta[i]))
 
     # Compute upper and lower bound of derivative
-    K = profile_likelihood.mixed_cor.get_matrix(0.0)
     dell_deta_upper_bound, dell_deta_lower_bound = \
-        profile_likelihood._compute_bounds_der1_eta(K, eta)
+        profile_likelihood._compute_bounds_der1_eta(eta)
 
     # Compute asymptote of first derivative, using both first and second
     # order approximation
@@ -748,7 +747,7 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
     except NameError:
         x = numpy.logspace(1, log_eta_end, 100)
     dell_deta_asymptote_1, dell_deta_asymptote_2, roots_1, roots_2 = \
-        profile_likelihood._compute_asymptote_der1_eta(K, x)
+        profile_likelihood._compute_asymptote_der1_eta(x)
 
     # Main plot
     fig, ax1 = plt.subplots(figsize=(6, 4.5))

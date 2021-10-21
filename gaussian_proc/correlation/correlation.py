@@ -83,8 +83,7 @@ class Correlation(object):
 
         # Set distance scale. By initializing scale to None in the constructor,
         # it will be determined later as variable to the optimization problem.
-        if numpy.isscalar(scale) or isinstance(scale, list) or \
-                isinstance(scale, numpy.ndarray):
+        if numpy.isscalar(scale) or isinstance(scale, (list, numpy.ndarray)):
             # Input scale is given as a known numeric value.
             self.current_scale = None
             self.scale_prior = None

@@ -12,6 +12,7 @@
 # =======
 
 import numpy
+from ..priors.prior import Prior
 from ._posterior import Posterior
 
 
@@ -45,6 +46,126 @@ class GaussianProcess(object):
         self.mean = mean
         self.cov = cov
 
+    # ========================
+    # check hyperparam guess
+    # ========================
+
+    def _check_hyperparam_guess(self, hyperparam_guess, profile_hyperparam):
+        """
+        Checks the input hyperparam, if not None.
+        """
+
+        # Find scale if not specifically given (as number, or array) the
+        # training process will find scale as an unknown hyperparameter. But,
+        # if scale is given, it leaves it out of hyperparameters.
+        scale = self.cov.get_scale()
+
+        # Number of parameters of covariance function
+        if profile_hyperparam == 'none':
+            # hyperparameters are sigma and sigma0
+            num_cov_hyperparam = 2
+        elif profile_hyperparam == 'var':
+            # hyperparameter is eta
+            num_cov_hyperparam = 1
+        elif profile_hyperparam == 'var_noise':
+            num_cov_hyperparam = 0
+        else:
+            raise ValueError('"profile_hyperparam" can be one of "none", ' +
+                             '"var", or "var_noise".')
+
+        # Convert hyperparam to numpy array
+        if isinstance(hyperparam_guess, list):
+            hyperparam_guess = numpy.array(hyperparam_guess)
+
+        # Check number of hyperparameters
+        if not isinstance(scale, (int, float, numpy.ndarray, list)):
+            # Finds sigma, sigma0 (or eta), and all scale
+            dimension = self.cov.mixed_cor.cor.points.shape[1]
+            num_hyperparam = num_cov_hyperparam + dimension
+        else:
+            # Only find sigma and sigma0 (or eta)
+            num_hyperparam = num_cov_hyperparam
+
+        # check the size of input hyperparam_guess
+        if hyperparam_guess.size != num_hyperparam:
+            raise ValueError(
+                'The size of "hyperparam_guess" (which is %d'
+                % hyperparam_guess.size + ') does not match the number ' +
+                'of hyperparameters (which is %d).' % num_hyperparam)
+
+    # ========================
+    # suggest hyperparam guess
+    # ========================
+
+    def _suggest_hyperparam_guess(self, profile_hyperparam):
+        """
+        Suggests hyperparam_guess when it is None. ``hyperparam_guess`` may
+        contain the following variables:
+
+        * ``scale``: suggested from the mean, median, or peak of prior
+          distributions for the scale hyperparam.
+        * ``eta``: it uses the asymptotic relation that estimates eta before
+          any computation is performed.
+        * ``sigma`` and ``sigma0``: it assumes sigma is zero, and finds sigma0
+          based on eta=infinity assumption.
+        """
+
+        # Find scale if not specifically given (as number, or array) the
+        # training process will find scale as an unknown hyperparameter. But,
+        # if scale is given, it leaves it out of hyperparameters.
+        scale = self.cov.get_scale()
+
+        # Set a default value for hyperparameter guess
+        if isinstance(scale, (int, float, numpy.ndarray, list)):
+            # Scale is given explicitly. No hyperparam is needed.
+            scale_guess = []
+        elif scale is None:
+
+            # Get the prior of scale
+            scale_prior = self.cov.cor.scale_prior
+
+            if not isinstance(scale_prior, Prior):
+                raise TypeError('"scale" should be given either explicitly ' +
+                                'or as a prior distribution.')
+
+            # Get the guess from the prior
+            scale_guess = scale_prior.suggest_hyperparam_guess()
+
+            # Check type of scale guess
+            if numpy.isscalar(scale_guess):
+                scale_guess = numpy.array([scale_guess], ftype=float)
+            elif isinstance(scale_guess, list):
+                scale_guess = numpy.array(scale_guess, ftype=float)
+            elif not isinstance(scale_guess, numpy.ndarray):
+                raise TypeError('"scale_guess" should be a numpy array.')
+
+            # Check if the size of scale guess matches the dimension
+            dimension = self.cov.mixed_cor.cor.points.shape[1]
+            if scale_guess.size != dimension:
+                if scale_guess.size == 1:
+                    scale_guess = numpy.tile(scale_guess, dimension)
+                else:
+                    raise ValueError('Size of "scale_guess" and "dimension" ' +
+                                     'does not match.')
+
+        # Other hyperparameters of covariance (except scale)
+        if profile_hyperparam == 'none':
+            # hyperparameters are sigma and sigma0
+            sigma_guess = 0.0
+            sigma0_guess = 1.0
+            hyperparam_guess = numpy.r_[sigma_guess, sigma0_guess, scale_guess]
+
+        elif profile_hyperparam == 'var':
+            # hyperparameter is eta
+            eta_guess = 1.0
+            hyperparam_guess = numpy.r_[eta_guess, scale_guess]
+
+        elif profile_hyperparam == 'var_noise':
+            # No hyperparameter
+            hyperparam_guess = scale_guess
+
+        return hyperparam_guess
+
     # =====
     # train
     # =====
@@ -63,52 +184,13 @@ class GaussianProcess(object):
         Finds the hyperparameters of the Gaussian process model.
         """
 
-        # Find if scale is specifies or is None. If None, the training
-        # process will find scale as an unknown hyperparameter. But, if scale
-        # is given, it leaves it out of hyperparameters.
-        scale = self.cov.get_scale()
-
-        # Number of parameters of covariance function
-        if profile_hyperparam == 'none':
-            # hyperparameters are sigma and sigma0
-            num_cov_hyperparam = 2
-        elif profile_hyperparam == 'var':
-            # hyperparameter is eta
-            num_cov_hyperparam = 1
-        elif profile_hyperparam == 'var_noise':
-            num_cov_hyperparam = 0
-        else:
-            raise ValueError('"profile_hyperparam" can be one of "none", ' +
-                             '"var", or "var_noise".')
-
+        # Check or find hyperparam guess
         # Prepare hyperparameter guess
-        if hyperparam_guess is None:
-
-            # Set a default value for hyperparameter guess
-            if scale is None:
-                hyperparam_guess = [0.1, 0.1, 0.1, 0.1]
-            else:
-                hyperparam_guess = [0.1, 0.1]
-
+        if hyperparam_guess is not None:
+            self._check_hyperparam_guess(hyperparam_guess, profile_hyperparam)
         else:
-
-            # Convert hyperparam to numpy array
-            if isinstance(hyperparam_guess, list):
-                hyperparam_guess = numpy.array(hyperparam_guess)
-
-            # Number of hyperparameters
-            if scale is None:
-                # Finds sigma, sigma0, and all scale
-                dimension = self.cov.mixed_cor.cor.points.shape[1]
-                num_hyperparam = num_cov_hyperparam + dimension
-            else:
-                # Only find sigma and sigma0
-                num_hyperparam = num_cov_hyperparam
-
-            # check the size of input hyperparam_guess
-            if hyperparam_guess.size != num_hyperparam:
-                raise ValueError('The size of "hyperparam_guess" does not' +
-                                 'match the number of hyperparameters.')
+            hyperparam_guess = self._suggest_hyperparam_guess(
+                    profile_hyperparam)
 
         # Create a posterior object
         posterior = Posterior(self.mean, self.cov, z,

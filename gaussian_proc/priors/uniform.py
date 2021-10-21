@@ -85,6 +85,38 @@ class Uniform(Prior):
 
         return a, b
 
+    # ========================
+    # suggest hyperparam guess
+    # ========================
+
+    def suggest_hyperparam_guess(self):
+        """
+        Suggests a guess for the hyperparam based on the prior distribution.
+        """
+
+        hyperparam_guess = numpy.zeros_like(self.a)
+
+        for i in range(hyperparam_guess.size):
+
+            if not numpy.isinf(numpy.abs(self.a[i])) and \
+                    not numpy.isinf(self.b[i]):
+                mean = 0.5 * (self.a[i] + self.b[i])
+                hyperparam_guess[i] = mean
+
+            elif numpy.isinf(numpy.abs(self.a[i])) and \
+                    not numpy.isinf(self.b[i]):
+                hyperparam_guess[i] = self.b[i] - 1.0
+
+            elif not numpy.isinf(numpy.abs(self.a[i])) and \
+                    numpy.isinf(self.b[i]):
+                hyperparam_guess[i] = self.a[i] + 1.0
+
+            else:
+                # a and b are infinity. Just pick any finite number.
+                hyperparam_guess[i]
+
+        return hyperparam_guess
+
     # =======
     # check x
     # =======

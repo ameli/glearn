@@ -57,12 +57,14 @@ def main():
     # scale_prior = BetaPrime()
     # scale_prior.plot()
 
-    # Correlation
+    # Kernel
     # kernel = Matern()
     kernel = Exponential()
     # kernel = Linear()
     # kernel = SquareExponential()
     # kernel = RationalQuadratic()
+
+    # Correlation
     # cor = Correlation(points, kernel=kernel, scale=0.07, sparse=False)
     # cor = Correlation(points, kernel=kernel, sparse=False)
     cor = Correlation(points, kernel=kernel, scale=scale_prior, sparse=False)
@@ -95,9 +97,10 @@ def main():
     # hyperparam_guess = [0, 0.1, 0.1]
     # hyperparam_guess = [-1, 1e-1]
     # hyperparam_guess = [1.0]
-    hyperparam_guess = [0.1, 0.1]
+    # hyperparam_guess = [0.1, 0.1]
     # hyperparam_guess = [0.1, 0.1, 0.1, 0.1]
     # hyperparam_guess = [0.01, 0.01, 0.1]
+    hyperparam_guess = None
 
     # gp.train(z, options=options, plot=False)
     gp.train(z, profile_hyperparam=profile_hyperparam, log_hyperparam=True,
