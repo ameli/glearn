@@ -298,7 +298,7 @@ def _plot_likelihood_versus_scale(
     else:
         ax[1, 0].set_ylabel(
             r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-            r'{\mathrm{d} (\ln \theta) \mathrm{d} \sigma^2}$')
+            r'{\mathrm{d} \theta \mathrm{d} \sigma^2}$')
 
     if full_likelihood.use_log_scale:
         ax[1, 1].set_ylabel(
@@ -982,7 +982,7 @@ def _plot_likelihood_versus_sigma0_sigma(full_likelihood, result=None):
     divider = make_axes_locatable(ax[0])
     cax = divider.append_axes('right', size='5%', pad=0.05)
     cbar = fig.colorbar(c, cax=cax, orientation='vertical')
-    cbar.ax.set_ylabel(r'$\ell(\eta, \theta)$')
+    cbar.ax.set_ylabel(r'$\ell(\sigma, \sigma_0)$')
     # c.set_clim(0, clim)
     # cbar.set_ticks([0,0.3,0.6,0.9,1])
 
@@ -1021,24 +1021,24 @@ def _plot_likelihood_versus_sigma0_sigma(full_likelihood, result=None):
     opt_sigma = sigma_fine[max_indices[1]]
     opt_ell = ell_fine[max_indices[0], max_indices[1]]
     ax[0].plot(opt_sigma, opt_sigma0, 'o', color='red', markersize=6,
-               label=r'$(\hat{\sigma}_0, \hat{\sigma})$ (by brute force ' +
+               label=r'$(\hat{\sigma}, \hat{\sigma}_0)$ (by brute force ' +
                      r'on grid)')
     ax[1].plot(opt_sigma, opt_ell, 'o', color='red',
                label=r'$\ell(\hat{\sigma}, \hat{\sigma}_0)$ by brute ' +
                      r'force on grid)')
     ax[2].plot(opt_sigma0, opt_ell, 'o', color='black',
-               label=r'$\ell(\hat{\sigma}_0, \hat{\sigma})$ (by brute ' +
+               label=r'$\ell(\hat{\sigma}, \hat{\sigma}_0)$ (by brute ' +
                      r'force on grid)')
 
     # Plot optimal point as found by the profile likelihood method
     ax[0].plot(optimal_sigma, optimal_sigma0, 'X', color='black',
                markersize=6,
-               label=r'$\max_{\sigma_0, \sigma} \ell$ (by optimization)')
+               label=r'$\max_{\sigma, \sigma_0} \ell$ (by optimization)')
     ax[1].plot(optimal_sigma, optimal_ell, 'X', color='red',
-               label=r'$\ell(\hat{\sigma}_0, \hat{\sigma})$ (by ' +
+               label=r'$\ell(\hat{\sigma}, \hat{\sigma}_0)$ (by ' +
                      r'optimization)')
     ax[2].plot(optimal_sigma0, optimal_ell, 'X', color='black',
-               label=r'$\ell(\hat{\sigma}_0, \hat{\sigma})$ (by ' +
+               label=r'$\ell(\hat{\sigma}, \hat{\sigma}_0)$ (by ' +
                      r'optimization)')
 
     # Plot annotations
@@ -1057,8 +1057,8 @@ def _plot_likelihood_versus_sigma0_sigma(full_likelihood, result=None):
     ax[1].set_xlabel(r'$\sigma$')
     ax[2].set_xlabel(r'$\sigma_0$')
     ax[0].set_ylabel(r'$\sigma_0$')
-    ax[1].set_ylabel(r'$\ell(\hat{\sigma}_0(\sigma), \sigma)$')
-    ax[2].set_ylabel(r'$\ell(\sigma_0, \hat{\sigma}(\sigma_0))$')
+    ax[1].set_ylabel(r'$\ell(\sigma, \hat{\sigma}_0(\sigma))$')
+    ax[2].set_ylabel(r'$\ell(\hat{\sigma}(\sigma_0), sigma_0)$')
     ax[0].set_title('Log likelihood function')
     ax[1].set_title(r'Log Likelihood profiled over $\sigma$ ')
     ax[2].set_title(r'Log likelihood profiled over $\sigma_0$')

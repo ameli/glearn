@@ -46,9 +46,9 @@ class GaussianProcess(object):
         self.mean = mean
         self.cov = cov
 
-    # ========================
+    # ======================
     # check hyperparam guess
-    # ========================
+    # ======================
 
     def _check_hyperparam_guess(self, hyperparam_guess, profile_hyperparam):
         """
@@ -151,13 +151,13 @@ class GaussianProcess(object):
         # Other hyperparameters of covariance (except scale)
         if profile_hyperparam == 'none':
             # hyperparameters are sigma and sigma0
-            sigma_guess = 0.0
-            sigma0_guess = 1.0
+            sigma_guess = 0.0  # TODO
+            sigma0_guess = 1.0  # TODO
             hyperparam_guess = numpy.r_[sigma_guess, sigma0_guess, scale_guess]
 
         elif profile_hyperparam == 'var':
             # hyperparameter is eta
-            eta_guess = 1.0
+            eta_guess = 1.0  # TODO
             hyperparam_guess = numpy.r_[eta_guess, scale_guess]
 
         elif profile_hyperparam == 'var_noise':

@@ -113,9 +113,10 @@ class ProfileLikelihood(BaseLikelihood):
         for example when the profile_likelihood is called multiple times for
         different scale parameters, but the scale parameter is not a part of
         hyperparam. This happens in double_profile_likelihood (see
-        _find_optimal_eta function in DoubleProfileLikelihood). By resetting
-        all the internal attributes, these variables will be computed with the
-        new scale parameter instead of reading them from the stored attributes.
+        _find_optimal_eta function in ``DoubleProfileLikelihood``). By
+        resetting all the internal attributes, these variables will be computed
+        with the new scale parameter instead of reading them from the stored
+        attributes.
         """
 
         self.ell = None
@@ -233,7 +234,7 @@ class ProfileLikelihood(BaseLikelihood):
         by ``self.use_log_eta`` and ``self.use_scale``.
 
         If is assumed that the input hyperparam is not in log scale, and it
-        containts either of the following form:
+        contains either of the following form:
 
         * [eta]
         * [eta, scale1, scale2, ...]
@@ -456,7 +457,7 @@ class ProfileLikelihood(BaseLikelihood):
                     (not numpy.allclose(hyperparam, self.sigma2_hyperparam,
                                         atol=self.hyperparam_tol)):
 
-                # Make sure Y, Binv, Mz are updated. for the given hyperparam
+                # Make sure Y, Binv, Mz are updated for the given hyperparam
                 self._update_Y_B_Mz(hyperparam)
 
                 n, m = self.X.shape
@@ -742,12 +743,12 @@ class ProfileLikelihood(BaseLikelihood):
         trace_Kn2inv = self.mixed_cor.traceinv(eta, exponent=2)
         YtY = numpy.matmul(self.Y.T, self.Y)
         YtV = numpy.matmul(self.Y.T, V)
-        C = numpy.matmul(self.Binv, YtV)
-        trace_C = numpy.trace(C)
+        CYtV = numpy.matmul(self.Binv, YtV)
+        trace_CYtV = numpy.trace(CYtV)
         A = numpy.matmul(self.Binv, YtY)
         AA = numpy.matmul(A, A)
         trace_AA = numpy.trace(AA)
-        trace_M2 = trace_Kn2inv - 2.0*trace_C + trace_AA
+        trace_M2 = trace_Kn2inv - 2.0*trace_CYtV + trace_AA
 
         # Compute (or update) MMz
         self._update_MMz(hyperparam)
@@ -759,7 +760,7 @@ class ProfileLikelihood(BaseLikelihood):
 
         # Warning: this relation is the second derivative only at optimal eta,
         # where the first derivative vanishes. It does not require the
-        # computation of zM2z. But, for plotting, or using Hessian in
+        # computation of zM2z. However, for plotting, or using Hessian in
         # scipy.optimize.minimize, this formula must not be used, because it is
         # not the actual second derivative everywhere else other than optimal
         # point of eta.
@@ -936,10 +937,10 @@ class ProfileLikelihood(BaseLikelihood):
                     KnqY = Knq @ self.Y
                 KninvKnqY = self.mixed_cor.solve(eta, KnqY)
                 YtKnpKninvKnqY = numpy.matmul(KnpY.T, KninvKnqY)
-                C21 = numpy.matmul(self.Binv, YtKnpKninvKnqY)
-                C22 = numpy.matmul(self.Binv, YtKnpKninvKnqY.T)
-                trace_KnpMKnqM_21 = numpy.trace(C21)
-                trace_KnpMKnqM_22 = numpy.trace(C22)
+                F21 = numpy.matmul(self.Binv, YtKnpKninvKnqY)
+                F22 = numpy.matmul(self.Binv, YtKnpKninvKnqY.T)
+                trace_KnpMKnqM_21 = numpy.trace(F21)
+                trace_KnpMKnqM_22 = numpy.trace(F22)
 
                 # Compute the third part of trace of Knp * M * Knq * M
                 YtKnpY = numpy.matmul(self.Y.T, KnpY)
@@ -1046,17 +1047,17 @@ class ProfileLikelihood(BaseLikelihood):
             KnpY = self.mixed_cor.dot(eta, self.Y, derivative=[p])
             YtKnpY = numpy.matmul(self.Y.T, KnpY)
             VtKnpY = numpy.matmul(V.T, KnpY)
-            C1 = numpy.matmul(self.Binv, VtKnpY)
-            C2 = numpy.matmul(self.Binv, VtKnpY.T)
+            F1 = numpy.matmul(self.Binv, VtKnpY)
+            F2 = numpy.matmul(self.Binv, VtKnpY.T)
             D1 = numpy.matmul(self.Binv, YtKnpY)
             D = numpy.matmul(D1, D2)
 
-            trace_C1 = numpy.trace(C1)
-            trace_C2 = numpy.trace(C2)
+            trace_F1 = numpy.trace(F1)
+            trace_F2 = numpy.trace(F2)
             trace_D = numpy.trace(D)
 
             # Compute trace of M * Knp * M
-            trace_MKnpM = trace_KnpKninv2 - trace_C1 - trace_C2 + trace_D
+            trace_MKnpM = trace_KnpKninv2 - trace_F1 - trace_F2 + trace_D
 
             # Compute mixed derivative
             local_d2ell_deta_dscale = 0.5*trace_MKnpM - zMKnpMMz / sigma2
@@ -1088,7 +1089,7 @@ class ProfileLikelihood(BaseLikelihood):
         # Compute first derivative w.r.t eta
         dell_deta = self._likelihood_der1_eta(hyperparam)
 
-        # Because we use xi = log_eta instead of eta as the variable, the
+        # Since we use xi = log_eta instead of eta as the variable, the
         # derivative of ell w.r.t log_eta should be taken into account.
         if self.use_log_eta:
             eta = self._hyperparam_to_eta(hyperparam[0])
@@ -1150,7 +1151,7 @@ class ProfileLikelihood(BaseLikelihood):
         if self.use_log_eta or self.use_log_scale:
             jacobian_ = self.likelihood_jacobian(False, hyperparam)
 
-        # Because we use xi = log_eta instead of eta as the variable, the
+        # Since we use xi = log_eta instead of eta as the variable, the
         # derivative of ell w.r.t log_eta should be taken into account.
         if self.use_log_eta:
             eta = self._hyperparam_to_eta(hyperparam[0])

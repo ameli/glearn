@@ -12,6 +12,7 @@
 # =======
 
 import numpy
+import scipy
 from scipy.sparse import isspmatrix
 from ..correlation import Correlation
 from ._mixed_correlation import MixedCorrelation
@@ -149,10 +150,26 @@ class Covariance(object):
         Get the matrix as a numpy array of scipy sparse array.
         """
 
-        eta = (sigma0 / sigma)**2
-        Kn = self.mixed_cor.get_matrix(eta, scale, derivative)
+        if sigma < self.tol:
 
-        return sigma**2 * Kn
+            if len(derivative) == 0:
+                # Return scalar multiple of identity matrix
+                S = sigma0**2 * self.mixed_cor.I
+            else:
+                # Return zero matrix
+                n = self.mixed_cor.get_matrix_size()
+                if self.cor.sparse:
+                    S = scipy.sparse.csr_matrix((n, n))
+                else:
+                    S = numpy.zeros((n, n), dtype=float)
+
+        else:
+
+            eta = (sigma0 / sigma)**2
+            Kn = self.mixed_cor.get_matrix(eta, scale, derivative)
+            S = sigma**2 * Kn
+
+        return S
 
     # =====
     # trace

@@ -89,7 +89,7 @@ class Posterior(object):
                                  '"scale_index" of the hyperparam of the ' +
                                  ' likelihood  method.')
 
-            # Extract a postion of hyperparam that is related to scale. Note
+            # Extract a position of hyperparam that is related to scale. Note
             # that hyperparam may or may not be in log form.
             hyperparam_scale = hyperparam[scale_index:]
 
@@ -137,7 +137,7 @@ class Posterior(object):
                                  '"scale_index" of the hyperparam of the ' +
                                  ' likelihood  method.')
 
-            # Extract a postion of hyperparam that is related to scale. Note
+            # Extract a position of hyperparam that is related to scale. Note
             # that hyperparam may or may not be in log form.
             hyperparam_scale = hyperparam[scale_index:]
 
@@ -186,7 +186,7 @@ class Posterior(object):
                                  '"scale_index" of the hyperparam of the ' +
                                  ' likelihood  method.')
 
-            # Extract a postion of hyperparam that is related to scale. Note
+            # Extract a position of hyperparam that is related to scale. Note
             # that hyperparam may or may not be in log form.
             hyperparam_scale = hyperparam[scale_index:]
 

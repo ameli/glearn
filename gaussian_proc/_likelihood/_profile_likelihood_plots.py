@@ -31,7 +31,7 @@ def plot(profile_likelihood, result):
     _plot_likelihood_versus_eta(
             profile_likelihood, result, numpy.logspace(-2, 2, 5))
 
-    Plot log-lp versus scale
+    # Plot log-lp versus scale
     _plot_likelihood_versus_scale(
             profile_likelihood, result, numpy.logspace(-2, 2, 5))
 

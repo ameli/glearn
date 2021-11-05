@@ -50,8 +50,8 @@ class LinearModel(object):
             beta_mean=None,
             beta_cov=None):
         """
-        An alternative costructor used when the desig matrix ``X`` is not
-        know. This method designs the design matrix ``X`` and returns a class
+        An alternative constructor used when the design matrix ``X`` is not
+        known. This method designs the design matrix ``X`` and returns a class
         object with the computed ``X``.
         """
 

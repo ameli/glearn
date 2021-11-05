@@ -33,7 +33,6 @@ def main():
 
     # Generate points
     # num_points = 30
-    # num_points = 95
     num_points = 50
     dimension = 1
     grid = True
@@ -80,15 +79,15 @@ def main():
     gp = GaussianProcess(mean, cov)
 
     # Training options
-    # profile_hyperparam = 'none'
-    profile_hyperparam = 'var'
+    profile_hyperparam = 'none'
+    # profile_hyperparam = 'var'
     # profile_hyperparam = 'var_noise'
 
     # optimization_method = 'chandrupatla'  # requires jacobian
     # optimization_method = 'Nelder-Mead'     # requires func
     # optimization_method = 'BFGS'          # requires func, jacobian
-    # optimization_method = 'CG'            # requires func, jacobian
-    optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
+    optimization_method = 'CG'            # requires func, jacobian
+    # optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
     # optimization_method = 'dogleg'        # requires func, jacobian, hessian
     # optimization_method = 'trust-exact'   # requires func, jacobian, hessian
     # optimization_method = 'trust-ncg'     # requires func, jacobian, hessian
@@ -98,14 +97,15 @@ def main():
     # hyperparam_guess = [-1, 1e-1]
     # hyperparam_guess = [1.0]
     # hyperparam_guess = [0.1, 0.1]
+    # hyperparam_guess = [1.0, 0.1]
     # hyperparam_guess = [0.1, 0.1, 0.1, 0.1]
-    # hyperparam_guess = [0.01, 0.01, 0.1]
-    hyperparam_guess = None
+    hyperparam_guess = [0.01, 0.01, 0.01]
+    # hyperparam_guess = None
 
     # gp.train(z, options=options, plot=False)
     gp.train(z, profile_hyperparam=profile_hyperparam, log_hyperparam=True,
              optimization_method=optimization_method, tol=1e-5,
-             hyperparam_guess=hyperparam_guess, verbose=False, plot=True)
+             hyperparam_guess=hyperparam_guess, verbose=False, plot=False)
 
 # ===========
 # script main

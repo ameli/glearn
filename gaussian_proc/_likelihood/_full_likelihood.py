@@ -81,6 +81,7 @@ class FullLikelihood(BaseLikelihood):
         self.MKMz = None
         self.trace_M = None
         self.Sinv = None
+        self.KpSinv = None
         self.SpSinv = None
 
         # Hyperparameter which the interval variables in the above were
@@ -88,7 +89,21 @@ class FullLikelihood(BaseLikelihood):
         self.Y_B_Mz_hyperparam = None
         self.MMz_KMz_MKMz_hyperparam = None
         self.trace_M_hyperparam = None
-        self.Sinv_SpSinv_hyperparam = None
+        self.Sinv_KpSinv_SpSinv_hyperparam = None
+
+    # ====================
+    # hyperparam to sigmas
+    # ====================
+
+    def _hyperparam_to_sigmas(self, hyperparam):
+        """
+        Sets sigma and sigma0 from hyperparam.
+        """
+
+        sigma = numpy.abs(hyperparam[0])
+        sigma0 = numpy.abs(hyperparam[1])
+
+        return sigma, sigma0
 
     # ===================
     # scale to hyperparam
@@ -138,7 +153,7 @@ class FullLikelihood(BaseLikelihood):
         by ``self.use_scale``.
 
         If is assumed that the input hyperparam is not in log scale, and it
-        containts either of the following form:
+        contains either of the following form:
 
         * [sigma, sigma0]
         * [sigma, sigma0, scale1, scale2, ...]
@@ -147,7 +162,7 @@ class FullLikelihood(BaseLikelihood):
         if numpy.isscalar(hyperparam):
             hyperparam = numpy.array([hyperparam], dtype=float)
         elif isinstance(hyperparam, list):
-            hyperparam = numpy.aray(hyperparam, dtype=float)
+            hyperparam = numpy.array(hyperparam, dtype=float)
 
         # Convert scale to log10 of scale
         if hyperparam.size > self.scale_index:
@@ -170,8 +185,7 @@ class FullLikelihood(BaseLikelihood):
         not.
         """
 
-        sigma = numpy.abs(hyperparam[0])
-        sigma0 = numpy.abs(hyperparam[1])
+        sigma, sigma0 = self._hyperparam_to_sigmas(hyperparam)
         eta = (sigma0/sigma)**2
 
         if hyperparam.size > self.scale_index:
@@ -266,8 +280,7 @@ class FullLikelihood(BaseLikelihood):
                                     atol=self.hyperparam_tol)):
 
             # hyperparameters
-            sigma = hyperparam[0]
-            sigma0 = hyperparam[1]
+            sigma, sigma0 = self._hyperparam_to_sigmas(hyperparam)
 
             # Include derivative w.r.t scale
             if hyperparam.size > self.scale_index:
@@ -303,8 +316,7 @@ class FullLikelihood(BaseLikelihood):
                                     atol=self.hyperparam_tol)):
 
             # hyperparameters
-            sigma = hyperparam[0]
-            sigma0 = hyperparam[1]
+            sigma, sigma0 = self._hyperparam_to_sigmas(hyperparam)
 
             # Set scale of the covariance object
             if hyperparam.size > self.scale_index:
@@ -337,8 +349,7 @@ class FullLikelihood(BaseLikelihood):
                                     atol=self.hyperparam_tol)):
 
             # hyperparameters
-            sigma = hyperparam[0]
-            sigma0 = hyperparam[1]
+            sigma, sigma0 = self._hyperparam_to_sigmas(hyperparam)
 
             # Set scale of the covariance object
             if hyperparam.size > self.scale_index:
@@ -359,26 +370,28 @@ class FullLikelihood(BaseLikelihood):
             # Update the current hyperparam
             self.trace_M_hyperparam = hyperparam
 
-    # ==================
-    # update Sinv SpSinv
-    # ==================
+    # =========================
+    # update Sinv KpSinv SpSinv
+    # =========================
 
-    def _update_Sinv_SpSinv(self, hyperparam):
+    def _update_Sinv_KpSinv_SpSinv(self, hyperparam):
         """
         Compute Sinv, SpSinv.
         """
 
         # Check if likelihood is already computed for an identical hyperparam
         if (self.Sinv is None) or \
+                (self.KpSinv is None) or \
                 (self.SpSinv is None) or \
-                (self.Sinv_SpSinv_hyperparam is None) or \
-                (hyperparam.size != self.Sinv_SpSinv_hyperparam.size) or \
-                (not numpy.allclose(hyperparam, self.Sinv_SpSinv_hyperparam,
+                (self.Sinv_KpSinv_SpSinv_hyperparam is None) or \
+                (hyperparam.size !=
+                    self.Sinv_KpSinv_SpSinv_hyperparam.size) or \
+                (not numpy.allclose(hyperparam,
+                                    self.Sinv_KpSinv_SpSinv_hyperparam,
                                     atol=self.hyperparam_tol)):
 
             # hyperparameters
-            sigma = hyperparam[0]
-            sigma0 = hyperparam[1]
+            sigma, sigma0 = self._hyperparam_to_sigmas(hyperparam)
 
             # Set scale of the covariance object
             scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
@@ -388,15 +401,21 @@ class FullLikelihood(BaseLikelihood):
             S = self.cov.get_matrix(sigma, sigma0)
             self.Sinv = numpy.linalg.inv(S)
 
-            # Initialize SpSinv as list of size of scale.size
+            # Initialize KpSinv and SpSinv as list of size of scale.size
+            self.KpSinv = [None] * scale.size
             self.SpSinv = [None] * scale.size
 
             for p in range(scale.size):
+                # Kp = self.cov.get_matrix(1.0, 0.0, derivative=[p])
+                # self.KpSinv[p] = Kp @ self.Sinv
+                # self.SpSinv[p] = sigma**2 * self.KpSinv[p]
+
                 Sp = self.cov.get_matrix(sigma, sigma0, derivative=[p])
                 self.SpSinv[p] = Sp @ self.Sinv
+                self.KpSinv[p] = self.SpSinv[p] / sigma**2
 
             # Update the current hyperparam
-            self.Sinv_SpSinv_hyperparam = hyperparam
+            self.Sinv_KpSinv_SpSinv_hyperparam = hyperparam
 
     # ==========
     # likelihood
@@ -427,8 +446,7 @@ class FullLikelihood(BaseLikelihood):
                 return self.ell
 
         # hyperparameters
-        sigma = hyperparam[0]
-        sigma0 = hyperparam[1]
+        sigma, sigma0 = self._hyperparam_to_sigmas(hyperparam)
 
         # Include derivative w.r.t scale
         if hyperparam.size > self.scale_index:
@@ -474,8 +492,7 @@ class FullLikelihood(BaseLikelihood):
         """
 
         # hyperparameters
-        sigma = hyperparam[0]
-        sigma0 = hyperparam[1]
+        sigma, sigma0 = self._hyperparam_to_sigmas(hyperparam)
 
         # Set scale of the covariance object
         if hyperparam.size > self.scale_index:
@@ -527,8 +544,7 @@ class FullLikelihood(BaseLikelihood):
         """
 
         # hyperparameters
-        sigma = hyperparam[0]
-        sigma0 = hyperparam[1]
+        sigma, sigma0 = self._hyperparam_to_sigmas(hyperparam)
         eta = (sigma0 / sigma)**2
 
         # Include derivative w.r.t scale
@@ -566,11 +582,11 @@ class FullLikelihood(BaseLikelihood):
 
         # Trace of M**2
         YtV = numpy.matmul(self.Y.T, V)
-        C = numpy.matmul(self.Binv, YtV)
-        trace_C = numpy.trace(C)
+        F = numpy.matmul(self.Binv, YtV)
+        trace_F = numpy.trace(F)
         AA = numpy.matmul(A, A)
         trace_AA = numpy.trace(AA)
-        trace_M2 = trace_S2inv - 2.0*trace_C + trace_AA
+        trace_M2 = trace_S2inv - 2.0*trace_F + trace_AA
 
         # Trace of (KM)**2
         if numpy.abs(sigma) < self.cov.tol:
@@ -618,8 +634,7 @@ class FullLikelihood(BaseLikelihood):
         """
 
         # hyperparameters
-        sigma = hyperparam[0]
-        sigma0 = hyperparam[1]
+        sigma, sigma0 = self._hyperparam_to_sigmas(hyperparam)
 
         # Set scale of the covariance object
         scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
@@ -632,7 +647,7 @@ class FullLikelihood(BaseLikelihood):
 
         # Compute Sinv, SpSinv
         if not self.stochastic_traceinv:
-            self._update_Sinv_SpSinv(hyperparam)
+            self._update_Sinv_KpSinv_SpSinv(hyperparam)
 
         # Sp is the derivative of cov w.r.t the p-th element of scale.
         for p in range(scale.size):
@@ -679,8 +694,7 @@ class FullLikelihood(BaseLikelihood):
         """
 
         # hyperparameters
-        sigma = hyperparam[0]
-        sigma0 = hyperparam[1]
+        sigma, sigma0 = self._hyperparam_to_sigmas(hyperparam)
 
         # Set scale of the covariance object
         scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
@@ -706,9 +720,9 @@ class FullLikelihood(BaseLikelihood):
         YtKY = numpy.matmul(self.Y.T, KY)
         Dk = numpy.matmul(self.Binv, YtKY)
 
-        # Compute Sinv, SpSinv
+        # Compute Sinv, KpSinv, SpSinv
         if not self.stochastic_traceinv:
-            self._update_Sinv_SpSinv(hyperparam)
+            self._update_Sinv_KpSinv_SpSinv(hyperparam)
             KSinv = numpy.matmul(K, self.Sinv)
 
         # Sp is the derivative of cov w.r.t the p-th element of scale. Spq
@@ -734,8 +748,8 @@ class FullLikelihood(BaseLikelihood):
             if self.stochastic_traceinv:
 
                 # Computing traceinv using either cholesky or hutchinson
-                Sp = self.cov.get_matrix(sigma, sigma0, derivative=[p])
-                Kp = Sp / sigma**2
+                Kp = self.cov.get_matrix(1.0, 0.0, derivative=[p])
+                Sp = sigma**2 * Kp
 
                 # Note that since Kp is not positive-definite, we cannot use
                 # Cholesky method in imate. The only viable option is
@@ -743,8 +757,7 @@ class FullLikelihood(BaseLikelihood):
                 trace_KpSinv = self.cov.traceinv(sigma, sigma0, B=Kp,
                                                  imate_method='hutchinson')
             else:
-                KpSinv = self.SpSinv[p] / sigma**2
-                trace_KpSinv, _ = imate.trace(KpSinv, method='exact')
+                trace_KpSinv, _ = imate.trace(self.KpSinv[p], method='exact')
 
             # Compute the second component of trace of Kp * M
             KpY = self.cov.dot(1.0, 0.0, self.Y, derivative=[p])
@@ -771,16 +784,16 @@ class FullLikelihood(BaseLikelihood):
             SpY = self.cov.dot(sigma, sigma0, self.Y, derivative=[p])
             SinvSpY = self.cov.solve(sigma, sigma0, SpY)
             YtKSinvSpY = numpy.matmul(KY.T, SinvSpY)
-            C21 = numpy.matmul(self.Binv, YtKSinvSpY)
-            C22 = numpy.matmul(self.Binv, YtKSinvSpY.T)
-            trace_KMSpM_21 = numpy.trace(C21)
-            trace_KMSpM_22 = numpy.trace(C22)
+            F21 = numpy.matmul(self.Binv, YtKSinvSpY)
+            F22 = numpy.matmul(self.Binv, YtKSinvSpY.T)
+            trace_KMSpM_21 = numpy.trace(F21)
+            trace_KMSpM_22 = numpy.trace(F22)
 
             # Compute the third part of trace of K * M * Sp * M
             YtSpY = numpy.matmul(self.Y.T, SpY)
             Dp = numpy.matmul(self.Binv, YtSpY)
-            D = numpy.matmul(Dk, Dp)
-            trace_KMSpM_3 = numpy.trace(D)
+            DkDp = numpy.matmul(Dk, Dp)
+            trace_KMSpM_3 = numpy.trace(DkDp)
 
             # Compute trace of K * M * Sp * M
             trace_KMSpM = trace_KMSpM_1 - trace_KMSpM_21 - \
@@ -814,14 +827,14 @@ class FullLikelihood(BaseLikelihood):
 
             # Compute the second part of trace of M * Sp * M
             YtSinvSpY = numpy.matmul(self.Y.T, SinvSpY)
-            C21 = numpy.matmul(self.Binv, YtSinvSpY)
-            C22 = numpy.matmul(self.Binv, YtSinvSpY.T)
-            trace_MSpM_21 = numpy.trace(C21)
-            trace_MSpM_22 = numpy.trace(C22)
+            G21 = numpy.matmul(self.Binv, YtSinvSpY)
+            G22 = numpy.matmul(self.Binv, YtSinvSpY.T)
+            trace_MSpM_21 = numpy.trace(G21)
+            trace_MSpM_22 = numpy.trace(G22)
 
             # Compute the third part of trace of M * Sp * M
-            D = numpy.matmul(Dp, A)
-            trace_MSpM_3 = numpy.trace(D)
+            DpA = numpy.matmul(Dp, A)
+            trace_MSpM_3 = numpy.trace(DpA)
 
             # Compute trace of M * Sp * M
             trace_MSpM = trace_MSpM_1 - trace_MSpM_21 - trace_MSpM_22 + \
@@ -846,8 +859,7 @@ class FullLikelihood(BaseLikelihood):
         """
 
         # hyperparameters
-        sigma = hyperparam[0]
-        sigma0 = hyperparam[1]
+        sigma, sigma0 = self._hyperparam_to_sigmas(hyperparam)
 
         # Set scale of the covariance object
         scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
@@ -861,7 +873,7 @@ class FullLikelihood(BaseLikelihood):
 
         # Compute Sinv, SpSinv
         if not self.stochastic_traceinv:
-            self._update_Sinv_SpSinv(hyperparam)
+            self._update_Sinv_KpSinv_SpSinv(hyperparam)
 
         for p in range(scale.size):
 
@@ -927,10 +939,10 @@ class FullLikelihood(BaseLikelihood):
                     SqY = numpy.matmul(Sq, self.Y)
                 SinvSqY = self.cov.solve(sigma, sigma0, SqY)
                 YtSpSinvSqY = numpy.matmul(SpY.T, SinvSqY)
-                C21 = numpy.matmul(self.Binv, YtSpSinvSqY)
-                C22 = numpy.matmul(self.Binv, YtSpSinvSqY.T)
-                trace_SpMSqM_21 = numpy.trace(C21)
-                trace_SpMSqM_22 = numpy.trace(C22)
+                F21 = numpy.matmul(self.Binv, YtSpSinvSqY)
+                F22 = numpy.matmul(self.Binv, YtSpSinvSqY.T)
+                trace_SpMSqM_21 = numpy.trace(F21)
+                trace_SpMSqM_22 = numpy.trace(F22)
 
                 # Compute the third part of trace of Sp * M * Sq * M
                 YtSpY = numpy.matmul(self.Y.T, SpY)
@@ -943,8 +955,8 @@ class FullLikelihood(BaseLikelihood):
                     Dq = Dp
                 else:
                     Dq = numpy.matmul(self.Binv, YtSqY)
-                D = numpy.matmul(Dp, Dq)
-                trace_SpMSqM_3 = numpy.trace(D)
+                DpDq = numpy.matmul(Dp, Dq)
+                trace_SpMSqM_3 = numpy.trace(DpDq)
 
                 # Compute trace of Sp * M * Sq * M
                 trace_SpMSqM = trace_SpMSqM_1 - trace_SpMSqM_21 - \
