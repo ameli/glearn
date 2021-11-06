@@ -46,8 +46,10 @@ class FullLikelihood(BaseLikelihood):
         self.hyperparam_tol = 1e-8
 
         if log_hyperparam:
+            self.use_log_sigmas = True
             self.use_log_scale = True
         else:
+            self.use_log_sigmas = False
             self.use_log_scale = False
 
         # Determine to compute traceinv (only for some of inner computations of
@@ -97,13 +99,41 @@ class FullLikelihood(BaseLikelihood):
 
     def _hyperparam_to_sigmas(self, hyperparam):
         """
-        Sets sigma and sigma0 from hyperparam.
+        Sets sigma and sigma0 from hyperparam. If self.use_log_sigmas is True,
+        hyperparam is the log10 of sigmas, hence, 10**hyperparam is set to
+        sigma and sigma0. If self.use_log_sigmas is False, hyperparam is
+        directly set to sigma and sigma0.
         """
 
-        sigma = numpy.abs(hyperparam[0])
-        sigma0 = numpy.abs(hyperparam[1])
+        # If logscale is used, input hyperparam is log of eta.
+        if self.use_log_sigmas:
+            sigma = 10.0**hyperparam[0]
+            sigma0 = 10.0**hyperparam[1]
+        else:
+            sigma = numpy.abs(hyperparam[0])
+            sigma0 = numpy.abs(hyperparam[1])
 
         return sigma, sigma0
+
+    # ====================
+    # sigmas to hyperparam
+    # ====================
+
+    def _sigmas_to_hyperparam(self, sigma, sigma0):
+        """
+        Sets hyperparam from sigma and sigma0. sigma and sigma0 are always
+        given with no log-scale. If self.use_log_sigmas is True, hyperparam is
+        set as log10 of sigma and sigma0, otherwise, just as sigma and sigma0.
+        """
+
+        # If logscale is used, output hyperparam is log of scale.
+        sigmas = numpy.array([sigma, sigma0], dtype=float)
+        if self.use_log_sigmas:
+            hyperparam = numpy.log10(numpy.abs(sigmas))
+        else:
+            hyperparam = numpy.abs(sigmas)
+
+        return hyperparam
 
     # ===================
     # scale to hyperparam
@@ -163,6 +193,13 @@ class FullLikelihood(BaseLikelihood):
             hyperparam = numpy.array([hyperparam], dtype=float)
         elif isinstance(hyperparam, list):
             hyperparam = numpy.array(hyperparam, dtype=float)
+
+        # Convert eta to log10 of eta
+        if self.use_log_sigmas:
+            sigma = hyperparam[0]
+            sigma0 = hyperparam[1]
+            hyperparam[:self.scale_index] = self._sigmas_to_hyperparam(
+                    sigma, sigma0)
 
         # Convert scale to log10 of scale
         if hyperparam.size > self.scale_index:
@@ -406,13 +443,9 @@ class FullLikelihood(BaseLikelihood):
             self.SpSinv = [None] * scale.size
 
             for p in range(scale.size):
-                # Kp = self.cov.get_matrix(1.0, 0.0, derivative=[p])
-                # self.KpSinv[p] = Kp @ self.Sinv
-                # self.SpSinv[p] = sigma**2 * self.KpSinv[p]
-
-                Sp = self.cov.get_matrix(sigma, sigma0, derivative=[p])
-                self.SpSinv[p] = Sp @ self.Sinv
-                self.KpSinv[p] = self.SpSinv[p] / sigma**2
+                Kp = self.cov.get_matrix(1.0, 0.0, derivative=[p])
+                self.KpSinv[p] = Kp @ self.Sinv
+                self.SpSinv[p] = sigma**2 * self.KpSinv[p]
 
             # Update the current hyperparam
             self.Sinv_KpSinv_SpSinv_hyperparam = hyperparam
@@ -993,7 +1026,18 @@ class FullLikelihood(BaseLikelihood):
                 return self.ell_jacobian
 
         # Compute first derivative w.r.t sigma and sigma0
-        jacobian = self._likelihood_der1_sigmas(hyperparam)
+        dell_dsigmas = self._likelihood_der1_sigmas(hyperparam)
+
+        # Since we use log of sigma and sigma0 in hyperparam, derivative of ell
+        # w.r.t log of the variables should be taken into account.
+        if self.use_log_sigmas:
+            sigmas = self._hyperparam_to_sigmas(hyperparam)
+            sigmas2 = numpy.array(sigmas, dtype=float)**2
+            for p in range(self.scale_index):
+                dell_dsigmas[p] = dell_dsigmas[p] * sigmas2[p] * \
+                        numpy.log(10.0)
+
+        jacobian = dell_dsigmas
 
         # Compute Jacobian w.r.t scale
         if hyperparam.size > self.scale_index:
@@ -1041,7 +1085,35 @@ class FullLikelihood(BaseLikelihood):
                 return self.ell_hessian
 
         # Second derivatives w.r.t sigma and sigma0 and their mixed derivative
-        hessian = self._likelihood_der2_sigmas(hyperparam)
+        d2ell_dsigmas2 = self._likelihood_der2_sigmas(hyperparam)
+
+        # To convert derivative to log scale, Jacobian is needed. Note: The
+        # Jacobian itself is already converted to log scale.
+        if self.use_log_sigmas or self.use_log_scale:
+            jacobian_ = self.likelihood_jacobian(False, hyperparam)
+
+        # Since we use log of sigma and sigma0 in hyperparam, derivative of ell
+        # w.r.t log of the variables should be taken into account.
+        if self.use_log_sigmas:
+            sigmas = self._hyperparam_to_sigmas(hyperparam)
+            sigmas2 = numpy.array(sigmas, dtype=float)**2
+            dell_dsigmas = jacobian_[:self.scale_index]
+
+            # Convert second derivative to log scale (Note: dell_deta is
+            # already in log scale)
+            for p in range(self.scale_index):
+                for q in range(self.scale_index):
+                    if p == q:
+                        d2ell_dsigmas2[p, q] = \
+                            d2ell_dsigmas2[p, q] * sigmas2[p]**2 * \
+                            numpy.log(10.0)**2 + \
+                            dell_dsigmas[p] * numpy.log(10.0)
+                    else:
+                        d2ell_dsigmas2[p, q] = d2ell_dsigmas2[p, q] * \
+                                sigmas2[p] * sigmas2[q] * (numpy.log(10.0)**2)
+
+        # Hessian here is a 2D array of size (2, 2).
+        hessian = d2ell_dsigmas2
 
         # Compute Hessian w.r.t scale
         if hyperparam.size > self.scale_index:
@@ -1059,17 +1131,17 @@ class FullLikelihood(BaseLikelihood):
                         hyperparam[self.scale_index:])
 
                 for p in range(scale.size):
-                    # Mixed derivative of scale and sigma
-                    d2ell_mixed[0, p] = d2ell_mixed[0, p] * \
-                        scale[p] * numpy.log(10.0)
+                    # Mixed derivative of scale and sigma (q=0), sigma0 (q=1)
+                    for q in range(self.scale_index):
 
-                    # Mixed derivative of eta and sigma0
-                    d2ell_mixed[1, p] = d2ell_mixed[1, p] * \
-                        scale[p] * numpy.log(10.0)
-
-                # To convert derivative to log scale, Jacobian is needed. Note:
-                # The Jacobian itself is already converted to log scale.
-                jacobian_ = self.likelihood_jacobian(False, hyperparam)
+                        if self.use_log_sigmas:
+                            # Both scale and sigmas are in log scale
+                            d2ell_mixed[q, p] = d2ell_mixed[q, p] * \
+                                scale[p] * sigmas2[q] * (numpy.log(10.0)**2)
+                        else:
+                            # Only scale is in log scale
+                            d2ell_mixed[q, p] = d2ell_mixed[q, p] * \
+                                scale[p] * numpy.log(10.0)
 
                 # Second derivative w.r.t scale
                 dell_dscale = jacobian_[self.scale_index:]

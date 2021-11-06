@@ -128,15 +128,31 @@ def _plot_likelihood_versus_scale(
 
     for i in range(sigmas.size):
 
-        # Stencil to perturb sigma
-        d_sigma = sigmas[i] * 1e-3
-        sigma_stencil = sigmas[i] + d_sigma * \
-            numpy.arange(-stencil_size//2+1, stencil_size//2+1)
+        if full_likelihood.use_log_sigmas:
+            # Stencil to perturb sigma
+            log_sigma = numpy.log10(sigmas[i])
+            d_sigma = numpy.max([numpy.abs(log_sigma) * 1e-3, 1e-4])
+            sigma_stencil = 10.0**(
+                log_sigma + d_sigma *
+                numpy.arange(-stencil_size//2+1, stencil_size//2+1))
 
-        # Stencil to perturb sigma0
-        d_sigma0 = optimal_sigma0 * 1e-3
-        sigma0_stencil = optimal_sigma0 + d_sigma0 * \
-            numpy.arange(-stencil_size//2+1, stencil_size//2+1)
+            # Stencil to perturb sigma0
+            log_sigma0 = numpy.log10(optimal_sigma0)
+            d_sigma0 = numpy.max([numpy.abs(log_sigma0) * 1e-3, 1e-4])
+            sigma0_stencil = 10.0**(
+                log_sigma0 + d_sigma0 *
+                numpy.arange(-stencil_size//2+1, stencil_size//2+1))
+
+        else:
+            # Stencil to perturb sigma
+            d_sigma = sigmas[i] * 1e-3
+            sigma_stencil = sigmas[i] + d_sigma * \
+                numpy.arange(-stencil_size//2+1, stencil_size//2+1)
+
+            # Stencil to perturb sigma0
+            d_sigma0 = optimal_sigma0 * 1e-3
+            sigma0_stencil = optimal_sigma0 + d_sigma0 * \
+                numpy.arange(-stencil_size//2+1, stencil_size//2+1)
 
         for j in range(scale.size):
 
@@ -146,8 +162,9 @@ def _plot_likelihood_versus_scale(
             # Likelihood (and its perturbation w.r.t sigma)
             for k in range(stencil_size):
                 hyperparam = numpy.r_[
-                        sigma_stencil[k], optimal_sigma0,
-                        full_likelihood._scale_to_hyperparam(scale[j])]
+                        sigma_stencil[k], optimal_sigma0, scale[j]]
+                hyperparam = full_likelihood.hyperparam_to_log_hyperparam(
+                            hyperparam)
                 sign_switch = False
                 d0_ell_perturb_sigma[k, i, j] = full_likelihood.likelihood(
                         sign_switch, hyperparam)
@@ -155,16 +172,18 @@ def _plot_likelihood_versus_scale(
             # Likelihood (and its perturbation w.r.t sigma0)
             for k in range(stencil_size):
                 hyperparam = numpy.r_[
-                        sigmas[i], sigma0_stencil[k],
-                        full_likelihood._scale_to_hyperparam(scale[j])]
+                        sigmas[i], sigma0_stencil[k], scale[j]]
+                hyperparam = full_likelihood.hyperparam_to_log_hyperparam(
+                            hyperparam)
                 sign_switch = False
                 d0_ell_perturb_sigma0[k, i, j] = full_likelihood.likelihood(
                         sign_switch, hyperparam)
 
             # First derivative of likelihood w.r.t distance scale
             hyperparam = numpy.r_[
-                    sigmas[i], optimal_sigma0,
-                    full_likelihood._scale_to_hyperparam(scale[j])]
+                    sigmas[i], optimal_sigma0, scale[j]]
+            hyperparam = full_likelihood.hyperparam_to_log_hyperparam(
+                    hyperparam)
             jacobian_ = full_likelihood.likelihood_jacobian(sign_switch,
                                                             hyperparam)
             d1_ell[i, j] = jacobian_[2]
@@ -200,8 +219,12 @@ def _plot_likelihood_versus_scale(
         # Note, the above mixed derivatives are w.r.t sigma and sigma0. To
         # compute the derivatives w.r.t to sigma**2 and sigma0**2 (squared
         # variables) divide them by 2*sigma and 2*sigma0 respectively.
-        d2_mixed_sigma_ell_numerical[i, :] /= (2.0 * sigmas[i])
-        d2_mixed_sigma0_ell_numerical[i, :] /= (2.0 * optimal_sigma0)
+        if full_likelihood.use_log_sigmas:
+            d2_mixed_sigma_ell_numerical[i, :] /= 2.0
+            d2_mixed_sigma0_ell_numerical[i, :] /= 2.0
+        else:
+            d2_mixed_sigma_ell_numerical[i, :] /= (2.0 * sigmas[i])
+            d2_mixed_sigma0_ell_numerical[i, :] /= (2.0 * optimal_sigma0)
 
         # Compute second derivative numerically
         d2_ell_numerical[i, :] = \
@@ -292,22 +315,42 @@ def _plot_likelihood_versus_scale(
             r'{\mathrm{d} \theta^2}$')
 
     if full_likelihood.use_log_scale:
-        ax[1, 0].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-            r'{\mathrm{d} (\ln \theta) \mathrm{d} \sigma^2}$')
+        if full_likelihood.use_log_sigmas:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} (\ln \theta) \mathrm{d} (\ln \sigma^2)}$')
+        else:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} (\ln \theta) \mathrm{d} \sigma^2}$')
     else:
-        ax[1, 0].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-            r'{\mathrm{d} \theta \mathrm{d} \sigma^2}$')
+        if full_likelihood.use_log_sigmas:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} \theta \mathrm{d} (\ln \sigma^2)}$')
+        else:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} \theta \mathrm{d} \sigma^2}$')
 
     if full_likelihood.use_log_scale:
-        ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-            r'{\mathrm{d} (\ln \theta) \mathrm{d} {\sigma_0}^2}$')
+        if full_likelihood.use_log_sigmas:
+            ax[1, 1].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} (\ln \theta) \mathrm{d} (\ln {\sigma_0}^2)}$')
+        else:
+            ax[1, 1].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} (\ln \theta) \mathrm{d} {\sigma_0}^2}$')
     else:
-        ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-            r'{\mathrm{d} \theta \mathrm{d} {\sigma_0}^2}$')
+        if full_likelihood.use_log_sigmas:
+            ax[1, 1].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} \theta \mathrm{d} (\ln {\sigma_0}^2)}$')
+        else:
+            ax[1, 1].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} \theta \mathrm{d} {\sigma_0}^2}$')
 
     ax[0, 0].set_title(r'Log likelihood function, given ' +
                        r'$(\sigma^2, \sigma_0^2)$ ')
@@ -388,6 +431,12 @@ def _plot_likelihood_versus_sigma(
     # Generate ell for various sigma
     sigma = numpy.logspace(-2, 2, 100)
 
+    # The variable on the abscissa to take derivative with respect to it.
+    if full_likelihood.use_log_sigmas:
+        x_sigma = numpy.log10(sigma)
+    else:
+        x_sigma = sigma
+
     d0_ell_perturb_scale = numpy.zeros((stencil_size, scales.size, sigma.size),
                                        dtype=float)
     d0_ell_perturb_sigma0 = numpy.zeros(
@@ -424,9 +473,16 @@ def _plot_likelihood_versus_sigma(
                 numpy.arange(-stencil_size//2+1, stencil_size//2+1)
 
         # Stencil to perturb sigma0
-        d_sigma0 = optimal_sigma0 * 1e-3
-        sigma0_stencil = optimal_sigma0 + d_sigma0 * \
-            numpy.arange(-stencil_size//2+1, stencil_size//2+1)
+        if full_likelihood.use_log_sigmas:
+            log_sigma0 = numpy.log10(optimal_sigma0)
+            d_sigma0 = numpy.max([numpy.abs(log_sigma0) * 1e-3, 1e-4])
+            sigma0_stencil = 10.0**(
+                    log_sigma0 + d_sigma0 *
+                    numpy.arange(-stencil_size//2+1, stencil_size//2+1))
+        else:
+            d_sigma0 = optimal_sigma0 * 1e-3
+            sigma0_stencil = optimal_sigma0 + d_sigma0 * \
+                numpy.arange(-stencil_size//2+1, stencil_size//2+1)
 
         # Likelihood (and its perturbation w.r.t sigma)
         for k in range(stencil_size):
@@ -436,8 +492,9 @@ def _plot_likelihood_versus_sigma(
 
             for j in range(sigma.size):
                 hyperparam = numpy.r_[
-                        sigma[j], optimal_sigma0,
-                        full_likelihood._scale_to_hyperparam(scale_stencil[k])]
+                        sigma[j], optimal_sigma0, scale_stencil[k]]
+                hyperparam = full_likelihood.hyperparam_to_log_hyperparam(
+                            hyperparam)
                 sign_switch = False
                 d0_ell_perturb_scale[k, i, j] = full_likelihood.likelihood(
                     sign_switch, hyperparam)
@@ -446,18 +503,18 @@ def _plot_likelihood_versus_sigma(
         full_likelihood.cov.set_scale(scales[i])
         for k in range(stencil_size):
             for j in range(sigma.size):
-                hyperparam = numpy.r_[
-                        sigma[j], sigma0_stencil[k],
-                        full_likelihood._scale_to_hyperparam(scales[i])]
+                hyperparam = numpy.r_[sigma[j], sigma0_stencil[k], scales[i]]
+                hyperparam = full_likelihood.hyperparam_to_log_hyperparam(
+                            hyperparam)
                 sign_switch = False
                 d0_ell_perturb_sigma0[k, i, j] = full_likelihood.likelihood(
                         sign_switch, hyperparam)
 
         # First derivative of likelihood w.r.t distance scale
         for j in range(sigma.size):
-            hyperparam = numpy.r_[
-                    sigma[j], optimal_sigma0,
-                    full_likelihood._scale_to_hyperparam(scales[i])]
+            hyperparam = numpy.r_[sigma[j], optimal_sigma0, scales[i]]
+            hyperparam = full_likelihood.hyperparam_to_log_hyperparam(
+                        hyperparam)
             jacobian_ = full_likelihood.likelihood_jacobian(sign_switch,
                                                             hyperparam)
             d1_ell[i, j] = jacobian_[0]
@@ -474,21 +531,29 @@ def _plot_likelihood_versus_sigma(
             d1_ell_perturb_scale_numerical[k, i, :] = \
                 (d0_ell_perturb_scale[k, i, 2:] -
                     d0_ell_perturb_scale[k, i, :-2]) / \
-                (sigma[2:] - sigma[:-2])
+                (x_sigma[2:] - x_sigma[:-2])
 
             # To take derivative w.r.t sigma**2, divide by 2*sigma.
             for j in range(sigma.size-2):
-                d1_ell_perturb_scale_numerical[k, i, j] /= (2.0 * sigma[j+1])
+                if full_likelihood.use_log_sigmas:
+                    d1_ell_perturb_scale_numerical[k, i, j] /= 2.0
+                else:
+                    d1_ell_perturb_scale_numerical[k, i, j] /= \
+                            (2.0 * sigma[j+1])
 
             # Compute first derivative numerically (perturb sigma0)
             d1_ell_perturb_sigma0_numerical[k, i, :] = \
                 (d0_ell_perturb_sigma0[k, i, 2:] -
                     d0_ell_perturb_sigma0[k, i, :-2]) / \
-                (sigma[2:] - sigma[:-2])
+                (x_sigma[2:] - x_sigma[:-2])
 
             # To take derivative w.r.t sigma**2, divide by 2*sigma.
             for j in range(sigma.size-2):
-                d1_ell_perturb_sigma0_numerical[k, i, j] /= (2.0 * sigma[j+1])
+                if full_likelihood.use_log_sigmas:
+                    d1_ell_perturb_sigma0_numerical[k, i, j] /= 2.0
+                else:
+                    d1_ell_perturb_sigma0_numerical[k, i, j] /= \
+                            (2.0 * sigma[j+1])
 
             # Second mixed derivative w.r.t scale, numerically
             d2_mixed_scale_ell_numerical[i, :] += coeff[k] * \
@@ -499,17 +564,23 @@ def _plot_likelihood_versus_sigma(
                 coeff[k] * d1_ell_perturb_sigma0_numerical[k, i, :] / d_sigma0
 
         # To take derivative w.r.t sigma0**2, divide by 2*sigma0.
-        d2_mixed_sigma0_ell_numerical[i, :] /= (2.0 * optimal_sigma0)
+        if full_likelihood.use_log_sigmas:
+            d2_mixed_sigma0_ell_numerical[i, :] /= 2.0
+        else:
+            d2_mixed_sigma0_ell_numerical[i, :] /= (2.0 * optimal_sigma0)
 
         # Compute second derivative numerically
         d2_ell_numerical[i, :] = \
             (d1_ell_perturb_scale_numerical[center_stencil, i, 2:] -
              d1_ell_perturb_scale_numerical[center_stencil, i, :-2]) / \
-            (sigma[3:-1] - sigma[1:-3])
+            (x_sigma[3:-1] - x_sigma[1:-3])
 
         # To take derivative w.r.t sigma0**2, divide by 2*sigma0.
         for j in range(sigma.size-4):
-            d2_ell_numerical[i, j] /= (2.0 * sigma[j+2])
+            if full_likelihood.use_log_sigmas:
+                d2_ell_numerical[i, j] /= 2.0
+            else:
+                d2_ell_numerical[i, j] /= (2.0 * sigma[j+2])
 
         # Find maximum of ell
         max_index = numpy.argmax(d0_ell_perturb_scale[center_stencil, i, :])
@@ -573,25 +644,53 @@ def _plot_likelihood_versus_sigma(
     ax[1, 0].set_xlabel(r'$\sigma$')
     ax[1, 1].set_xlabel(r'$\sigma$')
     ax[0, 0].set_ylabel(r'$\ell(\sigma^2 | \sigma_0^2, \theta)$')
-    ax[0, 1].set_ylabel(
-        r'$\frac{\mathrm{d} \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
-        r'{\mathrm{d} \sigma^2}$')
-    ax[0, 2].set_ylabel(
-        r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
-        r'{\mathrm{d} (\sigma^2)^2}$')
+
+    if full_likelihood.use_log_sigmas:
+        ax[0, 1].set_ylabel(
+            r'$\frac{\mathrm{d} \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+            r'{\mathrm{d} (\ln \sigma^2)}$')
+    else:
+        ax[0, 1].set_ylabel(
+            r'$\frac{\mathrm{d} \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+            r'{\mathrm{d} \sigma^2}$')
+
+    if full_likelihood.use_log_sigmas:
+        ax[0, 2].set_ylabel(
+            r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+            r'{\mathrm{d} (\ln \sigma^2)^2}$')
+    else:
+        ax[0, 2].set_ylabel(
+            r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+            r'{\mathrm{d} (\sigma^2)^2}$')
 
     if full_likelihood.use_log_scale:
-        ax[1, 0].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
-            r'{\mathrm{d} \sigma^2 \mathrm{d} (\ln \theta)}$')
+        if full_likelihood.use_log_sigmas:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+                r'{\mathrm{d} (\ln \sigma^2) \mathrm{d} (\ln \theta)}$')
+        else:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+                r'{\mathrm{d} \sigma^2 \mathrm{d} (\ln \theta)}$')
     else:
-        ax[1, 0].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
-            r'{\mathrm{d} \sigma^2 \mathrm{d} \theta}$')
+        if full_likelihood.use_log_sigmas:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+                r'{\mathrm{d} (\ln \sigma^2) \mathrm{d} \theta}$')
+        else:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+                r'{\mathrm{d} \sigma^2 \mathrm{d} \theta}$')
 
-    ax[1, 1].set_ylabel(
-        r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
-        r'{\mathrm{d} \sigma^2 \mathrm{d} {\sigma_0}^2}$')
+    if full_likelihood.use_log_sigmas:
+        ax[1, 1].set_ylabel(
+            r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+            r'{\mathrm{d} (\ln \sigma^2) \mathrm{d} (\ln {\sigma_0}^2)}$')
+    else:
+        ax[1, 1].set_ylabel(
+            r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+            r'{\mathrm{d} \sigma^2 \mathrm{d} {\sigma_0}^2}$')
+
     ax[0, 0].set_title(r'Log likelihood function, given ' +
                        r'$(\sigma_0^2, \theta)$')
     ax[0, 1].set_title(r'First derivative of log likelihood, given ' +
@@ -671,6 +770,12 @@ def _plot_likelihood_versus_sigma0(
     # Generate ell for various sigma0
     sigma0 = numpy.logspace(-2, 2, 100)
 
+    # The variable on the abscissa to take derivative with respect to it.
+    if full_likelihood.use_log_sigmas:
+        x_sigma0 = numpy.log10(sigma0)
+    else:
+        x_sigma0 = sigma0
+
     d0_ell_perturb_scale = numpy.zeros(
             (stencil_size, scales.size, sigma0.size), dtype=float)
     d0_ell_perturb_sigma = numpy.zeros(
@@ -707,9 +812,16 @@ def _plot_likelihood_versus_sigma0(
                 numpy.arange(-stencil_size//2+1, stencil_size//2+1)
 
         # Stencil to perturb sigma
-        d_sigma = optimal_sigma * 1e-3
-        sigma_stencil = optimal_sigma + d_sigma * \
-            numpy.arange(-stencil_size//2+1, stencil_size//2+1)
+        if full_likelihood.use_log_sigmas:
+            log_sigma = numpy.log10(optimal_sigma)
+            d_sigma = numpy.max([numpy.abs(log_sigma) * 1e-3, 1e-4])
+            sigma_stencil = 10.0**(
+                    log_sigma + d_sigma *
+                    numpy.arange(-stencil_size//2+1, stencil_size//2+1))
+        else:
+            d_sigma = optimal_sigma * 1e-3
+            sigma_stencil = optimal_sigma + d_sigma * \
+                numpy.arange(-stencil_size//2+1, stencil_size//2+1)
 
         # Likelihood (and its perturbation w.r.t sigma0)
         for k in range(stencil_size):
@@ -719,8 +831,9 @@ def _plot_likelihood_versus_sigma0(
 
             for j in range(sigma0.size):
                 hyperparam = numpy.r_[
-                    optimal_sigma, sigma0[j],
-                    full_likelihood._scale_to_hyperparam(scale_stencil[k])]
+                        optimal_sigma, sigma0[j], scale_stencil[k]]
+                hyperparam = full_likelihood.hyperparam_to_log_hyperparam(
+                            hyperparam)
                 sign_switch = False
                 d0_ell_perturb_scale[k, i, j] = full_likelihood.likelihood(
                     sign_switch, hyperparam)
@@ -729,18 +842,18 @@ def _plot_likelihood_versus_sigma0(
         full_likelihood.cov.set_scale(scales[i])
         for k in range(stencil_size):
             for j in range(sigma0.size):
-                hyperparam = numpy.r_[
-                    sigma_stencil[k], sigma0[j],
-                    full_likelihood._scale_to_hyperparam(scales[i])]
+                hyperparam = numpy.r_[sigma_stencil[k], sigma0[j], scales[i]]
+                hyperparam = full_likelihood.hyperparam_to_log_hyperparam(
+                            hyperparam)
                 sign_switch = False
                 d0_ell_perturb_sigma[k, i, j] = full_likelihood.likelihood(
                     sign_switch, hyperparam)
 
         # First derivative of likelihood w.r.t distance scale
         for j in range(sigma0.size):
-            hyperparam = numpy.r_[
-                sigma_stencil[k], sigma0[j],
-                full_likelihood._scale_to_hyperparam(scales[i])]
+            hyperparam = numpy.r_[sigma_stencil[k], sigma0[j], scales[i]]
+            hyperparam = full_likelihood.hyperparam_to_log_hyperparam(
+                        hyperparam)
             jacobian_ = full_likelihood.likelihood_jacobian(sign_switch,
                                                             hyperparam)
             d1_ell[i, j] = jacobian_[1]
@@ -757,21 +870,29 @@ def _plot_likelihood_versus_sigma0(
             d1_ell_perturb_scale_numerical[k, i, :] = \
                 (d0_ell_perturb_scale[k, i, 2:] -
                     d0_ell_perturb_scale[k, i, :-2]) / \
-                (sigma0[2:] - sigma0[:-2])
+                (x_sigma0[2:] - x_sigma0[:-2])
 
             # To take derivative w.r.t sigma**2, divide by 2*sigma0.
             for j in range(sigma0.size-2):
-                d1_ell_perturb_scale_numerical[k, i, j] /= (2.0 * sigma0[j+1])
+                if full_likelihood.use_log_sigmas:
+                    d1_ell_perturb_scale_numerical[k, i, j] /= 2.0
+                else:
+                    d1_ell_perturb_scale_numerical[k, i, j] /= \
+                            (2.0 * sigma0[j+1])
 
             # Compute first derivative numerically (perturb sigma)
             d1_ell_perturb_sigma_numerical[k, i, :] = \
                 (d0_ell_perturb_sigma[k, i, 2:] -
                     d0_ell_perturb_sigma[k, i, :-2]) / \
-                (sigma0[2:] - sigma0[:-2])
+                (x_sigma0[2:] - x_sigma0[:-2])
 
             # To take derivative w.r.t sigma0**2, divide by 2*sigma0.
             for j in range(sigma0.size-2):
-                d1_ell_perturb_sigma_numerical[k, i, j] /= (2.0 * sigma0[j+1])
+                if full_likelihood.use_log_sigmas:
+                    d1_ell_perturb_sigma_numerical[k, i, j] /= 2.0
+                else:
+                    d1_ell_perturb_sigma_numerical[k, i, j] /= \
+                            (2.0 * sigma0[j+1])
 
             # Second mixed derivative w.r.t scale, numerically
             d2_mixed_scale_ell_numerical[i, :] += coeff[k] * \
@@ -782,17 +903,23 @@ def _plot_likelihood_versus_sigma0(
                 coeff[k] * d1_ell_perturb_sigma_numerical[k, i, :] / d_sigma
 
         # To take derivative w.r.t sigma**2, divide by 2*sigma.
-        d2_mixed_sigma_ell_numerical[i, :] /= (2.0 * optimal_sigma)
+        if full_likelihood.use_log_sigmas:
+            d2_mixed_sigma_ell_numerical[i, :] /= 2.0
+        else:
+            d2_mixed_sigma_ell_numerical[i, :] /= (2.0 * optimal_sigma)
 
         # Compute second derivative numerically
         d2_ell_numerical[i, :] = \
             (d1_ell_perturb_scale_numerical[center_stencil, i, 2:] -
              d1_ell_perturb_scale_numerical[center_stencil, i, :-2]) / \
-            (sigma0[3:-1] - sigma0[1:-3])
+            (x_sigma0[3:-1] - x_sigma0[1:-3])
 
         # To take derivative w.r.t sigma**2, divide by 2*sigma0.
         for j in range(sigma0.size-4):
-            d2_ell_numerical[i, j] /= (2.0 * sigma0[j+2])
+            if full_likelihood.use_log_sigmas:
+                d2_ell_numerical[i, j] /= 2.0
+            else:
+                d2_ell_numerical[i, j] /= (2.0 * sigma0[j+2])
 
         # Find maximum of ell
         max_index = numpy.argmax(
@@ -852,25 +979,54 @@ def _plot_likelihood_versus_sigma0(
     ax[1, 0].set_xlabel(r'$\sigma_0$')
     ax[1, 1].set_xlabel(r'$\sigma_0$')
     ax[0, 0].set_ylabel(r'$\ell({\sigma_0}^2 | \sigma^2, \theta)$')
-    ax[0, 1].set_ylabel(
-        r'$\frac{\mathrm{d} \ell({\sigma_0}^2 | \sigma^2, \theta)} ' +
-        r'{\mathrm{d} {\sigma_0}^2}$')
-    ax[0, 2].set_ylabel(
-        r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, \theta)} ' +
-        r'{\mathrm{d} ({\sigma_0}^2)^2}$')
+
+    if full_likelihood.use_log_sigmas:
+        ax[0, 1].set_ylabel(
+            r'$\frac{\mathrm{d} \ell({\sigma_0}^2 | \sigma^2, \theta)} ' +
+            r'{\mathrm{d} (\ln {\sigma_0}^2)}$')
+    else:
+        ax[0, 1].set_ylabel(
+            r'$\frac{\mathrm{d} \ell({\sigma_0}^2 | \sigma^2, \theta)} ' +
+            r'{\mathrm{d} {\sigma_0}^2}$')
+
+    if full_likelihood.use_log_sigmas:
+        ax[0, 2].set_ylabel(
+            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, \theta)} ' +
+            r'{\mathrm{d} (\ln {\sigma_0}^2)^2}$')
+    else:
+        ax[0, 2].set_ylabel(
+            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, \theta)} ' +
+            r'{\mathrm{d} ({\sigma_0}^2)^2}$')
 
     if full_likelihood.use_log_scale:
-        ax[1, 0].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, ' +
-            r'\theta)} {\mathrm{d} {\sigma_0}^2 \mathrm{d} (\ln \theta)}$')
+        if full_likelihood.use_log_sigmas:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, ' +
+                r'\theta)} {\mathrm{d} (\ln {\sigma_0}^2) \mathrm{d} ' +
+                r'(\ln \theta)}$')
+        else:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, ' +
+                r'\theta)} {\mathrm{d} {\sigma_0}^2 \mathrm{d} (\ln \theta)}$')
     else:
-        ax[1, 0].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, ' +
-            r'\theta)} {\mathrm{d} {\sigma_0}^2 \mathrm{d} \theta}$')
+        if full_likelihood.use_log_sigmas:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, ' +
+                r'\theta)} {\mathrm{d} (\ln {\sigma_0}^2) \mathrm{d} \theta}$')
+        else:
+            ax[1, 0].set_ylabel(
+                r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, ' +
+                r'\theta)} {\mathrm{d} {\sigma_0}^2 \mathrm{d} \theta}$')
 
-    ax[1, 1].set_ylabel(
-        r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, \theta)} ' +
-        r'{\mathrm{d} {\sigma_0}^2 \mathrm{d} \sigma^2}$')
+    if full_likelihood.use_log_sigmas:
+        ax[1, 1].set_ylabel(
+            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, \theta)} ' +
+            r'{\mathrm{d} (\ln {\sigma_0}^2) \mathrm{d} (\ln \sigma^2)}$')
+    else:
+        ax[1, 1].set_ylabel(
+            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, \theta)} ' +
+            r'{\mathrm{d} {\sigma_0}^2 \mathrm{d} \sigma^2}$')
+
     ax[0, 0].set_title(r'Log likelihood function, given ' +
                        r'$(\sigma^2, \theta)$')
     ax[0, 1].set_title(r'First derivative of log likelihood, given ' +
