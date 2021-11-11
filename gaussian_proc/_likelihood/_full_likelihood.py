@@ -75,8 +75,8 @@ class FullLikelihood(BaseLikelihood):
 
         # Interval variables that are shared between class methods
         self.Y = None
-        self.B = None
-        self.Binv = None
+        self.Cinv = None
+        self.C = None
         self.Mz = None
         self.MMz = None
         self.KMz = None
@@ -88,7 +88,7 @@ class FullLikelihood(BaseLikelihood):
 
         # Hyperparameter which the interval variables in the above were
         # computed based upon it.
-        self.Y_B_Mz_hyperparam = None
+        self.Y_C_Mz_hyperparam = None
         self.MMz_KMz_MKMz_hyperparam = None
         self.trace_M_hyperparam = None
         self.Sinv_KpSinv_SpSinv_hyperparam = None
@@ -232,11 +232,43 @@ class FullLikelihood(BaseLikelihood):
 
         return sigma, sigma0, eta, scale
 
+    # ===========
+    # K tilde dot
+    # ===========
+
+    def K_tilde_dot(self, z):
+        """
+        Matrix-vector or matrix-matrix multiplication between the matrix
+        K_tilde and a vector (or perhaps a matrix) z. The matrix K_tilde is
+        defined as:
+
+            1. If Binv is zero: K_tilde = K
+            2. If Binv is not zero: K_tilde = K + X B X.T
+
+        Note: throughout this code, K denotes K_tilde. That is, we do not
+        introduce a new name for K_tilde, rather, use the same name, K.
+        """
+
+        # Product of K and z
+        Kz = self.cov.dot(1.0, 0.0, z)
+
+        if self.B is not None:
+
+            # Product of XBXt and z
+            Xtz = self.X.T @ z
+            BXtz = self.B @ Xtz
+            XBXtz = self.X @ BXtz
+
+            # Adding extra term of K_tilde to Kz
+            Kz = Kz + XBXtz
+
+        return Kz
+
     # =====
     # M dot
     # =====
 
-    def M_dot(self, Binv, Y, sigma, sigma0, z):
+    def M_dot(self, C, Y, sigma, sigma0, z):
         """
         Multiplies the matrix :math:`\\mathbf{M}` by a given vector
         :math:`\\boldsymbol{z}`. The matrix :math:`\\mathbf{M}` is defined by
@@ -289,31 +321,31 @@ class FullLikelihood(BaseLikelihood):
 
         # Computing Mz
         Ytz = numpy.matmul(Y.T, z)
-        Binv_Ytz = numpy.matmul(Binv, Ytz)
-        Y_Binv_Ytz = numpy.matmul(Y, Binv_Ytz)
-        Mz = w - Y_Binv_Ytz
+        CYtz = numpy.matmul(C, Ytz)
+        YCYtz = numpy.matmul(Y, CYtz)
+        Mz = w - YCYtz
 
         return Mz
 
     # =============
-    # update Y B Mz
+    # update Y C Mz
     # =============
 
-    def _update_Y_B_Mz(self, hyperparam):
+    def _update_Y_C_Mz(self, hyperparam):
         """
-        Computes Y, B, Binv, and Mz. These variables are shared among many of
+        Computes Y, C, Cinv, and Mz. These variables are shared among many of
         the functions, hence their values are stored as the class attribute to
         avoid re-computation when the hyperparam is the same.
         """
 
         # Check if likelihood is already computed for an identical hyperparam
         if (self.Y is None) or \
-                (self.B is None) or \
-                (self.Binv is None) or \
+                (self.C is None) or \
+                (self.Cinv is None) or \
                 (self.Mz is None) or \
-                (self.Y_B_Mz_hyperparam is None) or \
-                (hyperparam.size != self.Y_B_Mz_hyperparam.size) or \
-                (not numpy.allclose(hyperparam, self.Y_B_Mz_hyperparam,
+                (self.Y_C_Mz_hyperparam is None) or \
+                (hyperparam.size != self.Y_C_Mz_hyperparam.size) or \
+                (not numpy.allclose(hyperparam, self.Y_C_Mz_hyperparam,
                                     atol=self.hyperparam_tol)):
 
             # hyperparameters
@@ -327,12 +359,16 @@ class FullLikelihood(BaseLikelihood):
 
             # Variables to compute/update
             self.Y = self.cov.solve(sigma, sigma0, self.X)
-            self.B = numpy.matmul(self.X.T, self.Y)
-            self.Binv = numpy.linalg.inv(self.B)
-            self.Mz = self.M_dot(self.Binv, self.Y, sigma, sigma0, self.z)
+            self.Cinv = numpy.matmul(self.X.T, self.Y)
+
+            if self.B is not None:
+                self.Cinv = self.Cinv + self.Binv / sigma**2
+
+            self.C = numpy.linalg.inv(self.Cinv)
+            self.Mz = self.M_dot(self.C, self.Y, sigma, sigma0, self.z)
 
             # Update the current hyperparam
-            self.Y_B_Mz_hyperparam = hyperparam
+            self.Y_C_Mz_hyperparam = hyperparam
 
     # ===================
     # update MMz KMz MKMz
@@ -361,10 +397,11 @@ class FullLikelihood(BaseLikelihood):
                         hyperparam[self.scale_index:])
                 self.cov.set_scale(scale)
 
-            # Variables to update
-            self.MMz = self.M_dot(self.Binv, self.Y, sigma, sigma0, self.Mz)
-            self.KMz = self.cov.dot(1.0, 0.0, self.Mz)
-            self.MKMz = self.M_dot(self.Binv, self.Y, sigma, sigma0, self.KMz)
+            # Variables to update. Note: K here is K_tilde, which is K + X*B*Xt
+            # when B is not None, and is equal to K itself when B is None.
+            self.MMz = self.M_dot(self.C, self.Y, sigma, sigma0, self.Mz)
+            self.KMz = self.K_tilde_dot(self.Mz)
+            self.MKMz = self.M_dot(self.C, self.Y, sigma, sigma0, self.KMz)
 
             # Update the current hyperparam
             self.MMz_KMz_MKMz_hyperparam = hyperparam
@@ -396,13 +433,12 @@ class FullLikelihood(BaseLikelihood):
 
             # Compute trace of M
             if numpy.abs(sigma) < self.cov.tol:
-                n, m = self.X.shape
-                self.trace_M = (n - m) / sigma0**2
+                self.trace_M = self.rdof / sigma0**2
             else:
                 trace_Sinv = self.cov.traceinv(sigma, sigma0)
                 YtY = numpy.matmul(self.Y.T, self.Y)
-                trace_BinvYtY = numpy.trace(numpy.matmul(self.Binv, YtY))
-                self.trace_M = trace_Sinv - trace_BinvYtY
+                trace_CYtY = numpy.trace(numpy.matmul(self.C, YtY))
+                self.trace_M = trace_Sinv - trace_CYtY
 
             # Update the current hyperparam
             self.trace_M_hyperparam = hyperparam
@@ -486,23 +522,29 @@ class FullLikelihood(BaseLikelihood):
             scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
             self.cov.set_scale(scale)
 
-        n, m = self.X.shape
-
         # cov is the (sigma**2) * K + (sigma0**2) * I
         logdet_S = self.cov.logdet(sigma, sigma0)
 
-        # Compute (or update) Y, B, Mz
-        self._update_Y_B_Mz(hyperparam)
+        # Compute (or update) Y, C, Mz
+        self._update_Y_C_Mz(hyperparam)
 
         # Compute zMz
         zMz = numpy.dot(self.z, self.Mz)
 
         # Compute log det (X.T*Sinv*X)
-        logdet_B = numpy.log(numpy.linalg.det(self.B))
+        logdet_Cinv = numpy.log(numpy.linalg.det(self.Cinv))
 
         # Log likelihood
-        ell = -0.5*(n-m)*numpy.log(2.0*numpy.pi) - 0.5*logdet_S \
-            - 0.5*logdet_B - 0.5*zMz
+        ell = -0.5*self.rdof*numpy.log(2.0*numpy.pi) - 0.5*logdet_S \
+            - 0.5*logdet_Cinv - 0.5*zMz
+
+        if self.B is not None:
+            # Note that matrix B is indeed B1 without sigma. The actual matrix
+            # B is sigma**2 * self.B.
+            m = self.B.shape[0]
+            logdet_B = numpy.log(numpy.linalg.det(self.B)) + \
+                2.0*m*numpy.log(sigma)
+            ell += -0.5*logdet_B
 
         # Store ell to member data (without sign-switch).
         self.ell = ell
@@ -526,21 +568,20 @@ class FullLikelihood(BaseLikelihood):
 
         # hyperparameters
         sigma, sigma0 = self._hyperparam_to_sigmas(hyperparam)
+        n = self.X.shape[0]
 
         # Set scale of the covariance object
         if hyperparam.size > self.scale_index:
             scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
             self.cov.set_scale(scale)
 
-        n, m = self.X.shape
-
-        # Compute (or update) Y, Binv, Mz
-        self._update_Y_B_Mz(hyperparam)
+        # Compute (or update) Y, C, Mz
+        self._update_Y_C_Mz(hyperparam)
 
         # Compute KMz (Setting sigma=1 and sigma0=0 to have cov = K)
-        KMz = self.cov.dot(1.0, 0.0, self.Mz)
+        KMz = self.K_tilde_dot(self.Mz)
 
-        # Compute zMMz and zMKMz
+        # Compute zMMz and zMKMz (Note: K here is K_tilde if B is not None.)
         zMMz = numpy.dot(self.Mz, self.Mz)
         zMKMz = numpy.dot(self.Mz, KMz)
 
@@ -549,13 +590,14 @@ class FullLikelihood(BaseLikelihood):
 
         # Compute trace of KM which is (n-m)/sigma**2 - eta* trace(M)
         if numpy.abs(sigma) < self.cov.tol:
-            YtKY = numpy.matmul(self.Y.T, self.cov.dot(1.0, 0.0, self.Y))
-            BinvYtKY = numpy.matmul(self.Binv, YtKY)
-            trace_BinvYtKY = numpy.trace(BinvYtKY)
-            trace_KM = n/sigma0**2 - trace_BinvYtKY
+            KY = self.K_tilde_dot(self.Y)
+            YtKY = numpy.matmul(self.Y.T, KY)
+            CYtKY = numpy.matmul(self.C, YtKY)
+            trace_CYtKY = numpy.trace(CYtKY)
+            trace_KM = n/sigma0**2 - trace_CYtKY
         else:
             eta = (sigma0 / sigma)**2
-            trace_KM = (n - m)/sigma**2 - eta*self.trace_M
+            trace_KM = self.rdof/sigma**2 - eta*self.trace_M
 
         # Derivative of ell w.r.t to sigma
         dell_dsigma = -0.5*trace_KM + 0.5*zMKMz
@@ -579,25 +621,24 @@ class FullLikelihood(BaseLikelihood):
         # hyperparameters
         sigma, sigma0 = self._hyperparam_to_sigmas(hyperparam)
         eta = (sigma0 / sigma)**2
+        n = self.X.shape[0]
 
         # Include derivative w.r.t scale
         if hyperparam.size > self.scale_index:
             scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
             self.cov.set_scale(scale)
 
-        n, m = self.X.shape
-
-        # Compute (or update) Y, Binv, Mz
-        self._update_Y_B_Mz(hyperparam)
+        # Compute (or update) Y, C, Mz
+        self._update_Y_C_Mz(hyperparam)
 
         # Computing Y=Sinv*X, V = Sinv*Y, and w=Sinv*z
         V = self.cov.solve(sigma, sigma0, self.Y)
 
-        # B is Xt * Y
+        # These matrices are (m, m) shape and easy to compute their trace
         YtY = numpy.matmul(self.Y.T, self.Y)
-        A = numpy.matmul(self.Binv, YtY)
+        A = numpy.matmul(self.C, YtY)
 
-        # Compute MMz, KMz, MKMz
+        # Compute MMz, KMz, MKMz (Note: K here is K_tilde if B is not None)
         self._update_MMz_KMz_MKMz(hyperparam)
 
         # Compute KMz, zMMMz (Setting sigma=1 and sigma0=0 to have cov=K)
@@ -615,7 +656,7 @@ class FullLikelihood(BaseLikelihood):
 
         # Trace of M**2
         YtV = numpy.matmul(self.Y.T, V)
-        F = numpy.matmul(self.Binv, YtV)
+        F = numpy.matmul(self.C, YtV)
         trace_F = numpy.trace(F)
         AA = numpy.matmul(A, A)
         trace_AA = numpy.trace(AA)
@@ -635,7 +676,7 @@ class FullLikelihood(BaseLikelihood):
             trace_KMKM = (trace_K2 - 2.0*numpy.trace(F) + numpy.trace(E2)) / \
                 sigma0**4
         else:
-            trace_KMKM = (n-m)/sigma**4 - (2*eta/sigma**2)*self.trace_M + \
+            trace_KMKM = self.rdof/sigma**4 - (2*eta/sigma**2)*self.trace_M + \
                 (eta**2)*trace_M2
 
         # Trace of K*(M**2)
@@ -675,8 +716,8 @@ class FullLikelihood(BaseLikelihood):
 
         dell_dscale = numpy.zeros((scale.size, ), dtype=float)
 
-        # Compute (or update) Y, Binv, Mz
-        self._update_Y_B_Mz(hyperparam)
+        # Compute (or update) Y, C, Mz
+        self._update_Y_C_Mz(hyperparam)
 
         # Compute Sinv, SpSinv
         if not self.stochastic_traceinv:
@@ -705,11 +746,11 @@ class FullLikelihood(BaseLikelihood):
             # Compute the second component of trace of Sp * M
             SpY = self.cov.dot(sigma, sigma0, self.Y, derivative=[p])
             YtSpY = numpy.matmul(self.Y.T, SpY)
-            BinvYtSpY = numpy.matmul(self.Binv, YtSpY)
-            trace_BinvYtSpY = numpy.trace(BinvYtSpY)
+            CYtSpY = numpy.matmul(self.C, YtSpY)
+            trace_CYtSpY = numpy.trace(CYtSpY)
 
             # Compute trace of Sp * M
-            trace_SpM = trace_SpSinv - trace_BinvYtSpY
+            trace_SpM = trace_SpSinv - trace_CYtSpY
 
             # Derivative of ell w.r.t p-th element of distance scale
             dell_dscale[p] = -0.5*trace_SpM + 0.5*zMSpMz
@@ -738,25 +779,18 @@ class FullLikelihood(BaseLikelihood):
         d2ell_dsigma0_dscale = numpy.zeros((scale.size), dtype=float)
         d2ell_mixed = numpy.zeros((2, scale.size), dtype=float)
 
-        # Compute (or update) Y, Binv, Mz
-        self._update_Y_B_Mz(hyperparam)
+        # Compute (or update) Y, C, Mz
+        self._update_Y_C_Mz(hyperparam)
 
         YtY = numpy.matmul(self.Y.T, self.Y)
-        A = numpy.matmul(self.Binv, YtY)
+        A = numpy.matmul(self.C, YtY)
 
         # Compute MMz, KMz, MKMz
         self._update_MMz_KMz_MKMz(hyperparam)
 
-        # Common variables
-        K = self.cov.get_matrix(1.0, 0.0, derivative=[])
-        KY = self.cov.dot(1.0, 0.0, self.Y)
-        YtKY = numpy.matmul(self.Y.T, KY)
-        Dk = numpy.matmul(self.Binv, YtKY)
-
         # Compute Sinv, KpSinv, SpSinv
         if not self.stochastic_traceinv:
             self._update_Sinv_KpSinv_SpSinv(hyperparam)
-            KSinv = numpy.matmul(K, self.Sinv)
 
         # Sp is the derivative of cov w.r.t the p-th element of scale. Spq
         # is the second mixed derivative of S w.r.t p-th and q-th elements
@@ -795,55 +829,32 @@ class FullLikelihood(BaseLikelihood):
             # Compute the second component of trace of Kp * M
             KpY = self.cov.dot(1.0, 0.0, self.Y, derivative=[p])
             YtKpY = numpy.matmul(self.Y.T, KpY)
-            BinvYtKpY = numpy.matmul(self.Binv, YtKpY)
-            trace_BinvYtKpY = numpy.trace(BinvYtKpY)
+            CYtKpY = numpy.matmul(self.C, YtKpY)
+            trace_CYtKpY = numpy.trace(CYtKpY)
 
             # Compute trace of Kp * M
-            trace_KpM = trace_KpSinv - trace_BinvYtKpY
+            trace_KpM = trace_KpSinv - trace_CYtKpY
 
-            # 1.4. Compute trace of K * M * Sp * M
-
-            # Compute first part of trace of K * M * Sp * M
+            # 1.4. Compute trace of Sp * M
             if self.stochastic_traceinv:
-                # Compute traceinv with stochastic estimation method
-                trace_KMSpM_1 = self.cov.traceinv(sigma, sigma0, B=Sp, C=K,
-                                                  imate_method='hutchinson')
+                # Compute traceinv using stochastic estimation method. Note
+                # that since Sp is not positive-definite, we cannot use
+                # Cholesky method in imate. The only viable option is
+                # Hutchinson's method.
+                trace_SpSinv = self.cov.traceinv(sigma, sigma0, B=Sp,
+                                                 exponent=1,
+                                                 imate_method='hutchinson')
             else:
-                # Compute traceinv using direct computation of inverse matrix
-                KSinvSpSinv = numpy.matmul(KSinv, self.SpSinv[p])
-                trace_KMSpM_1, _ = imate.trace(KSinvSpSinv, method='exact')
+                SinvSpSinv = numpy.matmul(self.Sinv, self.SpSinv[p])
+                trace_SpSinv, _ = imate.trace(self.SpSinv[p], method='exact')
 
-            # Compute the second part of trace of K * M * Sp * M
             SpY = self.cov.dot(sigma, sigma0, self.Y, derivative=[p])
-            SinvSpY = self.cov.solve(sigma, sigma0, SpY)
-            YtKSinvSpY = numpy.matmul(KY.T, SinvSpY)
-            F21 = numpy.matmul(self.Binv, YtKSinvSpY)
-            F22 = numpy.matmul(self.Binv, YtKSinvSpY.T)
-            trace_KMSpM_21 = numpy.trace(F21)
-            trace_KMSpM_22 = numpy.trace(F22)
-
-            # Compute the third part of trace of K * M * Sp * M
             YtSpY = numpy.matmul(self.Y.T, SpY)
-            Dp = numpy.matmul(self.Binv, YtSpY)
-            DkDp = numpy.matmul(Dk, Dp)
-            trace_KMSpM_3 = numpy.trace(DkDp)
+            CYtSpY = numpy.matmul(self.C, YtSpY)
+            trace_CYtSpY, _ = imate.trace(CYtSpY, method='exact')
+            trace_SpM = trace_SpSinv - trace_CYtSpY
 
-            # Compute trace of K * M * Sp * M
-            trace_KMSpM = trace_KMSpM_1 - trace_KMSpM_21 - \
-                trace_KMSpM_22 + trace_KMSpM_3
-
-            # 1.5. Second derivatives w.r.t scale
-            d2ell_dsigma_dscale[p] = -0.5*trace_KpM + 0.5*trace_KMSpM - \
-                zMSpMKMz + 0.5*zMKpMz
-
-            # ------------------------------------------------
-            # 2. Compute mixed derivatives of scale and sigma0
-            # ------------------------------------------------
-
-            # 2.1. Compute zMSpMMz
-            zMSpMMz = numpy.dot(SpMz, self.MMz)
-
-            # 2.4. Compute trace of M * Sp * M
+            # 1.5. Compute trace of M * Sp * M
 
             # Compute first part of trace of M * Sp * M
             if self.stochastic_traceinv:
@@ -859,19 +870,34 @@ class FullLikelihood(BaseLikelihood):
                 trace_MSpM_1, _ = imate.trace(SinvSpSinv, method='exact')
 
             # Compute the second part of trace of M * Sp * M
+            SinvSpY = self.cov.solve(sigma, sigma0, SpY)
             YtSinvSpY = numpy.matmul(self.Y.T, SinvSpY)
-            G21 = numpy.matmul(self.Binv, YtSinvSpY)
-            G22 = numpy.matmul(self.Binv, YtSinvSpY.T)
-            trace_MSpM_21 = numpy.trace(G21)
-            trace_MSpM_22 = numpy.trace(G22)
+            G = numpy.matmul(self.C, YtSinvSpY)
+            trace_MSpM_2 = numpy.trace(G)
 
             # Compute the third part of trace of M * Sp * M
+            Dp = numpy.matmul(self.C, YtSpY)
             DpA = numpy.matmul(Dp, A)
             trace_MSpM_3 = numpy.trace(DpA)
 
             # Compute trace of M * Sp * M
-            trace_MSpM = trace_MSpM_1 - trace_MSpM_21 - trace_MSpM_22 + \
-                trace_MSpM_3
+            trace_MSpM = trace_MSpM_1 - 2.0*trace_MSpM_2 + trace_MSpM_3
+
+            # 1.6. Compute trace of K_tilde * M * Sp * M, Note: K_tilde is K +
+            # X*B*Xt when B is not None, and is equal to K when B is None.
+            eta = (sigma0 / sigma)**2
+            trace_KMSpM = trace_SpM / sigma**2 - eta*trace_MSpM
+
+            # 1.7. Second mixed derivatives w.r.t scale and sigma
+            d2ell_dsigma_dscale[p] = -0.5*trace_KpM + 0.5*trace_KMSpM - \
+                zMSpMKMz + 0.5*zMKpMz
+
+            # ------------------------------------------------
+            # 2. Compute mixed derivatives of scale and sigma0
+            # ------------------------------------------------
+
+            # 2.1. Compute zMSpMMz
+            zMSpMMz = numpy.dot(SpMz, self.MMz)
 
             # 2.5. Second derivatives w.r.t scale
             d2ell_dsigma0_dscale[p] = 0.5*trace_MSpM - zMSpMMz
@@ -901,8 +927,8 @@ class FullLikelihood(BaseLikelihood):
         # Initialize output array
         d2ell_dscale2 = numpy.zeros((scale.size, scale.size), dtype=float)
 
-        # Compute (or update) Y, Binv, Mz
-        self._update_Y_B_Mz(hyperparam)
+        # Compute (or update) Y, C, Mz
+        self._update_Y_C_Mz(hyperparam)
 
         # Compute Sinv, SpSinv
         if not self.stochastic_traceinv:
@@ -912,7 +938,7 @@ class FullLikelihood(BaseLikelihood):
 
             Sp = self.cov.get_matrix(sigma, sigma0, derivative=[p])
             SpMz = self.cov.dot(sigma, sigma0, self.Mz, derivative=[p])
-            MSpMz = self.M_dot(self.Binv, self.Y, sigma, sigma0, SpMz)
+            MSpMz = self.M_dot(self.C, self.Y, sigma, sigma0, SpMz)
 
             for q in range(p, scale.size):
 
@@ -945,11 +971,11 @@ class FullLikelihood(BaseLikelihood):
                 # Compute the second component of trace of Spq * M
                 SpqY = self.cov.dot(sigma, sigma0, self.Y, derivative=[p, q])
                 YtSpqY = numpy.matmul(self.Y.T, SpqY)
-                BinvYtSpqY = numpy.matmul(self.Binv, YtSpqY)
-                trace_BinvYtSpqY = numpy.trace(BinvYtSpqY)
+                CYtSpqY = numpy.matmul(self.C, YtSpqY)
+                trace_CYtSpqY = numpy.trace(CYtSpqY)
 
                 # Compute trace of Spq * M
-                trace_SpqM = trace_SpqSinv - trace_BinvYtSpqY
+                trace_SpqM = trace_SpqSinv - trace_CYtSpqY
 
                 # 4. Compute trace of Sp * M * Sq * M
 
@@ -972,8 +998,8 @@ class FullLikelihood(BaseLikelihood):
                     SqY = numpy.matmul(Sq, self.Y)
                 SinvSqY = self.cov.solve(sigma, sigma0, SqY)
                 YtSpSinvSqY = numpy.matmul(SpY.T, SinvSqY)
-                F21 = numpy.matmul(self.Binv, YtSpSinvSqY)
-                F22 = numpy.matmul(self.Binv, YtSpSinvSqY.T)
+                F21 = numpy.matmul(self.C, YtSpSinvSqY)
+                F22 = numpy.matmul(self.C, YtSpSinvSqY.T)
                 trace_SpMSqM_21 = numpy.trace(F21)
                 trace_SpMSqM_22 = numpy.trace(F22)
 
@@ -983,11 +1009,11 @@ class FullLikelihood(BaseLikelihood):
                     YtSqY = YtSpY
                 else:
                     YtSqY = numpy.matmul(self.Y.T, SqY)
-                Dp = numpy.matmul(self.Binv, YtSpY)
+                Dp = numpy.matmul(self.C, YtSpY)
                 if p == q:
                     Dq = Dp
                 else:
-                    Dq = numpy.matmul(self.Binv, YtSqY)
+                    Dq = numpy.matmul(self.C, YtSqY)
                 DpDq = numpy.matmul(Dp, Dq)
                 trace_SpMSqM_3 = numpy.trace(DpDq)
 

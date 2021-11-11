@@ -14,6 +14,7 @@
 # =======
 
 import sys
+import numpy
 from gaussian_proc.sample_data import generate_points, generate_data
 from gaussian_proc.mean import LinearModel
 from gaussian_proc.kernels import Matern, Exponential, SquareExponential, \
@@ -44,7 +45,20 @@ def main():
     z = generate_data(points, noise_magnitude, plot=False)
 
     # Mean
-    mean = LinearModel.design(points, polynomial_degree=2)
+    b = numpy.zeros((6, ))
+    B = numpy.random.rand(b.size, b.size)
+    B = 1e+5 * B.T @ B
+    # b = None
+    # B = None
+    polynomial_degree = 5
+    # trigonometric_coeff = [0.2]
+    # trigonometric_coeff = [0.1, 0.2, 0.3, 1.0]
+    trigonometric_coeff = None
+    # hyperbolic_coeff = [0.4, 0.7, 1.0]
+    hyperbolic_coeff = None
+    mean = LinearModel.design(points, polynomial_degree=polynomial_degree,
+                              trigonometric_coeff=trigonometric_coeff,
+                              hyperbolic_coeff=hyperbolic_coeff, b=b, B=B)
 
     # Prior for scale of correlation
     scale_prior = Uniform()
@@ -79,8 +93,8 @@ def main():
     gp = GaussianProcess(mean, cov)
 
     # Training options
-    profile_hyperparam = 'none'
-    # profile_hyperparam = 'var'
+    # profile_hyperparam = 'none'
+    profile_hyperparam = 'var'
     # profile_hyperparam = 'var_noise'
 
     # optimization_method = 'chandrupatla'  # requires jacobian
@@ -105,7 +119,7 @@ def main():
     # gp.train(z, options=options, plot=False)
     gp.train(z, profile_hyperparam=profile_hyperparam, log_hyperparam=True,
              optimization_method=optimization_method, tol=1e-5,
-             hyperparam_guess=hyperparam_guess, verbose=False, plot=False)
+             hyperparam_guess=hyperparam_guess, verbose=False, plot=True)
 
 # ===========
 # script main

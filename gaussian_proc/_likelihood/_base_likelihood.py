@@ -37,7 +37,26 @@ class BaseLikelihood(object):
 
         # Member data
         self.X = self.mean.X
+        self.b = self.mean.b
+        self.B = self.mean.B
+        self.Binv = self.mean.Binv
         self.mixed_cor = self.cov.mixed_cor
+
+        if self.B is not None:
+
+            # Translate data to the mean of prior of beta.
+            self.z = self.z - self.X @ self.b
+
+        # Degrees of freedom of linear model
+        if self.B is None:
+            m = self.X.shape[1]
+            self.dof = m
+        else:
+            self.dof = 0
+
+        # Residual degrees of freedom
+        n = self.X.shape[0]
+        self.rdof = n - self.dof
 
         # Counting elapsed wall time and cpu proc time
         self.wall_time = 0.0

@@ -26,15 +26,24 @@ class LinearModel(object):
     # init
     # ====
 
-    def __init__(self, X, beta_mean=None, beta_cov=None):
+    def __init__(self, X, b=None, B=None):
         """
         """
 
-        self.check_arguments(X, beta_mean, beta_cov)
+        self._check_arguments(X, b, B)
 
-        self.X = X
-        self.beta_mean = beta_mean
-        self.beta_cov = beta_cov
+        self.X = X    # Design matrix
+        self.b = b    # Prior mean of beta
+        self.B = B    # Prior covariance of beta
+
+        # Precision of the prior of beta
+        if self.B is not None:
+            self.Binv = numpy.linalg.inv(self.B)
+        else:
+            # When B is None, we assume it is infinity. Hence, the precision
+            # matrix (inverse of covariance) will be zero matrix.
+            m = self.X.shape[1]
+            self.Binv = numpy.zeros((m, m), dtype=float)
 
     # ======
     # design
@@ -47,8 +56,8 @@ class LinearModel(object):
             polynomial_degree=0,
             trigonometric_coeff=None,
             hyperbolic_coeff=None,
-            beta_mean=None,
-            beta_cov=None):
+            b=None,
+            B=None):
         """
         An alternative constructor used when the design matrix ``X`` is not
         known. This method designs the design matrix ``X`` and returns a class
@@ -60,13 +69,13 @@ class LinearModel(object):
                                                trigonometric_coeff,
                                                hyperbolic_coeff)
 
-        return cls(X, beta_mean, beta_cov)
+        return cls(X, b, B)
 
     # ===============
     # check arguments
     # ===============
 
-    def check_arguments(self, X, beta_mean, beta_cov):
+    def _check_arguments(self, X, b, B):
         """
         """
 
@@ -83,49 +92,49 @@ class LinearModel(object):
         elif X.shape[0] < X.shape[1]:
             raise ValueError('Design matrix "X" should have full column rank.')
 
-        # Check beta_mean
-        if beta_mean is not None:
+        # Check b
+        if b is not None:
 
-            if numpy.isscalar(beta_mean) and (X.ndim != 1 or X.shape[1] != 1):
-                raise ValueError('"beta_mean" should be a vector of the ' +
-                                 'same size as the number of columns of the ' +
-                                 'design matrix "X".')
-            elif not isinstance(beta_mean, numpy.ndarray):
-                raise TypeError('"beta_mean" should be either a scalar (if ' +
-                                'the design matrix is a column vector) ' +
-                                'or a row vector of "numpy.ndarray" type.')
-            elif beta_mean.size != X.shape[1]:
-                raise ValueError('"beta_mean" should have the same size as ' +
-                                 'the number of columns of the design ' +
-                                 'matrix "X".')
+            if numpy.isscalar(b) and (X.ndim != 1 or X.shape[1] != 1):
+                raise ValueError('"b" should be a vector of the same size as' +
+                                 'the number of columns of the design matrix' +
+                                 '"X".')
+            elif not isinstance(b, numpy.ndarray):
+                raise TypeError('"b" should be either a scalar (if the' +
+                                'design matrix is a column vector) or a row' +
+                                'vector of "numpy.ndarray" type.')
+            elif b.size != X.shape[1]:
+                raise ValueError('"b" should have the same size as the ' +
+                                 'number of columns of the design matrix ' +
+                                 '"X", which is %d.' % X.shape[1])
 
-        # Check beta_cov
-        if beta_cov is not None:
+        # Check B
+        if B is not None:
 
-            if numpy.isscalar(beta_mean) and not numpy.isscalar(beta_cov):
-                raise ValueError('When "beta_mean" is a scalar, "beta_cov" ' +
-                                 'should also be a scalar.')
-            elif not isinstance(beta_cov, numpy.ndarray):
-                raise TypeError('"beta_cov" should be a "numpy.ndarray" type.')
+            if b is None:
+                raise ValueError('When "B" is given, "b" cannot be None.')
+            elif numpy.isscalar(b) and not numpy.isscalar(B):
+                raise ValueError('When "b" is a scalar, "B" should also be a' +
+                                 'scalar.')
+            elif not isinstance(B, numpy.ndarray):
+                raise TypeError('"B" should be a "numpy.ndarray" type.')
 
-            elif beta_cov.shape != (beta_mean.size, beta_mean.size):
-                raise ValueError('"beta_cov" should be a square matrix with ' +
-                                 'the same number of columns/rows as the ' +
-                                 'size of vector "beta_mean".')
+            elif B.shape != (b.size, b.size):
+                raise ValueError('"B" should be a square matrix with the' +
+                                 'same number of columns/rows as the size of' +
+                                 'vector "b".')
 
     # ======================
-    # generate design matrix
+    # check design arguments
     # ======================
 
     @staticmethod
-    def generate_design_matrix(
+    def _check_design_arguments(
             points,
-            polynomial_degree=0,
-            trigonometric_coeff=None,
-            hyperbolic_coeff=None):
+            polynomial_degree,
+            trigonometric_coeff,
+            hyperbolic_coeff):
         """
-        Generates design matrix (basis functions) for the mean function of the
-        linear model.
         """
 
         # Check points
@@ -135,7 +144,7 @@ class LinearModel(object):
         elif not isinstance(points, numpy.ndarray):
             raise TypeError('"points" should be a "numpy.ndarray" type.')
 
-        # Check other arguments
+        # Check at least one of polynomial, trigonometric or hyperbolic given.
         if (polynomial_degree is None) and (trigonometric_coeff is None) and \
            (hyperbolic_coeff is None):
             raise ValueError('At least, one of "polynomial_degree", ' +
@@ -154,15 +163,68 @@ class LinearModel(object):
         # Check trigonometric coeff
         if trigonometric_coeff is not None:
 
-            if not isinstance(trigonometric_coeff, int) and \
-               not isinstance(trigonometric_coeff, float):
-                raise ValueError('"trigonometric_coeff" must be a float type.')
+            if numpy.isscalar(trigonometric_coeff):
+                if not isinstance(trigonometric_coeff, int) and \
+                   not isinstance(trigonometric_coeff, float):
+                    raise ValueError('"trigonometric_coeff" must be a float ' +
+                                     'type.')
+
+                # Convert scalar to numpy array
+                trigonometric_coeff = numpy.array([trigonometric_coeff],
+                                                  dtype=float)
+
+            elif isinstance(trigonometric_coeff, list):
+                # Convert list to numpy array
+                trigonometric_coeff = numpy.array(trigonometric_coeff,
+                                                  dtype=float)
+            elif not isinstance(trigonometric_coeff, numpy.ndarray):
+                raise TypeError('"trigonometric_coeff" should be a scalar, ' +
+                                ', a list, or an array.')
+            elif trigonometric_coeff.ndim > 1:
+                raise ValueError('"trigonometric_coeff" should be a 1d array.')
 
         # Check polynomial degree
         if hyperbolic_coeff is not None:
-            if not isinstance(hyperbolic_coeff, int) and \
-               not isinstance(hyperbolic_coeff, float):
-                raise ValueError('"hyperbolic_coeff" must be a float type.')
+
+            if numpy.isscalar(hyperbolic_coeff):
+                if not isinstance(hyperbolic_coeff, int) and \
+                   not isinstance(hyperbolic_coeff, float):
+                    raise ValueError('"hyperbolic_coeff" must be a float ' +
+                                     'type.')
+
+                # Convert scalar to numpy array
+                hyperbolic_coeff = numpy.array([hyperbolic_coeff], dtype=float)
+
+            elif isinstance(hyperbolic_coeff, list):
+                # Convert list to numpy array
+                hyperbolic_coeff = numpy.array(hyperbolic_coeff, dtype=float)
+            elif not isinstance(hyperbolic_coeff, numpy.ndarray):
+                raise TypeError('"hyperbolic_coeff" should be a scalar, ' +
+                                ', a list, or an array.')
+            elif hyperbolic_coeff.ndim > 1:
+                raise ValueError('"hyperbolic_coeff" should be a 1d array.')
+
+        return trigonometric_coeff, hyperbolic_coeff
+
+    # ======================
+    # generate design matrix
+    # ======================
+
+    @staticmethod
+    def generate_design_matrix(
+            points,
+            polynomial_degree=0,
+            trigonometric_coeff=None,
+            hyperbolic_coeff=None):
+        """
+        Generates design matrix (basis functions) for the mean function of the
+        linear model.
+        """
+
+        trigonometric_coeff, hyperbolic_coeff = \
+            LinearModel._check_design_arguments(
+                    points, polynomial_degree, trigonometric_coeff,
+                    hyperbolic_coeff)
 
         # Convert a vector to matrix if dimension is one
         if points.ndim == 1:
@@ -211,26 +273,30 @@ class LinearModel(object):
 
         # Trigonometric basis functions
         if trigonometric_coeff is not None:
-            X_trigonometric = numpy.empty((n, 2*dimension))
+            tri_size = trigonometric_coeff.size
+            X_trigonometric = numpy.empty((n, 2*dimension*tri_size))
 
-            for i in range(dimension):
-                X_trigonometric[:, 2*i+0] = numpy.sin(
-                        points[:, i] * trigonometric_coeff)
-                X_trigonometric[:, 2*i+1] = numpy.cos(
-                        points[:, i] * trigonometric_coeff)
+            for i in range(tri_size):
+                for j in range(dimension):
+                    X_trigonometric[:, 2*dimension*i + 2*j+0] = numpy.sin(
+                            points[:, j] * trigonometric_coeff[i])
+                    X_trigonometric[:, 2*dimension*i + 2*j+1] = numpy.cos(
+                            points[:, j] * trigonometric_coeff[i])
 
             # append to the output list
             X_list.append(X_trigonometric)
 
         # Hyperbolic basis functions
         if hyperbolic_coeff is not None:
-            X_hyperbolic = numpy.empty((n, 2*dimension))
+            hyp_size = hyperbolic_coeff.size
+            X_hyperbolic = numpy.empty((n, 2*dimension*hyp_size))
 
-            for i in range(dimension):
-                X_hyperbolic[:, 2*i+0] = numpy.sinh(
-                        points[:, i] * hyperbolic_coeff)
-                X_hyperbolic[:, 2*i+1] = numpy.cosh(
-                        points[:, i] * hyperbolic_coeff)
+            for i in range(hyp_size):
+                for j in range(dimension):
+                    X_hyperbolic[:, 2*dimension*i + 2*j+0] = numpy.sinh(
+                            points[:, j] * hyperbolic_coeff[i])
+                    X_hyperbolic[:, 2*dimension*i + 2*j+1] = numpy.cosh(
+                            points[:, j] * hyperbolic_coeff[i])
 
             # append to the output list
             X_list.append(X_hyperbolic)

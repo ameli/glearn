@@ -27,12 +27,12 @@ def plot(profile_likelihood, result):
     Plot likelihood function and its derivatives.
     """
 
-    # Plot log-lp versus eta
-    _plot_likelihood_versus_eta(
-            profile_likelihood, result, numpy.logspace(-2, 2, 5))
-
     # Plot log-lp versus scale
     _plot_likelihood_versus_scale(
+            profile_likelihood, result, numpy.logspace(-2, 2, 5))
+
+    # Plot log-lp versus eta
+    _plot_likelihood_versus_eta(
             profile_likelihood, result, numpy.logspace(-2, 2, 5))
 
     # Contour Plot of log-lp function
@@ -197,6 +197,14 @@ def _plot_likelihood_versus_scale(
                           color=colors[i], markersize=3)
         ax[0, 1].plot(optimal_scale, 0.0,  marker, color=colors[i],
                       markersize=3)
+
+    # ell at infinity eta
+    eta_inf = numpy.inf
+    ell_inf = profile_likelihood.likelihood(
+            False, profile_likelihood._eta_to_hyperparam(eta_inf))
+
+    ax[0, 0].plot([scale[0], scale[-1]], [ell_inf, ell_inf], '-.',
+                  color='black', label=r'$\eta = \infty$')
 
     ax[0, 0].legend(p, [r'optimal $\theta$'])
     ax[0, 0].legend(loc='lower right')
@@ -429,6 +437,14 @@ def _plot_likelihood_versus_eta(
                           color=colors[i], markersize=3)
         ax[0, 1].plot(optimal_eta, 0.0, marker, color=colors[i],
                       markersize=3)
+
+    # ell at infinity eta
+    eta_inf = numpy.inf
+    ell_inf = profile_likelihood.likelihood(
+            False, profile_likelihood._eta_to_hyperparam(eta_inf))
+
+    ax[0, 0].plot([eta[0], eta[-1]], [ell_inf, ell_inf], '-.',
+                  color='black', label=r'$\eta = \infty$')
 
     ax[0, 0].legend(p, [r'optimal $\eta$'])
     ax[0, 0].legend(loc='lower right')
