@@ -166,6 +166,18 @@ class GaussianProcess(object):
 
         return hyperparam_guess
 
+    # ===============
+    # plot likelihood
+    # ===============
+
+    def plot_likelihood(self):
+        """
+        Plots likelihood in multiple figures. This function may take a long
+        time, and is only used for testing purposes on small datasets.
+        """
+
+
+
     # =====
     # train
     # =====
@@ -178,14 +190,14 @@ class GaussianProcess(object):
             log_hyperparam=True,
             optimization_method='Newton-CG',
             tol=1e-3,
+            use_rel_error=True,
             verbose=False,
             plot=False):
         """
         Finds the hyperparameters of the Gaussian process model.
         """
 
-        # Check or find hyperparam guess
-        # Prepare hyperparameter guess
+        # Prepare or suggest hyperparameter guess
         if hyperparam_guess is not None:
             self._check_hyperparam_guess(hyperparam_guess, profile_hyperparam)
         else:
@@ -201,13 +213,22 @@ class GaussianProcess(object):
         result = posterior.maximize_posterior(
                 hyperparam_guess=hyperparam_guess,
                 optimization_method=optimization_method, tol=tol,
-                verbose=verbose)
+                use_rel_error=use_rel_error, verbose=verbose)
 
         if plot:
-            posterior.plot(result)
+            posterior.plot_convergence(result)
 
-        import pprint
-        pprint.pprint(result)
+        if verbose:
+            import pprint
+            pprint.pprint(result)
+
+        # Set optimal parameters (sigma, sigma0) to covariance object
+        sigma = result['hyperparam']['sigma']
+        sigma0 = result['hyperparam']['sigma0']
+        self.cov.set_sigmas(sigma, sigma0)
+
+        # Set optimal parameters (b and B) to mean object
+        self.mean.update_hyperparam(self.cov, z)
 
     # =======
     # predict

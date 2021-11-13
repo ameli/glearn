@@ -118,8 +118,9 @@ def main():
 
     # gp.train(z, options=options, plot=False)
     gp.train(z, profile_hyperparam=profile_hyperparam, log_hyperparam=True,
-             optimization_method=optimization_method, tol=1e-5,
-             hyperparam_guess=hyperparam_guess, verbose=False, plot=True)
+             optimization_method=optimization_method, tol=1e-3,
+             hyperparam_guess=hyperparam_guess, verbose=True, plot=False)
+
 
 # ===========
 # script main

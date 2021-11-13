@@ -32,9 +32,11 @@ class LinearModel(object):
 
         self._check_arguments(X, b, B)
 
-        self.X = X    # Design matrix
-        self.b = b    # Prior mean of beta
-        self.B = B    # Prior covariance of beta
+        self.X = X        # Design matrix
+        self.b = b        # Prior mean of beta
+        self.B = B        # Prior covariance of beta
+        self.beta = None  # Posterior mean of beta (will be computed)
+        self.C = None     # Posterior covariance of beta (will be computed)
 
         # Precision of the prior of beta
         if self.B is not None:
@@ -310,3 +312,36 @@ class LinearModel(object):
             X = numpy.concatenate(X_list, axis=1)
 
         return X
+
+    # =================
+    # update hyperparam
+    # =================
+
+    def update_hyperparam(self, cov, z):
+        """
+        Updates (or computes, if has not been done so) the mean and covariance
+        of the posterior of the parameter beta. This function should be called
+        after training, and after cov itself is updated from the training, and
+        before prediction.
+        """
+
+        # Note: cov should has been updated already after training.
+        sigma, sigma0 = cov.get_sigmas()
+
+        # Posterior covariance of beta
+        Y = cov.solve(self.X, sigma=sigma, sigma0=sigma0)
+        Cinv = numpy.matmul(self.X.T, Y)
+
+        # Note: B in this class is B1 in the paper notations. That is, self.B
+        # here means B1 = B / (sigma**2).
+        if self.B is not None:
+            Cinv += self.Binv / (sigma**2)
+
+        self.C = numpy.linalg.inv(Cinv)
+
+        # Posterior mean of beta
+        v = numpy.dot(Y.T, z)
+        if self.B is not None:
+            Binvb = numpy.dot(self.Binv, self.b) / (sigma**2)
+            v += Binvb
+        self.beta = numpy.matmul(self.C, v)

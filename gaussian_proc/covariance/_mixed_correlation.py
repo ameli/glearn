@@ -41,6 +41,7 @@ class MixedCorrelation(object):
         self.cor = cor
         self.interpolate = interpolate
         self.interpolant_points = interpolant_points
+        self.eta = None
 
         # Options for imate
         self.imate_method = imate_method
@@ -109,18 +110,61 @@ class MixedCorrelation(object):
 
         return self.cor.get_matrix_size()
 
+    # =======
+    # set eta
+    # =======
+
+    def set_eta(self, sigma, sigma0):
+        """
+        After training, when optimal sigma and sigma0 is obtained, this
+        function stores eta as an attribute of the class.
+        """
+
+        if sigma is None:
+            raise ValueError('"sigma" cannot be None.')
+        if sigma0 is None:
+            raise ValueError('"sigma0" cannot be None.')
+
+        self.eta = (sigma0 / sigma)**2
+
+    # =======
+    # get eta
+    # =======
+
+    def get_eta(self, eta=None):
+        """
+        Returns eta. If the input is None, the object attribute is used.
+
+        After training, when optimal sigma and sigma0 are obtained, their ratio
+        squared (as eta) is set as the attributes of this class. On the next
+        calls to other functions like solve, trace, traceinv, etc, they will
+        use the optimal eta. Thus, we will call these functions without
+        specifying eta.
+        """
+
+        if eta is None:
+            if self.eta is None:
+                raise ValueError('"eta" cannot be None.')
+            else:
+                eta = self.eta
+
+        return eta
+
     # ==========
     # get matrix
     # ==========
 
     def get_matrix(
             self,
-            eta,
+            eta=None,
             scale=None,
             derivative=[]):
         """
         Get the matrix as a numpy array of scipy sparse array.
         """
+
+        # Get eta (if None, uses class attribute)
+        eta = self.get_eta(eta)
 
         K = self.cor.get_matrix(scale, derivative)
 
@@ -141,12 +185,15 @@ class MixedCorrelation(object):
 
     def get_eigenvalues(
             self,
-            eta,
+            eta=None,
             scale=None,
             derivative=[]):
         """
         Returns the eigenvalues of mixed correlation.
         """
+
+        # Get eta (if None, uses class attribute)
+        eta = self.get_eta(eta)
 
         K_eigenvalues = self.cor.get_eigenvalues(scale, derivative)
 
@@ -163,7 +210,7 @@ class MixedCorrelation(object):
 
     def trace(
             self,
-            eta,
+            eta=None,
             scale=None,
             exponent=1,
             derivative=[],
@@ -178,6 +225,9 @@ class MixedCorrelation(object):
         where :math:`\\mathbf{I}` is the identity matrix and :math:`\\eta` is a
         real number.
         """
+
+        # Get eta (if None, uses class attribute)
+        eta = self.get_eta(eta)
 
         # Overwriting imate method, if not given.
         if imate_method is None:
@@ -254,7 +304,7 @@ class MixedCorrelation(object):
 
     def traceinv(
             self,
-            eta,
+            eta=None,
             B=None,
             C=None,
             scale=None,
@@ -273,6 +323,9 @@ class MixedCorrelation(object):
         real number. If :math:`\\mathbf{B}` is set to None, identity matrix is
         assumed.
         """
+
+        # Get eta (if None, uses class attribute)
+        eta = self.get_eta(eta)
 
         # Overwriting imate method, if not given.
         if imate_method is None:
@@ -419,7 +472,7 @@ class MixedCorrelation(object):
 
     def logdet(
             self,
-            eta,
+            eta=None,
             scale=None,
             exponent=1,
             derivative=[],
@@ -440,6 +493,9 @@ class MixedCorrelation(object):
             method is not applicable to ``logdet()``, we use ``cholesky``
             instead.
         """
+
+        # Get eta (if None, uses class attribute)
+        eta = self.get_eta(eta)
 
         # Overwriting imate method, if not given.
         if imate_method is None:
@@ -517,8 +573,8 @@ class MixedCorrelation(object):
 
     def solve(
             self,
-            eta,
             Y,
+            eta=None,
             scale=None,
             exponent=1,
             derivative=[]):
@@ -536,6 +592,9 @@ class MixedCorrelation(object):
         * :math:`\\mathbf{I}` is the identity matrix,
         * :math:`\\eta` is a real number.
         """
+
+        # Get eta (if None, uses class attribute)
+        eta = self.get_eta(eta)
 
         if (exponent > 1) and (len(derivative) > 0):
             raise NotImplementedError('If "exponent" is larger than one, ' +
@@ -575,8 +634,8 @@ class MixedCorrelation(object):
 
     def dot(
             self,
-            eta,
             x,
+            eta=None,
             scale=None,
             exponent=1,
             derivative=[]):
@@ -596,6 +655,9 @@ class MixedCorrelation(object):
         * :math:`\\eta` is a real number,
         * :math:`p`is a non-negative integer.
         """
+
+        # Get eta (if None, uses class attribute)
+        eta = self.get_eta(eta)
 
         # Check exponent
         if not isinstance(exponent, (int, numpy.integer)):

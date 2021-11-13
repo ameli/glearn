@@ -58,6 +58,11 @@ class Posterior(object):
         else:
             self.prior = None
 
+        # Member data
+        self.num_fun_eval = 0
+        self.num_jac_eval = 0
+        self.num_hes_eval = 0
+
     # =========
     # posterior
     # =========
@@ -75,6 +80,9 @@ class Posterior(object):
         index at which ``scale`` starts in ``hyperparam`` is given by
         ``self.likelihood.scale_index``.
         """
+
+        # Counter
+        self.num_fun_eval += 1
 
         # Likelihood uses the full hyperparam, including scale.
         likelihood_ = self.likelihood.likelihood(sign_switch, hyperparam)
@@ -122,6 +130,9 @@ class Posterior(object):
         index at which ``scale`` starts in ``hyperparam`` is given by
         ``self.likelihood.scale_index``.
         """
+
+        # Counter
+        self.num_jac_eval += 1
 
         # Likelihood uses the full hyperparam, including scale.
         likelihood_jacobian = self.likelihood.likelihood_jacobian(sign_switch,
@@ -172,6 +183,9 @@ class Posterior(object):
         ``self.likelihood.scale_index``.
         """
 
+        # Counter
+        self.num_hes_eval += 1
+
         # Likelihood uses the full hyperparam, including scale.
         likelihood_hessian = self.likelihood.likelihood_hessian(sign_switch,
                                                                 hyperparam)
@@ -212,6 +226,7 @@ class Posterior(object):
             hyperparam_guess=[0.1, 0.1],
             log_hyperparam=True,
             optimization_method='Nelder-Mead',
+            use_rel_error=True,
             verbose=False):
         """
         Maximizing the log-likelihood function over the space of parameters
@@ -219,6 +234,11 @@ class Posterior(object):
 
         In this function, hyperparam = [sigma, sigma0].
         """
+
+        # Reset attributes
+        self.num_fun_eval = 0
+        self.num_jac_eval = 0
+        self.num_hes_eval = 0
 
         # Convert hyperparam to log of hyperparam (if enabled in configuration)
         hyperparam_guess = self.likelihood.hyperparam_to_log_hyperparam(
@@ -284,6 +304,7 @@ class Posterior(object):
             # Minimize
             res = minimize(posterior_partial_func, hyperparam_guess,
                            method=optimization_method, tol=tol,
+                           use_rel_error=use_rel_error,
                            jac=jacobian_partial_func,
                            hess=hessian_partial_func, verbose=verbose)
 
@@ -300,6 +321,11 @@ class Posterior(object):
 
             # Add extracted hyperparam to the output dictionary
             res['hyperparam'] = hyperparam_dict
+
+            # Number of function, jacobian, and hessian evaluations
+            res['optimization']['num_fun_eval'] = self.num_fun_eval
+            res['optimization']['num_jac_eval'] = self.num_jac_eval
+            res['optimization']['num_hes_eval'] = self.num_hes_eval
 
         return res
 

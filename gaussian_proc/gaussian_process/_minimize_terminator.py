@@ -64,10 +64,14 @@ class MinimizeTerminator(object):
     # init
     # ====
 
-    def __init__(self, tol, verbose):
+    def __init__(self, tol, use_rel_error=True, verbose=False):
         """
         Initialization.
         """
+
+        # Attributes
+        self.use_rel_error = use_rel_error
+        self.verbose = verbose
 
         # Member data
         self.counter = 0
@@ -75,7 +79,6 @@ class MinimizeTerminator(object):
         self.hyperparam = None
         self.error = numpy.inf
         self.converged = False
-        self.verbose = verbose
 
     # ===========
     # get counter
@@ -109,29 +112,45 @@ class MinimizeTerminator(object):
         """
 
         if self.hyperparam is None:
+
+            # Initialization
             self.hyperparam = current_hyperparam
+            self.error = numpy.empty((self.hyperparam.size, ), dtype=float)
+            self.error[:] = numpy.inf
             self.counter += 1
+
+            if self.verbose:
+                errors_string = ', '.join(('%+9f' % e) for e in
+                                          self.error.tolist())
+                print('iter: %03d, conv err: %s'
+                      % (self.counter, errors_string))
         else:
             if not self.converged:
 
-                # Using absolute error
-                # self.error = numpy.abs(
-                #         current_hyperparam - self.hyperparam)
+                # Using absolute error or relative error
+                if self.use_rel_error:
+                    # Using relative error
+                    self.error = numpy.abs(
+                        (current_hyperparam - self.hyperparam) /
+                        self.hyperparam)
+                else:
+                    # Using absolute error
+                    self.error = numpy.abs(
+                            current_hyperparam - self.hyperparam)
 
-                # or using relative error
-                self.error = numpy.abs(
-                    (current_hyperparam - self.hyperparam) /
-                    self.hyperparam)
                 self.hyperparam = current_hyperparam
                 self.counter += 1
 
+                # Print convergence error for each of the variables.
                 if self.verbose:
-                    print('Convergence error: %s'
-                          % (', '.join(str(e) for e in self.error.tolist())))
+                    errors_string = ', '.join(('%+0.2e' % e) for e in
+                                              self.error.tolist())
+                    print('iter: %03d, conv err: %s'
+                          % (self.counter, errors_string))
 
                 if numpy.all(self.error < self.tol) and \
                         numpy.all(self.error > 0):
                     self.converged = True
                     raise MinimizeTerminated('Convergence error reached the ' +
-                                             'tolerance at %d iterations.'
+                                             'tolerance after %d iterations.'
                                              % (self.counter))

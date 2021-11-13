@@ -27,6 +27,7 @@ def minimize(
         tol,
         jac=None,
         hess=None,
+        use_rel_error=True,
         verbose=False):
     """
     Minimizes a function.
@@ -34,13 +35,14 @@ def minimize(
 
     # Minimize Terminator to gracefully terminate scipy.optimize.minimize once
     # tolerance is reached
-    minimize_terminator = MinimizeTerminator(tol, verbose=verbose)
+    minimize_terminator = MinimizeTerminator(tol, use_rel_error=use_rel_error,
+                                             verbose=verbose)
 
     options = {
         'maxiter': 1000,
         'xatol': tol,
         'fatol': tol,
-        'disp': True
+        'disp': False
     }
 
     # Keeping times
@@ -57,7 +59,10 @@ def minimize(
         # Extract results from Res output
         hyperparam = res.x
         max_posterior = -res.fun
-        iter = res.nit
+        num_opt_iter = res.nit
+        num_fun_eval = res.nfev
+        num_jac_eval = res.njev
+        num_hes_eval = res.nhev
         message = res.message
         success = res.success
 
@@ -66,12 +71,14 @@ def minimize(
         # Extract results from MinimizeTerminator
         hyperparam = minimize_terminator.get_hyperparam()
         max_posterior = -func(hyperparam)
-        iter = minimize_terminator.get_counter()
-        message = 'Terminated after reaching the tolerance.'
+        num_opt_iter = minimize_terminator.get_counter()
+        num_fun_eval = None
+        num_jac_eval = None
+        num_hes_eval = None
+        message = 'Minimization algorithm is terminated successfully for ' + \
+                  'reaching the tolerance %+0.5e on all variables ' % tol + \
+                  'after %d iterations of the algorithm.' % num_opt_iter
         success = True
-
-        if verbose:
-            print('Minimization terminated after %d iterations.' % iter)
 
     # Adding time to the results
     wall_time = time.time() - initial_wall_time
@@ -82,7 +89,10 @@ def minimize(
         'optimization':
         {
             'max_posterior': max_posterior,
-            'iter': iter,
+            'num_opt_iter': num_opt_iter,
+            'num_fun_eval': num_fun_eval,
+            'num_jac_eval': num_jac_eval,
+            'num_hes_eval': num_hes_eval,
             'message': message,
             'success': success
         },

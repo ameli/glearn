@@ -335,7 +335,7 @@ class ProfileLikelihood(BaseLikelihood):
         """
 
         # Computing w = Sinv*z, where S is sigma**2 * K + sigma0**2 * I
-        w = self.mixed_cor.solve(eta, z)
+        w = self.mixed_cor.solve(z, eta=eta)
 
         # Computing Mz
         Ytz = numpy.matmul(Y.T, z)
@@ -378,8 +378,11 @@ class ProfileLikelihood(BaseLikelihood):
                         hyperparam[self.scale_index:])
                 self.mixed_cor.set_scale(scale)
 
-            # Variables to compute/update
-            self.Y = self.mixed_cor.solve(eta, self.X)
+            # Variables to compute/update. Note that in all variables, sigma
+            # is factored out. For example, self.B is indeed B1 = B/(sigma**2),
+            # and self.C here is C1 = C/(sigma**2). That is, B and C denoted in
+            # this code are B1 and C1 of the notations used in the paper.
+            self.Y = self.mixed_cor.solve(self.X, eta=eta)
             self.Cinv = numpy.matmul(self.X.T, self.Y) + self.Binv
             self.C = numpy.linalg.inv(self.Cinv)
             self.Mz = self.M_dot(self.C, self.Y, eta, self.z)
@@ -742,7 +745,7 @@ class ProfileLikelihood(BaseLikelihood):
         # Find optimal sigma2
         sigma2 = self._find_optimal_sigma2(hyperparam)
 
-        V = self.mixed_cor.solve(eta, self.Y)
+        V = self.mixed_cor.solve(self.Y, eta=eta)
 
         # Trace of M**2
         trace_Kn2inv = self.mixed_cor.traceinv(eta, exponent=2)
@@ -829,7 +832,7 @@ class ProfileLikelihood(BaseLikelihood):
                                                 method='exact')
 
             # Compute the second component of trace of Knp * M
-            KnpY = self.mixed_cor.dot(eta, self.Y, derivative=[p])
+            KnpY = self.mixed_cor.dot(self.Y, eta=eta, derivative=[p])
             YtKnpY = numpy.matmul(self.Y.T, KnpY)
             CYtKnpY = numpy.matmul(self.C, YtKnpY)
             trace_CYtKnpY = numpy.trace(CYtKnpY)
@@ -838,7 +841,7 @@ class ProfileLikelihood(BaseLikelihood):
             trace_KnpM = trace_KnpKninv - trace_CYtKnpY
 
             # Compute zMKnpMz
-            KnpMz = self.mixed_cor.dot(eta, self.Mz, derivative=[p])
+            KnpMz = self.mixed_cor.dot(self.Mz, eta=eta, derivative=[p])
             zMKnpMz = numpy.dot(self.Mz, KnpMz)
 
             # Derivative of ell w.r.t p-th element of distance scale
@@ -880,7 +883,7 @@ class ProfileLikelihood(BaseLikelihood):
         # Knp is the derivative of mixed_cor (Kn) w.r.t p-th element of scale.
         for p in range(scale.size):
 
-            KnpMz = self.mixed_cor.dot(eta, self.Mz, derivative=[p])
+            KnpMz = self.mixed_cor.dot(self.Mz, eta=eta, derivative=[p])
             MKnpMz = self.M_dot(self.C, self.Y, eta, KnpMz)
 
             for q in range(scale.size):
@@ -889,11 +892,13 @@ class ProfileLikelihood(BaseLikelihood):
                 if p == q:
                     KnqMz = KnpMz
                 else:
-                    KnqMz = self.mixed_cor.dot(eta, self.Mz, derivative=[q])
+                    KnqMz = self.mixed_cor.dot(self.Mz, eta=eta,
+                                               derivative=[q])
                 zMKnqMKnpMz = numpy.dot(KnqMz, MKnpMz)
 
                 # 2. Compute zMKnpqMz
-                KnpqMz = self.mixed_cor.dot(eta, self.Mz, derivative=[p, q])
+                KnpqMz = self.mixed_cor.dot(self.Mz, eta=eta,
+                                            derivative=[p, q])
                 zMKnpqMz = numpy.dot(self.Mz, KnpqMz)
 
                 # 3. Computing trace of Knpq * M in three steps
@@ -908,7 +913,7 @@ class ProfileLikelihood(BaseLikelihood):
                     trace_KnpqKninv, _ = imate.trace(KnpqKninv, method='exact')
 
                 # Compute the second component of trace of Knpq * M
-                KnpqY = self.mixed_cor.dot(eta, self.Y, derivative=[p, q])
+                KnpqY = self.mixed_cor.dot(self.Y, eta=eta, derivative=[p, q])
                 YtKnpqY = numpy.matmul(self.Y.T, KnpqY)
                 CYtKnpqY = numpy.matmul(self.C, YtKnpqY)
                 trace_CYtKnpqY = numpy.trace(CYtKnpqY)
@@ -936,7 +941,7 @@ class ProfileLikelihood(BaseLikelihood):
                     KnqY = KnpY
                 else:
                     KnqY = Knq @ self.Y
-                KninvKnqY = self.mixed_cor.solve(eta, KnqY)
+                KninvKnqY = self.mixed_cor.solve(KnqY, eta=eta)
                 YtKnpKninvKnqY = numpy.matmul(KnpY.T, KninvKnqY)
                 F21 = numpy.matmul(self.C, YtKnpKninvKnqY)
                 F22 = numpy.matmul(self.C, YtKnpKninvKnqY.T)
@@ -1010,7 +1015,7 @@ class ProfileLikelihood(BaseLikelihood):
 
         # Computing Y=Kninv*X.
         YtY = numpy.matmul(self.Y.T, self.Y)
-        V = self.mixed_cor.solve(eta, self.Y)
+        V = self.mixed_cor.solve(self.Y, eta=eta)
 
         # Compute (or update) MMz
         self._update_MMz(hyperparam)
@@ -1030,7 +1035,7 @@ class ProfileLikelihood(BaseLikelihood):
         for p in range(scale.size):
 
             # Compute zMKnpMMz
-            KnpMz = self.mixed_cor.dot(eta, self.Mz, derivative=[p])
+            KnpMz = self.mixed_cor.dot(self.Mz, eta=eta, derivative=[p])
             zMKnpMz = numpy.dot(self.Mz, KnpMz)
             zMKnpMMz = numpy.dot(KnpMz, self.MMz)
 
@@ -1044,7 +1049,7 @@ class ProfileLikelihood(BaseLikelihood):
                 trace_KnpKninv2, _ = imate.trace(KnpKninv2, method='exact')
 
             # Compute traces
-            KnpY = self.mixed_cor.dot(eta, self.Y, derivative=[p])
+            KnpY = self.mixed_cor.dot(self.Y, eta=eta, derivative=[p])
             YtKnpY = numpy.matmul(self.Y.T, KnpY)
             VtKnpY = numpy.matmul(V.T, KnpY)
             F1 = numpy.matmul(self.C, VtKnpY)

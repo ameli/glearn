@@ -10,6 +10,13 @@ Notes
 ToDo
 ====
 
+-------
+Predict
+-------
+
+* Add ``predict`` to ``gaussian_process`` class. Option ``uncertainty`` to
+  Tr
+
 ----------------
 hyperparam guess
 ----------------
@@ -17,25 +24,6 @@ hyperparam guess
 * For the guess of eta hyperparam, use the asymptotic relation.
 * For sigma and sigma0 hypepraram, assume sigma is zero, and use eta=inf to
   find optimal sigma0 as a hyperparam.
-
-------------------
-measure imate time
-------------------
-
-* likelihood tic toc measure elapsed time and process time of computing imate.
-
--------------
-imate configs
--------------
-
-* pass imate config settings from cov object interface.
-
--------
-Predict
--------
-
-* Add ``predict`` to ``gaussian_process`` class. Option ``uncertainty`` to
-  Tr
 
 --------------------
 Asymptotic Relations
@@ -71,6 +59,18 @@ Asymptotic Relations
   Also, create a function ``asymp_der_1_zero`` to find zero of the polynomial.
   This is not used during optimization calls, rather, used for the initial
   hyperparam_guess.
+
+------------------
+measure imate time
+------------------
+
+* likelihood tic toc measure elapsed time and process time of computing imate.
+
+-------------
+imate configs
+-------------
+
+* pass imate config settings from cov object interface.
 
 =====
 Ideas

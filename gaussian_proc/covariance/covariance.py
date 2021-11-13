@@ -137,18 +137,75 @@ class Covariance(object):
         return self.mixed_cor.get_scale()
 
     # ==========
+    # set sigmas
+    # ==========
+
+    def set_sigmas(self, sigma, sigma0):
+        """
+        After training, when optimal sigma and sigma0 is obtained, this
+        function stores sigma and sigma0 as attributes of the class.
+        """
+
+        if sigma is None:
+            raise ValueError('"sigma" cannot be None.')
+        if sigma0 is None:
+            raise ValueError('"sigma0" cannot be None.')
+
+        self.sigma = sigma
+        self.sigma0 = sigma0
+
+        # Set eta for mixed_cor object
+        self.mixed_cor.set_eta(self.sigma, self.sigma0)
+
+    # ==========
+    # get sigmas
+    # ==========
+
+    def get_sigmas(self, sigma=None, sigma0=None):
+        """
+        Returns sigma and sigma0. If the inputs are None, the object attributes
+        are used.
+
+        After training, when optimal sigma and sigma0 are obtained and set as
+        the attributes of this class, the next calls to other functions like
+        solve, trace, traceinv, etc, should use the optimal sigma and sigma0.
+        Thus, we will call these functions without specifying sigma, and sigma0
+        and this function returns the sigma and sigma0 that are stored as
+        attributes.
+        """
+
+        # Get sigma
+        if sigma is None:
+            if self.sigma is None:
+                raise ValueError('"sigma" cannot be None.')
+            else:
+                sigma = self.sigma
+
+        # Get sigma0
+        if sigma0 is None:
+            if self.sigma0 is None:
+                raise ValueError('"sigma0" cannot be None.')
+            else:
+                sigma0 = self.sigma0
+
+        return sigma, sigma0
+
+    # ==========
     # get matrix
     # ==========
 
     def get_matrix(
             self,
-            sigma,
-            sigma0,
+            sigma=None,
+            sigma0=None,
             scale=None,
             derivative=[]):
         """
         Get the matrix as a numpy array of scipy sparse array.
         """
+
+        # Get sigma and sigma0 (if None, uses class attribute)
+        sigma, sigma0 = self.get_sigmas(sigma, sigma0)
 
         if sigma < self.tol:
 
@@ -177,8 +234,8 @@ class Covariance(object):
 
     def trace(
             self,
-            sigma,
-            sigma0,
+            sigma=None,
+            sigma0=None,
             scale=None,
             exponent=1,
             derivative=[],
@@ -199,6 +256,9 @@ class Covariance(object):
         * :math:`\\theta` is correlation scale parameter.
         * :math:`q` is the order of the derivative.
         """
+
+        # Get sigma and sigma0 (if None, uses class attribute)
+        sigma, sigma0 = self.get_sigmas(sigma, sigma0)
 
         if (exponent > 1) and (len(derivative) > 0):
             raise NotImplementedError('If "exponent" is larger than one, ' +
@@ -241,8 +301,8 @@ class Covariance(object):
 
     def traceinv(
             self,
-            sigma,
-            sigma0,
+            sigma=None,
+            sigma0=None,
             B=None,
             C=None,
             scale=None,
@@ -268,6 +328,9 @@ class Covariance(object):
         * :math:`\\mathbf{B}` is a matrix. If set to None, identity matrix is
           assumed.
         """
+
+        # Get sigma and sigma0 (if None, uses class attribute)
+        sigma, sigma0 = self.get_sigmas(sigma, sigma0)
 
         if (B is None) and (C is not None):
             raise ValueError('When "C" is given, "B" should also be given.')
@@ -347,8 +410,8 @@ class Covariance(object):
 
     def logdet(
             self,
-            sigma,
-            sigma0,
+            sigma=None,
+            sigma0=None,
             scale=None,
             exponent=1,
             derivative=[],
@@ -369,6 +432,9 @@ class Covariance(object):
         * :math:`\\theta` is correlation scale parameter.
         * :math:`q` is the order of the derivative.
         """
+
+        # Get sigma and sigma0 (if None, uses class attribute)
+        sigma, sigma0 = self.get_sigmas(sigma, sigma0)
 
         if (exponent > 1) and (len(derivative) > 0):
             raise NotImplementedError('If "exponent" is larger than one, ' +
@@ -414,9 +480,9 @@ class Covariance(object):
 
     def solve(
             self,
-            sigma,
-            sigma0,
             Y,
+            sigma=None,
+            sigma0=None,
             scale=None,
             exponent=1,
             derivative=[]):
@@ -439,6 +505,9 @@ class Covariance(object):
         * :math:`\\theta` is correlation scale parameter.
         * :math:`q` is the order of the derivative.
         """
+
+        # Get sigma and sigma0 (if None, uses class attribute)
+        sigma, sigma0 = self.get_sigmas(sigma, sigma0)
 
         if (exponent > 1) and (len(derivative) > 0):
             raise NotImplementedError('If "exponent" is larger than one, ' +
@@ -470,7 +539,7 @@ class Covariance(object):
 
             eta = (sigma0 / sigma)**2
             X = self.mixed_cor.solve(
-                    eta, Y, scale, exponent, derivative) / \
+                    Y, eta, scale, exponent, derivative) / \
                 (sigma**(2*exponent))
 
         return X
@@ -481,9 +550,9 @@ class Covariance(object):
 
     def dot(
             self,
-            sigma,
-            sigma0,
             x,
+            sigma=None,
+            sigma0=None,
             scale=None,
             exponent=1,
             derivative=[]):
@@ -506,6 +575,9 @@ class Covariance(object):
         * :math:`\\theta` is correlation scale parameter.
         * :math:`q` is the order of the derivative.
         """
+
+        # Get sigma and sigma0 (if None, uses class attribute)
+        sigma, sigma0 = self.get_sigmas(sigma, sigma0)
 
         if (exponent > 1) and (len(derivative) > 0):
             raise NotImplementedError('If "exponent" is larger than one, ' +
@@ -536,6 +608,6 @@ class Covariance(object):
 
             eta = (sigma0 / sigma)**2
             y = (sigma**(2.0*exponent)) * \
-                self.mixed_cor.dot(eta, x, scale, exponent, derivative)
+                self.mixed_cor.dot(x, eta, scale, exponent, derivative)
 
         return y
