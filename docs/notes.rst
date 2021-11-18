@@ -10,27 +10,6 @@ Notes
 ToDo
 ====
 
---------
-design X
---------
-
-``X`` cannot be given directrly by the user, becase for the prediction we also
-need ``X_star``. Thus, rather it should be designed by the built-in functions
-such as polynomials and trigonometric and hyperbolic equations, or if the user
-wants to have their own design, enable user-defined function as argument to
-the design function, such as
-
-    LinearModel.design(points, f=phi)
-
-where the function phi accepts one point in R^d and returns a vector in R^m.
-
--------
-Predict
--------
-
-* Add ``predict`` to ``gaussian_process`` class. Option ``uncertainty`` to
-  Tr
-
 ----------------
 hyperparam guess
 ----------------

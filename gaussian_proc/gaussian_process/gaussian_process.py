@@ -52,6 +52,9 @@ class GaussianProcess(object):
         self.z = None
         self.posterior = None
         self.training_result = None
+        self.w = None
+        self.Y = None
+        self.Mz = None
 
     # ======================
     # check hyperparam guess
@@ -272,7 +275,6 @@ class GaussianProcess(object):
     def predict(
             self,
             test_points,
-            dual=False,
             cov=False,
             plot=False,
             true_data=None,
@@ -299,19 +301,31 @@ class GaussianProcess(object):
         beta = self.mean.beta
         X = self.mean.X
 
-        # Solve Sinv * z and Sinv * X
-        w = self.cov.solve(self.z)
-        Y = self.cov.solve(X)
+        # w, Y, and Mz are computed once per data z and are independent of the
+        # test points. On the future calls for the prediction on test points,
+        # these will not be computed again.
+        if (self.w is None) or (self.Y is None) or (self.Mz is None):
 
-        # Compute R
-        R = X_star.T - numpy.matmul(Y.T, cov_star)
+            # Solve Sinv * z and Sinv * X
+            self.w = self.cov.solve(self.z)
+            self.Y = self.cov.solve(X)
 
-        # Posterior predictive mean
-        z_star_mean = cov_star.T @ w + numpy.matmul(R.T, beta)
+            # Compute Mz (Note: if b is zero, the following is actually Mz, but
+            # if b is not zero, the following is Mz + C*Binv*b)
+            self.Mz = self.w - numpy.matmul(self.Y, beta)
+
+        # Posterior predictive mean. Note that the following uses the dual
+        # formulation, that is, z_star at test point is just the dot product
+        # of qualities (w, Mz) that are independent of the test point and they
+        # were computed once.
+        z_star_mean = cov_star.T.dot(self.Mz) + X_star.dot(beta)
 
         # Compute posterior predictive covariance
         z_star_cov = None
         if cov:
+
+            # Compute R
+            R = X_star.T - numpy.matmul(self.Y.T, cov_star)
 
             # Covariance on test points to test points
             cov_star_star = self.cov.auto_covariance(test_points)
@@ -320,7 +334,8 @@ class GaussianProcess(object):
             C = self.mean.C
 
             if C is None:
-                raise RuntimeError('LinearModel is not trained.')
+                raise RuntimeError('Parameters of LinearModel are None. ' +
+                                   'Call "train" function first.')
 
             # Covariance of data points to themselves
             Sinv_cov_star = self.cov.solve(cov_star)

@@ -33,10 +33,14 @@ from gaussian_proc import GaussianProcess
 def main():
 
     # Generate data points
-    num_points = 10
     dimension = 2
-    grid = True
-    points = generate_points(num_points, dimension, grid)
+    grid = False
+    num_points = 40
+    points_1 = generate_points(num_points, dimension, grid) * 0.1
+    num_points =60
+    points_2 = generate_points(num_points, dimension, grid)
+    points = numpy.r_[points_1, points_2]
+
 
     # Generate noisy data
     # noise_magnitude = 0.2

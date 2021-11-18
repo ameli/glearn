@@ -327,6 +327,7 @@ def plot_prediction_2d(
 
     load_plot_settings()
     colormap = 'magma_r'
+    cmap = plt.cm.get_cmap(colormap)
 
     triang = matplotlib.tri.Triangulation(
             test_points[:, 0], test_points[:, 1])
@@ -375,7 +376,6 @@ def plot_prediction_2d(
             (face_error_max - face_error_min)
 
         # Map to colors
-        cmap = plt.cm.get_cmap(colormap)
         facecolors = cmap(norm)
 
         # Plot a 3D patch collection
@@ -385,24 +385,24 @@ def plot_prediction_2d(
                                       label='posterior predictive mean')
         surf = ax.add_collection(collection)
 
+        # Colorbar
+        cbar_norm = matplotlib.colors.Normalize(vmin=face_error_min,
+                                                vmax=face_error_max)
+        cbar = ax.figure.colorbar(matplotlib.cm.ScalarMappable(norm=cbar_norm,
+                                  cmap=cmap), ax=ax, pad=0.05, fraction=0.05,
+                                  shrink=0.5)
+        cbar.ax.set_ylabel('Posterior predictive standard deviation')
+
     else:
 
         # Just plot the mean (a gray surface) without the colored by the errors
         surf = ax.plot_trisurf(triang, z_star_mean, edgecolor=(0, 0, 0, 0),
-                               antialiased=True, cmap=plt.get_cmap(colormap),
-                               color='gray', label='posterior predictive mean')
+                               antialiased=True, color='gray',
+                               label='posterior predictive mean')
 
     # To avoid a bug in matplotlib
     surf._facecolors2d = surf._facecolor3d
     surf._edgecolors2d = surf._edgecolor3d
-
-    # Colorbar
-    cbar = fig.colorbar(
-            surf, ax=ax, cmap=cmap, norm=matplotlib.colors.Normalize(
-                vmin=face_error_min, vmax=face_error_max), shrink=0.5,
-            aspect=15)
-    cbar.mappable.set_clim(vmin=face_error_min, vmax=face_error_max)
-    cbar.ax.set_ylabel('Posterior predictive standard deviation')
 
     # Plot limit
     x_min = numpy.min(numpy.r_[points[:, 0], test_points[:, 0]])
