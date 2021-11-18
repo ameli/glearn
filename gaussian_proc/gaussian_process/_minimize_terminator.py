@@ -76,9 +76,10 @@ class MinimizeTerminator(object):
         # Member data
         self.counter = 0
         self.tol = tol
-        self.hyperparam = None
-        self.error = numpy.inf
-        self.converged = False
+        self.hyperparams = None
+        self.errors = None
+        self.converged = None
+        self.all_converged = False
 
     # ===========
     # get counter
@@ -111,46 +112,62 @@ class MinimizeTerminator(object):
         Overwriting the ``__call__`` function.
         """
 
-        if self.hyperparam is None:
+        if self.hyperparams is None:
 
             # Initialization
-            self.hyperparam = current_hyperparam
-            self.error = numpy.empty((self.hyperparam.size, ), dtype=float)
-            self.error[:] = numpy.inf
+            self.converged = numpy.empty((current_hyperparam.size, ),
+                                         dtype=bool)
+            self.converged[:] = False
+            self.hyperparams = numpy.empty((1, current_hyperparam.size),
+                                           dtype=float)
+            self.hyperparams[0, :] = current_hyperparam
+            self.errors = numpy.empty((1, current_hyperparam.size),
+                                      dtype=float)
+            self.errors[0, :] = numpy.inf
             self.counter += 1
 
             if self.verbose:
                 errors_string = ', '.join(('%+9f' % e) for e in
-                                          self.error.tolist())
+                                          self.errors[-1, :].tolist())
                 print('iter: %03d, conv err: %s'
                       % (self.counter, errors_string))
         else:
-            if not self.converged:
+            if not self.all_converged:
 
                 # Using absolute error or relative error
                 if self.use_rel_error:
                     # Using relative error
-                    self.error = numpy.abs(
-                        (current_hyperparam - self.hyperparam) /
-                        self.hyperparam)
+                    error = numpy.abs(
+                            (current_hyperparam - self.hyperparams[-1, :]) /
+                            self.hyperparams[-1, :])
                 else:
                     # Using absolute error
-                    self.error = numpy.abs(
-                            current_hyperparam - self.hyperparam)
+                    error = numpy.abs(
+                            current_hyperparam - self.hyperparams[-1, :])
 
-                self.hyperparam = current_hyperparam
+                # Insert 1d current hyperparam to last row of self.hyperparams
+                self.hyperparams = numpy.insert(
+                        self.hyperparams, self.hyperparams.shape[0],
+                        current_hyperparam, axis=0)
+
+                # Insert error 1d array after last row of 2d self.errors array
+                self.errors = numpy.insert(self.errors, self.errors.shape[0],
+                                           error, axis=0)
+
                 self.counter += 1
 
                 # Print convergence error for each of the variables.
                 if self.verbose:
                     errors_string = ', '.join(('%+0.2e' % e) for e in
-                                              self.error.tolist())
+                                              self.errors[-1, :].tolist())
                     print('iter: %03d, conv err: %s'
                           % (self.counter, errors_string))
 
-                if numpy.all(self.error < self.tol) and \
-                        numpy.all(self.error > 0):
-                    self.converged = True
+                self.converged[:] = self.errors[-1, :] < self.tol
+                self.all_converged = numpy.all(self.converged)
+
+                # Terminate when all converged
+                if self.all_converged:
                     raise MinimizeTerminated('Convergence error reached the ' +
                                              'tolerance after %d iterations.'
                                              % (self.counter))

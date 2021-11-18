@@ -1066,7 +1066,7 @@ class ProfileLikelihood(BaseLikelihood):
 
             # Compute mixed derivative
             local_d2ell_deta_dscale = 0.5*trace_MKnpM - zMKnpMMz / sigma2
-            d2ell_deta_dscale[p] = local_d2ell_deta_dscale + \
+            d2ell_deta_dscale[0, p] = local_d2ell_deta_dscale + \
                 (0.5/(self.rdof*sigma2**2)) * zMMz * zMKnpMz
 
         return d2ell_deta_dscale
@@ -1199,13 +1199,15 @@ class ProfileLikelihood(BaseLikelihood):
 
             if self.use_log_eta:
                 eta = self._hyperparam_to_eta(hyperparam[0])
-                d2ell_deta_dscale = d2ell_deta_dscale * eta * numpy.log(10.0)
+                for p in range(scale.size):
+                    d2ell_deta_dscale[0, p] = d2ell_deta_dscale[0, p] * \
+                        eta * numpy.log(10.0)
 
             if self.use_log_scale:
                 scale = self._hyperparam_to_scale(
                         hyperparam[self.scale_index:])
                 for p in range(scale.size):
-                    d2ell_deta_dscale[p] = d2ell_deta_dscale[p] * \
+                    d2ell_deta_dscale[0, p] = d2ell_deta_dscale[0, p] * \
                         scale[p] * numpy.log(10.0)
 
             # Concatenate derivatives to form Hessian of all variables

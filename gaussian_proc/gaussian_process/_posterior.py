@@ -310,17 +310,12 @@ class Posterior(object):
 
             # convert back log-hyperparam to hyperparam
             sigma, sigma0, eta, scale = self.likelihood.extract_hyperparam(
-                    res['hyperparam'])
+                    res['optimization']['state_vector'])
 
-            hyperparam_dict = {
-                'sigma': sigma,
-                'sigma0': sigma0,
-                'eta': eta,
-                'scale': scale,
-            }
-
-            # Add extracted hyperparam to the output dictionary
-            res['hyperparam'] = hyperparam_dict
+            res['hyperparam']['sigma'] = sigma
+            res['hyperparam']['sigma0'] = sigma0
+            res['hyperparam']['eta'] = eta
+            res['hyperparam']['scale'] = scale
 
             # Number of function, jacobian, and hessian evaluations
             res['optimization']['num_fun_eval'] = self.num_fun_eval
@@ -328,17 +323,6 @@ class Posterior(object):
             res['optimization']['num_hes_eval'] = self.num_hes_eval
 
         return res
-
-    # ====
-    # plot
-    # ====
-
-    def plot(self, result):
-        """
-        Plots likelihood function.
-        """
-
-        self.likelihood.plot(result)
 
     # ==========================
     # find likelihood der1 zeros

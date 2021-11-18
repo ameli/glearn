@@ -107,7 +107,8 @@ def save_plot(
         filename,
         transparent_background=True,
         pdf=True,
-        bbox_extra_artists=None):
+        bbox_extra_artists=None,
+        verbose=False):
     """
     Saves plot as svg format in the current working directory.
 
@@ -136,13 +137,15 @@ def save_plot(
                 save_fullname_svg,
                 transparent=transparent_background,
                 bbox_inches='tight')
-        print('Plot saved to "%s".' % (save_fullname_svg))
+        if verbose:
+            print('Plot saved to "%s".' % (save_fullname_svg))
 
         if pdf:
             plt.savefig(
                     save_fullname_pdf,
                     transparent=transparent_background,
                     bbox_extra_artists=bbox_extra_artists, bbox_inches='tight')
-            print('Plot saved to "%s".' % (save_fullname_pdf))
+            if verbose:
+                print('Plot saved to "%s".' % (save_fullname_pdf))
     else:
         print('Cannot save plot to %s. Directory is not writable.' % save_dir)

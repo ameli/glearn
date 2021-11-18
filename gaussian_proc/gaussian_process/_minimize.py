@@ -69,25 +69,44 @@ def minimize(
     except MinimizeTerminated:
 
         # Extract results from MinimizeTerminator
-        hyperparam = minimize_terminator.get_hyperparam()
+        hyperparam = minimize_terminator.hyperparams[-1, :]
         max_posterior = -func(hyperparam)
-        num_opt_iter = minimize_terminator.get_counter()
+        num_opt_iter = minimize_terminator.counter
         num_fun_eval = None
         num_jac_eval = None
         num_hes_eval = None
         message = 'Minimization algorithm is terminated successfully for ' + \
                   'reaching the tolerance %+0.5e on all variables ' % tol + \
                   'after %d iterations of the algorithm.' % num_opt_iter
-        success = True
+        success = minimize_terminator.all_converged
+
+    # Get convergence of hyperparam and its error
+    hyperparams = minimize_terminator.hyperparams
+    errors = minimize_terminator.errors
+    converged = minimize_terminator.converged
 
     # Adding time to the results
     wall_time = time.time() - initial_wall_time
     proc_time = time.process_time() - initial_proc_time
 
     result = {
-        'hyperparam': hyperparam,
+        'hyperparam':
+        {
+            'sigma': None,
+            'sigma0': None,
+            'eta': None,
+            'scale': None
+        },
+        'config':
+        {
+            'method': method,
+            'max_iter': options['maxiter'],
+            'tol': tol,
+            'use_rel_error': use_rel_error,
+        },
         'optimization':
         {
+            'state_vector': hyperparam,
             'max_posterior': max_posterior,
             'num_opt_iter': num_opt_iter,
             'num_fun_eval': num_fun_eval,
@@ -95,6 +114,12 @@ def minimize(
             'num_hes_eval': num_hes_eval,
             'message': message,
             'success': success
+        },
+        'convergence':
+        {
+            'converged': converged,
+            'errors': errors,
+            'hyperparams': hyperparams,
         },
         'time':
         {

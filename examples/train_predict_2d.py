@@ -32,10 +32,9 @@ from gaussian_proc import GaussianProcess
 
 def main():
 
-    # Generate points
-    # num_points = 30
-    num_points = 50
-    dimension = 1
+    # Generate data points
+    num_points = 10
+    dimension = 2
     grid = True
     points = generate_points(num_points, dimension, grid)
 
@@ -45,20 +44,20 @@ def main():
     z = generate_data(points, noise_magnitude, plot=False)
 
     # Mean
-    b = numpy.zeros((6, ))
-    B = numpy.random.rand(b.size, b.size)
-    B = 1e+5 * B.T @ B
-    # b = None
-    # B = None
+    # b = numpy.zeros((6, ))
+    # B = numpy.random.rand(b.size, b.size)
+    # B = 1e+5 * B.T @ B
+    b = None
+    B = None
     polynomial_degree = 5
     # trigonometric_coeff = [0.2]
     # trigonometric_coeff = [0.1, 0.2, 0.3, 1.0]
     trigonometric_coeff = None
     # hyperbolic_coeff = [0.4, 0.7, 1.0]
     hyperbolic_coeff = None
-    mean = LinearModel.design(points, polynomial_degree=polynomial_degree,
-                              trigonometric_coeff=trigonometric_coeff,
-                              hyperbolic_coeff=hyperbolic_coeff, b=b, B=B)
+    mean = LinearModel(points, polynomial_degree=polynomial_degree,
+                       trigonometric_coeff=trigonometric_coeff,
+                       hyperbolic_coeff=hyperbolic_coeff, b=b, B=B)
 
     # Prior for scale of correlation
     scale_prior = Uniform()
@@ -117,9 +116,23 @@ def main():
     hyperparam_guess = None
 
     # gp.train(z, options=options, plot=False)
-    gp.train(z, profile_hyperparam=profile_hyperparam, log_hyperparam=True,
-             optimization_method=optimization_method, tol=1e-3,
-             hyperparam_guess=hyperparam_guess, verbose=True, plot=False)
+    result = gp.train(z, profile_hyperparam=profile_hyperparam,
+                      log_hyperparam=True,
+                      optimization_method=optimization_method, tol=1e-3,
+                      hyperparam_guess=hyperparam_guess, verbose=True,
+                      plot=False)
+
+    # gp.plot_likelihood()
+
+    # Generate test points
+    num_points = 40
+    dimension = 2
+    grid = True
+    test_points = generate_points(num_points, dimension, grid)
+
+    # Predict
+    z_star_mean, z_star_cov = gp.predict(test_points, cov=True, plot=True,
+                                         confidence_level=0.95)
 
 
 # ===========

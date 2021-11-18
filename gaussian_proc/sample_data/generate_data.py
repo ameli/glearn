@@ -37,6 +37,10 @@ def generate_data(points, noise_magnitude, plot=False):
     :rtype: numpy.ndarray
     """
 
+    # If points are 1d array, wrap them to a 2d array
+    if points.ndim == 1:
+        points = numpy.array([points], dtype=float).T
+
     num_points = points.shape[0]
     dimension = points.shape[1]
     z = numpy.zeros((num_points, ), dtype=float)

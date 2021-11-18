@@ -611,3 +611,42 @@ class Covariance(object):
                 self.mixed_cor.dot(x, eta, scale, exponent, derivative)
 
         return y
+
+    # ===============
+    # auto covariance
+    # ===============
+
+    def auto_covariance(self, test_points):
+        """
+        Computes the auto-covariance between the training points and
+        themselves.
+        """
+
+        if self.sigma is None:
+            raise RuntimeError('"sigma" cannot be None to create auto ' +
+                               'covariance.')
+
+        auto_cor = self.cor.auto_correlation(test_points)
+        auto_cov = (self.sigma**2) * auto_cor
+
+        return auto_cov
+
+    # ================
+    # cross covariance
+    # ================
+
+    def cross_covariance(self, test_points):
+        """
+        Computes the cross-covariance between the training points (points
+        which this object is initialized with), and a given set of test points.
+        This matrix is rectangular.
+        """
+
+        if self.sigma is None:
+            raise RuntimeError('"sigma" cannot be None to create cross ' +
+                               'covariance.')
+
+        cross_cor = self.cor.cross_correlation(test_points)
+        cross_cov = (self.sigma**2) * cross_cor
+
+        return cross_cov

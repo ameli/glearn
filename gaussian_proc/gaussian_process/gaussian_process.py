@@ -14,6 +14,8 @@
 import numpy
 from ..priors.prior import Prior
 from ._posterior import Posterior
+from ._gaussian_process_utilities import plot_training_convergence, \
+    print_training_result, plot_prediction
 
 
 # ================
@@ -45,6 +47,11 @@ class GaussianProcess(object):
 
         self.mean = mean
         self.cov = cov
+
+        # Store member data
+        self.z = None
+        self.posterior = None
+        self.training_result = None
 
     # ======================
     # check hyperparam guess
@@ -166,18 +173,6 @@ class GaussianProcess(object):
 
         return hyperparam_guess
 
-    # ===============
-    # plot likelihood
-    # ===============
-
-    def plot_likelihood(self):
-        """
-        Plots likelihood in multiple figures. This function may take a long
-        time, and is only used for testing purposes on small datasets.
-        """
-
-
-
     # =====
     # train
     # =====
@@ -205,38 +200,141 @@ class GaussianProcess(object):
                     profile_hyperparam)
 
         # Create a posterior object
-        posterior = Posterior(self.mean, self.cov, z,
-                              profile_hyperparam=profile_hyperparam,
-                              log_hyperparam=log_hyperparam)
+        self.posterior = Posterior(self.mean, self.cov, z,
+                                   profile_hyperparam=profile_hyperparam,
+                                   log_hyperparam=log_hyperparam)
 
         # Maximize posterior w.r.t hyperparameters
-        result = posterior.maximize_posterior(
+        self.training_result = self.posterior.maximize_posterior(
                 hyperparam_guess=hyperparam_guess,
                 optimization_method=optimization_method, tol=tol,
                 use_rel_error=use_rel_error, verbose=verbose)
 
         if plot:
-            posterior.plot_convergence(result)
+            plot_training_convergence(
+                    self.posterior, self.training_result, verbose)
 
         if verbose:
-            import pprint
-            pprint.pprint(result)
+            print_training_result(self.posterior, self.training_result)
 
         # Set optimal parameters (sigma, sigma0) to covariance object
-        sigma = result['hyperparam']['sigma']
-        sigma0 = result['hyperparam']['sigma0']
+        sigma = self.training_result['hyperparam']['sigma']
+        sigma0 = self.training_result['hyperparam']['sigma0']
         self.cov.set_sigmas(sigma, sigma0)
 
         # Set optimal parameters (b and B) to mean object
         self.mean.update_hyperparam(self.cov, z)
 
+        # Store data for future reference
+        self.z = z
+
+        return self.training_result
+
+    # ===============
+    # plot likelihood
+    # ===============
+
+    def plot_likelihood(
+            self,
+            z=None,
+            profile_hyperparam='var'):
+        """
+        Plots likelihood in multiple figures. This function may take a long
+        time, and is only used for testing purposes on small datasets.
+        """
+
+        if z is None:
+            if self.z is None:
+                raise ValueError('Data "z" cannot be None.')
+            z = self.z
+
+        if self.training_result is None:
+
+            # Train
+            self.training_result = self.train(
+                z, hyperparam_guess=None,
+                profile_hyperparam=profile_hyperparam, log_hyperparam=True,
+                optimization_method='Newton-CG', tol=1e-3, use_rel_error=True,
+                verbose=False, plot=False)
+
+            # Create a posterior object
+            self.posterior = Posterior(self.mean, self.cov, z,
+                                       profile_hyperparam=profile_hyperparam,
+                                       log_hyperparam=True)
+
+        # Plot likelihood
+        self.posterior.likelihood.plot(self.training_result)
+
     # =======
     # predict
     # =======
 
-    def predict(self, z_star, dual=False):
+    def predict(
+            self,
+            test_points,
+            dual=False,
+            cov=False,
+            plot=False,
+            true_data=None,
+            confidence_level=0.95,
+            verbose=False):
         """
         Regression with Gaussian process on new data points.
         """
 
-        pass
+        if self.z is None:
+            raise RuntimeError('Data should be trained first before calling ' +
+                               'the predict function.')
+
+        # If test points are 1d array, wrap them to a 2d array
+        if test_points.ndim == 1:
+            test_points = numpy.array([test_points], dtype=float).T
+
+        # Design matrix on test points
+        X_star = self.mean.generate_design_matrix(test_points)
+
+        # Covariance on data points to test points
+        cov_star = self.cov.cross_covariance(test_points)
+
+        beta = self.mean.beta
+        X = self.mean.X
+
+        # Solve Sinv * z and Sinv * X
+        w = self.cov.solve(self.z)
+        Y = self.cov.solve(X)
+
+        # Compute R
+        R = X_star.T - numpy.matmul(Y.T, cov_star)
+
+        # Posterior predictive mean
+        z_star_mean = cov_star.T @ w + numpy.matmul(R.T, beta)
+
+        # Compute posterior predictive covariance
+        z_star_cov = None
+        if cov:
+
+            # Covariance on test points to test points
+            cov_star_star = self.cov.auto_covariance(test_points)
+
+            # Posterior covariance of beta
+            C = self.mean.C
+
+            if C is None:
+                raise RuntimeError('LinearModel is not trained.')
+
+            # Covariance of data points to themselves
+            Sinv_cov_star = self.cov.solve(cov_star)
+
+            # Posterior predictive covariance
+            z_star_cov = cov_star_star - cov_star.T @ Sinv_cov_star + \
+                numpy.matmul(R.T, numpy.matmul(C, R))
+
+        # Plot prediction
+        if plot:
+            plot_prediction(self.mean.points, test_points, self.z, z_star_mean,
+                            z_star_cov, confidence_level, true_data, verbose)
+
+        if cov:
+            return z_star_mean, z_star_cov
+        else:
+            return z_star_mean

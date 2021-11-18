@@ -62,6 +62,10 @@ class Correlation(object):
             raise ValueError('"points" array should contain at least two ' +
                              'points.')
 
+        # If points are 1d array, wrap them to a 2d array
+        if points.ndim == 1:
+            points = numpy.array([points], dtype=float).T
+
         # set kernel
         if kernel is not None:
             if not isinstance(kernel, Kernel):
@@ -481,6 +485,38 @@ class Correlation(object):
             self.K_der1 = correlation_matrix
         elif len(derivative) == 2:
             self.K_der2 = correlation_matrix
+
+    # ================
+    # auto correlation
+    # ================
+
+    def auto_correlation(self, test_points):
+        """
+        Computes the auto-correlation between the test points and themselves.
+        The output is a square, symmetric, and positive-semi definite matrix.
+        Because the correlation is computed between a set of points and
+        themselves, this generating correlation with this function is twice
+        faster than using cross_correlation.
+        """
+
+        derivative = []
+
+        # Compute the correlation between the set of points
+        if self.sparse:
+
+            # This generates a new correlation matrix (no derivative). The nnz
+            # of the matrix will be determined, and is not known a priori.
+            correlation_matrix = sparse_auto_correlation(
+                test_points, self.current_scale, self.kernel, derivative,
+                self.density, correlation_matrix=None)
+
+        else:
+
+            # Generate a dense matrix
+            correlation_matrix = dense_auto_correlation(
+                test_points, self.current_scale, self.kernel, derivative)
+
+        return correlation_matrix
 
     # =================
     # cross correlation
