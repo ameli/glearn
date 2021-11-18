@@ -452,7 +452,7 @@ class Correlation(object):
                 # The nnz of the matrix will be determined, and is not known
                 # a priori.
                 correlation_matrix = sparse_auto_correlation(
-                    self.points, self.current_scale, self.kernel, derivative,
+                    self.points, scale, self.kernel, derivative,
                     self.density, correlation_matrix=None)
 
             else:
@@ -470,14 +470,14 @@ class Correlation(object):
                 # generated, rather, the sparsity structure of the matrix is
                 # the same as self.K_der0.
                 correlation_matrix = sparse_auto_correlation(
-                    self.points, self.currnet_scale, self.kernel, derivative,
+                    self.points, scale, self.kernel, derivative,
                     self.density, correlation_matrix=self.K_der0)
 
         else:
 
             # Generate a dense matrix
             correlation_matrix = dense_auto_correlation(
-                self.points, self.current_scale, self.kernel, derivative)
+                self.points, scale, self.kernel, derivative)
 
         if len(derivative) == 0:
             self.K_der0 = correlation_matrix

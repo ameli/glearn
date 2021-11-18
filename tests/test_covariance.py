@@ -80,7 +80,7 @@ def check_functions(
                         if cov.mixed_cor.imate_method == 'cholesky':
                             continue
                         if cov.mixed_cor.imate_method == 'hutchinson' and \
-                            function == 'logdet':
+                                function == 'logdet':
                             continue
 
                     # This case is not implemented
@@ -144,14 +144,14 @@ def check_functions(
                     elif function == 'solve':
                         if sigma != 0 or sigma0 != 0:
                             if exponent == 0 and len(derivative) > 0:
-                                y0 = numpy.zeros_like(x)
+                                y0 = numpy.zeros_like(X)
                                 y0[:] = numpy.nan
                             elif sigma == 0 and len(derivative) > 0:
                                 y0 = numpy.zeros_like(X)
                                 y0[:] = numpy.nan
                             else:
                                 y0 = numpy.linalg.solve(S, X)
-                            y1 = cov.solve(sigma, sigma0, X,
+                            y1 = cov.solve(X, sigma=sigma, sigma0=sigma0,
                                            exponent=exponent,
                                            derivative=derivative)
                         else:
@@ -160,8 +160,8 @@ def check_functions(
                     # check dot
                     elif function == 'dot':
                         y0 = S @ X
-                        y1 = cov.dot(sigma, sigma0, X, exponent=exponent,
-                                     derivative=derivative)
+                        y1 = cov.dot(X, sigma=sigma, sigma0=sigma0,
+                                     exponent=exponent, derivative=derivative)
 
                     # Check error
                     if y0 is not None:
@@ -213,8 +213,8 @@ def test_covariance():
         print('Using sparse matrix: %s' % sparse)
         print('--------------------------\n')
 
-        cor = Correlation(points, kernel=kernel, distance_scale=0.1,
-                          sparse=sparse, density=0.01)
+        cor = Correlation(points, kernel=kernel, scale=0.1, sparse=sparse,
+                          density=0.01)
 
         # Check each function
         for imate_method in imate_methods:

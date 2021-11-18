@@ -521,7 +521,7 @@ class Covariance(object):
 
         elif exponent == 0:
             # Matrix is identity.
-            X = Y.copy()
+            X = numpy.copy(Y)
 
         elif numpy.abs(sigma) < self.tol:
 
