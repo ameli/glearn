@@ -39,6 +39,7 @@
 # `imate` package.
 
 set -e
+set -x
 
 # Check if the operating system is MacOS.
 if [[ $OSTYPE != 'darwin'* ]]; then
@@ -65,6 +66,7 @@ fi
 find_libomp()
 {(
     set -e
+    set -x
 
     package=$1
 
