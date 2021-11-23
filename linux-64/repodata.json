@@ -1,0 +1,106 @@
+{
+  "info": {
+    "subdir": "linux-64"
+  },
+  "packages": {
+    "gaussian_proc-0.12.0-py36h3fd9d12_0.tar.bz2": {
+      "build": "py36h3fd9d12_0",
+      "build_number": 0,
+      "depends": [
+        "imate",
+        "libgcc-ng >=9.3.0",
+        "libstdcxx-ng >=9.3.0",
+        "matplotlib",
+        "numpy >1.11",
+        "python >=3.6,<3.7.0a0",
+        "scipy >=1.5",
+        "seaborn",
+        "special_functions"
+      ],
+      "license": "BSD-3-Clause",
+      "license_family": "BSD",
+      "md5": "ab27140a577c782ca84602340ed9a4dd",
+      "name": "gaussian_proc",
+      "sha256": "c59bd4350ec76b4f4c39a9b42ae236565fd4f0f04729bb4cfab8e43c41448234",
+      "size": 652136,
+      "subdir": "linux-64",
+      "timestamp": 1637643208301,
+      "version": "0.12.0"
+    },
+    "gaussian_proc-0.12.0-py37h3fd9d12_0.tar.bz2": {
+      "build": "py37h3fd9d12_0",
+      "build_number": 0,
+      "depends": [
+        "imate",
+        "libgcc-ng >=9.3.0",
+        "libstdcxx-ng >=9.3.0",
+        "matplotlib",
+        "numpy >1.11",
+        "python >=3.7,<3.8.0a0",
+        "scipy >=1.5",
+        "seaborn",
+        "special_functions"
+      ],
+      "license": "BSD-3-Clause",
+      "license_family": "BSD",
+      "md5": "0e7a4852e2a32ae4554580538ae234ff",
+      "name": "gaussian_proc",
+      "sha256": "2770554142a80ed2fe96be1660057d466c1882a139601be40fdfd3b07f30e76e",
+      "size": 645399,
+      "subdir": "linux-64",
+      "timestamp": 1637642710044,
+      "version": "0.12.0"
+    },
+    "gaussian_proc-0.12.0-py38h3fd9d12_0.tar.bz2": {
+      "build": "py38h3fd9d12_0",
+      "build_number": 0,
+      "depends": [
+        "imate",
+        "libgcc-ng >=9.3.0",
+        "libstdcxx-ng >=9.3.0",
+        "matplotlib",
+        "numpy >1.11",
+        "python >=3.8,<3.9.0a0",
+        "scipy >=1.5",
+        "seaborn",
+        "special_functions"
+      ],
+      "license": "BSD-3-Clause",
+      "license_family": "BSD",
+      "md5": "10558939eeeb6a23d70eab6708548378",
+      "name": "gaussian_proc",
+      "sha256": "80283fe12af9e715c04581ba75646252f78520e863ddf428febb57f0badee79d",
+      "size": 659761,
+      "subdir": "linux-64",
+      "timestamp": 1637643603376,
+      "version": "0.12.0"
+    },
+    "gaussian_proc-0.12.0-py39h3fd9d12_0.tar.bz2": {
+      "build": "py39h3fd9d12_0",
+      "build_number": 0,
+      "depends": [
+        "imate",
+        "libgcc-ng >=9.3.0",
+        "libstdcxx-ng >=9.3.0",
+        "matplotlib",
+        "numpy >1.11",
+        "python >=3.9,<3.10.0a0",
+        "scipy >=1.5",
+        "seaborn",
+        "special_functions"
+      ],
+      "license": "BSD-3-Clause",
+      "license_family": "BSD",
+      "md5": "437c480b4d4827a7d34f84d0a6b4d0f9",
+      "name": "gaussian_proc",
+      "sha256": "79a1ab34671a10abdbc9a328dc2f383a8d028bd85fe0430d6ba7565d7302865f",
+      "size": 666528,
+      "subdir": "linux-64",
+      "timestamp": 1637643934135,
+      "version": "0.12.0"
+    }
+  },
+  "packages.conda": {},
+  "removed": [],
+  "repodata_version": 1
+}
