@@ -30,7 +30,7 @@ def print_training_result(posterior, training_result):
     """
 
     hyperparam = training_result['optimization']['state_vector']
-    error = training_result['convergence']['errors'][-1, :]
+    errors = training_result['convergence']['errors']
     converged = training_result['convergence']['converged']
     num_opt_iter = training_result['optimization']['num_opt_iter']
     num_fun_eval = training_result['optimization']['num_fun_eval']
@@ -38,6 +38,12 @@ def print_training_result(posterior, training_result):
     num_hes_eval = training_result['optimization']['num_hes_eval']
     wall_time = training_result['time']['wall_time']
     proc_time = training_result['time']['proc_time']
+
+    # Test TODO
+    if errors is not None:
+        error = errors[-1, :]
+    else:
+        error = None
 
     # Print hyperparameters
     print('                               training summary                  ' +

@@ -11,8 +11,9 @@ source:
 build:
     number: 0
     script: 
-        - {{ PYTHON }} -m pip install dist/*.whl -vvv  # [osx]
-        - {{ PYTHON }} -m pip install . -vv  # [not osx]
+        - {{ PYTHON }} -m pip install . -vv
+        # - {{ PYTHON }} -m pip install dist/*.whl -vvv  # [osx]
+        # - {{ PYTHON }} -m pip install . -vv  # [not osx]
         # - {{ PYTHON }} -m pip install . --single-version-externally-managed --record=record.txt -vvv  # [not osx]
         # - {{ PYTHON }} -m pip install . --single-version-externally-managed --record=record.txt --ignore-installed --no-cache-dir -vvv  # [not osx]
     # script: sh ./build_macos.sh     # [mac]
@@ -30,13 +31,14 @@ requirements:
         - llvm-openmp  # [osx]
 
     host:
-        # - python {{ python }}
-        - python
+        - python {{ python }}
+        # - python
         - setuptools
         - numpy>1.11
         - scipy>=1.5
         - cython>=0.29
         - pip
+        - special_functions
         - llvm-openmp  # [osx]
     run:
         # - python {{ python }}
@@ -44,14 +46,15 @@ requirements:
         - numpy>1.11
         # - {{ pin_compatible('numpy') }}
         - scipy>=1.5
-        - suitesparse
         - matplotlib
         - seaborn
+        - imate
+        - special_functions
         - llvm-openmp  # [osx]
 
 test:
     imports:
-        - imate
+        - gaussian_proc
     requires:
         - pytest
         - pytest-cov
@@ -64,9 +67,9 @@ about:
     license_file: LICENSE.txt
     summary: {{ data['description'] }}
     description: {{ data['description'] }}
-    doc_url: https://ameli.github.io/imate/index.html
-    doc_source_url: https://github.com/ameli/imate/blob/main/README.rst
-    dev_url: https://github.com/ameli/imate
+    doc_url: https://ameli.github.io/gaussian_proc/index.html
+    doc_source_url: https://github.com/ameli/gaussian_proc/blob/main/README.rst
+    dev_url: https://github.com/ameli/gaussian_proc
 
 extra:
     recipe-maintainers:

@@ -217,8 +217,9 @@ class GaussianProcess(object):
             plot_training_convergence(
                     self.posterior, self.training_result, verbose)
 
-        if verbose:
-            print_training_result(self.posterior, self.training_result)
+        # Test
+        # if verbose:
+        #     print_training_result(self.posterior, self.training_result)
 
         # Set optimal parameters (sigma, sigma0) to covariance object
         sigma = self.training_result['hyperparam']['sigma']
@@ -325,7 +326,7 @@ class GaussianProcess(object):
         if cov:
 
             # Compute R
-            R = X_star.T - numpy.matmul(self.Y.T, cov_star)
+            R = X_star.T - self.Y.T @ cov_star
 
             # Covariance on test points to test points
             cov_star_star = self.cov.auto_covariance(test_points)

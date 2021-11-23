@@ -34,12 +34,10 @@ def main():
 
     # Generate data points
     dimension = 2
-    grid = False
-    num_points = 40
-    points_1 = generate_points(num_points, dimension, grid) * 0.1
-    num_points =60
-    points_2 = generate_points(num_points, dimension, grid)
-    points = numpy.r_[points_1, points_2]
+    grid = True
+    num_points = 30
+    points = generate_points(num_points, dimension, grid)
+
 
     # Generate noisy data
     # noise_magnitude = 0.2
@@ -80,15 +78,18 @@ def main():
     # kernel = RationalQuadratic()
 
     # Correlation
-    # cor = Correlation(points, kernel=kernel, scale=0.07, sparse=False)
+    cor = Correlation(points, kernel=kernel, scale=0.1, sparse=True,
+                      density=2e-2)
     # cor = Correlation(points, kernel=kernel, sparse=False)
-    cor = Correlation(points, kernel=kernel, scale=scale_prior, sparse=False)
+    # cor = Correlation(points, kernel=kernel, scale=scale_prior, sparse=True,
+    #                   density=1e-3)
+    cor.plot()
 
     # Covariance
     # imate_method = 'eigenvalue'
-    imate_method = 'cholesky'
+    # imate_method = 'cholesky'
     # imate_method = 'hutchinson'
-    # imate_method = 'slq'
+    imate_method = 'slq'
     cov = Covariance(cor, imate_method=imate_method)
 
     # Gaussian process
@@ -100,10 +101,10 @@ def main():
     # profile_hyperparam = 'var_noise'
 
     # optimization_method = 'chandrupatla'  # requires jacobian
-    # optimization_method = 'Nelder-Mead'     # requires func
+    optimization_method = 'Nelder-Mead'     # requires func
     # optimization_method = 'BFGS'          # requires func, jacobian
     # optimization_method = 'CG'            # requires func, jacobian
-    optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
+    # optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
     # optimization_method = 'dogleg'        # requires func, jacobian, hessian
     # optimization_method = 'trust-exact'   # requires func, jacobian, hessian
     # optimization_method = 'trust-ncg'     # requires func, jacobian, hessian
@@ -121,9 +122,13 @@ def main():
     # gp.train(z, options=options, plot=False)
     result = gp.train(z, profile_hyperparam=profile_hyperparam,
                       log_hyperparam=True,
-                      optimization_method=optimization_method, tol=1e-3,
+                      optimization_method=optimization_method, tol=1e-7,
                       hyperparam_guess=hyperparam_guess, verbose=True,
                       plot=False)
+
+    import pprint
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(result)
 
     # gp.plot_likelihood()
 
@@ -134,8 +139,8 @@ def main():
     test_points = generate_points(num_points, dimension, grid)
 
     # Predict
-    z_star_mean, z_star_cov = gp.predict(test_points, cov=True, plot=True,
-                                         confidence_level=0.95)
+    # z_star_mean, z_star_cov = gp.predict(test_points, cov=True, plot=True,
+    #                                      confidence_level=0.95)
 
 
 # ===========

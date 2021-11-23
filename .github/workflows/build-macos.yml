@@ -48,7 +48,10 @@ jobs:
                   python -m pip install --upgrade pytest
                   python -m pip install --upgrade pytest-cov
                   mv gaussian_proc gaussian_proc-DoNotImport
+                  chmod +x scripts/fix_libomp.sh
+                  ./scripts/fix_libomp.sh
                   pytest
+              shell: bash
 
             - name: Coverage
               run: |

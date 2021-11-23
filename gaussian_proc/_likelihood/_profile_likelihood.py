@@ -671,6 +671,14 @@ class ProfileLikelihood(BaseLikelihood):
         if sign_switch:
             ell = -ell
 
+        # Test
+        # print('=============')
+        # Kn = self.mixed_cor.get_matrix(eta)
+        # Kn_a = Kn.toarray()
+        # print(numpy.any(numpy.isnan(Kn_a)))
+        # print(numpy.linalg.det(Kn_a))
+        # print(logdet_Kn)
+
         return ell
 
     # ===================

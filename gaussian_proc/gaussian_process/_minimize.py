@@ -61,8 +61,17 @@ def minimize(
         max_posterior = -res.fun
         num_opt_iter = res.nit
         num_fun_eval = res.nfev
-        num_jac_eval = res.njev
-        num_hes_eval = res.nhev
+
+        if hasattr(res, 'njev'):
+            num_jac_eval = res.njev
+        else:
+            num_jac_eval = 0
+
+        if hasattr(res, 'nhev'):
+            num_hes_eval = res.nhev
+        else:
+            num_hes_eval = 0
+
         message = res.message
         success = res.success
 
