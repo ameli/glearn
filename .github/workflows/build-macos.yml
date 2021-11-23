@@ -44,11 +44,11 @@ jobs:
                   python -m pip install --upgrade .
 
             - name: Remove duplicate libomp
+              shell: bash -l {0}
               run: |
                   mv gaussian_proc gaussian_proc-DoNotImport
                   chmod +x scripts/fix_libomp.sh
                   ./scripts/fix_libomp.sh
-              shell: bash
 
             - name: Test
               run: |

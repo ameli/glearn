@@ -81,9 +81,6 @@ find_libomp()
     package_dir=$(dirname $package_init)
     package_dylibs="${package_dir}/.dylibs"
 
-    # Test
-    ls ${package_dir} -all >&2
-
     if [[ ! -d "${package_dylibs}" ]]
     then
         echo "Directory ${package_dylibs} does not exists."
