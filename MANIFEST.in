@@ -24,6 +24,7 @@ recursive-include examples *.rst
 recursive-include notebooks *.ipynb
 recursive-include tests *.py
 recursive-include tests *.rst
+recursive-include scripts *.sh
 
 recursive-exclude examples *.pdf
 recursive-exclude examples *.svg

@@ -79,14 +79,24 @@ find_libomp()
 
     # Find directory of packages
     package_dir=$(dirname $package_init)
+    package_dylibs="${package_dir}/.dylibs"
+
+    # Test
+    ls ${package_dir} -all >&2
+
+    if [[ ! -d "${package_dylibs}" ]]
+    then
+        echo "Directory ${package_dylibs} does not exists."
+        return 1
+    fi
 
     # Find libomp within the package
-    package_libomp=`find "${package_dir}/.dylibs" -name "*omp.dylib"`
+    package_libomp=`find "${package_dylibs}" -name "*omp.dylib"`
 
     if [[ $package_libomp == '' ]];
     then
         echo "Cannot find '*omp.dylib' in '$package_dir/.dylib'." >&2
-        # return 1
+        return 1
     else
         echo "${package_libomp}"
     fi
@@ -100,8 +110,8 @@ package='gaussian_proc'
 gp_libomp="$(find_libomp ${package})"
 if [[ ${gp_libomp} == '' ]];
 then
-  echo "Cannot find libomp in '${package}' package."
-  exit 1
+  echo "Cannot find libomp in '${package}' package. Nothing to do."
+  exit 0
 else
     echo "Found '${gp_libomp}'."
 fi
@@ -135,7 +145,6 @@ cp -f ${gp_libomp} ${imate_libomp_dir}
 status=$?
 if [ $status -eq 0 ]; then
     echo "Copied '${gp_libomp}' to '${imate_libomp_dir}'."
-    echo "Done."
 else
     echo "ERROR: copying '${gp_libomp}' to '${imate_libomp_dir}' failed."
     exit 1

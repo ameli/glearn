@@ -1,4 +1,4 @@
-{% set name = "imate" %}
+{% set name = "gaussian_proc" %}
 {% set data = load_setup_py_data() %}
 
 package:
