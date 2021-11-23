@@ -33,7 +33,7 @@ jobs:
                   conda config --set anaconda_upload yes
                   export PATH=$(conda info --root):$PATH
                   export PATH=$(conda info --root)/bin:$PATH
-                  conda-build --output-folder . .
+                  conda-build --output-folder . . -c s-ameli
               env:
                   CYTHON_BUILD_IN_SOURCE: 'true'  # see setup.py. Avoids a bug when building with multiple python variants
                   ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}

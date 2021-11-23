@@ -38,7 +38,7 @@ requirements:
         - scipy>=1.5
         - cython>=0.29
         - pip
-        - special_functions
+        - special_functions       # in -c s-ameli
         - llvm-openmp  # [osx]
     run:
         # - python {{ python }}
@@ -48,8 +48,8 @@ requirements:
         - scipy>=1.5
         - matplotlib
         - seaborn
-        - imate
-        - special_functions
+        - imate                   # in -c s-ameli
+        - special_functions       # in -c s-sameli
         - llvm-openmp  # [osx]
 
 test:
