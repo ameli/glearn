@@ -52,6 +52,13 @@ jobs:
                   ./scripts/fix_libomp.sh `which python`
               shell: bash
 
+            - name: This is a Test
+              run: |
+                  cd tests
+                  python ./test_covariance.py 2>&1 logg.txt || true
+                  echo `cat logg.txt`
+              shell: bash
+
             - name: Test
               run: |
                   python -m pip install --upgrade pytest

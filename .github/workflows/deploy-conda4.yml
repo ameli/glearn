@@ -57,25 +57,25 @@ jobs:
             # does not need manylinux docker, thuns, CUDA can be installed in
             # the github action's virtual machine using the Jimver's action
             # in the previous action (see above).
-            - name: Build wheels in windows with CUDA support
-              if: matrix.os == 'windows-latest'
-              run: python -m cibuildwheel --output-dir wheelhouse
-              env:
-                  CIBW_BUILD: "*-manylinux_x86_64 *-macosx_x86_64 *-win_amd64"
-                  CIBW_SKIP: "pp* cp27-* cp35-*"
-                  CIBW_BUILD_VERBOSITY: 1
-                  CIBW_ENVIRONMENT: "USE_LONG_INT=0 USE_UNSIGNED_LONG_INT=0 USE_CBLAS=0 USE_CUDA=0 CUDA_DYNAMIC_LOADING=0"
+            # - name: Build wheels in windows with CUDA support
+            #   if: matrix.os == 'windows-latest'
+            #   run: python -m cibuildwheel --output-dir wheelhouse
+            #   env:
+            #       CIBW_BUILD: "*-manylinux_x86_64 *-macosx_x86_64 *-win_amd64"
+            #       CIBW_SKIP: "pp* cp27-* cp35-*"
+            #       CIBW_BUILD_VERBOSITY: 1
+            #       CIBW_ENVIRONMENT: "USE_LONG_INT=0 USE_UNSIGNED_LONG_INT=0 USE_CBLAS=0 USE_CUDA=0 CUDA_DYNAMIC_LOADING=0"
            
             # Do not enable compiling with CUDA for macos since NIVDIA no
             # longer supports CUDA in the macos.
-            - name: Build wheels in mac without CUDA support
-              if: matrix.os == 'macos-latest'
-              run: python -m cibuildwheel --output-dir wheelhouse
-              env:
-                  CIBW_BUILD: "*-manylinux_x86_64 *-macosx_x86_64 *-win_amd64"
-                  CIBW_SKIP: "pp* cp27-* cp35-*"
-                  CIBW_BUILD_VERBOSITY: 1
-                  CIBW_ENVIRONMENT: "USE_LONG_INT=0 USE_UNSIGNED_LONG_INT=0 USE_CBLAS=0 USE_CUDA=0"
+            # - name: Build wheels in mac without CUDA support
+            #   if: matrix.os == 'macos-latest'
+            #   run: python -m cibuildwheel --output-dir wheelhouse
+            #   env:
+            #       CIBW_BUILD: "*-manylinux_x86_64 *-macosx_x86_64 *-win_amd64"
+            #       CIBW_SKIP: "pp* cp27-* cp35-*"
+            #       CIBW_BUILD_VERBOSITY: 1
+            #       CIBW_ENVIRONMENT: "USE_LONG_INT=0 USE_UNSIGNED_LONG_INT=0 USE_CBLAS=0 USE_CUDA=0"
 
             # Enable compiling with CUDA, only for linux. Note that cuda must
             # be installed "inside" the manylinux docker image, not in the main
@@ -91,7 +91,7 @@ jobs:
             # be a problem. The advantage of bundling cuda libraries to the
             # wheel is that the end-user does not have to install cuda toolkit.
             - name: Build wheels in linux with CUDA support
-              if: matrix.os == 'ubuntu-latest'
+              # if: matrix.os == 'ubuntu-latest'
               run: python -m cibuildwheel --output-dir wheelhouse
               env:
                   CIBW_MANYLINUX_X86_64_IMAGE: sameli/manylinux2014_x86_64_cuda_11
@@ -100,7 +100,7 @@ jobs:
                   CIBW_BUILD: "*-manylinux_x86_64 *-macosx_x86_64 *-win_amd64"
                   CIBW_SKIP: "pp* cp27-* cp35-*"
                   CIBW_BUILD_VERBOSITY: 1
-                  CIBW_ENVIRONMENT: "USE_LONG_INT=0 USE_UNSIGNED_LONG_INT=0 USE_CBLAS=0 USE_CUDA=0 CUDA_DYNAMIC_LOADING=0 CUDA_HOME=/usr/local/cuda"
+                  # CIBW_ENVIRONMENT: "USE_LONG_INT=0 USE_UNSIGNED_LONG_INT=0 USE_CBLAS=0 USE_CUDA=0 CUDA_DYNAMIC_LOADING=0 CUDA_HOME=/usr/local/cuda"
             
             - name: Upload artifacts
               uses: actions/upload-artifact@v2
@@ -144,7 +144,7 @@ jobs:
                   conda config --set anaconda_upload yes
                   export PATH=$(conda info --root):$PATH
                   export PATH=$(conda info --root)/bin:$PATH
-                  conda-build --output-folder . .
+                  conda-build --output-folder . . -c s-ameli
               env:
                   CYTHON_BUILD_IN_SOURCE: '1'  # see setup.py. Avoids a bug when building with multiple python variants
                   ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
