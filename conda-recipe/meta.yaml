@@ -8,10 +8,10 @@ package:
 source:
     path: ..
 
-build:
-    number: 0
-    script: 
-        - {{ PYTHON }} -m pip install . -vv --no-binary :all:
+# build:
+#     number: 0
+#     script: 
+#         - {{ PYTHON }} -m pip install . -vv --no-binary :all:
         # - {{ PYTHON }} -m pip install --upgrade pip setuptools wheel &&
         # - {{ PYTHON }} -m pip install dist/*.whl -vvv  # [osx]
         # - {{ PYTHON }} -m pip install . -vv  # [not osx]
