@@ -47,7 +47,7 @@ jobs:
               run: |
                   mv gaussian_proc gaussian_proc-DoNotImport
                   chmod +x scripts/fix_libomp.sh
-                  ./scripts/fix_libomp.sh
+                  ./scripts/fix_libomp.sh `which python`
               shell: bash
 
             - name: Test

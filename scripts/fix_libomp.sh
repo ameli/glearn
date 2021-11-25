@@ -39,7 +39,6 @@
 # `imate` package.
 
 set -e
-set -x
 
 # Check if the operating system is MacOS.
 if [[ $OSTYPE != 'darwin'* ]]; then
@@ -65,8 +64,11 @@ fi
 
 find_libomp()
 {(
+    # The output to this function is in the form of stream via echo. The caller
+    # function catches the stream from stdout. Note that stderr (for errors)
+    # via ">&2" command is not a part of the output.
+
     set -e
-    set -x
 
     package=$1
 
@@ -75,8 +77,8 @@ find_libomp()
 
     if [[ $package_init == '' ]];
     then
-        echo "Cannot find '${package}' package". >&2
-        return 1
+        echo "Cannot find '${package}' package". >&2  # sending error to stderr
+        echo ""  # outputing an empty string to stdout in the case of error
     fi
 
     # Find directory of packages
@@ -85,8 +87,8 @@ find_libomp()
 
     if [[ ! -d "${package_dylibs}" ]]
     then
-        echo "Directory ${package_dylibs} does not exists."
-        return 1
+        echo "Directory ${package_dylibs} does not exists." >&2
+        echo ""
     fi
 
     # Find libomp within the package
@@ -95,7 +97,7 @@ find_libomp()
     if [[ $package_libomp == '' ]];
     then
         echo "Cannot find '*omp.dylib' in '$package_dir/.dylib'." >&2
-        return 1
+        echo ""
     else
         echo "${package_libomp}"
     fi
