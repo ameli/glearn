@@ -87,8 +87,8 @@ find_libomp()
 
     if [[ ! -d "${package_dylibs}" ]]
     then
-        echo "Directory ${package_dylibs} does not exists." >&2
-        echo ""
+        # Directory does not exists. Use package dir.
+        package_dylibs="${package_dir}"
     fi
 
     # Find libomp within the package
