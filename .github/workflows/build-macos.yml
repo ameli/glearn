@@ -56,7 +56,10 @@ jobs:
               run: |
                   python -m pip install --upgrade pytest
                   python -m pip install --upgrade pytest-cov
-                  pytest
+                  pytest 2>&1 | tee test.log
+                  result_code=${PIPESTATUS[0]}
+                  echo "::set-output name=mix-test::$(cat test.log)"
+                  exit $result_code
 
             - name: Coverage
               run: |
