@@ -107,8 +107,14 @@ find_libomp()
 # ===========
 
 # Find libomp in imate package
-package='imate'
-imate_libomp="$(find_libomp ${PYTHON} ${package})"
+package1='imate'
+imate_libomp="$(find_libomp ${PYTHON} ${package1})"
+
+# Find libomp in gaussian_proc package
+package2='gaussian_proc'
+gp_libomp="$(find_libomp ${PYTHON} ${package2})"
+
+# Remove libomp from imate
 if [[ ${imate_libomp} != '' ]];
 then
     # Find directory of imate_libomp
@@ -125,9 +131,7 @@ then
     fi
 fi
 
-# Find libomp in gaussian_proc package
-package='gaussian_proc'
-gp_libomp="$(find_libomp ${PYTHON} ${package})"
+# Copy libomp from gaussian_proc to imate
 if [[ ${gp_libomp} != '' ]] && [[ ${imate_libomp} != '' ]];
 then
     # Copy libomp of gaussian_proc package into imate package
