@@ -130,6 +130,9 @@ jobs:
                   mv gaussian_proc gaussian_proc-DoNotImport
                   rm setup.cfg
 
+            - name: Install package
+              run: conda install -c s-ameli gaussian_proc -y
+
             # This is to prevent the error "libomp is already initialized",
             # which occurs only in MacOS. To circumvent the error, the
             # following script will remove libomp.dylib from imate package, and
@@ -146,6 +149,5 @@ jobs:
             - name: Test
               shell: bash -l {0}
               run: |
-                  conda install -c s-ameli gaussian_proc -y
                   conda install pytest -y
                   pytest
