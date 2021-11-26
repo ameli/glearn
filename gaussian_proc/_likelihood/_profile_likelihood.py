@@ -648,8 +648,21 @@ class ProfileLikelihood(BaseLikelihood):
             # Find (or update) optimal sigma2
             sigma2 = self._find_optimal_sigma2(hyperparam)
 
-            logdet_Kn = self.mixed_cor.logdet(eta)
+            # logdet_Kn = self.mixed_cor.logdet(eta)
+            logdet_Kn = self.mixed_cor.logdet(0.0)  # Test
             logdet_Cinv = numpy.log(numpy.linalg.det(self.Cinv))
+
+            # Test
+            print('=============')
+            Kn = self.mixed_cor.get_matrix(0.0)
+            if scipy.sparse.isspmatrix(Kn):
+                Kn = Kn.toarray()
+            print(numpy.log(numpy.linalg.det(Kn)))
+            print(logdet_Kn)
+
+            if numpy.isnan(logdet_Kn):
+                raise RuntimeError('Logdet of "Kn" is nan at eta: %0.3e.'
+                                   % eta)
 
             # Log likelihood
             ell = -0.5*self.rdof * \
@@ -670,14 +683,6 @@ class ProfileLikelihood(BaseLikelihood):
         # the minimum of -ell
         if sign_switch:
             ell = -ell
-
-        # Test
-        # print('=============')
-        # Kn = self.mixed_cor.get_matrix(eta)
-        # Kn_a = Kn.toarray()
-        # print(numpy.any(numpy.isnan(Kn_a)))
-        # print(numpy.linalg.det(Kn_a))
-        # print(logdet_Kn)
 
         return ell
 

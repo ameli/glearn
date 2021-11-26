@@ -35,7 +35,7 @@ def main():
     # Generate data points
     dimension = 2
     grid = True
-    num_points = 30
+    num_points = 20
     points = generate_points(num_points, dimension, grid)
 
 
@@ -72,13 +72,13 @@ def main():
 
     # Kernel
     # kernel = Matern()
-    kernel = Exponential()
+    # kernel = Exponential()
     # kernel = Linear()
-    # kernel = SquareExponential()
+    kernel = SquareExponential()
     # kernel = RationalQuadratic()
 
     # Correlation
-    cor = Correlation(points, kernel=kernel, scale=0.1, sparse=True,
+    cor = Correlation(points, kernel=kernel, scale=0.05, sparse=True,
                       density=2e-2)
     # cor = Correlation(points, kernel=kernel, sparse=False)
     # cor = Correlation(points, kernel=kernel, scale=scale_prior, sparse=True,
@@ -87,9 +87,9 @@ def main():
 
     # Covariance
     # imate_method = 'eigenvalue'
-    # imate_method = 'cholesky'
+    imate_method = 'cholesky'
     # imate_method = 'hutchinson'
-    imate_method = 'slq'
+    # imate_method = 'slq'
     cov = Covariance(cor, imate_method=imate_method)
 
     # Gaussian process

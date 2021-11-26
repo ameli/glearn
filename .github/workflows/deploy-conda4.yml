@@ -140,16 +140,18 @@ jobs:
                   export PATH=$(conda info --root):$PATH
                   export PATH=$(conda info --root)/bin:$PATH
                   conda install -c s-ameli gaussian_proc -y
+                  conda install pytest -y
                   chmod +x scripts/fix_libomp.sh
                   ./scripts/fix_libomp.sh "$(conda info --root)/bin/python"
+                  pytest
               shell: bash
 
-            - name: Test (MacOS)
-              if: matrix.os == 'macos-latest'
-              shell: bash -l {0}
-              run: |
-                  conda install pytest -y
-                  pytest
+            # - name: Test (MacOS)
+            #   if: matrix.os == 'macos-latest'
+            #   shell: bash -l {0}
+            #   run: |
+            #       conda install pytest -y
+            #       pytest
 
             - name: Test (Linux, Windows)
               if: matrix.os != 'macos-latest'
