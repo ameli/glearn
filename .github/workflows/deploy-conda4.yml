@@ -179,12 +179,21 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
 
+            - name: Move source to avoid import from local folder
+              run: |
+                  mv gaussian_proc gaussian_proc-DoNotImport
+                  rm setup.cfg
+
+            - name: Remove duplicate libomp
+              if: matrix.os == 'macos-latest'
+              run: |
+                  chmod +x scripts/fix_libomp.sh
+                  ./scripts/fix_libomp.sh `which python`
+              shell: bash
+
             - name: Test
               shell: bash -l {0}
               run: |
-                  mv gaussian_proc gaussian_proc-DoNotImport
-                  rm tests/test_cu_linear_operator.py  # this raises ImportError
-                  rm setup.cfg
                   conda install -c s-ameli gaussian_proc -y
                   conda install pytest -y
                   pytest

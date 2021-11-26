@@ -35,8 +35,8 @@
 # to be initialized at the runtime, the duplicity leads to a termination error.
 #
 # To resolve this issue, this script removes the `libomp.dylib` from the
-# `imate` package and copies the `libomp.dylib` from `gaussian_proc` back to
-# `imate` package.
+# `imate` package. Also, if `gaussian_proc` package comes with `libomp.dylib`,
+# it copies it from `gaussian_proc` package to `imate` package.
 
 set -e
 
@@ -105,48 +105,37 @@ find_libomp()
 
 # ===========
 
+# Find libomp in imate package
+package='imate'
+imate_libomp="$(find_libomp ${package})"
+if [[ ${imate_libomp} != '' ]];
+then
+    # Remove libomp of the imate package
+    rm -f ${imate_libomp}
+    status=$?
+    if [ $status -eq 0 ]; then
+        echo "Removed '${imate_libomp}'."
+    else
+        echo "ERROR: removing '${imate_libomp}' failed."
+        exit 1
+    fi
+fi
 
 # Find libomp in gaussian_proc package
 package='gaussian_proc'
 gp_libomp="$(find_libomp ${package})"
-if [[ ${gp_libomp} == '' ]];
+if [[ ${gp_libomp} != '' ]] && [[ ${imate_libomp} != '' ]];
 then
-  echo "Cannot find libomp in '${package}' package. Nothing to do."
-  exit 0
-else
-    echo "Found '${gp_libomp}'."
-fi
+    # Find directory of imate_libomp
+    imate_libomp_dir=$(dirname $imate_libomp)
 
-# Find libomp in imate package
-package='imate'
-imate_libomp="$(find_libomp ${package})"
-if [[ ${imate_libomp} == '' ]];
-then
-  echo "No duplicate 'libomp.dylib' was found. Nothing to do."
-  exit 0
-else
-    echo "Found duplicate '${imate_libomp}'"
-fi
-
-# Find directory of imate_libomp
-imate_libomp_dir=$(dirname $imate_libomp)
-
-# Remove imate_libomp
-rm -f ${imate_libomp}
-status=$?
-if [ $status -eq 0 ]; then
-    echo "Removed duplicate '${imate_libomp}'."
-else
-    echo "ERROR: removing duplicate '${imate_libomp}' failed."
-    exit 1
-fi
-
-# Copy gp_libomp to imate_libomp_dir
-cp -f ${gp_libomp} ${imate_libomp_dir}
-status=$?
-if [ $status -eq 0 ]; then
-    echo "Copied '${gp_libomp}' to '${imate_libomp_dir}'."
-else
-    echo "ERROR: copying '${gp_libomp}' to '${imate_libomp_dir}' failed."
-    exit 1
+    # Copy libomp of gaussian_proc package into imate package
+    cp -f ${gp_libomp} ${imate_libomp_dir}
+    status=$?
+    if [ $status -eq 0 ]; then
+        echo "Copied '${gp_libomp}' to '${imate_libomp_dir}'."
+    else
+        echo "ERROR: copying '${gp_libomp}' to '${imate_libomp_dir}' failed."
+        exit 1
+    fi
 fi
