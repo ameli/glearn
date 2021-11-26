@@ -124,7 +124,8 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
 
-            - name: Move source to avoid import from local folder
+              # Move source to avoid import from local folder
+            - name: Rename source
               run: |
                   mv gaussian_proc gaussian_proc-DoNotImport
                   rm setup.cfg
@@ -136,8 +137,10 @@ jobs:
             - name: Remove duplicate libomp
               if: matrix.os == 'macos-latest'
               run: |
+                  export PATH=$(conda info --root):$PATH
+                  export PATH=$(conda info --root)/bin:$PATH
                   chmod +x scripts/fix_libomp.sh
-                  ./scripts/fix_libomp.sh `which python`
+                  ./scripts/fix_libomp.sh "$(conda info --root)/bin/python"
               shell: bash
 
             - name: Test

@@ -43,7 +43,8 @@ jobs:
                   python -m pip install --upgrade numpy
                   python -m pip install --upgrade .
 
-            - name: Move source to avoid import from local folder
+              # Move source to avoid import from local folder
+            - name: Rename source
               run: mv gaussian_proc gaussian_proc-DoNotImport
 
             # This is to prevent the error "libomp is already initialized",

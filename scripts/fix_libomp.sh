@@ -50,11 +50,11 @@ fi
 if [[ $1 != '' ]];
 then
     # Use user-defined python
-    python=$1
+    PYTHON=$1
 else
     # Use default python
-    python=`which python`
-    echo "Using default python at '${python}'."
+    PYTHON=`which python`
+    echo "Using default python at '${PYTHON}'."
 fi
 
 
@@ -70,10 +70,11 @@ find_libomp()
 
     set -e
 
-    package=$1
+    PYTHON=$1
+    package=$2
 
     # Get package directory
-    package_init=`python -c "import ${package}; print(${package}.__file__)"`
+    package_init=`${PYTHON} -c "import ${package}; print(${package}.__file__)"`
 
     if [[ $package_init == '' ]];
     then
@@ -107,9 +108,12 @@ find_libomp()
 
 # Find libomp in imate package
 package='imate'
-imate_libomp="$(find_libomp ${package})"
+imate_libomp="$(find_libomp ${PYTHON} ${package})"
 if [[ ${imate_libomp} != '' ]];
 then
+    # Find directory of imate_libomp
+    imate_libomp_dir=$(dirname $imate_libomp)
+
     # Remove libomp of the imate package
     rm -f ${imate_libomp}
     status=$?
@@ -123,12 +127,9 @@ fi
 
 # Find libomp in gaussian_proc package
 package='gaussian_proc'
-gp_libomp="$(find_libomp ${package})"
+gp_libomp="$(find_libomp ${PYTHON} ${package})"
 if [[ ${gp_libomp} != '' ]] && [[ ${imate_libomp} != '' ]];
 then
-    # Find directory of imate_libomp
-    imate_libomp_dir=$(dirname $imate_libomp)
-
     # Copy libomp of gaussian_proc package into imate package
     cp -f ${gp_libomp} ${imate_libomp_dir}
     status=$?

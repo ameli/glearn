@@ -128,12 +128,13 @@ jobs:
               run: |
                   python -m pip install --upgrade pip
                   python -m pip install pytest-cov
-                  python -m pip install gaussian_proc
+                  python -m pip install --upgrade gaussian_proc
 
             - name: Checkout
               uses: actions/checkout@v2
 
-            - name: Move source to avoid import from local folder
+              # Move source to avoid import from local folder
+            - name: Rename source
               run: mv gaussian_proc gaussian_proc-DoNotImport
 
             # This is to prevent the error "libomp is already initialized",
