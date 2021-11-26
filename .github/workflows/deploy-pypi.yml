@@ -133,7 +133,19 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
 
-            - name: Test
+            - name: Move source to avoid import from local folder
+              run: mv gaussian_proc gaussian_proc-DoNotImport
+
+            # This is to prevent the error "libomp is already initialized",
+            # which occurs only in MacOS. To circumvent the error, the
+            # following script will remove libomp.dylib from imate package, and
+            # copies libomp.dylib from gaussian_proc to imate package.
+            - name: Remove duplicate libomp
+              if: matrix.os == 'macos-latest'
               run: |
-                  mv gaussian_proc gaussian_proc-DoNotImport
-                  pytest
+                  chmod +x scripts/fix_libomp.sh
+                  ./scripts/fix_libomp.sh `which python`
+              shell: bash
+
+            - name: Test
+              run: pytest
