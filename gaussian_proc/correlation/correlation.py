@@ -476,7 +476,7 @@ class Correlation(object):
                 # the same as self.K_der0.
                 correlation_matrix = sparse_auto_correlation(
                     self.points, scale, self.kernel, derivative,
-                    self.density, test_points=None,
+                    self.kernel_threshold, self.density, test_points=None,
                     correlation_matrix=self.K_der0, verbose=self.verbose)
 
         else:
@@ -583,6 +583,10 @@ class Correlation(object):
             process.
         :type verbose: bool
         """
+
+        if self.current_scale is None:
+            raise ValueError('Correlation cannot be plotted if "scale" is ' +
+                             'not given.')
 
         # Load plot settings
         if plot_modules_exist:
