@@ -33,9 +33,9 @@ from gaussian_proc import GaussianProcess
 def main():
 
     # Generate data points
-    dimension = 2
+    dimension = 1
     grid = True
-    num_points = 20
+    num_points = 50
     points = generate_points(num_points, dimension, grid)
 
 
@@ -72,14 +72,15 @@ def main():
 
     # Kernel
     # kernel = Matern()
-    # kernel = Exponential()
+    kernel = Exponential()
     # kernel = Linear()
-    kernel = SquareExponential()
+    # kernel = SquareExponential()
     # kernel = RationalQuadratic()
+    # kernel.plot()
 
     # Correlation
     cor = Correlation(points, kernel=kernel, scale=0.05, sparse=True,
-                      density=2e-2)
+                      density=1e-1, kernel_threshold=0.03, verbose=False)
     # cor = Correlation(points, kernel=kernel, sparse=False)
     # cor = Correlation(points, kernel=kernel, scale=scale_prior, sparse=True,
     #                   density=1e-3)
@@ -101,10 +102,10 @@ def main():
     # profile_hyperparam = 'var_noise'
 
     # optimization_method = 'chandrupatla'  # requires jacobian
-    optimization_method = 'Nelder-Mead'     # requires func
+    # optimization_method = 'Nelder-Mead'     # requires func
     # optimization_method = 'BFGS'          # requires func, jacobian
     # optimization_method = 'CG'            # requires func, jacobian
-    # optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
+    optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
     # optimization_method = 'dogleg'        # requires func, jacobian, hessian
     # optimization_method = 'trust-exact'   # requires func, jacobian, hessian
     # optimization_method = 'trust-ncg'     # requires func, jacobian, hessian
@@ -134,13 +135,13 @@ def main():
 
     # Generate test points
     num_points = 40
-    dimension = 2
+    dimension = 1
     grid = True
     test_points = generate_points(num_points, dimension, grid)
 
     # Predict
-    # z_star_mean, z_star_cov = gp.predict(test_points, cov=True, plot=True,
-    #                                      confidence_level=0.95)
+    z_star_mean, z_star_cov = gp.predict(test_points, cov=True, plot=True,
+                                         confidence_level=0.95)
 
 
 # ===========

@@ -293,6 +293,10 @@ class GaussianProcess(object):
         if test_points.ndim == 1:
             test_points = numpy.array([test_points], dtype=float).T
 
+        if test_points.shape[1] != self.mean.points.shape[1]:
+            raise ValueError('"test_points" should have the same dimension ' +
+                             'as the training points.')
+
         # Design matrix on test points
         X_star = self.mean.generate_design_matrix(test_points)
 

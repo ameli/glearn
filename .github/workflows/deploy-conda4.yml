@@ -134,7 +134,7 @@ jobs:
             # which occurs only in MacOS. To circumvent the error, the
             # following script will remove libomp.dylib from imate package, and
             # copies libomp.dylib from gaussian_proc to imate package.
-            - name: Remove duplicate libomp
+            - name: Test (MacOS)
               if: matrix.os == 'macos-latest'
               run: |
                   export PATH=$(conda info --root):$PATH
@@ -145,13 +145,6 @@ jobs:
                   ./scripts/fix_libomp.sh "$(conda info --root)/bin/python"
                   pytest
               shell: bash
-
-            # - name: Test (MacOS)
-            #   if: matrix.os == 'macos-latest'
-            #   shell: bash -l {0}
-            #   run: |
-            #       conda install pytest -y
-            #       pytest
 
             - name: Test (Linux, Windows)
               if: matrix.os != 'macos-latest'

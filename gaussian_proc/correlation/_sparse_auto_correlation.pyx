@@ -21,6 +21,7 @@ import multiprocessing
 from cython.parallel cimport parallel, prange
 from libc.stdio cimport printf
 from libc.stdlib cimport exit, malloc, free
+from ._sparse_array_utilities cimport extend_arrays
 from ._compute_sparse_correlation cimport compute_sparse_correlation, \
         compute_sparse_correlation_jacobian, compute_sparse_correlation_hessian
 from ._sparse_matrix_utilities import estimate_kernel_threshold, \
@@ -28,6 +29,7 @@ from ._sparse_matrix_utilities import estimate_kernel_threshold, \
 from ..kernels import Kernel
 from ..kernels cimport Kernel
 cimport cython
+cimport numpy
 cimport openmp
 
 __all__ = ['sparse_auto_correlation']
@@ -39,7 +41,7 @@ __all__ = ['sparse_auto_correlation']
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef int _generate_correlation_matrix(
+cdef void _generate_correlation_matrix(
         const double[:, ::1] points,
         const int matrix_size,
         const int dimension,
@@ -47,11 +49,11 @@ cdef int _generate_correlation_matrix(
         Kernel kernel,
         const double kernel_threshold,
         const int num_threads,
-        const long max_nnz,
+        long[:] max_nnz,
         long[:] nnz,
-        long[:] matrix_row_indices,
-        long[:] matrix_column_indices,
-        double[:] matrix_data) nogil:
+        long** pp_matrix_row_indices,
+        long** pp_matrix_column_indices,
+        double** pp_matrix_data) nogil:
     """
     Generates a sparse correlation matrix.
 
@@ -122,10 +124,14 @@ cdef int _generate_correlation_matrix(
     :rtype: int
     """
 
+    # Allocate arrays of length max_nnz assuming max_nnz is large enough
+    pp_matrix_row_indices[0] = <long*> malloc(max_nnz[0] * sizeof(long))
+    pp_matrix_column_indices[0] = <long*> malloc(max_nnz[0] * sizeof(long))
+    pp_matrix_data[0] = <double*> malloc(max_nnz[0] * sizeof(double))
+
     cdef long i, j
     cdef int dim
-    cdef double *thread_data = <double *> malloc(num_threads * sizeof(double))
-    cdef int[1] success
+    cdef double* thread_data = <double*> malloc(num_threads * sizeof(double))
 
     # Set number of parallel threads
     openmp.omp_set_num_threads(num_threads)
@@ -141,15 +147,8 @@ cdef int _generate_correlation_matrix(
 
     # Iterate over rows of matrix
     nnz[0] = 0
-    success[0] = 1
     with nogil, parallel():
         for i in prange(matrix_size, schedule='dynamic', chunksize=chunk_size):
-
-            # If one of threads was not successful, do empty loops till end
-            # we cannot break openmp loop, so here we just continue
-            if not success[0]:
-                continue
-
             for j in range(i, matrix_size):
 
                 # Compute an element of the matrix
@@ -159,48 +158,45 @@ cdef int _generate_correlation_matrix(
                                 kernel)
 
                 # Check with kernel threshold to taper out or store
-                if thread_data[openmp.omp_get_thread_num()] > kernel_threshold:
-
-                    # Halt operation if preallocated sparse array is not enough
-                    if nnz[0] >= max_nnz:
-
-                        # Critical section
-                        openmp.omp_set_lock(&lock)
-
-                        # Avoid duplicate if success is falsified already
-                        if success[0]:
-                            printf('Pre-allocated sparse array reached max ')
-                            printf('nnz: %ld. Terminate operation.\n', max_nnz)
-                            success[0] = 0
-
-                        openmp.omp_unset_lock(&lock)
-
-                        # The inner loop is not an openmp loop, so we can break
-                        break
+                if thread_data[openmp.omp_get_thread_num()] >= \
+                        kernel_threshold:
 
                     # Add data to the arrays in an openmp critical section
                     openmp.omp_set_lock(&lock)
 
+                    # Again, check if nnz does not exceed max_nnz on other
+                    # parallel threads.
+                    if nnz[0] >= max_nnz[0] - 1:
+                        extend_arrays(max_nnz, nnz, pp_matrix_row_indices,
+                                      pp_matrix_column_indices,
+                                      pp_matrix_data)
+
                     nnz[0] += 1
-                    matrix_row_indices[nnz[0]-1] = i
-                    matrix_column_indices[nnz[0]-1] = j
-                    matrix_data[nnz[0]-1] = \
+                    pp_matrix_row_indices[0][nnz[0]-1] = i
+                    pp_matrix_column_indices[0][nnz[0]-1] = j
+                    pp_matrix_data[0][nnz[0]-1] = \
                         thread_data[openmp.omp_get_thread_num()]
 
                     # Use symmetry of the matrix
                     if i != j:
+
+                        # Again, check if nnz does not exceed max_nnz on other
+                        # parallel threads.
+                        if nnz[0] >= max_nnz[0] - 1:
+                            extend_arrays(max_nnz, nnz, pp_matrix_row_indices,
+                                          pp_matrix_column_indices,
+                                          pp_matrix_data)
+
                         nnz[0] += 1
-                        matrix_row_indices[nnz[0]-1] = j
-                        matrix_column_indices[nnz[0]-1] = i
-                        matrix_data[nnz[0]-1] = \
+                        pp_matrix_row_indices[0][nnz[0]-1] = j
+                        pp_matrix_column_indices[0][nnz[0]-1] = i
+                        pp_matrix_data[0][nnz[0]-1] = \
                             thread_data[openmp.omp_get_thread_num()]
 
                     # Release lock to end the openmp critical section
                     openmp.omp_unset_lock(&lock)
 
     free(thread_data)
-
-    return success[0]
 
 
 # ====================================
@@ -436,6 +432,7 @@ def sparse_auto_correlation(
         scale,
         kernel,
         derivative,
+        kernel_threshold,
         density,
         test_points=None,
         correlation_matrix=None,
@@ -496,36 +493,61 @@ def sparse_auto_correlation(
     num_threads = multiprocessing.cpu_count()
 
     # kernel threshold
-    kernel_threshold = estimate_kernel_threshold(
-            matrix_size, dimension, density, scale, kernel)
+    if kernel_threshold is None:
+        kernel_threshold = estimate_kernel_threshold(
+                matrix_size, dimension, density, scale, kernel)
+
+        if verbose:
+            print('Estimated kernel threshold: %f' % kernel_threshold)
 
     # maximum nnz
-    max_nnz = estimate_max_nnz(matrix_size, scale, dimension, density)
+    max_nnz = numpy.zeros((1,), dtype=int)
+    max_nnz[0] = estimate_max_nnz(matrix_size, scale, dimension, density)
 
-    success = 0
+    # Allocate sparse arrays with the first guess on array size, max_nnz.
+    cdef long** pp_matrix_row_indices = NULL
+    cdef long** pp_matrix_column_indices = NULL
+    cdef double** pp_matrix_data = NULL
+    nnz = numpy.zeros((1,), dtype=int)
+
+    # Array pointers of the contents of the double-pointers
+    cdef long* p_matrix_row_indices = NULL
+    cdef long* p_matrix_column_indices = NULL
+    cdef double* p_matrix_data = NULL
 
     if len(derivative) == 0:
 
-        # Try with the estimated nnz. If not enough, we will double and retry
-        while not bool(success):
+        # Create double-pointers that only store one pointer
+        pp_matrix_row_indices = <long**> malloc(sizeof(long*))
+        pp_matrix_column_indices = <long**> malloc(sizeof(long**))
+        pp_matrix_data = <double**> malloc(sizeof(double**))
 
-            # Allocate sparse arrays
-            matrix_row_indices = numpy.zeros((max_nnz,), dtype=int)
-            matrix_column_indices = numpy.zeros((max_nnz,), dtype=int)
-            matrix_data = numpy.zeros((max_nnz,), dtype=float)
-            nnz = numpy.zeros((1,), dtype=int)
+        # Generate matrix assuming the estimated nnz is enough
+        _generate_correlation_matrix(
+                points, matrix_size, dimension, scale, kernel,
+                kernel_threshold, num_threads, max_nnz, nnz,
+                pp_matrix_row_indices, pp_matrix_column_indices,
+                pp_matrix_data)
 
-            # Generate matrix assuming the estimated nnz is enough
-            success = _generate_correlation_matrix(
-                    points, matrix_size, dimension, scale, kernel,
-                    kernel_threshold, num_threads, max_nnz, nnz,
-                    matrix_row_indices, matrix_column_indices, matrix_data)
+        # Copy the array pointers from the content of double-pointers
+        p_matrix_row_indices = pp_matrix_row_indices[0]
+        p_matrix_column_indices = pp_matrix_column_indices[0]
+        p_matrix_data = pp_matrix_data[0]
 
-            # Double the number of pre-allocated nnz and try again
-            if not bool(success):
-                max_nnz = 2 * max_nnz
-                print('Retry generation of sparse matrix with max_nnz: %d'
-                      % (max_nnz))
+        # Create number array from c pointers
+        matrix_row_indices = numpy.asarray(
+                <long[:max_nnz[0]]> p_matrix_row_indices)
+        matrix_column_indices = numpy.asarray(
+                <long[:max_nnz[0]]> p_matrix_column_indices)
+        matrix_data = numpy.asarray(
+                <numpy.float64_t[:max_nnz[0]]> p_matrix_data)
+
+        # Free double-pointers. We only need array pointer not double-pointer.
+        # The pointers will be destructed in number array after their lifetime,
+        # but the double-pointer will not be destroyed automatically.
+        free(pp_matrix_row_indices)
+        free(pp_matrix_column_indices)
+        free(pp_matrix_data)
 
         # Construct scipy.sparse.coo_matrix, then convert it to CSR matrix.
         correlation_matrix = scipy.sparse.coo_matrix(
@@ -550,7 +572,6 @@ def sparse_auto_correlation(
             raise ValueError('To compute the Jacobian of a sparse ' +
                              'correlation matrix, the correlation ' +
                              'itself is needed.')
-
         # Convert to CSR
         if correlation_matrix.getformat() != 'csr':
             correlation_matrix = correlation_matrix.tocsr()

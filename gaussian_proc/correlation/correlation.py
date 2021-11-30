@@ -46,7 +46,9 @@ class Correlation(object):
             kernel=None,
             scale=None,
             sparse=False,
-            density=1e-3):
+            kernel_threshold=None,
+            density=1e-3,
+            verbose=False):
         """
         """
 
@@ -81,7 +83,9 @@ class Correlation(object):
         # Attributes
         self.points = points
         self.sparse = sparse
+        self.kernel_threshold = kernel_threshold
         self.density = density
+        self.verbose = verbose
         self.matrix_size = points.shape[0]
         self.dimension = points.shape[1]
 
@@ -453,7 +457,8 @@ class Correlation(object):
                 # a priori.
                 correlation_matrix = sparse_auto_correlation(
                     self.points, scale, self.kernel, derivative,
-                    self.density, correlation_matrix=None)
+                    self.kernel_threshold, self.density, test_points=None,
+                    correlation_matrix=None, verbose=self.verbose)
 
             else:
                 # We use the same sparsity structure of self.K_der0 in the
@@ -471,7 +476,8 @@ class Correlation(object):
                 # the same as self.K_der0.
                 correlation_matrix = sparse_auto_correlation(
                     self.points, scale, self.kernel, derivative,
-                    self.density, correlation_matrix=self.K_der0)
+                    self.density, test_points=None,
+                    correlation_matrix=self.K_der0, verbose=self.verbose)
 
         else:
 
@@ -508,13 +514,15 @@ class Correlation(object):
             # of the matrix will be determined, and is not known a priori.
             correlation_matrix = sparse_auto_correlation(
                 test_points, self.current_scale, self.kernel, derivative,
-                self.density, correlation_matrix=None)
+                self.kernel_threshold, self.density, test_points=None,
+                correlation_matrix=None, verbose=self.verbose)
 
         else:
 
             # Generate a dense matrix
             correlation_matrix = dense_auto_correlation(
-                test_points, self.current_scale, self.kernel, derivative)
+                test_points, self.current_scale, self.kernel, derivative,
+                test_points=None)
 
         return correlation_matrix
 
@@ -537,7 +545,7 @@ class Correlation(object):
             # a priori.
             correlation_matrix = sparse_cross_correlation(
                 self.points, test_points, self.current_scale, self.kernel,
-                self.density)
+                self.kernel_threshold, self.density, verbose=self.verbose)
 
         else:
 
