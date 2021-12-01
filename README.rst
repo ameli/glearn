@@ -4,7 +4,7 @@ G-Learn
 
 |licence| |docs|
 
-**G**aussian Process for Machine **Learn**ing.
+__G__aussian Process for Machine __Learn__ing.
 
 *This package is under development and has not been released.*
 
