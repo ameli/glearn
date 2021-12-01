@@ -1,4 +1,4 @@
-{% set name = "gaussian_proc" %}
+{% set name = "glearn" %}
 {% set data = load_setup_py_data() %}
 
 package:
@@ -55,7 +55,7 @@ requirements:
 
 test:
     imports:
-        - gaussian_proc
+        - glearn
     requires:
         - pytest
         - pytest-cov
@@ -68,9 +68,9 @@ about:
     license_file: LICENSE.txt
     summary: {{ data['description'] }}
     description: {{ data['description'] }}
-    doc_url: https://ameli.github.io/gaussian_proc/index.html
-    doc_source_url: https://github.com/ameli/gaussian_proc/blob/main/README.rst
-    dev_url: https://github.com/ameli/gaussian_proc
+    doc_url: https://ameli.github.io/glearn/index.html
+    doc_source_url: https://github.com/ameli/glearn/blob/main/README.rst
+    dev_url: https://github.com/ameli/glearn
 
 extra:
     recipe-maintainers:

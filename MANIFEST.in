@@ -18,7 +18,7 @@ recursive-exclude docs/images *.pdf
 recursive-include docs *.bib
 recursive-include docs *.in
 
-recursive-include gaussian_proc *.rst
+recursive-include glearn *.rst
 recursive-include examples *.py
 recursive-include examples *.rst
 recursive-include notebooks *.ipynb

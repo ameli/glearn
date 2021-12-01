@@ -1,12 +1,12 @@
 # .coveragerc to control coverage
 [run]
 plugins = Cython.Coverage
-source = gaussian_proc
+source = glearn
 omit = 
     tests
     setup.py
-    gaussian_proc/__version__.py
-    gaussian_proc/__config__.py
+    glearn/__version__.py
+    glearn/__config__.py
     *__init__.py
     *__init__.pxd
 

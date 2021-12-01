@@ -26,12 +26,12 @@ Successful installation and tests have been performed on the following platforms
 | Windows  | |n| | |y| | |y| | |y| | |y| | |n| | |n| | |n| | |build-windows| |
 +----------+-----+-----+-----+-----+-----+-----+-----+-----+-----------------+
 
-.. |build-linux| image:: https://github.com/ameli/gaussian_process/workflows/build-linux/badge.svg
-   :target: https://github.com/ameli/gaussian_process/actions?query=workflow%3Abuild-linux 
-.. |build-macos| image:: https://github.com/ameli/gaussian_process/workflows/build-macos/badge.svg
-   :target: https://github.com/ameli/gaussian_process/actions?query=workflow%3Abuild-macos
-.. |build-windows| image:: https://github.com/ameli/gaussian_process/workflows/build-windows/badge.svg
-   :target: https://github.com/ameli/gaussian_process/actions?query=workflow%3Abuild-windows
+.. |build-linux| image:: https://github.com/ameli/glearn/workflows/build-linux/badge.svg
+   :target: https://github.com/ameli/glearn/actions?query=workflow%3Abuild-linux 
+.. |build-macos| image:: https://github.com/ameli/glearn/workflows/build-macos/badge.svg
+   :target: https://github.com/ameli/glearn/actions?query=workflow%3Abuild-macos
+.. |build-windows| image:: https://github.com/ameli/glearn/workflows/build-windows/badge.svg
+   :target: https://github.com/ameli/glearn/actions?query=workflow%3Abuild-windows
 
 .. note::
 
@@ -67,7 +67,7 @@ Install from PyPi
 
 |pypi| |format| |implementation| |pyversions|
 
-The recommended installation method is through the package available at `PyPi <https://pypi.org/project/gaussian_process>`_ using ``pip``.
+The recommended installation method is through the package available at `PyPi <https://pypi.org/project/glearn>`_ using ``pip``.
 
 1. Ensure ``pip`` is installed within Python and upgrade the existing ``pip`` by
 
@@ -87,13 +87,13 @@ The recommended installation method is through the package available at `PyPi <h
    
    ::
        
-       python -m pip install gaussian_process
+       python -m pip install glearn
 
    or, in PyPy by
 
    ::
        
-       pypy -m pip install gaussian_process
+       pypy -m pip install glearn
 
 .. _Install_Conda:
 
@@ -103,19 +103,19 @@ Install from Anaconda Cloud
 
 |conda-version| |conda-platform|
 
-Alternatively, the package can be installed through `Anaconda could <https://anaconda.org/s-ameli/gaussian_process>`_.
+Alternatively, the package can be installed through `Anaconda could <https://anaconda.org/s-ameli/glearn>`_.
 
 * In **Linux** and **Windows**:
   
   ::
       
-      conda install -c s-ameli gaussian_process
+      conda install -c s-ameli glearn
 
 * In **macOS**:
   
   ::
       
-      conda install -c s-ameli -c conda-forge gaussian_process
+      conda install -c s-ameli -c conda-forge glearn
 
 .. note::
 
@@ -166,8 +166,8 @@ Build and Install from Source Code
    
    ::
 
-       git clone https://github.com/ameli/gaussian_process.git
-       cd gaussian_process
+       git clone https://github.com/ameli/glearn.git
+       cd glearn
        python -m pip install .
 
 .. warning::
@@ -179,7 +179,7 @@ Build and Install from Source Code
 
         cd ..
         python
-        >>> import gaussian_process
+        >>> import glearn
 
 
 ==============================
@@ -200,23 +200,23 @@ Install in ``virtualenv`` Environment
 
        python -m pip install virtualenv
 
-2. Create a virtual environment and give it a name, such as ``gaussian_process_env``
+2. Create a virtual environment and give it a name, such as ``glearn_env``
 
    ::
 
-       python -m virtualenv gaussian_process_env
+       python -m virtualenv glearn_env
 
 3. Activate python in the new environment
 
    ::
 
-       source gaussian_process_env/bin/activate
+       source glearn_env/bin/activate
 
-4. Install ``gaussian_process`` package with any of the :ref:`above methods <InstallationMethods>`. For instance:
+4. Install ``glearn`` package with any of the :ref:`above methods <InstallationMethods>`. For instance:
 
    ::
 
-       python -m pip install gaussian_process
+       python -m pip install glearn
    
    Then, use the package in this environment.
 
@@ -246,11 +246,11 @@ In the following, it is assumed `anaconda <https://www.anaconda.com/products/ind
 
        sudo sh $(conda info --root)/etc/profile.d/conda.sh
 
-2. Create a virtual environment and give it a name, such as ``gaussian_process_env``
+2. Create a virtual environment and give it a name, such as ``glearn_env``
 
    ::
 
-       conda create --name gaussian_process_env -y
+       conda create --name glearn_env -y
 
    The command ``conda info --envs`` shows the list of all environments. The current environment is marked by an asterisk in the list, which should be the default environment at this stage. In the next step, we will change the current environment to the one we created.
 
@@ -258,13 +258,13 @@ In the following, it is assumed `anaconda <https://www.anaconda.com/products/ind
 
    ::
 
-       conda activate gaussian_process_env
+       conda activate glearn_env
 
-4. Install ``gaussian_process`` with any of the :ref:`above methods <InstallationMethods>`. For instance:
+4. Install ``glearn`` with any of the :ref:`above methods <InstallationMethods>`. For instance:
 
    ::
 
-       conda install -c s-ameli gaussian_process
+       conda install -c s-ameli glearn
    
    Then, use the package in this environment.
 
@@ -274,17 +274,17 @@ In the following, it is assumed `anaconda <https://www.anaconda.com/products/ind
 
        conda deactivate
 
-.. |implementation| image:: https://img.shields.io/pypi/implementation/gaussian_process
-.. |pyversions| image:: https://img.shields.io/pypi/pyversions/gaussian_process
-.. |format| image:: https://img.shields.io/pypi/format/gaussian_process
-.. |pypi| image:: https://img.shields.io/pypi/v/gaussian_process
-.. |conda| image:: https://anaconda.org/s-ameli/gaussian_process/badges/installer/conda.svg
-   :target: https://anaconda.org/s-ameli/gaussian_process
-.. |platforms| image:: https://img.shields.io/conda/pn/s-ameli/gaussian_process?color=orange?label=platforms
-   :target: https://anaconda.org/s-ameli/gaussian_process
-.. |conda-version| image:: https://img.shields.io/conda/v/s-ameli/gaussian_process
-   :target: https://anaconda.org/s-ameli/gaussian_process
-.. |release| image:: https://img.shields.io/github/v/tag/ameli/gaussian_process
-   :target: https://github.com/ameli/gaussian_process/releases/
-.. |conda-platform| image:: https://anaconda.org/s-ameli/gaussian_process/badges/platforms.svg
-   :target: https://anaconda.org/s-ameli/gaussian_process
+.. |implementation| image:: https://img.shields.io/pypi/implementation/glearn
+.. |pyversions| image:: https://img.shields.io/pypi/pyversions/glearn
+.. |format| image:: https://img.shields.io/pypi/format/glearn
+.. |pypi| image:: https://img.shields.io/pypi/v/glearn
+.. |conda| image:: https://anaconda.org/s-ameli/glearn/badges/installer/conda.svg
+   :target: https://anaconda.org/s-ameli/glearn
+.. |platforms| image:: https://img.shields.io/conda/pn/s-ameli/glearn?color=orange?label=platforms
+   :target: https://anaconda.org/s-ameli/glearn
+.. |conda-version| image:: https://img.shields.io/conda/v/s-ameli/glearn
+   :target: https://anaconda.org/s-ameli/glearn
+.. |release| image:: https://img.shields.io/github/v/tag/ameli/glearn
+   :target: https://github.com/ameli/glearn/releases/
+.. |conda-platform| image:: https://anaconda.org/s-ameli/glearn/badges/platforms.svg
+   :target: https://anaconda.org/s-ameli/glearn

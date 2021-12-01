@@ -127,19 +127,19 @@ jobs:
               # Move source to avoid import from local folder
             - name: Rename source
               run: |
-                  mv gaussian_proc gaussian_proc-DoNotImport
+                  mv glearn glearn-DoNotImport
                   rm setup.cfg
 
             # This is to prevent the error "libomp is already initialized",
             # which occurs only in MacOS. To circumvent the error, the
             # following script will remove libomp.dylib from imate package, and
-            # copies libomp.dylib from gaussian_proc to imate package.
+            # copies libomp.dylib from glearn to imate package.
             - name: Test (MacOS)
               if: matrix.os == 'macos-latest'
               run: |
                   export PATH=$(conda info --root):$PATH
                   export PATH=$(conda info --root)/bin:$PATH
-                  conda install -c s-ameli gaussian_proc -y
+                  conda install -c s-ameli glearn -y
                   conda install pytest -y
                   chmod +x scripts/fix_libomp.sh
                   ./scripts/fix_libomp.sh "$(conda info --root)/bin/python"
@@ -150,6 +150,6 @@ jobs:
               if: matrix.os != 'macos-latest'
               shell: bash -l {0}
               run: |
-                  conda install -c s-ameli gaussian_proc -y
+                  conda install -c s-ameli glearn -y
                   conda install pytest -y
                   pytest

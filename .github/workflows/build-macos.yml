@@ -45,12 +45,12 @@ jobs:
 
               # Move source to avoid import from local folder
             - name: Rename source
-              run: mv gaussian_proc gaussian_proc-DoNotImport
+              run: mv glearn glearn-DoNotImport
 
             # This is to prevent the error "libomp is already initialized",
             # which occurs only in MacOS. To circumvent the error, the
             # following script will remove libomp.dylib from imate package, and
-            # copies libomp.dylib from gaussian_proc to imate package.
+            # copies libomp.dylib from glearn to imate package.
             - name: Remove duplicate libomp
               run: |
                   chmod +x scripts/fix_libomp.sh

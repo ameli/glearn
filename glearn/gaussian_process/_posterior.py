@@ -147,8 +147,6 @@ class Posterior(object):
                                  '"scale_index" of the hyperparam of the ' +
                                  ' likelihood  method.')
 
-            if hyperparam.size > scale_index:
-
             # Extract a position of hyperparam that is related to scale. Note
             # that hyperparam may or may not be in log form.
             hyperparam_scale = hyperparam[scale_index:]
@@ -254,6 +252,7 @@ class Posterior(object):
                                  'only be used when variance profiling is ' +
                                  'enabled. Set "profile_hyperparam" to "var".')
 
+            scale_index = self.likelihood.scale_index
             if (not numpy.isscalar(hyperparam_guess)) and \
                     (len(hyperparam_guess) > 1):
 
@@ -267,8 +266,6 @@ class Posterior(object):
                 # Extract log_eta and scale from hyperparam. log_eta is either
                 # log of eta (if self.likelihood.use_log_eta is True), or eta
                 # itself, despite for both cases we named it by "log_" prefix.
-                scale_index = self.likelihood.scale_index
-                log_eta_guess = log_hyperparam_guess[:scale_index]
                 scale_guess = hyperparam_guess[scale_index:]
 
                 # Set scale in likelihood object
@@ -276,8 +273,14 @@ class Posterior(object):
                     self.likelihood.mixed_cor.set_scale(scale_guess)
                     warnings.warn('"scale" is set based on the guess value.')
 
-            # Note: When using interpolation, make sure the interval below is
-            # exactly the end points of eta_i, not less or more.
+            # Since root-finding methods do not optimize the scale parameter,
+            # the scale prior should not be used in the posterior. Here we
+            # overwrite the prior to None
+            self.prior = None
+
+            # Note: When using traceinv interpolation, make sure the interval
+            # below is exactly the end points of eta_i, not less or more.
+            log_eta_guess = log_hyperparam_guess[:scale_index]
             if self.likelihood.use_log_eta:
                 # x is log of eta
                 min_log_eta_guess = numpy.min([-4, log_eta_guess - 2])
@@ -321,7 +324,7 @@ class Posterior(object):
                 res['optimization']['success'] and success
 
             # Find sigma and sigma0, eta, and scale
-            eta = self.likelihood._hyprparam_to_eta(x)
+            eta = self.likelihood._hyperparam_to_eta(x)
             sigma, sigma0 = self.likelihood._find_optimal_sigma_sigma0(x)
             scale = self.likelihood.mixed_cor.get_scale()
 
@@ -331,10 +334,6 @@ class Posterior(object):
             else:
                 max_fun = 'not evaluated'
             res['optimization']['max_fun'] = max_fun
-
-            # The distance scale used in this method is the same as its guess.
-            res['hyperparam']['scale'] = \
-                self.likelihood.mixed_cor.get_scale()
 
         else:
             # Partial function of posterior (with minus to turn maximization

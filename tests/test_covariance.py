@@ -16,9 +16,9 @@
 import sys
 import numpy
 import numpy.linalg
-from gaussian_proc.sample_data import generate_points
-from gaussian_proc.kernels import Matern
-from gaussian_proc import Correlation, Covariance
+from glearn.sample_data import generate_points
+from glearn.kernels import Matern
+from glearn import Correlation, Covariance
 
 
 # ==============
@@ -61,7 +61,7 @@ def check_functions(
         derivatives,
         error_rtol):
     """
-    Checks ``gaussian_proc.Covariance`` function.
+    Checks ``glearn.Covariance`` function.
     """
 
     success = True
@@ -186,7 +186,7 @@ def check_functions(
 
 def test_covariance():
     """
-    A test for :mod:`gaussian_proc.Covariance` sub-package.
+    A test for :mod:`glearn.Covariance` sub-package.
     """
 
     # Parameters combinations to be tested

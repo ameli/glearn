@@ -30,13 +30,13 @@
 #    Abort trap: 6
 #
 # The above error happens only on MacOS. The error is originated because both
-# this package (`gaussian_proc`) and its dependency package (`imate`) are
-# shipped with a version of `libomp` library. Since both of these libraries try
-# to be initialized at the runtime, the duplicity leads to a termination error.
+# this package (`glearn`) and its dependency package (`imate`) are shipped with
+# a version of `libomp` library. Since both of these libraries try to be
+# initialized at the runtime, the duplicity leads to a termination error.
 #
 # To resolve this issue, this script removes the `libomp.dylib` from the
-# `imate` package. Also, if `gaussian_proc` package comes with `libomp.dylib`,
-# it copies it from `gaussian_proc` package to `imate` package.
+# `imate` package. Also, if `glearn` package comes with `libomp.dylib`, it
+# copies it from `glearn` package to `imate` package.
 
 set -e
 
@@ -110,8 +110,8 @@ find_libomp()
 package1='imate'
 imate_libomp="$(find_libomp ${PYTHON} ${package1})"
 
-# Find libomp in gaussian_proc package
-package2='gaussian_proc'
+# Find libomp in glearn package
+package2='glearn'
 gp_libomp="$(find_libomp ${PYTHON} ${package2})"
 
 # Remove libomp from imate
@@ -131,10 +131,10 @@ then
     fi
 fi
 
-# Copy libomp from gaussian_proc to imate
+# Copy libomp from glearn to imate
 if [[ ${gp_libomp} != '' ]] && [[ ${imate_libomp} != '' ]];
 then
-    # Copy libomp of gaussian_proc package into imate package
+    # Copy libomp of glearn package into imate package
     cp -f ${gp_libomp} ${imate_libomp_dir}
     status=$?
     if [ $status -eq 0 ]; then

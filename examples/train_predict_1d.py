@@ -15,15 +15,15 @@
 
 import sys
 import numpy
-from gaussian_proc.sample_data import generate_points, generate_data
-from gaussian_proc.mean import LinearModel
-from gaussian_proc.kernels import Matern, Exponential, SquareExponential, \
+from glearn.sample_data import generate_points, generate_data
+from glearn.mean import LinearModel
+from glearn.kernels import Matern, Exponential, SquareExponential, \
         RationalQuadratic, Linear
-from gaussian_proc.priors import Uniform, Cauchy, StudentT, Erlang, \
+from glearn.priors import Uniform, Cauchy, StudentT, Erlang, \
         Gamma, InverseGamma, Normal, BetaPrime
-from gaussian_proc import Correlation
-from gaussian_proc import Covariance
-from gaussian_proc import GaussianProcess
+from glearn import Correlation
+from glearn import Covariance
+from glearn import GaussianProcess
 
 
 # ====
@@ -82,9 +82,9 @@ def main():
     # kernel = RationalQuadratic()
 
     # Correlation
-    # cor = Correlation(points, kernel=kernel, scale=0.07, sparse=False)
+    cor = Correlation(points, kernel=kernel, scale=0.07, sparse=False)
     # cor = Correlation(points, kernel=kernel, sparse=False)
-    cor = Correlation(points, kernel=kernel, scale=scale_prior, sparse=False)
+    # cor = Correlation(points, kernel=kernel, scale=scale_prior, sparse=False)
     # cor.plot()
 
     # Covariance

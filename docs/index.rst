@@ -22,7 +22,7 @@ Interactive Tutorial
 
 |binder|
 
-Launch an online interactive tutorial in `Jupyter notebook <https://mybinder.org/v2/gh/ameli/gaussian_process/HEAD?filepath=notebooks%2FSpecial%20Functions.ipynb>`_.
+Launch an online interactive tutorial in `Jupyter notebook <https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2FSpecial%20Functions.ipynb>`_.
 
 .. toctree::
     :maxdepth: 1
@@ -52,23 +52,23 @@ Launch an online interactive tutorial in `Jupyter notebook <https://mybinder.org
 ..    :recursive:
 ..    :nosignatures:
 ..
-..    gaussian_process
+..    glearn
 
 =====
 Links
 =====
 
-* `Package on Anaconda Cloud <https://anaconda.org/s-ameli/gaussian_process>`_
-* `Package on PyPi <https://pypi.org/project/gaussian_process/>`_
-* `Source code on Github <https://github.com/ameli/gaussian_process>`_
-.. * `Interactive Jupyter notebook <https://mybinder.org/v2/gh/ameli/gaussian_process/HEAD?filepath=notebooks%2FSpecial%20Functions.ipynb>`_.
-.. * `API <https://ameli.github.io/gaussian_process/_modules/modules.html>`_
+* `Package on Anaconda Cloud <https://anaconda.org/s-ameli/glearn>`_
+* `Package on PyPi <https://pypi.org/project/glearn/>`_
+* `Source code on Github <https://github.com/ameli/glearn>`_
+.. * `Interactive Jupyter notebook <https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2FSpecial%20Functions.ipynb>`_.
+.. * `API <https://ameli.github.io/glearn/_modules/modules.html>`_
 
 =================
 How to Contribute
 =================
 
-We welcome contributions via `Github's pull request <https://github.com/ameli/gaussian_process/pulls>`_. If you do not feel comfortable modifying the code, we also welcome feature request and bug report as `Github issues <https://github.com/ameli/gaussian_process/issues>`_.
+We welcome contributions via `Github's pull request <https://github.com/ameli/glearn/pulls>`_. If you do not feel comfortable modifying the code, we also welcome feature request and bug report as `Github issues <https://github.com/ameli/glearn/issues>`_.
 
 ================
 Related Packages
@@ -98,28 +98,28 @@ Indices and tables
 * :ref:`search`
 
 
-.. |codecov-devel| image:: https://img.shields.io/codecov/c/github/ameli/gaussian_process
-   :target: https://codecov.io/gh/ameli/gaussian_process
-.. |docs| image:: https://github.com/ameli/gaussian_process/workflows/docs/badge.svg
-   :target: https://ameli.github.io/gaussian_process/index.html
-.. |licence| image:: https://img.shields.io/github/license/ameli/gaussian_process
+.. |codecov-devel| image:: https://img.shields.io/codecov/c/github/ameli/glearn
+   :target: https://codecov.io/gh/ameli/glearn
+.. |docs| image:: https://github.com/ameli/glearn/workflows/docs/badge.svg
+   :target: https://ameli.github.io/glearn/index.html
+.. |licence| image:: https://img.shields.io/github/license/ameli/glearn
    :target: https://opensource.org/licenses/MIT
-.. |travis-devel-linux| image:: https://img.shields.io/travis/com/ameli/gaussian_process?env=BADGE=linux&label=build&branch=main
-   :target: https://travis-ci.com/github/ameli/gaussian_process
-.. |travis-devel-osx| image:: https://img.shields.io/travis/com/ameli/gaussian_process?env=BADGE=osx&label=build&branch=main
-   :target: https://travis-ci.com/github/ameli/gaussian_process
-.. |travis-devel-windows| image:: https://img.shields.io/travis/com/ameli/gaussian_process?env=BADGE=windows&label=build&branch=main
-   :target: https://travis-ci.com/github/ameli/gaussian_process
-.. |implementation| image:: https://img.shields.io/pypi/implementation/gaussian_process
-.. |pyversions| image:: https://img.shields.io/pypi/pyversions/gaussian_process
-.. |format| image:: https://img.shields.io/pypi/format/gaussian_process
-.. |pypi| image:: https://img.shields.io/pypi/v/gaussian_process
+.. |travis-devel-linux| image:: https://img.shields.io/travis/com/ameli/glearn?env=BADGE=linux&label=build&branch=main
+   :target: https://travis-ci.com/github/ameli/glearn
+.. |travis-devel-osx| image:: https://img.shields.io/travis/com/ameli/glearn?env=BADGE=osx&label=build&branch=main
+   :target: https://travis-ci.com/github/ameli/glearn
+.. |travis-devel-windows| image:: https://img.shields.io/travis/com/ameli/glearn?env=BADGE=windows&label=build&branch=main
+   :target: https://travis-ci.com/github/ameli/glearn
+.. |implementation| image:: https://img.shields.io/pypi/implementation/glearn
+.. |pyversions| image:: https://img.shields.io/pypi/pyversions/glearn
+.. |format| image:: https://img.shields.io/pypi/format/glearn
+.. |pypi| image:: https://img.shields.io/pypi/v/glearn
    :target: https://pypi.org/project/gaussian-process/
-.. |conda| image:: https://anaconda.org/s-ameli/gaussian_process/badges/installer/conda.svg
-   :target: https://anaconda.org/s-ameli/gaussian_process
-.. |platforms| image:: https://img.shields.io/conda/pn/s-ameli/gaussian_process?color=orange?label=platforms
-   :target: https://anaconda.org/s-ameli/gaussian_process
-.. |conda-version| image:: https://img.shields.io/conda/v/s-ameli/gaussian_process
-   :target: https://anaconda.org/s-ameli/gaussian_process
+.. |conda| image:: https://anaconda.org/s-ameli/glearn/badges/installer/conda.svg
+   :target: https://anaconda.org/s-ameli/glearn
+.. |platforms| image:: https://img.shields.io/conda/pn/s-ameli/glearn?color=orange?label=platforms
+   :target: https://anaconda.org/s-ameli/glearn
+.. |conda-version| image:: https://img.shields.io/conda/v/s-ameli/glearn
+   :target: https://anaconda.org/s-ameli/glearn
 .. |binder| image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/ameli/gaussian_process/HEAD?filepath=notebooks%2FSpecial%20Functions.ipynb
+   :target: https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2FSpecial%20Functions.ipynb

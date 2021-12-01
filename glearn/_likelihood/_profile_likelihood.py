@@ -317,7 +317,7 @@ class ProfileLikelihood(BaseLikelihood):
         :param cov: An object of class :class:`Covariance` which represents
             the operator :math:`\\sigma^2 \\mathbf{K} +
             \\sigma_0^2 \\mathbf{I}`.
-        :type cov: gaussian_proc.Covariance
+        :type cov: glearn.Covariance
 
         :param Binv: The inverse of matrix
             :math:`\\mathbf{B} = \\mathbf{X}^{\\intercal} \\mathbf{Y}`.
@@ -1167,7 +1167,10 @@ class ProfileLikelihood(BaseLikelihood):
         # derivative of ell w.r.t log_eta should be taken into account.
         if self.use_log_eta:
             eta = self._hyperparam_to_eta(hyperparam)
-            dell_deta = jacobian_[0]
+            if numpy.isscalar(jacobian_):
+                dell_deta = jacobian_
+            else:
+                dell_deta = jacobian_[0]
 
             # Convert second derivative to log scale (Note: dell_deta is
             # already in log scale)

@@ -166,7 +166,7 @@ jobs:
             # - name: Test (in Unix)
             #   if: runner.os != 'Windows'
             #   run: |
-            #       mv gaussian_proc gaussian_proc-DoNotImport
+            #       mv glearn glearn-DoNotImport
             #       export PATH="$HOME/miniconda/bin:$PATH"
             #       source $(conda info --root)/etc/profile.d/conda.sh
             #       
@@ -199,7 +199,7 @@ jobs:
             - name: Test
               shell: bash -l {0}
               run: |
-                  mv gaussian_proc gaussian_proc-DoNotImport
+                  mv glearn glearn-DoNotImport
                   rm setup.cfg
                   conda install -c s-ameli traceinv -y
                   conda install pytest -y

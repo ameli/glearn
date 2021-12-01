@@ -1029,7 +1029,7 @@ def cythonize_extensions(extensions):
 def main(argv):
 
     directory = os.path.dirname(os.path.realpath(__file__))
-    package_name = "gaussian_proc"
+    package_name = "glearn"
 
     # Version
     version_dummy = {}
@@ -1064,7 +1064,7 @@ def main(argv):
     description = 'Gaussian process regression'
 
     # URLs
-    url = 'https://github.com/ameli/gaussian_proc'
+    url = 'https://github.com/ameli/glearn'
     download_url = url + '/archive/main.zip'
     documentation_url = url + '/blob/main/README.rst'
     tracker_url = url + '/issues'

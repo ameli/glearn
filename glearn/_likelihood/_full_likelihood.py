@@ -299,7 +299,7 @@ class FullLikelihood(BaseLikelihood):
         :param cov: An object of class :class:`Covariance` which represents
             the operator :math:`\\sigma^2 \\mathbf{K} +
             \\sigma_0^2 \\mathbf{I}`.
-        :type cov: gaussian_proc.Covariance
+        :type cov: glearn.Covariance
 
         :param Binv: The inverse of matrix
             :math:`\\mathbf{B} = \\mathbf{X}^{\\intercal} \\mathbf{Y}`.
