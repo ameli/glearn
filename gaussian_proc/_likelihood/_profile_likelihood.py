@@ -241,23 +241,26 @@ class ProfileLikelihood(BaseLikelihood):
         """
 
         if numpy.isscalar(hyperparam):
-            hyperparam = numpy.array([hyperparam], dtype=float)
+            hyperparam_ = numpy.array([hyperparam], dtype=float)
         elif isinstance(hyperparam, list):
-            hyperparam = numpy.array(hyperparam, dtype=float)
+            hyperparam_ = numpy.array(hyperparam, dtype=float)
+        else:
+            # Copy to avoid overwriting input
+            hyperparam_ = hyperparam.copy()
 
         # Convert eta to log10 of eta
         if self.use_log_eta:
-            eta = hyperparam[0]
-            hyperparam[0] = self._eta_to_hyperparam(eta)
+            eta = hyperparam_[0]
+            hyperparam_[0] = self._eta_to_hyperparam(eta)
 
         # Convert scale to log10 of scale
-        if hyperparam.size > self.scale_index:
+        if hyperparam_.size > self.scale_index:
             if self.use_log_scale:
-                scale = hyperparam[self.scale_index:]
-                hyperparam[self.scale_index:] = \
+                scale = hyperparam_[self.scale_index:]
+                hyperparam_[self.scale_index:] = \
                     self._scale_to_hyperparam(scale)
 
-        return hyperparam
+        return hyperparam_
 
     # ==================
     # extract hyperparam
@@ -1101,7 +1104,7 @@ class ProfileLikelihood(BaseLikelihood):
         # Since we use xi = log_eta instead of eta as the variable, the
         # derivative of ell w.r.t log_eta should be taken into account.
         if self.use_log_eta:
-            eta = self._hyperparam_to_eta(hyperparam[0])
+            eta = self._hyperparam_to_eta(hyperparam)
             dell_deta = dell_deta * eta * numpy.log(10.0)
 
         jacobian = dell_deta
@@ -1163,7 +1166,7 @@ class ProfileLikelihood(BaseLikelihood):
         # Since we use xi = log_eta instead of eta as the variable, the
         # derivative of ell w.r.t log_eta should be taken into account.
         if self.use_log_eta:
-            eta = self._hyperparam_to_eta(hyperparam[0])
+            eta = self._hyperparam_to_eta(hyperparam)
             dell_deta = jacobian_[0]
 
             # Convert second derivative to log scale (Note: dell_deta is
@@ -1202,7 +1205,7 @@ class ProfileLikelihood(BaseLikelihood):
             d2ell_deta_dscale = self._likelihood_der2_mixed(hyperparam)
 
             if self.use_log_eta:
-                eta = self._hyperparam_to_eta(hyperparam[0])
+                eta = self._hyperparam_to_eta(hyperparam)
                 for p in range(scale.size):
                     d2ell_deta_dscale[0, p] = d2ell_deta_dscale[0, p] * \
                         eta * numpy.log(10.0)

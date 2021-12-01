@@ -102,11 +102,12 @@ def main():
     profile_hyperparam = 'var'
     # profile_hyperparam = 'var_noise'
 
-    # optimization_method = 'chandrupatla'  # requires jacobian
-    # optimization_method = 'Nelder-Mead'     # requires func
+    optimization_method = 'chandrupatla'  # requires jacobian
+    # optimization_method = 'brentq'         # requires jacobian
+    # optimization_method = 'Nelder-Mead'   # requires func
     # optimization_method = 'BFGS'          # requires func, jacobian
     # optimization_method = 'CG'            # requires func, jacobian
-    optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
+    # optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
     # optimization_method = 'dogleg'        # requires func, jacobian, hessian
     # optimization_method = 'trust-exact'   # requires func, jacobian, hessian
     # optimization_method = 'trust-ncg'     # requires func, jacobian, hessian

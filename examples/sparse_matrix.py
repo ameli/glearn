@@ -33,9 +33,9 @@ from gaussian_proc import GaussianProcess
 def main():
 
     # Generate data points
-    dimension = 1
+    dimension = 2
     grid = True
-    num_points = 50
+    num_points = 100
     points = generate_points(num_points, dimension, grid)
 
 
@@ -79,8 +79,8 @@ def main():
     # kernel.plot()
 
     # Correlation
-    cor = Correlation(points, kernel=kernel, scale=0.05, sparse=True,
-                      density=1e-1, kernel_threshold=0.03, verbose=False)
+    cor = Correlation(points, kernel=kernel, scale=0.02, sparse=True,
+                      density=1e-1, kernel_threshold=0.09, verbose=True)
     # cor = Correlation(points, kernel=kernel, sparse=False)
     # cor = Correlation(points, kernel=kernel, scale=scale_prior, sparse=True,
     #                   density=1e-3)
@@ -88,9 +88,9 @@ def main():
 
     # Covariance
     # imate_method = 'eigenvalue'
-    imate_method = 'cholesky'
+    # imate_method = 'cholesky'
     # imate_method = 'hutchinson'
-    # imate_method = 'slq'
+    imate_method = 'slq'
     cov = Covariance(cor, imate_method=imate_method)
 
     # Gaussian process
@@ -101,11 +101,12 @@ def main():
     profile_hyperparam = 'var'
     # profile_hyperparam = 'var_noise'
 
-    # optimization_method = 'chandrupatla'  # requires jacobian
+    optimization_method = 'chandrupatla'  # requires jacobian
+    # optimization_method = 'brentq'         # requires jacobian
     # optimization_method = 'Nelder-Mead'     # requires func
     # optimization_method = 'BFGS'          # requires func, jacobian
     # optimization_method = 'CG'            # requires func, jacobian
-    optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
+    # optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
     # optimization_method = 'dogleg'        # requires func, jacobian, hessian
     # optimization_method = 'trust-exact'   # requires func, jacobian, hessian
     # optimization_method = 'trust-ncg'     # requires func, jacobian, hessian
@@ -123,7 +124,7 @@ def main():
     # gp.train(z, options=options, plot=False)
     result = gp.train(z, profile_hyperparam=profile_hyperparam,
                       log_hyperparam=True,
-                      optimization_method=optimization_method, tol=1e-7,
+                      optimization_method=optimization_method, tol=1e-8,
                       hyperparam_guess=hyperparam_guess, verbose=True,
                       plot=False)
 
@@ -134,14 +135,14 @@ def main():
     # gp.plot_likelihood()
 
     # Generate test points
-    num_points = 40
-    dimension = 1
-    grid = True
-    test_points = generate_points(num_points, dimension, grid)
-
-    # Predict
-    z_star_mean, z_star_cov = gp.predict(test_points, cov=True, plot=True,
-                                         confidence_level=0.95)
+    # dimension = 2
+    # num_points = 40
+    # grid = True
+    # test_points = generate_points(num_points, dimension, grid)
+    #
+    # # Predict
+    # z_star_mean, z_star_cov = gp.predict(test_points, cov=True, plot=True,
+    #                                      confidence_level=0.95)
 
 
 # ===========

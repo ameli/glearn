@@ -13,10 +13,9 @@
 
 import numpy
 from functools import partial
-from ._root_finding import find_interval_with_sign_change, chandrupatla_method
 from .._likelihood.likelihood import likelihood
 from .._likelihood._profile_likelihood import ProfileLikelihood
-from ._minimize import minimize
+from .._optimize import minimize, root
 import warnings
 
 
@@ -148,6 +147,8 @@ class Posterior(object):
                                  '"scale_index" of the hyperparam of the ' +
                                  ' likelihood  method.')
 
+            if hyperparam.size > scale_index:
+
             # Extract a position of hyperparam that is related to scale. Note
             # that hyperparam may or may not be in log form.
             hyperparam_scale = hyperparam[scale_index:]
@@ -240,28 +241,34 @@ class Posterior(object):
         self.num_jac_eval = 0
         self.num_hes_eval = 0
 
-        # Convert hyperparam to log of hyperparam (if enabled in configuration)
-        hyperparam_guess = self.likelihood.hyperparam_to_log_hyperparam(
+        # Convert hyperparam to log of hyperparam. Note that if use_log_scale,
+        # use_log_eta, or use_log_sigmas are not True, the output is not
+        # converted to log, despite we named the outout with "log_" prefix.
+        log_hyperparam_guess = self.likelihood.hyperparam_to_log_hyperparam(
                 hyperparam_guess)
 
-        if optimization_method == 'chandrupatla':
+        if optimization_method in ['chandrupatla', 'brent']:
 
             if not isinstance(self.likelihood, ProfileLikelihood):
-                raise ValueError('"chandrupartla" method can only be ' +
-                                 'applied to "ProfileLikelihood" class.')
+                raise ValueError('"%s" method can ' % optimization_method +
+                                 'only be used when variance profiling is ' +
+                                 'enabled. Set "profile_hyperparam" to "var".')
 
             if (not numpy.isscalar(hyperparam_guess)) and \
                     (len(hyperparam_guess) > 1):
 
-                warnings.warn('"chandrupatla" method does not optimize ' +
-                              '"scale". The "distance scale in the given ' +
-                              '"hyperparam_guess" will be ignored. To ' +
-                              'optimize distance scale with "chandrupatla"' +
-                              'method, set "profile_eta" to True.')
+                warnings.warn('"%s" method does not ' % optimization_method +
+                              'optimize "scale". The "distance scale in ' +
+                              'the given "hyperparam_guess" will be ignored.' +
+                              ' To optimize scale with ' +
+                              '"%s"' % optimization_method + 'method, set ' +
+                              '"profile_hyperparam" to "var".')
 
-                # Extract eta and scale from hyperparam
+                # Extract log_eta and scale from hyperparam. log_eta is either
+                # log of eta (if self.likelihood.use_log_eta is True), or eta
+                # itself, despite for both cases we named it by "log_" prefix.
                 scale_index = self.likelihood.scale_index
-                eta_guess = hyperparam_guess[:scale_index]
+                log_eta_guess = log_hyperparam_guess[:scale_index]
                 scale_guess = hyperparam_guess[scale_index:]
 
                 # Set scale in likelihood object
@@ -271,38 +278,80 @@ class Posterior(object):
 
             # Note: When using interpolation, make sure the interval below is
             # exactly the end points of eta_i, not less or more.
-            min_eta_guess = numpy.min([1e-4, eta_guess * 1e-2])
-            max_eta_guess = numpy.max([1e+3, eta_guess * 1e+2])
-            interval_eta = [min_eta_guess, max_eta_guess]
+            if self.likelihood.use_log_eta:
+                # x is log of eta
+                min_log_eta_guess = numpy.min([-4, log_eta_guess - 2])
+                max_log_eta_guess = numpy.max([+3, log_eta_guess + 2])
+            else:
+                # x is just eta
+                min_log_eta_guess = numpy.min([1e-4, log_eta_guess * 1e-2])
+                max_log_eta_guess = numpy.max([1e+3, log_eta_guess * 1e+2])
 
-            # Using root finding method on the first derivative w.r.t eta
-            result = self._find_likelihood_der1_zeros(interval_eta)
+            # Interval to search for optimal value of x (eta or log of eta)
+            interval = [min_log_eta_guess, max_log_eta_guess]
 
-            # Finding the maxima. This isn't necessary and affects run time
-            result['optimization']['max_likelihood'] = \
-                self.likelihood.likelihood(
-                        False, result['hyperparam']['eta'])
-
-            # The distance scale used in this method is the same as its guess.
-            result['hyperparam']['scale'] = \
-                self.likelihood.mixed_cor.get_scale()
-
-        else:
-            # Partial function of likelihood (with minus to make maximization
-            # to a minimization).
-            sign_switch = True
+            # Partial function of posterior
+            sign_switch = False
             posterior_partial_func = partial(self._posterior, sign_switch)
 
-            # Partial function of Jacobian of likelihood (with minus sign)
+            # Partial function of Jacobian of posterior (with minus sign)
             jacobian_partial_func = partial(self._posterior_jacobian,
                                             sign_switch)
 
-            # Partial function of Hessian of likelihood (with minus sign)
+            # Partial function of Hessian of posterior (with minus sign)
+            hessian_partial_func = partial(self._posterior_hessian,
+                                           sign_switch)
+
+            # Find zeros of the Jacobian (input fun is Jacobian, and the
+            # Jacobian of the input is the Hessian).
+            res = root(jacobian_partial_func, interval,
+                       jac=hessian_partial_func, verbose=verbose)
+            x = res['optimization']['state_vector']
+
+            # Check second derivative
+            hessian = hessian_partial_func(x)
+            if hessian < 0:
+                success = True
+                message = 'Root is a maxima.'
+            else:
+                success = False
+                message = 'Root is not a maxima.'
+            res['optimization']['message'] = message
+            res['optimization']['status'] = \
+                res['optimization']['success'] and success
+
+            # Find sigma and sigma0, eta, and scale
+            eta = self.likelihood._hyprparam_to_eta(x)
+            sigma, sigma0 = self.likelihood._find_optimal_sigma_sigma0(x)
+            scale = self.likelihood.mixed_cor.get_scale()
+
+            # Finding the maxima (not necessary). Only evaluated when verbose.
+            if verbose:
+                max_fun = posterior_partial_func(x)
+            else:
+                max_fun = 'not evaluated'
+            res['optimization']['max_fun'] = max_fun
+
+            # The distance scale used in this method is the same as its guess.
+            res['hyperparam']['scale'] = \
+                self.likelihood.mixed_cor.get_scale()
+
+        else:
+            # Partial function of posterior (with minus to turn maximization
+            # to a minimization problem).
+            sign_switch = True
+            posterior_partial_func = partial(self._posterior, sign_switch)
+
+            # Partial function of Jacobian of posterior (with minus sign)
+            jacobian_partial_func = partial(self._posterior_jacobian,
+                                            sign_switch)
+
+            # Partial function of Hessian of posterior (with minus sign)
             hessian_partial_func = partial(self._posterior_hessian,
                                            sign_switch)
 
             # Minimize
-            res = minimize(posterior_partial_func, hyperparam_guess,
+            res = minimize(posterior_partial_func, log_hyperparam_guess,
                            method=optimization_method, tol=tol,
                            use_rel_error=use_rel_error,
                            jac=jacobian_partial_func,
@@ -312,142 +361,19 @@ class Posterior(object):
             sigma, sigma0, eta, scale = self.likelihood.extract_hyperparam(
                     res['optimization']['state_vector'])
 
-            res['hyperparam']['sigma'] = sigma
-            res['hyperparam']['sigma0'] = sigma0
-            res['hyperparam']['eta'] = eta
-            res['hyperparam']['scale'] = scale
-
-            # Number of function, jacobian, and hessian evaluations
-            res['optimization']['num_fun_eval'] = self.num_fun_eval
-            res['optimization']['num_jac_eval'] = self.num_jac_eval
-            res['optimization']['num_hes_eval'] = self.num_hes_eval
-
-        return res
-
-    # ==========================
-    # find likelihood der1 zeros
-    # ==========================
-
-    def _find_likelihood_der1_zeros(
-            self,
-            interval_eta,
-            tol=1e-6,
-            max_iterations=100,
-            num_bracket_trials=3):
-        """
-        root finding of the derivative of ell.
-
-        The log likelihood function is implicitly a function of eta. We have
-        substituted the value of optimal sigma, which itself is a function of
-        eta.
-        """
-
-        # Find an interval that the function changes sign before finding its
-        # root (known as bracketing the function)
-        log_eta_start = numpy.log10(interval_eta[0])
-        log_eta_end = numpy.log10(interval_eta[1])
-
-        # Initial points
-        bracket = [log_eta_start, log_eta_end]
-        bracket_found, bracket, bracket_values = \
-            find_interval_with_sign_change(self._likelihood_der1_eta, bracket,
-                                           num_bracket_trials, args=(), )
-
-        if bracket_found:
-            # There is a sign change in the interval of eta. Find root of ell
-            # derivative
-
-            # Find roots using Brent method
-            # method = 'brentq'
-            # res = scipy.optimize.root_scalar(self._likelihood_der1_eta,
-            #                                  bracket=bracket, method=method,
-            #                                  xtol=tol)
-            # print('Iter: %d, Eval: %d, Converged: %s'
-            #         % (res.iterations, res.function_calls, res.converged))
-
-            # Find roots using Chandraputala method
-            res = chandrupatla_method(self._likelihood_der1_eta, bracket,
-                                      bracket_values, verbose=False, eps_m=tol,
-                                      eps_a=tol, maxiter=max_iterations)
-
-            # Extract results
-            # eta = self._hyperparam_to_eta(res.root)   # Use with Brent
-            eta = self._hyperparam_to_eta(res['root'])  # Use with Chandrupatla
-            sigma, sigma0 = self._find_optimal_sigma_sigma0(eta)
-            iter = res['iterations']
-
-            # Check second derivative
-            # success = True
-            # d2ell_deta2 = self._likelihood_der2_eta(eta)
-            # if d2ell_deta2 < 0:
-            #     success = True
-            # else:
-            #     success = False
-
-        else:
-            # bracket with sign change was not found.
-            iter = 0
-
-            # Evaluate the function in intervals
-            eta_left = bracket[0]
-            eta_right = bracket[1]
-            dell_deta_left = bracket_values[0]
-            dell_deta_right = bracket_values[1]
-
-            # Second derivative of log likelihood at eta = zero, using either
-            # of the two methods below:
-            eta_zero = 0.0
-            # method 1: directly from analytical equation
-            d2ell_deta2_zero_eta = self._likelihood_der2_eta(eta_zero)
-
-            # method 2: using forward differencing from first derivative
-            # dell_deta_zero_eta = self._likelihood_der1_eta(
-            #         numpy.log10(eta_zero))
-            # d2ell_deta2_zero_eta = \
-            #         (dell_deta_lowest_eta - dell_deta_zero_eta) / eta_lowest
-
-            # print('dL/deta   at eta = 0.0:\t %0.2f'%dell_deta_zero_eta)
-            print('dL/deta   at eta = %0.2e:\t %0.2f'
-                  % (eta_left, dell_deta_left))
-            print('dL/deta   at eta = %0.2e:\t %0.16f'
-                  % (eta_right, dell_deta_right))
-            print('d2L/deta2 at eta = 0.0:\t %0.2f'
-                  % d2ell_deta2_zero_eta)
-
-            # No sign change. Can not find a root
-            if (dell_deta_left > 0) and (dell_deta_right > 0):
-                if d2ell_deta2_zero_eta > 0:
-                    eta = 0.0
-                else:
-                    eta = numpy.inf
-
-            elif (dell_deta_left < 0) and (dell_deta_right < 0):
-                if d2ell_deta2_zero_eta < 0:
-                    eta = 0.0
-                else:
-                    eta = numpy.inf
-
-            # Check eta
-            if not (eta == 0 or numpy.isinf(eta)):
-                raise ValueError('eta must be zero or inf at this point.')
-
-            # Find sigma and sigma0
-            sigma, sigma0 = self._find_optimal_sigma_sigma0(eta)
-
-        # Output dictionary
-        result = {
-            'hyperparam':
-            {
-                'sigma': sigma,
-                'sigma0': sigma0,
-                'eta': eta,
-                'scale': None
-            },
-            'optimization':
-            {
-                'max_likelihood': None,
-                'iter': iter
-            }
+        # Append optimal hyperparameter to the result dictionary
+        hyperparam = {
+            'sigma': sigma,
+            'sigma0': sigma0,
+            'eta': eta,
+            'scale': scale
         }
 
-        return result
+        res['hyperparam'] = hyperparam
+
+        # Modify number of function, jacobian, and hessian evaluations
+        res['optimization']['num_fun_eval'] = self.num_fun_eval
+        res['optimization']['num_jac_eval'] = self.num_jac_eval
+        res['optimization']['num_hes_eval'] = self.num_hes_eval
+
+        return res

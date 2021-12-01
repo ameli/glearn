@@ -15,13 +15,15 @@ import time
 import scipy.optimize
 from ._minimize_terminator import MinimizeTerminator, MinimizeTerminated
 
+__all__ = ['minimize']
+
 
 # ========
 # minimize
 # ========
 
 def minimize(
-        func,
+        fun,
         hyperparam_guess,
         method,
         tol,
@@ -30,11 +32,11 @@ def minimize(
         use_rel_error=True,
         verbose=False):
     """
-    Minimizes a function.
+    Minimizes a multivariate function.
     """
 
     # Minimize Terminator to gracefully terminate scipy.optimize.minimize once
-    # tolerance is reached
+    # tolerance is reached.
     minimize_terminator = MinimizeTerminator(tol, use_rel_error=use_rel_error,
                                              verbose=verbose)
 
@@ -49,16 +51,21 @@ def minimize(
     initial_wall_time = time.time()
     initial_proc_time = time.process_time()
 
+    # If use_rel_error is None, do not use callback function.
+    if use_rel_error is None:
+        callback = None
+    else:
+        callback = minimize_terminator.__call__
+
     try:
         # Local optimization method
-        res = scipy.optimize.minimize(func, hyperparam_guess, method=method,
+        res = scipy.optimize.minimize(fun, hyperparam_guess, method=method,
                                       tol=tol, jac=jac, hess=hess,
-                                      callback=minimize_terminator.__call__,
-                                      options=options)
+                                      callback=callback, options=options)
 
         # Extract results from Res output
         hyperparam = res.x
-        max_posterior = -res.fun
+        max_fun = -res.fun
         num_opt_iter = res.nit
         num_fun_eval = res.nfev
 
@@ -79,7 +86,7 @@ def minimize(
 
         # Extract results from MinimizeTerminator
         hyperparam = minimize_terminator.hyperparams[-1, :]
-        max_posterior = -func(hyperparam)
+        max_fun = -fun(hyperparam)
         num_opt_iter = minimize_terminator.counter
         num_fun_eval = None
         num_jac_eval = None
@@ -99,13 +106,6 @@ def minimize(
     proc_time = time.process_time() - initial_proc_time
 
     result = {
-        'hyperparam':
-        {
-            'sigma': None,
-            'sigma0': None,
-            'eta': None,
-            'scale': None
-        },
         'config':
         {
             'method': method,
@@ -116,7 +116,7 @@ def minimize(
         'optimization':
         {
             'state_vector': hyperparam,
-            'max_posterior': max_posterior,
+            'max_fun': max_fun,
             'num_opt_iter': num_opt_iter,
             'num_fun_eval': num_fun_eval,
             'num_jac_eval': num_jac_eval,

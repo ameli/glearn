@@ -193,6 +193,9 @@ class GaussianProcess(object):
             plot=False):
         """
         Finds the hyperparameters of the Gaussian process model.
+
+        Note: ``use_rel_error`` can be None, True, or False. When it is set to
+        None, the callback function for minimize is not used.
         """
 
         # Prepare or suggest hyperparameter guess
@@ -217,7 +220,7 @@ class GaussianProcess(object):
             plot_training_convergence(
                     self.posterior, self.training_result, verbose)
 
-        # Test
+        # TODO
         # if verbose:
         #     print_training_result(self.posterior, self.training_result)
 

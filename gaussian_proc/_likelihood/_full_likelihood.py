@@ -190,25 +190,28 @@ class FullLikelihood(BaseLikelihood):
         """
 
         if numpy.isscalar(hyperparam):
-            hyperparam = numpy.array([hyperparam], dtype=float)
+            hyperparam_ = numpy.array([hyperparam], dtype=float)
         elif isinstance(hyperparam, list):
-            hyperparam = numpy.array(hyperparam, dtype=float)
+            hyperparam_ = numpy.array(hyperparam, dtype=float)
+        else:
+            # Copy to avoid overwriting input
+            hyperparam_ = hyperparam.copy()
 
         # Convert eta to log10 of eta
         if self.use_log_sigmas:
-            sigma = hyperparam[0]
-            sigma0 = hyperparam[1]
-            hyperparam[:self.scale_index] = self._sigmas_to_hyperparam(
+            sigma = hyperparam_[0]
+            sigma0 = hyperparam_[1]
+            hyperparam_[:self.scale_index] = self._sigmas_to_hyperparam(
                     sigma, sigma0)
 
         # Convert scale to log10 of scale
-        if hyperparam.size > self.scale_index:
+        if hyperparam_.size > self.scale_index:
             if self.use_log_scale:
-                scale = hyperparam[self.scale_index:]
-                hyperparam[self.scale_index:] = \
+                scale = hyperparam_[self.scale_index:]
+                hyperparam_[self.scale_index:] = \
                     self._scale_to_hyperparam(scale)
 
-        return hyperparam
+        return hyperparam_
 
     # ==================
     # extract hyperparam
