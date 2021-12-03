@@ -27,6 +27,7 @@ def _find_bracket(
         fun,
         bracket,
         num_bracket_trials,
+        use_log,
         verbose=False):
     """
     Finds an interval ``[x0, x1]`` in which ``f(x0)`` and ``f(x1)`` have
@@ -57,7 +58,7 @@ def _find_bracket(
 
         if numpy.sign(f0) != numpy.sign(f1):
 
-            # bracket wad found
+            # bracket was found
             bracket_found = True
             bracket = [x0, x1]
             bracket_value = [f0, f1]
@@ -120,11 +121,17 @@ def _find_bracket(
                 x_new = x0*(1-t)+x1*t
                 f_new = fun(x_new)
 
+                print('!!!!!!!')
+                print(t)
+                print(f0)
+                print(f_new)
+                print(f1)
+
                 if numpy.sign(f0) != numpy.sign(f_new):
 
-                    # bracket wad found
+                    # bracket was found
                     bracket_found = True
-                    if numpy.abs(f0) > numpy.abs(f1):
+                    if t < 0:
                         bracket = [x_new, x0]
                         bracket_value = [f_new, f0]
                     else:
@@ -141,6 +148,7 @@ def _find_bracket(
                         f1 = f_new
                     else:
                         # Search left side outer interval in next iteration
+                        print('@@@@@@@@@@@@@')
                         x1 = x0
                         f1 = f0
                         x0 = x_new
@@ -162,12 +170,12 @@ def _find_bracket(
 
 def root(
         fun,
-        interval,
-        jac=None,
+        x_guess,
+        use_log=False,
         method='chandrupatla',
         tol=1e-6,
         max_iter=100,
-        num_bracket_trials=3,
+        num_bracket_trials=4,
         verbose=False):
     """
     Finds roots of a function. If the Jacobian is given, it also checks if the
@@ -183,14 +191,52 @@ def root(
     initial_wall_time = time.time()
     initial_proc_time = time.process_time()
 
-    # Initial interval
-    if not isinstance(interval, numpy.ndarray):
-        interval = numpy.array(interval, dtype=float)
+    # Ensure x_guess is a scalar
+    if not numpy.isscalar(x_guess):
+        if numpy.asarray(x_guess).size > 1:
+            raise ValueError('"x_guess" should be a 1d array.')
+        else:
+            x_guess = x_guess[0]
+
+    # Note: When using traceinv interpolation, make sure the interval below is
+    # exactly the end points of eta_i, not less or more.
+    window = 1.0
+    threshold = 4.0
+    if use_log:
+        # x is in the log scale
+        min_x_guess = numpy.max([-threshold, x_guess - window])
+        max_x_guess = numpy.min([threshold, x_guess + window])
+    else:
+        # x is not in the log scale
+        min_x_guess = numpy.max([10**(-threshold), x_guess * 10**(-window)])
+        max_x_guess = numpy.min([10**threshold, x_guess * 10**(window)])
+
+    # Interval to search for optimal value of x (eta or log of eta)
+    interval = numpy.array([min_x_guess, max_x_guess], dtype=float)
 
     # Search for bracket (an interval with sign-change)
     bracket_found, bracket, bracket_values = _find_bracket(
-            fun, interval, num_bracket_trials, verbose=verbose)
+            fun, interval, num_bracket_trials, use_log, verbose=verbose)
 
+    # If bracket was not found, check if fun at zero has opposite sign
+    if not bracket_found:
+
+        # Function value at zero
+        if use_log:
+            zero = -numpy.inf
+        else:
+            zero = 0.0
+        fun_zero = fun(zero)
+
+        # Function value at the left side of bracket
+        left_index = numpy.argmin(bracket)
+        fun_left = bracket_values[left_index]
+
+        if numpy.sign(fun_zero) * numpy.sign(fun_left):
+            bracket_found
+            bracket = [zero, bracket[left_index]]
+
+    # Find root based on whether the bracket was found or not.
     if bracket_found:
         # There is a sign change in the interval of eta. Find root of ell
         # derivative
@@ -219,45 +265,15 @@ def root(
 
     else:
         # bracket with sign change was not found.
+
+        # No algorithm iteration. Also num_fun_eval will be found in later.
         num_opt_iter = 0
-
-        # Evaluate the function in intervals
-        left = bracket[0]
-        right = bracket[1]
-        fun_left = bracket_values[0]
-        fun_right = bracket_values[1]
-
-        # Derivative of function at zero
-        zero = 0.0
-        if jac is not None:
-            jac_zero = jac(zero)
-        else:
-            # Use finite difference to estimate jacobian
-            epsilon = 1e-3
-            jac_zero = (fun(zero + epsilon) - fun(zero)) / epsilon
+        num_fun_eval = None
+        success = True
 
         if verbose:
-            print('Cannot find bracket.')
-            print('f(%0.2e) = %0.2f' % (left, fun_left))
-            print('f(%0.2e) = %0.2f' % (right, fun_right))
-            print('df/dx(0) = %0.2f' % (jac_zero))
-
-        # No sign change. Can not find a root
-        if (fun_left > 0) and (fun_right > 0):
-            if jac_zero > 0:
-                x = 0.0  # TODO
-            else:
-                x = numpy.inf
-
-        elif (fun_left < 0) and (fun_right < 0):
-            if jac_zero < 0:
-                x = 0.0  # TODO
-            else:
-                x = numpy.inf
-
-        # Check x
-        if not (x == 0 or numpy.isinf(x)):
-            raise ValueError('x must be zero or inf at this point.')
+            print('No bracket with sign change was found. Assume root at inf.')
+            x = numpy.inf
 
     # Adding time to the results
     wall_time = time.time() - initial_wall_time
@@ -278,7 +294,7 @@ def root(
             'max_fun': 'not evaluated',
             'num_opt_iter': num_opt_iter,
             'num_fun_eval': None,
-            'num_jac_eval': num_fun_eval,
+            'num_jac_eval': num_fun_eval,  # fun here is Jacobian of posterior
             'num_hes_eval': None,
             'message': '',
             'success': success

@@ -32,6 +32,9 @@ from glearn import GaussianProcess
 
 def main():
 
+    # For reproducibility
+    numpy.random.seed(2)
+
     # Generate data points
     # num_points = 30
     # num_points = 50
@@ -125,9 +128,13 @@ def main():
     # gp.train(z, options=options, plot=False)
     result = gp.train(z_noisy, profile_hyperparam=profile_hyperparam,
                       log_hyperparam=True,
-                      optimization_method=optimization_method, tol=1e-3,
+                      optimization_method=optimization_method, tol=1e-6,
                       hyperparam_guess=hyperparam_guess, verbose=True,
                       plot=False)
+
+    import pprint
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(result)
 
     # gp.plot_likelihood()
 
@@ -142,7 +149,7 @@ def main():
     z_true = generate_data(test_points, 0.0, plot=False)
 
     # Predict
-    z_star_mean, z_star_cov = gp.predict(test_points, cov=True, plot=True,
+    z_star_mean, z_star_cov = gp.predict(test_points, cov=True, plot=False,
                                          confidence_level=0.95,
                                          true_data=z_true)
 

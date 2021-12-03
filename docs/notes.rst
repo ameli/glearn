@@ -23,35 +23,18 @@ Asymptotic Relations
 --------------------
 
 * in ``_profile_likelihood.py`` in ``_compute_assymptotre_der1_eta``, the
-  matrix ``R - I-Q`` is dense. Instead of computing it directly, perform the
+  matrix ``R = I-Q`` is dense. Instead of computing it directly, perform the
   dot product of ``R`` w.r.t a vector. For trace of ``N``, use cyclic property
   of trace.
-* Use asymptotic derivatives w.r.t eta to find ``eta_guess`` (used in
-  ``hyperparam_guess``) when user does not provide a guess for eta.
 
-  How to modify implementation:
-
-  Create a function ``asymptote_polynomial`` to find the coefficients
-  [a0, a1, a2, a3] for a specific matrix ``K``. If ``K`` (or scale parameter)
-  changes, these polynomial coefficients have to be recalculated. The change
-  can be detected by ``self.asymp_polynomial_hyperparam`` variable.
-
-  Also, add the option of ``asymp_order`` to be 1 or 2. The polynomial of order
-  1 is [a0, a1] and the polynomial of order 2 is [a0, a1, a2, a3].
-
-  Add the option ``use_asymptotic``. If True, whenever eta is larger than the
+* Add the option ``use_asymptotic``. If True, whenever eta is larger than the
   largest eigenvalue of K, computation of ell, ell_jacobian and ell_hessian
   should switch to their asymptotic relation. So create these functions:
-  * ``asymp_likelihood``
-  * ``asymp_likelihood_der1_eta``
-  * ``asymp_likelihood_der2_eta``
-
+      + ``asymp_likelihood``
+      + ``asymp_likelihood_der1_eta``
+      + ``asymp_likelihood_der2_eta``
   and in ``likelihood``, ``likelihood_jacobian``, and ``likelihood_hessian``,
   refer to these functions.
-
-  Also, create a function ``asymp_der_1_zero`` to find zero of the polynomial.
-  This is not used during optimization calls, rather, used for the initial
-  hyperparam_guess.
 
 ------------------
 measure imate time

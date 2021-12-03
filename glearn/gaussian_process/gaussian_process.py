@@ -161,13 +161,22 @@ class GaussianProcess(object):
         # Other hyperparameters of covariance (except scale)
         if profile_hyperparam == 'none':
             # hyperparameters are sigma and sigma0
-            sigma_guess = 0.1  # TODO
-            sigma0_guess = 0.1  # TODO
+            sigma_guess = 0.1
+            sigma0_guess = 0.1
             hyperparam_guess = numpy.r_[sigma_guess, sigma0_guess, scale_guess]
 
         elif profile_hyperparam == 'var':
-            # hyperparameter is eta
-            eta_guess = 1.0  # TODO
+            # hyperparameter is eta. Use asymptotic relations to guess eta
+            asym_degree = 2
+            asym_maxima = self.posterior.likelihood.asymptotic_maxima(
+                    degree=asym_degree)
+
+            if asym_maxima != []:
+                eta_guess = asym_maxima[0]
+            else:
+                # In case no asymptotic root was found (all negative, complex)
+                eta_guess = 1.0
+
             hyperparam_guess = numpy.r_[eta_guess, scale_guess]
 
         elif profile_hyperparam == 'var_noise':
@@ -198,17 +207,18 @@ class GaussianProcess(object):
         None, the callback function for minimize is not used.
         """
 
+        # Create a posterior object. Note that self.posterior should be defined
+        # before calling self._check_hyperparam_guess
+        self.posterior = Posterior(self.mean, self.cov, z,
+                                   profile_hyperparam=profile_hyperparam,
+                                   log_hyperparam=log_hyperparam)
+
         # Prepare or suggest hyperparameter guess
         if hyperparam_guess is not None:
             self._check_hyperparam_guess(hyperparam_guess, profile_hyperparam)
         else:
             hyperparam_guess = self._suggest_hyperparam_guess(
                     profile_hyperparam)
-
-        # Create a posterior object
-        self.posterior = Posterior(self.mean, self.cov, z,
-                                   profile_hyperparam=profile_hyperparam,
-                                   log_hyperparam=log_hyperparam)
 
         # Maximize posterior w.r.t hyperparameters
         self.training_result = self.posterior.maximize_posterior(

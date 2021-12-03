@@ -12,10 +12,6 @@
 # =======
 
 import numpy
-import scipy
-import scipy.linalg
-import scipy.sparse
-import scipy.sparse.linalg
 import imate
 from ._base_likelihood import BaseLikelihood
 
@@ -102,6 +98,10 @@ class ProfileLikelihood(BaseLikelihood):
         self.sigma_hyperparam = None
         self.MMz_hyperparam = None
         self.Kninv_KnpKninv_hyperparam = None
+
+        # Asymptotic variables
+        self.asym_poly = None
+        self.asym_roots = None
 
     # ================
     # reset attributes
@@ -274,12 +274,17 @@ class ProfileLikelihood(BaseLikelihood):
         not.
         """
 
-        eta = self._hyperparam_to_eta(hyperparam[0])
+        if numpy.isscalar(hyperparam):
+            hyperparam_ = numpy.array([hyperparam], dtype=float)
+        else:
+            hyperparam_ = hyperparam
 
-        sigma, sigma0 = self._find_optimal_sigma_sigma0(hyperparam)
+        eta = self._hyperparam_to_eta(hyperparam_[0])
 
-        if hyperparam.size > self.scale_index:
-            scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
+        sigma, sigma0 = self._find_optimal_sigma_sigma0(hyperparam_)
+
+        if hyperparam_.size > self.scale_index:
+            scale = self._hyperparam_to_scale(hyperparam_[self.scale_index:])
         else:
             scale = self.mixed_cor.get_scale()
 
@@ -359,26 +364,31 @@ class ProfileLikelihood(BaseLikelihood):
         avoid re-computation when the hyperparam is the same.
         """
 
+        if numpy.isscalar(hyperparam):
+            hyperparam_ = numpy.array([hyperparam], dtype=float)
+        else:
+            hyperparam_ = hyperparam
+
         # Check if likelihood is already computed for an identical hyperparam
         if (self.Y is None) or \
                 (self.Cinv is None) or \
                 (self.C is None) or \
                 (self.Mz is None) or \
                 (self.Y_C_Mz_hyperparam is None) or \
-                (hyperparam.size != self.Y_C_Mz_hyperparam.size) or \
-                (not numpy.allclose(hyperparam, self.Y_C_Mz_hyperparam,
+                (hyperparam_.size != self.Y_C_Mz_hyperparam.size) or \
+                (not numpy.allclose(hyperparam_, self.Y_C_Mz_hyperparam,
                                     atol=self.hyperparam_tol)):
 
             # hyperparameters
-            eta = self._hyperparam_to_eta(hyperparam)
+            eta = self._hyperparam_to_eta(hyperparam_)
 
             # Include derivative w.r.t scale
-            if (not numpy.isscalar(hyperparam)) and \
-                    (hyperparam.size > self.scale_index):
+            if (not numpy.isscalar(hyperparam_)) and \
+                    (hyperparam_.size > self.scale_index):
 
                 # Set scale of the covariance object
                 scale = self._hyperparam_to_scale(
-                        hyperparam[self.scale_index:])
+                        hyperparam_[self.scale_index:])
                 self.mixed_cor.set_scale(scale)
 
             # Variables to compute/update. Note that in all variables, sigma
@@ -391,7 +401,7 @@ class ProfileLikelihood(BaseLikelihood):
             self.Mz = self.M_dot(self.C, self.Y, eta, self.z)
 
             # Update the current hyperparam
-            self.Y_C_Mz_hyperparam = hyperparam
+            self.Y_C_Mz_hyperparam = hyperparam_
 
     # =========================
     # find optimal sigma sigma0
@@ -456,20 +466,25 @@ class ProfileLikelihood(BaseLikelihood):
 
         else:
 
+            if numpy.isscalar(hyperparam):
+                hyperparam_ = numpy.array([hyperparam], dtype=float)
+            else:
+                hyperparam_ = hyperparam
+
             # Check if sigma2 is already computed for an identical hyperparam
             if (self.sigma2 is None) or \
                     (self.sigma2_hyperparam is None) or \
-                    (hyperparam.size != self.sigma2_hyperparam.size) or \
-                    (not numpy.allclose(hyperparam, self.sigma2_hyperparam,
+                    (hyperparam_.size != self.sigma2_hyperparam.size) or \
+                    (not numpy.allclose(hyperparam_, self.sigma2_hyperparam,
                                         atol=self.hyperparam_tol)):
 
                 # Make sure Y, C, Mz are updated for the given hyperparam
-                self._update_Y_C_Mz(hyperparam)
+                self._update_Y_C_Mz(hyperparam_)
 
                 self.sigma2 = numpy.dot(self.z, self.Mz) / self.rdof
 
                 # Update hyperparam
-                self.sigma2_hyperparam = hyperparam
+                self.sigma2_hyperparam = hyperparam_
 
         return self.sigma2
 
@@ -515,18 +530,23 @@ class ProfileLikelihood(BaseLikelihood):
         Computes MMz.
         """
 
+        if numpy.isscalar(hyperparam):
+            hyperparam_ = numpy.array([hyperparam], dtype=float)
+        else:
+            hyperparam_ = hyperparam
+
         # Check if likelihood is already computed for an identical hyperparam
         if (self.MMz is None) or \
-                (hyperparam.size != self.MMz_hyperparam.size) or \
-                (not numpy.allclose(hyperparam, self.MMz_hyperparam,
+                (hyperparam_.size != self.MMz_hyperparam.size) or \
+                (not numpy.allclose(hyperparam_, self.MMz_hyperparam,
                                     atol=self.hyperparam_tol)):
 
             # Get eta
-            eta = self._hyperparam_to_eta(hyperparam)
+            eta = self._hyperparam_to_eta(hyperparam_)
 
             # Include derivative w.r.t scale
-            if (not numpy.isscalar(hyperparam)) and \
-                    (hyperparam.size > self.scale_index):
+            if (not numpy.isscalar(hyperparam_)) and \
+                    (hyperparam_.size > self.scale_index):
 
                 # Set scale of the covariance object
                 scale = self._hyperparam_to_scale(
@@ -534,13 +554,13 @@ class ProfileLikelihood(BaseLikelihood):
                 self.mixed_cor.set_scale(scale)
 
             # Update Y, C, Mz
-            self._update_Y_C_Mz(hyperparam)
+            self._update_Y_C_Mz(hyperparam_)
 
             # Compute M*M*z
             self.MMz = self.M_dot(self.C, self.Y, eta, self.Mz)
 
             # Update the current hyperparam
-            self.MMz_hyperparam = hyperparam
+            self.MMz_hyperparam = hyperparam_
 
     # =====================
     # update Kninv KnpKninv
@@ -551,16 +571,22 @@ class ProfileLikelihood(BaseLikelihood):
         Compute Kninv, KnpKninv.
         """
 
+        if numpy.isscalar(hyperparam):
+            hyperparam_ = numpy.array([hyperparam], dtype=float)
+        else:
+            hyperparam_ = hyperparam
+
         # Check if likelihood is already computed for an identical hyperparam
         if (self.Kninv is None) or \
                 (self.KnpKninv is None) or \
                 (self.Kninv_KnpKninv_hyperparam is None) or \
-                (hyperparam.size != self.Kninv_KnpKninv_hyperparam.size) or \
-                (not numpy.allclose(hyperparam, self.Kninv_KnpKninv_hyperparam,
+                (hyperparam_.size != self.Kninv_KnpKninv_hyperparam.size) or \
+                (not numpy.allclose(hyperparam_,
+                                    self.Kninv_KnpKninv_hyperparam,
                                     atol=self.hyperparam_tol)):
 
             # Get eta
-            eta = self._hyperparam_to_eta(hyperparam)
+            eta = self._hyperparam_to_eta(hyperparam_)
 
             # Set scale of the covariance object
             scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
@@ -578,7 +604,7 @@ class ProfileLikelihood(BaseLikelihood):
                 self.KnpKninv[p] = Knp @ self.Kninv
 
             # Update the current hyperparam
-            self.Kninv_KnpKninv_hyperparam = hyperparam
+            self.Kninv_KnpKninv_hyperparam = hyperparam_
 
     # ==========
     # Likelihood
@@ -603,11 +629,16 @@ class ProfileLikelihood(BaseLikelihood):
         log-likelihood function.
         """
 
+        if numpy.isscalar(hyperparam):
+            hyperparam_ = numpy.array([hyperparam], dtype=float)
+        else:
+            hyperparam_ = hyperparam
+
         # Check if likelihood is already computed for an identical hyperparam
         if (self.ell is not None) and \
                 (self.ell_hyperparam is not None) and \
-                (hyperparam.size == self.ell_hyperparam.size) and \
-                numpy.allclose(hyperparam, self.ell_hyperparam,
+                (hyperparam_.size == self.ell_hyperparam.size) and \
+                numpy.allclose(hyperparam_, self.ell_hyperparam,
                                atol=self.hyperparam_tol):
 
             if sign_switch:
@@ -616,14 +647,14 @@ class ProfileLikelihood(BaseLikelihood):
                 return self.ell
 
         # Get eta
-        eta = self._hyperparam_to_eta(hyperparam)
+        eta = self._hyperparam_to_eta(hyperparam_)
 
         # Extract scale from hyperparam
-        if (not numpy.isscalar(hyperparam)) and \
-                (hyperparam.size > self.scale_index):
+        if (not numpy.isscalar(hyperparam_)) and \
+                (hyperparam_.size > self.scale_index):
 
             # Set scale of the covariance object
-            scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
+            scale = self._hyperparam_to_scale(hyperparam_[self.scale_index:])
             self.mixed_cor.set_scale(scale)
 
         if numpy.abs(eta) >= self.max_eta:
@@ -646,10 +677,10 @@ class ProfileLikelihood(BaseLikelihood):
         else:
 
             # Update Y, C, Mz (all needed for computing optimal sigma2)
-            self._update_Y_C_Mz(hyperparam)
+            self._update_Y_C_Mz(hyperparam_)
 
             # Find (or update) optimal sigma2
-            sigma2 = self._find_optimal_sigma2(hyperparam)
+            sigma2 = self._find_optimal_sigma2(hyperparam_)
 
             logdet_Kn = self.mixed_cor.logdet(eta)
             logdet_Cinv = numpy.log(numpy.linalg.det(self.Cinv))
@@ -671,7 +702,7 @@ class ProfileLikelihood(BaseLikelihood):
 
         # Store ell to member data (without sign-switch).
         self.ell = ell
-        self.ell_hyperparam = hyperparam
+        self.ell_hyperparam = hyperparam_
 
         # If ell is used in scipy.optimize.minimize, change the sign to obtain
         # the minimum of -ell
@@ -1087,11 +1118,16 @@ class ProfileLikelihood(BaseLikelihood):
         Computes Jacobian w.r.t eta, and if given, scale.
         """
 
+        if numpy.isscalar(hyperparam):
+            hyperparam_ = numpy.array([hyperparam], dtype=float)
+        else:
+            hyperparam_ = hyperparam
+
         # Check if Jacobian is already computed for an identical hyperparam
         if (self.ell_jacobian_hyperparam is not None) and \
                 (self.ell_jacobian is not None) and \
-                (hyperparam.size == self.ell_jacobian_hyperparam.size) and \
-                numpy.allclose(hyperparam, self.ell_jacobian_hyperparam,
+                (hyperparam_.size == self.ell_jacobian_hyperparam.size) and \
+                numpy.allclose(hyperparam_, self.ell_jacobian_hyperparam,
                                atol=self.hyperparam_tol):
             if sign_switch:
                 return -self.ell_jacobian
@@ -1110,7 +1146,7 @@ class ProfileLikelihood(BaseLikelihood):
         jacobian = dell_deta
 
         # Compute Jacobian w.r.t scale
-        if hyperparam.size > self.scale_index:
+        if hyperparam_.size > self.scale_index:
 
             # Compute first derivative w.r.t scale
             dell_dscale = self._likelihood_der1_scale(hyperparam)
@@ -1118,7 +1154,7 @@ class ProfileLikelihood(BaseLikelihood):
             # Convert derivative w.r.t log of scale
             if self.use_log_scale:
                 scale = self._hyperparam_to_scale(
-                        hyperparam[self.scale_index:])
+                        hyperparam_[self.scale_index:])
                 for p in range(scale.size):
                     dell_dscale[p] = dell_dscale[p] * scale[p] * \
                         numpy.log(10.0)
@@ -1128,7 +1164,7 @@ class ProfileLikelihood(BaseLikelihood):
 
         # Store Jacobian to member data (without sign-switch).
         self.ell_jacobian = jacobian
-        self.ell_jacobian_hyperparam = hyperparam
+        self.ell_jacobian_hyperparam = hyperparam_
 
         if sign_switch:
             jacobian = -jacobian
@@ -1144,11 +1180,16 @@ class ProfileLikelihood(BaseLikelihood):
         Computes Hessian w.r.t eta, and if given, scale.
         """
 
+        if numpy.isscalar(hyperparam):
+            hyperparam_ = numpy.array([hyperparam], dtype=float)
+        else:
+            hyperparam_ = hyperparam
+
         # Check if Hessian is already computed for an identical hyperparam
         if (self.ell_hessian_hyperparam is not None) and \
                 (self.ell_hessian is not None) and \
-                (hyperparam.size == self.ell_hessian_hyperparam.size) and \
-                numpy.allclose(hyperparam, self.ell_hessian_hyperparam,
+                (hyperparam_.size == self.ell_hessian_hyperparam.size) and \
+                numpy.allclose(hyperparam_, self.ell_hessian_hyperparam,
                                atol=self.hyperparam_tol):
             if sign_switch:
                 return -self.ell_hessian
@@ -1181,7 +1222,7 @@ class ProfileLikelihood(BaseLikelihood):
         hessian = d2ell_deta2
 
         # Compute Hessian w.r.t scale
-        if hyperparam.size > self.scale_index:
+        if hyperparam_.size > self.scale_index:
 
             # Compute second derivative w.r.t scale
             d2ell_dscale2 = self._likelihood_der2_scale(hyperparam)
@@ -1189,7 +1230,7 @@ class ProfileLikelihood(BaseLikelihood):
             # Convert derivative w.r.t log of scale (if needed)
             if self.use_log_scale:
                 scale = self._hyperparam_to_scale(
-                        hyperparam[self.scale_index:])
+                        hyperparam_[self.scale_index:])
                 dell_dscale = jacobian_[self.scale_index:]
 
                 for p in range(scale.size):
@@ -1215,7 +1256,7 @@ class ProfileLikelihood(BaseLikelihood):
 
             if self.use_log_scale:
                 scale = self._hyperparam_to_scale(
-                        hyperparam[self.scale_index:])
+                        hyperparam_[self.scale_index:])
                 for p in range(scale.size):
                     d2ell_deta_dscale[0, p] = d2ell_deta_dscale[0, p] * \
                         scale[p] * numpy.log(10.0)
@@ -1227,96 +1268,232 @@ class ProfileLikelihood(BaseLikelihood):
 
         # Store hessian to member data (without sign-switch).
         self.ell_hessian = hessian
-        self.ell_hessian_hyperparam = hyperparam
+        self.ell_hessian_hyperparam = hyperparam_
 
         if sign_switch:
             hessian = -hessian
 
         return hessian
 
-    # =======================
-    # compute bounds der1 eta
-    # =======================
+    # ===============
+    # bounds der1 eta
+    # ===============
 
-    def _compute_bounds_der1_eta(self, eta):
+    def bounds_der1_eta(self, eta):
         """
-        Upper and lower bound.
+        Upper and lower bound of the first derivative of likelihood w.r.t eta.
         """
 
-        n = self.X.shape[0]
-        K = self.mixed_cor.get_matrix(0.0)
-        eigenvalue_smallest = scipy.linalg.eigh(K, eigvals_only=True,
-                                                check_finite=False,
-                                                subset_by_index=[0, 0])[0]
+        # Get the smallest and largest eigenvalues of K
+        eig_smallest, eig_largest = \
+            self.mixed_cor.cor.get_extreme_eigenvalues()
 
-        eigenvalue_largest = scipy.linalg.eigh(K, eigvals_only=True,
-                                               check_finite=False,
-                                               subset_by_index=[n-1, n-1])[0]
-        # print('Eigenvalues of K:')
-        # print(eigenvalue_smallest)
-        # print(eigenvalue_largest)
+        # upper bound
         dell_deta_upper_bound = 0.5*self.rdof * \
-            (1.0/(eta+eigenvalue_smallest) - 1.0/(eta+eigenvalue_largest))
+            (1.0/(eta+eig_smallest) - 1.0/(eta+eig_largest))
+
+        # Lower bound
         dell_deta_lower_bound = -dell_deta_upper_bound
 
         return dell_deta_upper_bound, dell_deta_lower_bound
 
-    # ==========================
-    # compute asymptote der1 eta
-    # ==========================
+    # ===========================
+    # asymptotic polynomial coeff
+    # ===========================
 
-    def _compute_asymptote_der1_eta(self, eta):
+    def _asymptotic_polynomial_coeff(self, degree=2):
         """
-        Computes first and second order asymptote to the first derivative of
-        log marginal likelihood function.
+        Returns the asymptotic polynomial coefficients for the first derivative
+        of likelihood w.r.t eta.
+
+        If degree is 1 but the stored polynomial is of the second order (degree
+        2), then it returns the first two entries of the polynomial coeffs.
         """
 
-        # Initialize output
-        asymptote_1_order = numpy.empty(eta.size)
-        asymptote_2_order = numpy.empty(eta.size)
+        if degree != 1 and degree != 2:
+            raise ValueError('Asymptotic polynomial degree should be either ' +
+                             '"1" or "2".')
 
-        K = self.mixed_cor.get_matrix(0.0)
-        I = self.mixed_cor.I                                       # noqa: E741
-        Q = self.X @ numpy.linalg.inv(self.X.T @ self.X) @ self.X.T
-        R = I - Q
-        N = K @ R
-        N2 = N @ N
-        N3 = N2 @ N
-        N4 = N3 @ N
+        # Check if polynomial coeffs need to be computed
+        if self.asym_poly is None or \
+                (degree == 2 and self.asym_poly.size != 4):
 
-        mtrN = numpy.trace(N)/self.rdof
-        mtrN2 = numpy.trace(N2)/self.rdof
+            K = self.mixed_cor.get_matrix(0.0)
+            I = self.mixed_cor.I                                   # noqa: E741
+            Q = self.X @ numpy.linalg.inv(self.X.T @ self.X) @ self.X.T
+            R = I - Q
 
-        A0 = -R @ (mtrN*I - N)
-        A1 = R @ (mtrN*N + mtrN2*I - 2*N2)
-        A2 = -R @ (mtrN*N2 + mtrN2*N - 2*N3)
-        A3 = R @ (mtrN2*N2 - N4)
+            # Powers of N
+            N = K @ R
+            N2 = N @ N
+            if degree == 2:
+                N3 = N2 @ N
+                N4 = N3 @ N
 
-        zRz = numpy.dot(self.z, numpy.dot(R, self.z))
-        z_Rnorm = numpy.sqrt(zRz)
-        zc = self.z / z_Rnorm
+            # Traces of N and N2
+            mtrN = numpy.trace(N)/self.rdof
+            mtrN2 = numpy.trace(N2)/self.rdof
 
-        a0 = numpy.dot(zc, numpy.dot(A0, zc))
-        a1 = numpy.dot(zc, numpy.dot(A1, zc))
-        a2 = numpy.dot(zc, numpy.dot(A2, zc))
-        a3 = numpy.dot(zc, numpy.dot(A3, zc))
+            # Compute A0, A1, A2, A3
+            A0 = -R @ (mtrN*I - N)
+            A1 = R @ (mtrN*N + mtrN2*I - 2*N2)
+            if degree == 2:
+                A2 = -R @ (mtrN*N2 + mtrN2*N - 2*N3)
+                A3 = R @ (mtrN2*N2 - N4)
 
-        for i in range(eta.size):
+            zRz = numpy.dot(self.z, numpy.dot(R, self.z))
+            z_Rnorm = numpy.sqrt(zRz)
+            zc = self.z / z_Rnorm
 
-            asymptote_1_order[i] = (-0.5*self.rdof) * \
-                    (a0 + a1/eta[i])/eta[i]**2
-            asymptote_2_order[i] = (-0.5*self.rdof) * \
-                (a0 + a1/eta[i] + a2/eta[i]**2 + a3/eta[i]**3)/eta[i]**2
+            # Coefficients
+            a0 = numpy.dot(zc, numpy.dot(A0, zc))
+            a1 = numpy.dot(zc, numpy.dot(A1, zc))
+            if degree == 2:
+                a2 = numpy.dot(zc, numpy.dot(A2, zc))
+                a3 = numpy.dot(zc, numpy.dot(A3, zc))
 
-        # Roots
-        polynomial_1 = numpy.array([a0, a1])
-        polynomial_2 = numpy.array([a0, a1, a2, a3])
+            # Coefficients as array
+            if degree == 1:
+                self.asym_poly = numpy.array([a0, a1], dtype=float)
+            else:
+                self.asym_poly = numpy.array([a0, a1, a2, a3], dtype=float)
 
-        roots_1 = numpy.roots(polynomial_1)
-        roots_2 = numpy.roots(polynomial_2)
+        if degree == 1:
+            return self.asym_poly[:2]
+        elif degree == 1:
+            return self.asym_poly
+
+    # =================
+    # asymptotic maxima
+    # =================
+
+    def asymptotic_maxima(self, degree=2):
+        """
+        Approximates the maxima of the likelihood based on the zeros of the
+        asymptotic relation of the first derivative of likelihood w.r.t eta.
+        If the second derivative at the root is negative, the root is maxima.
+        """
+
+        if degree != 1 and degree != 2:
+            raise ValueError('Asymptotic polynomial degree should be either ' +
+                             '"1" or "2".')
+
+        # Ensure asymptotes are calculated
+        self._asymptotic_polynomial_coeff(degree=degree)
+
+        # All roots
+        if degree == 1:
+            roots = numpy.roots(self.asym_poly[:2])
+        else:
+            roots = numpy.roots(self.asym_poly)
 
         # Remove complex roots
-        roots_2 = numpy.sort(numpy.real(
-            roots_2[numpy.abs(numpy.imag(roots_2)) < 1e-10]))
+        roots = numpy.sort(numpy.real(
+            roots[numpy.abs(numpy.imag(roots)) < 1e-10]))
 
-        return asymptote_1_order, asymptote_2_order, roots_1, roots_2
+        # Remove positive roots
+        roots = roots[roots >= 0.0]
+
+        # Output
+        asym_maxima = []
+
+        # Check sign of the second derivative
+        for i in range(roots.size):
+            asym_d2ell_deta2 = self._asymptotic_likelihood_der2_eta(
+                    roots[i], degree=degree)
+            if asym_d2ell_deta2 <= 0.0:
+                asym_maxima.append(roots[i])
+
+        return asym_maxima
+
+    # ==============================
+    # asymptotic likelihood der1 eta
+    # ==============================
+
+    def _asymptotic_likelihood_der1_eta(self, eta, degree=2):
+        """
+        Computes the asymptote of the likelihood first derivative w.r.t eta.
+        """
+
+        if degree != 1 and degree != 2:
+            raise ValueError('Asymptotic polynomial degree should be either ' +
+                             '"1" or "2".')
+
+        # Ensure asymptotes are calculated
+        self._asymptotic_polynomial_coeff(degree=degree)
+
+        # Ensure array
+        if numpy.isscalar(eta):
+            eta_ = numpy.asarray([eta])
+        else:
+            eta_ = eta
+
+        # Initialize output
+        asym_dell_deta = numpy.empty(numpy.asarray(eta).size)
+
+        for i in range(eta_.size):
+
+            if degree == 1:
+                asym_dell_deta[i] = (-0.5*self.rdof) * \
+                        (self.asym_poly[0] +
+                         self.asym_poly[1]/eta_[i]) / \
+                        eta_[i]**2
+
+            elif degree == 2:
+                asym_dell_deta[i] = (-0.5*self.rdof) * \
+                    (self.asym_poly[0] +
+                     self.asym_poly[1]/eta_[i] +
+                     self.asym_poly[2]/eta_[i]**2 +
+                     self.asym_poly[3]/eta_[i]**3) / \
+                    eta_[i]**2
+
+        if numpy.isscalar(eta):
+            return asym_dell_deta[0]
+        else:
+            return asym_dell_deta
+
+    # ==============================
+    # asymptotic likelihood der2 eta
+    # ==============================
+
+    def _asymptotic_likelihood_der2_eta(self, eta, degree=2):
+        """
+        Computes the asymptote of the likelihood second derivative w.r.t eta.
+        """
+
+        if degree != 1 and degree != 2:
+            raise ValueError('Asymptotic polynomial degree should be either ' +
+                             '"1" or "2".')
+
+        # Ensure asymptotes are calculated
+        self._asymptotic_polynomial_coeff(degree=degree)
+
+        # Ensure array
+        if numpy.isscalar(eta):
+            eta_ = numpy.asarray([eta])
+        else:
+            eta_ = eta
+
+        # Initialize output
+        asym_d2ell_deta2 = numpy.empty(numpy.asarray(eta).size)
+
+        for i in range(eta_.size):
+
+            if degree == 1:
+                asym_d2ell_deta2[i] = (0.5*self.rdof) * \
+                        (2.0*self.asym_poly[0] +
+                         3.0*self.asym_poly[1]/eta_[i]) / \
+                        eta_[i]**3
+
+            elif degree == 2:
+                asym_d2ell_deta2[i] = (0.5*self.rdof) * \
+                    (2.0*self.asym_poly[0] +
+                     3.0*self.asym_poly[1]/eta_[i] +
+                     4.0*self.asym_poly[2]/eta_[i]**2 +
+                     5.0*self.asym_poly[3]/eta_[i]**3) / \
+                    eta_[i]**3
+
+        if numpy.isscalar(eta):
+            return asym_d2ell_deta2[0]
+        else:
+            return asym_d2ell_deta2

@@ -539,7 +539,7 @@ def _plot_likelihood_versus_eta_scale(profile_likelihood, result):
     # Optimal point
     optimal_eta = result['hyperparam']['eta']
     optimal_scale = result['hyperparam']['scale']
-    optimal_ell = result['optimization']['max_posterior']
+    optimal_ell = result['optimization']['max_fun']
 
     eta = numpy.logspace(-3, 3, 50)
     scale = numpy.logspace(-3, 2, 50)
@@ -753,7 +753,7 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
 
     # Compute upper and lower bound of derivative
     dell_deta_upper_bound, dell_deta_lower_bound = \
-        profile_likelihood._compute_bounds_der1_eta(eta)
+        profile_likelihood.bounds_der1_eta(eta)
 
     # Compute asymptote of first derivative, using both first and second
     # order approximation
@@ -762,11 +762,20 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
         x = eta_high_res
     except NameError:
         x = numpy.logspace(1, log_eta_end, 100)
-    dell_deta_asymptote_1, dell_deta_asymptote_2, roots_1, roots_2 = \
-        profile_likelihood._compute_asymptote_der1_eta(x)
+
+    # To compute both first and second order asymptotic relations, compute the
+    # second orders first bemuse it also computes the first order.
+    asym_maxima_ord2 = profile_likelihood.asymptotic_maxima(degree=2)
+    asym_maxima_ord1 = profile_likelihood.asymptotic_maxima(degree=1)
+    asym_dell_deta_ord2 = profile_likelihood._asymptotic_likelihood_der1_eta(
+            x, degree=2)
+    asym_dell_deta_ord1 = profile_likelihood._asymptotic_likelihood_der1_eta(
+            x, degree=1)
 
     # Main plot
     fig, ax1 = plt.subplots(figsize=(6, 4.5))
+    axes = [ax1]
+
     ax1.semilogx(eta, dell_deta_upper_bound, '--', color='black',
                  label='Upper bound')
     ax1.semilogx(eta, dell_deta_lower_bound, '-.', color='black',
@@ -797,6 +806,8 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
     # Inset plot
     if plot_optimal_eta:
         ax2 = plt.axes([0, 0, 1, 1])
+        axes.append(ax2)
+
         # Manually set position and relative size of inset axes within ax1
         ip = InsetPosition(ax1, [0.43, 0.39, 0.5, 0.5])
         ax2.set_axes_locator(ip)
@@ -815,10 +826,10 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
                      color='black')
         ax2.semilogx(eta, numpy.abs(dell_deta_lower_bound), '-.',
                      color='black')
-        ax2.semilogx(x, dell_deta_asymptote_1,
+        ax2.semilogx(x, asym_dell_deta_ord1,
                      label=r'$1^{\text{st}}$ order asymptote',
                      color='chocolate')
-        ax2.semilogx(x, dell_deta_asymptote_2,
+        ax2.semilogx(x, asym_dell_deta_ord2,
                      label=r'$2^{\text{nd}}$ order asymptote',
                      color='olivedrab')
         ax2.semilogx(eta_high_res,
@@ -829,14 +840,23 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
                      color='white', markerfacecolor='black',
                      label=r'Exact root at $\hat{\eta}_{\phantom{2}} ' +
                            r'= 10^{%0.2f}$' % numpy.log10(optimal_eta))
-        ax2.semilogx(roots_1[-1], 0, marker='o', markersize=6, linewidth=0,
-                     color='white', markerfacecolor='chocolate',
-                     label=r'Approximated root at $\hat{\eta}_1 = ' +
-                           r'10^{%0.2f}$' % numpy.log10(roots_1[-1]))
-        ax2.semilogx(roots_2[-1], 0, marker='o', markersize=6, linewidth=0,
-                     color='white', markerfacecolor='olivedrab',
-                     label=r'Approximated root at $\hat{\eta}_2 = ' +
-                           r'10^{%0.2f}$' % numpy.log10(roots_2[-1]))
+
+        if asym_maxima_ord1 != []:
+            ax2.semilogx(asym_maxima_ord1[-1], 0, marker='o', markersize=6,
+                         linewidth=0, color='white',
+                         markerfacecolor='chocolate',
+                         label=r'Approximated root at $\hat{\eta}_1 = ' +
+                               r'10^{%0.2f}$'
+                               % numpy.log10(asym_maxima_ord1[-1]))
+
+        if asym_maxima_ord2 != []:
+            ax2.semilogx(asym_maxima_ord2[-1], 0, marker='o', markersize=6,
+                         linewidth=0, color='white',
+                         markerfacecolor='olivedrab',
+                         label=r'Approximated root at $\hat{\eta}_2 = ' +
+                               r'10^{%0.2f}$'
+                               % numpy.log10(asym_maxima_ord2[-1]))
+
         ax2.set_xlim([eta_high_res[0], eta_high_res[-1]])
         # plt.setp(ax2.get_yticklabels(), backgroundcolor='white')
 
@@ -853,14 +873,19 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
                  r'$\hat{\eta}$' % numpy.log10(optimal_eta),
                  horizontalalignment='left', verticalalignment='bottom',
                  fontsize=10)
-        ax2.text(roots_1[-1]*10**0.05, min_plot_lim*0.05,
-                 r'$\hat{\eta}_1$' % numpy.log10(optimal_eta),
-                 horizontalalignment='left', verticalalignment='bottom',
-                 fontsize=10)
-        ax2.text(roots_2[-1]*10**0.05, min_plot_lim*0.05,
-                 r'$\hat{\eta}_2$' % numpy.log10(optimal_eta),
-                 horizontalalignment='left', verticalalignment='bottom',
-                 fontsize=10)
+
+        for i in range(len(asym_maxima_ord1)):
+            ax2.text(asym_maxima_ord1[i]*10**0.05, min_plot_lim*0.05,
+                     r'$\hat{\eta}_1$' % numpy.log10(optimal_eta),
+                     horizontalalignment='left', verticalalignment='bottom',
+                     fontsize=10)
+
+        for i in range(len(asym_maxima_ord2)):
+            ax2.text(asym_maxima_ord2[i]*10**0.05, min_plot_lim*0.05,
+                     r'$\hat{\eta}_2$' % numpy.log10(optimal_eta),
+                     horizontalalignment='left', verticalalignment='bottom',
+                     fontsize=10)
+
         # ax2.ticklabel_format(axis='y', style='sci', scilimits=(0, 0))
         ax2.grid(True, axis='y')
         ax2.set_facecolor('oldlace')
@@ -872,7 +897,7 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
         # ax2.tick_params(axis='y', which='major', pad=0)
 
     handles, labels = [], []
-    for ax in [ax1, ax2]:
+    for ax in axes:
         for h, l in zip(*ax.get_legend_handles_labels()):
             handles.append(h)
             labels.append(l)

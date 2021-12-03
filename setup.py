@@ -1061,7 +1061,7 @@ def main(argv):
     external_modules = cythonize_extensions(extensions)
 
     # Description
-    description = 'Gaussian process regression'
+    description = 'Gaussian Process for Machine Learning'
 
     # URLs
     url = 'https://github.com/ameli/glearn'
@@ -1078,7 +1078,7 @@ def main(argv):
         description=description,
         long_description=long_description,
         long_description_content_type='text/x-rst',
-        keywords="""gaussian-process-regression gaussian-process
+        keywords="""gaussian-process gaussian-process-regression
                     machine-learning""",
         url=url,
         download_url=download_url,

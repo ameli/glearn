@@ -1064,7 +1064,7 @@ def _plot_likelihood_versus_sigma0_sigma(full_likelihood, result=None):
     optimal_sigma = result['hyperparam']['sigma']
     optimal_sigma0 = result['hyperparam']['sigma0']
     optimal_scale = result['hyperparam']['scale']
-    optimal_ell = result['optimization']['max_posterior']
+    optimal_ell = result['optimization']['max_fun']
 
     full_likelihood.cov.set_scale(optimal_scale)
 

@@ -12,7 +12,7 @@
 # ======
 
 import numpy
-import scipy.linalg
+import scipy
 from ._dense_auto_correlation import dense_auto_correlation
 from ._dense_cross_correlation import dense_cross_correlation
 from ._sparse_auto_correlation import sparse_auto_correlation
@@ -134,6 +134,10 @@ class Correlation(object):
         self.K_der0_updated = False
         self.K_der1_updated = False
         self.K_der2_updated = False
+
+        # Smallest and largest eigenvalues of K (only for zero-th derivative)
+        self.K_eig_smallest = None
+        self.K_eig_largest = None
 
     # =========
     # get scale
@@ -344,6 +348,46 @@ class Correlation(object):
                                 check_finite=False)
 
             return self.K_eig_der2[derivative[0]][derivative[1]]
+
+    # =======================
+    # get extreme eigenvalues
+    # =======================
+
+    def get_extreme_eigenvalues(
+            self,
+            scale=None):
+        """
+        Returns the smallest and the largest eigenvalues of K (only for zero-th
+        derivative).
+        """
+
+        # Update matrix (if needed)
+        self._update_matrix(scale)
+
+        if self.K_eig_smallest is None or self.K_eig_largest is None or \
+                self.K_der0 is None or self.current_scale_changed:
+
+            n = self.matrix_size
+
+            # Compute smallest eigenvalue
+            if self.sparse:
+                self.K_eig_smallest = scipy.sparse.linalg.eigsh(
+                        self.K_der0, k=1, which='SM', return_eigenvector=False)
+            else:
+                self.K_eig_smallest = scipy.linalg.eigh(
+                        self.K_der0, eigvals_only=True, check_finite=False,
+                        subset_by_index=[0, 0])[0]
+
+            # Compute largest eigenvalue
+            if self.sparse:
+                self.K_eig_smallest = scipy.sparse.linalg.eigsh(
+                        self.K_der0, k=1, which='LM', return_eigenvector=False)
+            else:
+                self.K_eig_largest = scipy.linalg.eigh(
+                        self.K_der0, eigvals_only=True, check_finite=False,
+                        subset_by_index=[n-1, n-1])[0]
+
+        return self.K_eig_smallest, self.K_eig_largest
 
     # =============
     # update matrix

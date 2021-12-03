@@ -92,7 +92,7 @@ def minimize(
         num_jac_eval = None
         num_hes_eval = None
         message = 'Minimization algorithm is terminated successfully for ' + \
-                  'reaching the tolerance %+0.5e on all variables ' % tol + \
+                  'reaching the tolerance %0.3e on all variables ' % tol + \
                   'after %d iterations' % num_opt_iter
         success = minimize_terminator.all_converged
 

@@ -245,7 +245,7 @@ class Posterior(object):
         log_hyperparam_guess = self.likelihood.hyperparam_to_log_hyperparam(
                 hyperparam_guess)
 
-        if optimization_method in ['chandrupatla', 'brent']:
+        if optimization_method in ['chandrupatla', 'brentq']:
 
             if not isinstance(self.likelihood, ProfileLikelihood):
                 raise ValueError('"%s" method can ' % optimization_method +
@@ -278,21 +278,6 @@ class Posterior(object):
             # overwrite the prior to None
             self.prior = None
 
-            # Note: When using traceinv interpolation, make sure the interval
-            # below is exactly the end points of eta_i, not less or more.
-            log_eta_guess = log_hyperparam_guess[:scale_index]
-            if self.likelihood.use_log_eta:
-                # x is log of eta
-                min_log_eta_guess = numpy.min([-4, log_eta_guess - 2])
-                max_log_eta_guess = numpy.max([+3, log_eta_guess + 2])
-            else:
-                # x is just eta
-                min_log_eta_guess = numpy.min([1e-4, log_eta_guess * 1e-2])
-                max_log_eta_guess = numpy.max([1e+3, log_eta_guess * 1e+2])
-
-            # Interval to search for optimal value of x (eta or log of eta)
-            interval = [min_log_eta_guess, max_log_eta_guess]
-
             # Partial function of posterior
             sign_switch = False
             posterior_partial_func = partial(self._posterior, sign_switch)
@@ -307,21 +292,18 @@ class Posterior(object):
 
             # Find zeros of the Jacobian (input fun is Jacobian, and the
             # Jacobian of the input is the Hessian).
-            res = root(jacobian_partial_func, interval,
-                       jac=hessian_partial_func, verbose=verbose)
+            log_eta_guess = log_hyperparam_guess[:scale_index]
+            res = root(jacobian_partial_func, log_eta_guess,
+                       use_log=self.likelihood.use_log_eta, verbose=verbose)
             x = res['optimization']['state_vector']
 
-            # Check second derivative
-            hessian = hessian_partial_func(x)
-            if hessian < 0:
-                success = True
-                message = 'Root is a maxima.'
-            else:
-                success = False
-                message = 'Root is not a maxima.'
-            res['optimization']['message'] = message
-            res['optimization']['status'] = \
-                res['optimization']['success'] and success
+            # Check second derivative is positive, which the root does not
+            # becomes maxima. Don't check if x is inf due to singularity.
+            if not numpy.isinf(x):
+                hessian = hessian_partial_func(x)
+                if hessian > 0:
+                    res['optimization']['message'] = 'Root is not a maxima.'
+                    res['optimization']['status'] = False
 
             # Find sigma and sigma0, eta, and scale
             eta = self.likelihood._hyperparam_to_eta(x)
