@@ -1,1 +1,1 @@
-Visit [Documentation](https://ameli.github.io/gaussian_proc/index.html).
+Visit [Documentation](https://ameli.github.io/glearn/index.html).
