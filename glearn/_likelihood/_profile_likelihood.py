@@ -102,6 +102,7 @@ class ProfileLikelihood(BaseLikelihood):
         # Asymptotic variables
         self.asym_poly = None
         self.asym_roots = None
+        self.asym_C = None
 
     # ================
     # reset attributes
@@ -1297,6 +1298,45 @@ class ProfileLikelihood(BaseLikelihood):
 
         return dell_deta_upper_bound, dell_deta_lower_bound
 
+    # =====
+    # Q dot
+    # =====
+
+    def Q_dot(self, z):
+        """
+        Matrix-vector multiplication Q*z where Q is defined by
+
+            Q = I - X * (X.T * X)^{-1} * X.T
+
+        where X is (n, m) matrix. If n is large, direct computation of Q is
+        inefficient. Hence, an implicit matrix-vector operation is preferred.
+        """
+
+        Xtz = numpy.dot(self.X.T, z)
+        CXtz = self.asym_C @ Xtz
+        XCXtz = numpy.dot(self.X, CXtz)
+
+        Qz = z - XCXtz
+
+        return Qz
+
+    # =====
+    # N dot
+    # =====
+
+    def N_dot(self, z):
+        """
+        Matrix-vector multiplication N*z where N is defined by:
+
+            N = K * Q
+        """
+
+        K = self.mixed_cor.get_matrix(0.0)
+        Qz = self.Q_dot(z)
+        Nz = K @ Qz
+
+        return Nz
+
     # ===========================
     # asymptotic polynomial coeff
     # ===========================
@@ -1318,45 +1358,62 @@ class ProfileLikelihood(BaseLikelihood):
         if self.asym_poly is None or \
                 (degree == 2 and self.asym_poly.size != 4):
 
-            K = self.mixed_cor.get_matrix(0.0)
-            I = self.mixed_cor.I                                   # noqa: E741
-            Q = self.X @ numpy.linalg.inv(self.X.T @ self.X) @ self.X.T
-            R = I - Q
+            # asym_C is X.T*X
+            if self.asym_C is None:
+                asym_Cinv = self.X.T @ self.X
+                self.asym_C = numpy.linalg.inv(asym_Cinv)
 
-            # Powers of N
-            N = K @ R
-            N2 = N @ N
-            if degree == 2:
-                N3 = N2 @ N
-                N4 = N3 @ N
-
-            # Traces of N and N2
-            mtrN = numpy.trace(N)/self.rdof
-            mtrN2 = numpy.trace(N2)/self.rdof
-
-            # Compute A0, A1, A2, A3
-            A0 = -R @ (mtrN*I - N)
-            A1 = R @ (mtrN*N + mtrN2*I - 2*N2)
-            if degree == 2:
-                A2 = -R @ (mtrN*N2 + mtrN2*N - 2*N3)
-                A3 = R @ (mtrN2*N2 - N4)
-
-            zRz = numpy.dot(self.z, numpy.dot(R, self.z))
+            Rz = self.Q_dot(self.z)
+            zRz = numpy.dot(self.z, Rz)
             z_Rnorm = numpy.sqrt(zRz)
             zc = self.z / z_Rnorm
 
-            # Coefficients
-            a0 = numpy.dot(zc, numpy.dot(A0, zc))
-            a1 = numpy.dot(zc, numpy.dot(A1, zc))
+            # Powers of N
+            Nzc = self.N_dot(zc)
+            N2zc = self.N_dot(Nzc)
             if degree == 2:
-                a2 = numpy.dot(zc, numpy.dot(A2, zc))
-                a3 = numpy.dot(zc, numpy.dot(A3, zc))
+                N3zc = self.N_dot(N2zc)
+                N4zc = self.N_dot(N3zc)
+
+            # Traces of N and N2
+            K = self.mixed_cor.get_matrix(0.0)
+            KX = K @ self.X
+            XtKX = self.X.T @ KX
+            XtK2X = KX.T @ KX
+            D1 = self.asym_C @ XtKX
+            D2 = self.asym_C @ XtK2X
+            trace_K = self.mixed_cor.trace(eta=0, exponent=1)
+            trace_K2 = self.mixed_cor.trace(eta=0, exponent=2)
+            trace_N = trace_K - numpy.trace(self.asym_C @ XtKX)
+            trace_N2 = trace_K2 - 2.0*numpy.trace(D2) + numpy.trace(D1 @ D1)
+
+            # Normalized traces of N and N2
+            mtrN = trace_N/self.rdof
+            mtrN2 = trace_N2/self.rdof
+
+            # Compute A0, A1, A2, A3
+            A0zc = -self.Q_dot(mtrN*zc - Nzc)
+            A1zc = self.Q_dot(mtrN*Nzc + mtrN2*zc - 2.0*N2zc)
+            if degree == 2:
+                A2zc = -self.Q_dot(mtrN*N2zc + mtrN2*Nzc - 2.0*N3zc)
+                A3zc = self.Q_dot(mtrN2*N2zc - N4zc)
+
+            # Coefficients
+            a0 = numpy.dot(zc, A0zc)
+            a1 = numpy.dot(zc, A1zc)
+            if degree == 2:
+                a2 = numpy.dot(zc, A2zc)
+                a3 = numpy.dot(zc, A3zc)
 
             # Coefficients as array
             if degree == 1:
                 self.asym_poly = numpy.array([a0, a1], dtype=float)
             else:
                 self.asym_poly = numpy.array([a0, a1, a2, a3], dtype=float)
+
+            # Test
+            print('--- 1 1 1 ---')
+            print(self.asym_poly)
 
         if degree == 1:
             return self.asym_poly[:2]
