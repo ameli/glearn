@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=benchmark_cpu
+#SBATCH --job-name=benchmark_speed
 #SBATCH --mail-type=ALL                         # (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=sameli@berkeley.edu
 #SBATCH --partition=savio2
@@ -18,4 +18,4 @@ SCRIPTS_DIR=$(dirname $PWD)/scripts
 LOG_DIR=$PWD
 
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
-$PYTHON_DIR/bin/python ${SCRIPTS_DIR}/benchmark.py -c > ${LOG_DIR}/stream_output_cpu.txt
+$PYTHON_DIR/bin/python ${SCRIPTS_DIR}/benchmark_speed.py > ${LOG_DIR}/stream_output.txt

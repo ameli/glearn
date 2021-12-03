@@ -33,7 +33,7 @@ from glearn import GaussianProcess
 def main():
 
     # For reproducibility
-    numpy.random.seed(2)
+    numpy.random.seed(0)
 
     # Generate data points
     # num_points = 30

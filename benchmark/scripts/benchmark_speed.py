@@ -1,5 +1,13 @@
 #! /usr/bin/env python
 
+# SPDX-FileCopyrightText: Copyright 2021, Siavash Ameli <sameli@berkeley.edu>
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileType: SOURCE
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the license found in the LICENSE.txt file in the root directory
+# of this source tree.
+
 # =======
 # Imports
 # =======
@@ -10,14 +18,21 @@ from os.path import join
 import sys
 import pickle
 import numpy
-from imate import traceinv
-from imate import Matrix
-from imate import AffineMatrixFunction                             # noqa: F401
 import subprocess
 import multiprocessing
 import platform
 import re
 from datetime import datetime
+
+from glearn.sample_data import generate_points, generate_data
+from glearn.mean import LinearModel
+from glearn.kernels import Matern, Exponential, SquareExponential  # noqa: F401
+from glearn.kernels import RationalQuadratic, Linear               # noqa: F401
+from glearn.priors import Uniform, Cauchy, StudentT, Erlang        # noqa: F401
+from glearn.priors import Gamma, InverseGamma, Normal, BetaPrime   # noqa: F401
+from glearn import Correlation
+from glearn import Covariance
+from glearn import GaussianProcess
 
 
 # ===============
@@ -133,6 +148,7 @@ def get_num_all_gpu_devices():
     subprocess_result = subprocess.getoutput(command)
     return int(subprocess_result)
 
+
 # =========
 # benchmark
 # =========
@@ -142,31 +158,31 @@ def benchmark(argv):
     Test for :mod:`imate.traceinv` sub-package.
     """
 
-    # Settings
+    # arguments = parse_arguments(argv)
     benchmark_dir = '..'
-    directory = join(benchmark_dir, 'matrices')
-    # data_names = ['Queen_4147', 'G3_circuit', 'Flan_1565', 'Bump_2911',
-    #              'cvxbqp1', 'StocF-1465', 'G2_circuit', 'gridgena',
-    #              'parabolic_fem']
-    data_names = ['nos5', 'mhd4800b', 'bodyy6', 'G2_circuit', 'parabolic_fem',
-                  'StocF-1465', 'Bump_2911', 'Queen_4147']
-    # data_names = ['nos7', 'nos5', 'plat362', 'bcsstk21', 'mhd4800b', 'aft01',
-    #               'bodyy6', 'ted_B', 'G2_circuit', 'parabolic_fem',
-    #               'StocF-1465', 'Bump_2911', 'Queen_4147']
-    # data_types = ['32', '64', '128']
-    data_types = ['32', '64']  # OpenBlas does not support 128-bit
 
+    # Settings
     config = {
-        'gram': False,
-        'num_samples': 200,
-        'lanczos_degree': 80,
-        'lanczos_tol':  None,
-        'orthogonalize': 0,
-        'error_rtol': 1e-3,
-        'error_atol': 0,
-        'outlier_significance_level': 0.01,
+        'dimension': 1,
+        'data_sizes': 2**numpy.arange(8, 15),
+        'grid': True,
+        'noise_magnitude': 0.05,
+        'polynomial_degree': 2,
+        'trigonometric_coeff': None,
+        'hyperbolic_coeff': None,
+        'b': None,
+        'B': None,
+        'scale': 0.07,
+        'scale_prior': 'Uniform',
+        'kernel': 'Exponential',
+        'sparse': True,
+        'kernel_threshold': 0.03,
+        # 'imate_method': 'cholesky',
+        'imate_method': 'slq',
+        'hyperparam_guess': None,
+        'profile_hyperparam': ['none', 'var'],
+        'optimization_method': 'Nelder-Mead',
         'verbose': False,
-        'plot': False
     }
 
     devices = {
@@ -176,121 +192,104 @@ def benchmark(argv):
         'num_all_gpu_devices': get_num_all_gpu_devices()
     }
 
-    data_results = []
-    arguments = parse_arguments(argv)
+    # For reproducibility
+    numpy.random.seed(0)
+
+    # Loop variables
+    data_sizes = config['data_sizes']
+    profile_hyperparams = config['profile_hyperparam']
+    results = []
 
     # Loop over data filenames
-    for data_name in data_names:
+    for i in range(data_sizes.size):
 
-        data_result = {
-            'data_name': data_name,
-            'type_results': [],
+        data_size = data_sizes[i]
+        print('data size: %d' % data_size)
+
+        # Generate data points
+        dimension = config['dimension']
+        grid = config['grid']
+        points = generate_points(data_size, dimension, grid)
+
+        # Generate noisy data
+        noise_magnitude = config['noise_magnitude']
+        z_noisy = generate_data(points, noise_magnitude, plot=False)
+
+        # Mean
+        b = config['b']
+        B = config['B']
+        polynomial_degree = config['polynomial_degree']
+        trigonometric_coeff = config['trigonometric_coeff']
+        hyperbolic_coeff = config['hyperbolic_coeff']
+        mean = LinearModel(points, polynomial_degree=polynomial_degree,
+                           trigonometric_coeff=trigonometric_coeff,
+                           hyperbolic_coeff=hyperbolic_coeff, b=b, B=B)
+
+        # Prior for scale of correlation
+        # scale_prior = Uniform()
+        # scale_prior = Cauchy()
+        # scale_prior = StudentT()
+        # scale_prior = InverseGamma()
+        # scale_prior = Normal()
+        # scale_prior = Erlang()
+        # scale_prior = BetaPrime()
+        # scale_prior_name = config['scale_prior']
+        # scale_prior = eval(scale_prior_name)
+
+        # Kernel
+        # kernel = Matern()
+        # kernel = Exponential()
+        # kernel = Linear()
+        # kernel = SquareExponential()
+        # kernel = RationalQuadratic()
+        kernel_name = config['kernel']
+        kernel = eval(kernel_name + "()")
+
+        # Correlation
+        scale = config['scale']
+        sparse = config['sparse']
+        kernel_threshold = config['kernel_threshold']
+        # cor = Correlation(points, kernel=kernel, scale=scale_prior,
+        #                   sparse=sparse)
+        cor = Correlation(points, kernel=kernel, scale=scale, sparse=sparse,
+                          kernel_threshold=kernel_threshold)
+
+        # Covariance
+        imate_method = config['imate_method']
+        cov = Covariance(cor, imate_method=imate_method)
+
+        # Gaussian process
+        gp = GaussianProcess(mean, cov)
+
+        # Training
+        hyperparam_guess = config['hyperparam_guess']
+        optimization_method = config['optimization_method']
+        verbose = config['verbose']
+
+        full_likelihood_res = None
+        profile_likelihood_res = None
+
+        for profile_hyperparam in profile_hyperparams:
+            res = gp.train(z_noisy, profile_hyperparam=profile_hyperparam,
+                           log_hyperparam=True,
+                           optimization_method=optimization_method, tol=1e-6,
+                           hyperparam_guess=hyperparam_guess, verbose=verbose,
+                           plot=False)
+
+            if profile_hyperparam == 'none':
+                full_likelihood_res = res
+                print('\t full likelihood')
+            else:
+                profile_likelihood_res = res
+                print('\t prof likelihood')
+
+        result = {
+                'data_size': data_size,
+                'full_likelihood': full_likelihood_res,
+                'prof_likelihood': profile_likelihood_res,
         }
 
-        # For each data, loop over float type, such as 32-bit, 64-bit, 128-bit
-        for data_type in data_types:
-
-            filename = data_name + '_float' + data_type + '.pickle'
-            filepath = join(directory, filename)
-            with open(filepath, 'rb') as h:
-                M = pickle.load(h)
-            print('loaded %s.' % filename)
-
-            Mop = Matrix(M)
-            # Mop = AffineMatrixFunction(M)
-
-            type_result = {
-                'data_type': data_type,
-                'cpu_results': [],
-                'gpu_results': []
-            }
-
-            # --------------
-            # Compute on CPU
-            # --------------
-
-            if arguments['use_cpu']:
-
-                log2_num_cpu = numpy.log2(devices['num_all_cpu_threads'])
-                # if log2_num_cpu != int(log2_num_cpu):
-                #     raise RuntimeWarning("Num CPUs isn't a power of two.")
-
-                # Loop over number of cpu threads
-                for i in range(1, int(log2_num_cpu)+1):
-                    num_threads = int(2**i)
-                    print('\tComputing on cpu with %d threads ...'
-                          % num_threads)
-                    trace_cpu, info_cpu = traceinv(
-                            Mop,
-                            method='slq',
-                            min_num_samples=config['num_samples'],
-                            max_num_samples=config['num_samples'],
-                            lanczos_degree=config['lanczos_degree'],
-                            lanczos_tol=config['lanczos_tol'],
-                            orthogonalize=config['orthogonalize'],
-                            error_rtol=config['error_rtol'],
-                            error_atol=config['error_atol'],
-                            gram=config['gram'],
-                            outlier_significance_level=config[
-                                'outlier_significance_level'],
-                            verbose=config['verbose'],
-                            plot=config['plot'],
-                            gpu=False,
-                            num_threads=num_threads)
-
-                    cpu_result = {
-                        'num_threads': num_threads,
-                        'trace': trace_cpu,
-                        'info': info_cpu
-                    }
-                    type_result['cpu_results'].append(cpu_result)
-
-            # --------------
-            # Compute on GPU
-            # --------------
-
-            if arguments['use_gpu']:
-
-                # Loop over number of gpu devices
-                if data_type != '128':
-
-                    log2_num_gpu = numpy.log2(devices['num_all_gpu_devices'])
-                    if log2_num_gpu != int(log2_num_gpu):
-                        raise RuntimeError('Num GPUs is not a power of two.')
-
-                    for i in range(0, int(log2_num_gpu)+1):
-                        num_gpu_devices = int(2**i)
-                        print('\tComputing on gpu with %d devices ...'
-                              % num_gpu_devices)
-                        trace_gpu, info_gpu = traceinv(
-                                Mop,
-                                method='slq',
-                                min_num_samples=config['num_samples'],
-                                max_num_samples=config['num_samples'],
-                                lanczos_degree=config['lanczos_degree'],
-                                lanczos_tol=config['lanczos_tol'],
-                                orthogonalize=config['orthogonalize'],
-                                error_rtol=config['error_rtol'],
-                                error_atol=config['error_atol'],
-                                gram=config['gram'],
-                                outlier_significance_level=config[
-                                    'outlier_significance_level'],
-                                verbose=config['verbose'],
-                                plot=config['plot'],
-                                gpu=True,
-                                num_gpu_devices=num_gpu_devices)
-
-                        gpu_result = {
-                            'num_gpu_devices': num_gpu_devices,
-                            'trace': trace_gpu,
-                            'info': info_gpu
-                        }
-                        type_result['gpu_results'].append(gpu_result)
-
-            print('')
-            data_result['type_results'].append(type_result)
-
-        data_results.append(data_result)
+        results.append(result)
 
     now = datetime.now()
 
@@ -298,17 +297,13 @@ def benchmark(argv):
     benchmark_results = {
         'config': config,
         'devices': devices,
-        'data_results': data_results,
+        'results': results,
         'date': now.strftime("%d/%m/%Y %H:%M:%S")
     }
 
     # Save to file
     pickle_dir = 'pickle_results'
-    output_filename = 'benchmark_results'
-    if arguments['use_cpu']:
-        output_filename += '_cpu'
-    if arguments['use_gpu']:
-        output_filename += '_gpu'
+    output_filename = 'benchmark_speed'
     output_filename += '.pickle'
     output_full_filename = join(benchmark_dir, pickle_dir, output_filename)
     with open(output_full_filename, 'wb') as file:

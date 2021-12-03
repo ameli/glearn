@@ -71,13 +71,11 @@ def _find_bracket(
             x_new = x0*(1-t) + x1*t
             f_new = fun(x_new)
 
-            # TODO
             if verbose:
-                print('bracket was not found. Search for bracket. ' +
-                      'Iteration: %d' % iterations)
-                print('x0: %0.2f, f0: %0.16f' % (x0, f0))
-                print('x1: %0.2f, f1: %0.16f' % (x1, f1))
-                print('x_new: %0.2f, f_new: %0.16f' % (x_new, f_new))
+                print('Search for bracket, iteration: %d' % iterations)
+                print('x0: %+0.2f, f0: %+0.16f' % (x0, f0))
+                print('xc: %+0.2f, fc: %+0.16f' % (x_new, f_new))
+                print('x1: %+0.2f, f1: %+0.16f\n' % (x1, f1))
 
             if numpy.sign(f0) != numpy.sign(f_new):
 
@@ -114,18 +112,12 @@ def _find_bracket(
                 # bracket was not found yet. Try a point outside of interval
                 if numpy.abs(f0) > numpy.abs(f1):
                     # Extend to the right side of interval
-                    t = 0.5 + 1
+                    t = 2.0
                 else:
                     # Extend to the left side of interval
-                    t = 0.5 - 1
+                    t = -1.0
                 x_new = x0*(1-t)+x1*t
                 f_new = fun(x_new)
-
-                print('!!!!!!!')
-                print(t)
-                print(f0)
-                print(f_new)
-                print(f1)
 
                 if numpy.sign(f0) != numpy.sign(f_new):
 
@@ -148,7 +140,6 @@ def _find_bracket(
                         f1 = f_new
                     else:
                         # Search left side outer interval in next iteration
-                        print('@@@@@@@@@@@@@')
                         x1 = x0
                         f1 = f0
                         x0 = x_new
@@ -175,7 +166,7 @@ def root(
         method='chandrupatla',
         tol=1e-6,
         max_iter=100,
-        num_bracket_trials=4,
+        num_bracket_trials=6,
         verbose=False):
     """
     Finds roots of a function. If the Jacobian is given, it also checks if the

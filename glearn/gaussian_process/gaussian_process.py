@@ -160,9 +160,11 @@ class GaussianProcess(object):
 
         # Other hyperparameters of covariance (except scale)
         if profile_hyperparam == 'none':
-            # hyperparameters are sigma and sigma0
-            sigma_guess = 0.1
-            sigma0_guess = 0.1
+            # hyperparameters are sigma and sigma0. We assume all data is
+            # noise, hence we set sigma to zero and solve sigma0 from
+            # ordinary least square (OLS) solution.
+            sigma_guess = 1e-2  # Small nonzero ro avoid singularity
+            sigma0_guess = self.posterior.likelihood.ols_solution()
             hyperparam_guess = numpy.r_[sigma_guess, sigma0_guess, scale_guess]
 
         elif profile_hyperparam == 'var':

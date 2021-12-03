@@ -496,7 +496,9 @@ class ProfileLikelihood(BaseLikelihood):
     def _find_optimal_sigma02(self):
         """
         When eta is very large, we assume sigma is zero. Thus, sigma0 is
-        computed by this function.
+        computed by this function. This is the Ordinary Least Square (OLS)
+        solution of the regression problem where we assume there is no
+        correlation between points, hence sigma is assumed to be zero.
 
         This function does not require update of self.mixed_cor with
         hyperparameters.
@@ -1410,10 +1412,6 @@ class ProfileLikelihood(BaseLikelihood):
                 self.asym_poly = numpy.array([a0, a1], dtype=float)
             else:
                 self.asym_poly = numpy.array([a0, a1, a2, a3], dtype=float)
-
-            # Test
-            print('--- 1 1 1 ---')
-            print(self.asym_poly)
 
         if degree == 1:
             return self.asym_poly[:2]

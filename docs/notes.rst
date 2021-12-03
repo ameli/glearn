@@ -5,27 +5,16 @@ Notes
 * In profile likelihood, the last term of `lp` is a constant. `zMz`, at the
   optimal value of sigma**2, is constant. This is only for profile likelihood
   where optimal value of sigma is used.
+* For initial guesses of sigma and sigma0 hypepraram, assume sigma is zero, and
+  use eta=inf to find optimal sigma0 as a hyperparam.
 
 ====
 ToDo
 ====
 
-----------------
-hyperparam guess
-----------------
-
-* For the guess of eta hyperparam, use the asymptotic relation.
-* For sigma and sigma0 hypepraram, assume sigma is zero, and use eta=inf to
-  find optimal sigma0 as a hyperparam.
-
 --------------------
 Asymptotic Relations
 --------------------
-
-* in ``_profile_likelihood.py`` in ``_compute_assymptotre_der1_eta``, the
-  matrix ``R = I-Q`` is dense. Instead of computing it directly, perform the
-  dot product of ``R`` w.r.t a vector. For trace of ``N``, use cyclic property
-  of trace.
 
 * Add the option ``use_asymptotic``. If True, whenever eta is larger than the
   largest eigenvalue of K, computation of ell, ell_jacobian and ell_hessian

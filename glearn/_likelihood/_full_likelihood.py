@@ -235,6 +235,41 @@ class FullLikelihood(BaseLikelihood):
 
         return sigma, sigma0, eta, scale
 
+    # ============
+    # ols solution
+    # ============
+
+    def ols_solution(self):
+        """
+        Ordinary Least Square (OLS) solution of the regression. This solution
+        ignores the correlation between points (assumes K is identity). In
+        other words, it assumes sigma is zero and all the variance is based on
+        sigma0 only.
+
+        This solution could be useful to find a reasonable initial guess for
+        sigma0 (and by setting sigma to zero).
+        """
+
+        # Note: this sigma0 is only when eta is at infinity. Hence, computing
+        # it does not require eta, update of self.mixed_cor, or update of Y, C,
+        # Mz. Hence, once it is computed, it can be reused even if other
+        # variables like eta changed. Here, it suffice to only check of
+        # self.sigma0 is None to compute it for the first time. On next calls,
+        # it does not have to be recomputed.
+        if self.B is None:
+            Cinv = numpy.matmul(self.X.T, self.X)
+            C = numpy.linalg.inv(Cinv)
+            Xtz = numpy.matmul(self.X.T, self.z)
+            XCXtz = numpy.matmul(self.X, numpy.matmul(C, Xtz))
+            ols_sigma02 = numpy.dot(self.z, self.z-XCXtz) / self.rdof
+
+        else:
+            ols_sigma02 = numpy.dot(self.z, self.z) / self.rdof
+
+        ols_sigma0 = numpy.sqrt(ols_sigma02)
+
+        return ols_sigma0
+
     # ===========
     # K tilde dot
     # ===========
