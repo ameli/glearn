@@ -47,9 +47,9 @@ def main():
     z = generate_data(points, noise_magnitude, plot=False)
 
     # Mean
-    mean = LinearModel.design(points, polynomial_degree=2)
+    mean = LinearModel(points, polynomial_degree=2)
 
-    distance_scale = 0.2
+    scale = 0.2
 
     # Correlation
     # kernel = Matern()
@@ -57,7 +57,7 @@ def main():
     # kernel = Linear()
     # kernel = SquareExponential()
     # kernel = RationalQuadratic()
-    cor = Correlation(points, kernel=kernel, distance_scale=distance_scale,
+    cor = Correlation(points, kernel=kernel, scale=scale,
                       sparse=False)
     # cor = Correlation(points, kernel=kernel, sparse=False)
 
@@ -80,9 +80,9 @@ def main():
     k2 = numpy.zeros((points.shape[0], ), dtype=float)
     for i in range(x.size):
         x[i] = numpy.abs(points[i, 0] - points[0, 0])
-        k0[i] = sigma**2 * kernel.kernel(x[i]/distance_scale, derivative=0)
-        k1[i] = k0[i] * x[i] / distance_scale**2
-        k2[i] = k1[i] * (-2.0 + x[i]/distance_scale) / distance_scale
+        k0[i] = sigma**2 * kernel.kernel(x[i]/scale, derivative=0)
+        k1[i] = k0[i] * x[i] / scale**2
+        k2[i] = k1[i] * (-2.0 + x[i]/scale) / scale
 
     fig, ax = plt.subplots(ncols=3, figsize=(13, 4))
     ax[0].plot(x, K0[0, :], color='gray')

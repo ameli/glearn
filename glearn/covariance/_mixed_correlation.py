@@ -17,6 +17,7 @@ from scipy.sparse import isspmatrix
 from scipy.special import binom
 import imate
 from ._linear_solver import linear_solver
+from .._utilities.timer import Timer
 
 
 # =================
@@ -76,13 +77,18 @@ class MixedCorrelation(object):
         self.min_eta = tol
         self.max_eta = 1.0/tol
 
+        # Elapsed time of computing functions (all iterations combined)
+        self.logdet_timer = Timer()
+        self.traceinv_timer = Timer()
+        self.solve_timer = Timer()
+
     # =========
     # set scale
     # =========
 
     def set_scale(self, scale):
         """
-        Sets the scale attribute of coreelation matrix.
+        Sets the scale attribute of correlation matrix.
         """
 
         # Setting scale attribute of self.cor object.
@@ -324,6 +330,8 @@ class MixedCorrelation(object):
         assumed.
         """
 
+        self.traceinv_timer.tic()
+
         # Get eta (if None, uses class attribute)
         eta = self.get_eta(eta)
 
@@ -464,6 +472,8 @@ class MixedCorrelation(object):
                 raise ValueError('Existing methods are "eigenvalue", ' +
                                  '"cholesky", "hutchinson", and "slq".')
 
+        self.traceinv_timer.toc()
+
         return traceinv_
 
     # ======
@@ -493,6 +503,8 @@ class MixedCorrelation(object):
             method is not applicable to ``logdet()``, we use ``cholesky``
             instead.
         """
+
+        self.logdet_timer.tic()
 
         # Get eta (if None, uses class attribute)
         eta = self.get_eta(eta)
@@ -565,6 +577,8 @@ class MixedCorrelation(object):
                 raise ValueError('Existing methods are "eigenvalue", ' +
                                  '"cholesky", and "slq".')
 
+        self.logdet_timer.toc()
+
         return logdet_
 
     # =====
@@ -592,6 +606,8 @@ class MixedCorrelation(object):
         * :math:`\\mathbf{I}` is the identity matrix,
         * :math:`\\eta` is a real number.
         """
+
+        self.solve_timer.tic()
 
         # Get eta (if None, uses class attribute)
         eta = self.get_eta(eta)
@@ -625,6 +641,8 @@ class MixedCorrelation(object):
             X = Y.copy()
             for i in range(exponent):
                 X = linear_solver(Kn, X, assume_matrix=assume_matrix)
+
+        self.solve_timer.toc()
 
         return X
 

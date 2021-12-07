@@ -25,24 +25,19 @@ Asymptotic Relations
   and in ``likelihood``, ``likelihood_jacobian``, and ``likelihood_hessian``,
   refer to these functions.
 
-------------------
-measure imate time
-------------------
+------------
+measure time
+------------
 
 * likelihood tic toc measure elapsed time and process time of computing imate.
+* measure time (wall, proc) of computing correlations.
+* measure number of correlation evaluations (``num_cor_eval``)
 
 -------------
 imate configs
 -------------
 
 * pass imate config settings from cov object interface.
-
-=====
-Ideas
-=====
-
-* Does asymptotic relation exists for derivative w.r.t theta? If yes, its zero
-  can be used to initialize theta_guess, similar to eta_guess.
 
 ======
 Issues

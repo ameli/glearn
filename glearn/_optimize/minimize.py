@@ -11,9 +11,9 @@
 # Imports
 # =======
 
-import time
 import scipy.optimize
 from ._minimize_terminator import MinimizeTerminator, MinimizeTerminated
+from .._utilities.timer import Timer
 
 __all__ = ['minimize']
 
@@ -27,6 +27,7 @@ def minimize(
         hyperparam_guess,
         method,
         tol,
+        max_iter=1000,
         jac=None,
         hess=None,
         use_rel_error=True,
@@ -37,31 +38,28 @@ def minimize(
 
     # Minimize Terminator to gracefully terminate scipy.optimize.minimize once
     # tolerance is reached.
+    terminate = False  # Test
     minimize_terminator = MinimizeTerminator(tol, use_rel_error=use_rel_error,
+                                             terminate=terminate,
                                              verbose=verbose)
 
     options = {
-        'maxiter': 1000,
+        'maxiter': max_iter,
         'xatol': tol,
         'fatol': tol,
         'disp': False
     }
 
     # Keeping times
-    initial_wall_time = time.time()
-    initial_proc_time = time.process_time()
-
-    # If use_rel_error is None, do not use callback function.
-    if use_rel_error is None:
-        callback = None
-    else:
-        callback = minimize_terminator.__call__
+    timer = Timer()
+    timer.tic()
 
     try:
         # Local optimization method
         res = scipy.optimize.minimize(fun, hyperparam_guess, method=method,
                                       tol=tol, jac=jac, hess=hess,
-                                      callback=callback, options=options)
+                                      callback=minimize_terminator.__call__,
+                                      options=options)
 
         # Extract results from Res output
         hyperparam = res.x
@@ -102,8 +100,7 @@ def minimize(
     converged = minimize_terminator.converged
 
     # Adding time to the results
-    wall_time = time.time() - initial_wall_time
-    proc_time = time.process_time() - initial_proc_time
+    timer.toc()
 
     result = {
         'config':
@@ -132,8 +129,8 @@ def minimize(
         },
         'time':
         {
-            'wall_time': wall_time,
-            'proc_time': proc_time
+            'opt_wall_time': timer.wall_time,
+            'opt_proc_time': timer.proc_time
         }
     }
 

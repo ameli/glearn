@@ -15,6 +15,7 @@
 
 import sys
 import numpy
+from glearn import restrict_to_single_processor
 from glearn.sample_data import generate_points, generate_data
 from glearn.mean import LinearModel
 from glearn.kernels import Matern, Exponential, SquareExponential, \
@@ -32,36 +33,27 @@ from glearn import GaussianProcess
 
 def main():
 
+    # Restrict to single processor
+    restrict_to_single_processor()
+
     # For reproducibility
     numpy.random.seed(0)
 
     # Generate data points
-    # num_points = 30
-    # num_points = 50
-    # dimension = 1
-    # grid = True
-    # points = generate_points(num_points, dimension, grid)
-    points_1 = numpy.random.rand(5) * 0.4
-    points_2 = numpy.random.rand(40) * 0.2 + 0.4
-    points_3 = numpy.random.rand(5) * 0.4 + 0.6
-    points = numpy.r_[points_1, points_2, points_3]
+    dimension = 2
+    grid = True
+    num_points = 2**5
+    points = generate_points(num_points, dimension, grid)
 
     # Generate noisy data
-    # noise_magnitude = 0.2
-    noise_magnitude = 0.05
-    z_noisy = generate_data(points, noise_magnitude, plot=False)
+    noise_magnitude = 0.2
+    z = generate_data(points, noise_magnitude, plot=False)
 
     # Mean
-    # b = numpy.zeros((6, ))
-    # B = numpy.random.rand(b.size, b.size)
-    # B = 1e+5 * B.T @ B
     b = None
     B = None
-    polynomial_degree = 5
-    # trigonometric_coeff = [0.2]
-    # trigonometric_coeff = [0.1, 0.2, 0.3, 1.0]
+    polynomial_degree = 2
     trigonometric_coeff = None
-    # hyperbolic_coeff = [0.4, 0.7, 1.0]
     hyperbolic_coeff = None
     mean = LinearModel(points, polynomial_degree=polynomial_degree,
                        trigonometric_coeff=trigonometric_coeff,
@@ -85,7 +77,7 @@ def main():
     # kernel = RationalQuadratic()
 
     # Correlation
-    cor = Correlation(points, kernel=kernel, scale=0.07, sparse=False)
+    cor = Correlation(points, kernel=kernel, scale=0.1, sparse=False)
     # cor = Correlation(points, kernel=kernel, sparse=False)
     # cor = Correlation(points, kernel=kernel, scale=scale_prior, sparse=False)
     # cor.plot()
@@ -105,9 +97,9 @@ def main():
     profile_hyperparam = 'var'
     # profile_hyperparam = 'var_noise'
 
-    # optimization_method = 'chandrupatla'  # requires jacobian
+    optimization_method = 'chandrupatla'  # requires jacobian
     # optimization_method = 'brentq'         # requires jacobian
-    optimization_method = 'Nelder-Mead'   # requires func
+    # optimization_method = 'Nelder-Mead'     # requires func
     # optimization_method = 'BFGS'          # requires func, jacobian
     # optimization_method = 'CG'            # requires func, jacobian
     # optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
@@ -118,7 +110,7 @@ def main():
     # hyperparam_guess = [1.0]
     # hyperparam_guess = [0, 0.1, 0.1]
     # hyperparam_guess = [-1, 1e-1]
-    # hyperparam_guess = [1.0]
+    # hyperparam_guess = [10]
     # hyperparam_guess = [0.1, 0.1]
     # hyperparam_guess = [1.0, 0.1]
     # hyperparam_guess = [0.1, 0.1, 0.1, 0.1]
@@ -126,28 +118,23 @@ def main():
     hyperparam_guess = None
 
     # gp.train(z, options=options, plot=False)
-    result = gp.train(z_noisy, profile_hyperparam=profile_hyperparam,
-                      log_hyperparam=True, hyperparam_guess=hyperparam_guess,
+    result = gp.train(z, profile_hyperparam=profile_hyperparam,
+                      log_hyperparam=True,
                       optimization_method=optimization_method, tol=1e-6,
-                      max_iter=1000, use_rel_error=True,
-                      verbose=True, plot=False)
+                      hyperparam_guess=hyperparam_guess, verbose=True,
+                      plot=False)
 
     # gp.plot_likelihood()
 
     # Generate test points
-    num_points = 100
-    dimension = 1
-    grid = True
-    test_points = generate_points(num_points, dimension, grid)
-
-    # True data without noise
-    noise_magnitude = 0.05
-    z_true = generate_data(test_points, 0.0, plot=False)
-
-    # Predict
-    z_star_mean, z_star_cov = gp.predict(test_points, cov=True, plot=False,
-                                         confidence_level=0.95,
-                                         true_data=z_true)
+    # num_points = 40
+    # dimension = 2
+    # grid = True
+    # test_points = generate_points(num_points, dimension, grid)
+    #
+    # # Predict
+    # z_star_mean, z_star_cov = gp.predict(test_points, cov=True, plot=True,
+    #                                      confidence_level=0.95)
 
 
 # ===========

@@ -541,6 +541,8 @@ class FullLikelihood(BaseLikelihood):
         maximizing) the negative of log-likelihood function.
         """
 
+        self.timer.tic()
+
         # Check if likelihood is already computed for an identical hyperparam
         if (self.ell_hyperparam is not None) and \
                 (self.ell is not None) and \
@@ -592,6 +594,8 @@ class FullLikelihood(BaseLikelihood):
         # the minimum of -ell
         if sign_switch:
             ell = -ell
+
+        self.timer.toc()
 
         return ell
 
@@ -1086,6 +1090,8 @@ class FullLikelihood(BaseLikelihood):
         undefined.
         """
 
+        self.timer.tic()
+
         # Check if Jacobian is already computed for an identical hyperparam
         if (self.ell_jacobian_hyperparam is not None) and \
                 (self.ell_jacobian is not None) and \
@@ -1135,6 +1141,8 @@ class FullLikelihood(BaseLikelihood):
         if sign_switch:
             jacobian = -jacobian
 
+        self.timer.toc()
+
         return jacobian
 
     # ==================
@@ -1144,6 +1152,8 @@ class FullLikelihood(BaseLikelihood):
     def likelihood_hessian(self, sign_switch, hyperparam):
         """
         """
+
+        self.timer.tic()
 
         # Check if Hessian is already computed for an identical hyperparam
         if (self.ell_hessian_hyperparam is not None) and \
@@ -1240,5 +1250,7 @@ class FullLikelihood(BaseLikelihood):
 
         if sign_switch:
             hessian = -hessian
+
+        self.timer.toc()
 
         return hessian

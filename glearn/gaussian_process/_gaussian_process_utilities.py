@@ -29,6 +29,11 @@ def print_training_result(posterior, training_result):
     Prints the training results.
     """
 
+    # Test
+    import pprint
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(training_result)
+
     hyperparam = training_result['optimization']['state_vector']
     errors = training_result['convergence']['errors']
     converged = training_result['convergence']['converged']
@@ -46,6 +51,7 @@ def print_training_result(posterior, training_result):
         error = None
 
     # Print hyperparameters
+    print('')
     print('                               training summary                  ' +
           '             ')
     print('=================================================================' +
@@ -57,19 +63,19 @@ def print_training_result(posterior, training_result):
     scale_index = posterior.likelihood.scale_index
     if scale_index == 1:
         # Print eta
-        print('01  eta        %+0.4e   %+0.4e    %s'
+        print('1   eta        %+0.4e   %+0.4e    %s'
               % (hyperparam[0], error[0], converged[0]))
     elif scale_index == 2:
         # Print eta
-        print('01  sigma      %+0.4e   %+0.4e    %s'
+        print('1   sigma      %+0.4e   %+0.4e    %s'
               % (hyperparam[0], error[0], converged[0]))
-        print('02  sigma0     %+0.4e   %+0.4e    %s'
+        print('2   sigma0     %+0.4e   %+0.4e    %s'
               % (hyperparam[1], error[1], converged[1]))
 
     # Print scale parameters
     num_scales = error.size - scale_index
     for i in range(scale_index, hyperparam.size):
-        print('%0.2d  theta_%d    %+0.4e   %+0.4e    %s'
+        print('%d  theta_%d    %+0.4e   %+0.4e    %s'
               % (i+1, i-scale_index+1, hyperparam[i], error[i],
                  converged[i]))
 

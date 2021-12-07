@@ -36,6 +36,10 @@ class MinimizeTerminated(Exception):
 
 class MinimizeTerminator(object):
     """
+    This class interrupts ``scipy.optimize.minimize`` function to terminate
+    the optimization algorithm iterations if the termination criteria is
+    reached.
+
     The scipy.optimize.minimize does not terminate when setting its tolerances
     with ``tol``, ``xatol``, and ``fatol``. Rather, its algorithm runs over all
     iterations till ``maxiter`` is reached, which passes way below the
@@ -60,19 +64,24 @@ class MinimizeTerminator(object):
     Often, the algorithm passes ``xk`` the same as previous hyperparam, which
     than makes the self.error to be absolute zero. To ignore these false
     errors, we check if self.error > 0 to leave the false errors out.
+
+    To disable the effect of this class and leave the control of algorithm
+    iterations back to ``scipy.optimize.minimize`` set ``terminate`` to
+    False.
     """
 
     # ====
     # init
     # ====
 
-    def __init__(self, tol, use_rel_error=True, verbose=False):
+    def __init__(self, tol, use_rel_error=True, terminate=True, verbose=False):
         """
         Initialization.
         """
 
         # Attributes
         self.use_rel_error = use_rel_error
+        self.terminate = terminate
         self.verbose = verbose
 
         # Member data
@@ -169,7 +178,7 @@ class MinimizeTerminator(object):
                 self.all_converged = numpy.all(self.converged)
 
                 # Terminate when all converged
-                if self.all_converged:
+                if self.all_converged and self.terminate:
                     raise MinimizeTerminated('Convergence error reached the ' +
                                              'tolerance after %d iterations.'
                                              % (self.counter))

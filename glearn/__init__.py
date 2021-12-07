@@ -66,11 +66,13 @@ def _check_import():
 # =======
 
 try:
+    from ._utilities import get_processor_name, get_gpu_name, \
+            get_num_gpu_devices, restrict_to_single_processor
     from .mean import LinearModel
     from .priors import Uniform
-    from .correlation import Correlation                           # noqa: E402
-    from .covariance import Covariance                             # noqa: E402
-    from .gaussian_process import GaussianProcess                  # noqa: E402
+    from .correlation import Correlation
+    from .covariance import Covariance
+    from .gaussian_process import GaussianProcess
 
 except Exception as e:
     # Before printing the exception, check if the exception is raised due to
@@ -80,6 +82,7 @@ except Exception as e:
     raise e
 
 __all__ = ['LinearModel', 'Uniform', 'Correlation', 'Covariance',
-           'GaussianProcess']
+           'GaussianProcess', 'get_processor_name', 'get_gpu_name',
+           'get_num_gpu_devices']
 
 from.__version__ import __version__                                # noqa: F401

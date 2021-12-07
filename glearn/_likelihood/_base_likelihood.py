@@ -11,12 +11,12 @@
 # Imports
 # =======
 
-import time
+from .._utilities.timer import Timer
 
 
-# ==============
-# BaseLikelihood
-# ==============
+# ===============
+# Base Likelihood
+# ===============
 
 class BaseLikelihood(object):
     """
@@ -59,44 +59,4 @@ class BaseLikelihood(object):
         self.rdof = n - self.dof
 
         # Counting elapsed wall time and cpu proc time
-        self.wall_time = 0.0
-        self.proc_time = 0.0
-        self.init_wall_time = 0.0
-        self.init_proc_time = 0.0
-
-    # ===
-    # tic
-    # ===
-
-    def _tic(self):
-        """
-        Sets the initial wall and proc times.
-        """
-
-        self.init_wall_time = time.time()
-        self.init_proc_time = time.proc_time()
-
-    # ===
-    # toc
-    # ===
-
-    def _toc(self):
-        """
-        Measures the elapsed time from the last tic.
-        """
-
-        self.wall_time += time.time() - self.init_wall_time
-        self.proc_time += time.process_time() - self.init_proc_time
-
-    # ==========
-    # reset time
-    # ==========
-
-    def reset_time(self):
-        """
-        Resets time counters. Used when an instance of this class should be
-        reused again.
-        """
-
-        self.wall_time = 0.0
-        self.proc_time = 0.0
+        self.timer = Timer()

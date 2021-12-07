@@ -21,6 +21,7 @@ from ..kernels import Kernel, Matern
 import imate
 from ..priors.prior import Prior
 from ..priors.uniform import Uniform
+from .._utilities.timer import Timer
 
 try:
     from .._utilities.plot_utilities import matplotlib, plt
@@ -138,6 +139,16 @@ class Correlation(object):
         # Smallest and largest eigenvalues of K (only for zero-th derivative)
         self.K_eig_smallest = None
         self.K_eig_largest = None
+
+        # Elapsed time of updating correlation (all updates combined). This
+        # timer only keeps the time of correlation between training points and
+        # themselves (no test point), during the training only.
+        self.timer = Timer()
+
+        # Keep number of how many times correlation matrix is computed/updated.
+        # This counter is used only during the training only (no test point
+        # correlation).
+        self.num_cor_eval = 0
 
     # =========
     # get scale
@@ -432,6 +443,10 @@ class Correlation(object):
         # Generate new correlation matrix
         if update_needed:
 
+            # Keep time and count of updates
+            self.num_cor_eval += 1
+            self.timer.tic()
+
             # Sparse matrix of derivative 1 and 2 needs matrix of derivative 0
             if (len(derivative) > 0) and self.sparse and (self.K_der0 is None):
                 # Before generating matrix of derivative 1 or 2, first,
@@ -442,6 +457,9 @@ class Correlation(object):
 
             # The main line where new matrix is generated
             self._generate_correlation_matrix(self.current_scale, derivative)
+
+            # End if extensive computation
+            self.timer.toc()
 
             # if scale was changed, all matrices should be recomputed
             if self.current_scale_changed:

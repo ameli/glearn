@@ -62,6 +62,28 @@ class Posterior(object):
         self.num_jac_eval = 0
         self.num_hes_eval = 0
 
+    # =====
+    # reset
+    # =====
+
+    def _reset(self):
+        """
+        Resets the number of function and matrix evaluations and all timers.
+        """
+
+        # Reset number of function evaluations
+        self.num_fun_eval = 0
+        self.num_jac_eval = 0
+        self.num_hes_eval = 0
+
+        # Reset num evaluations and timers
+        self.likelihood.cov.cor.num_cor_eval = 0
+        self.likelihood.cov.cor.timer.reset()
+        self.likelihood.cov.mixed_cor.logdet_timer.reset()
+        self.likelihood.cov.mixed_cor.traceinv_timer.reset()
+        self.likelihood.cov.mixed_cor.solve_timer.reset()
+        self.likelihood.timer.reset()
+
     # =========
     # posterior
     # =========
@@ -222,6 +244,7 @@ class Posterior(object):
     def maximize_posterior(
             self,
             tol=1e-3,
+            max_iter=1000,
             hyperparam_guess=[0.1, 0.1],
             log_hyperparam=True,
             optimization_method='Nelder-Mead',
@@ -234,10 +257,8 @@ class Posterior(object):
         In this function, hyperparam = [sigma, sigma0].
         """
 
-        # Reset attributes
-        self.num_fun_eval = 0
-        self.num_jac_eval = 0
-        self.num_hes_eval = 0
+        # Resets the number of function and matrix evaluations and all timers.
+        self._reset()
 
         # Convert hyperparam to log of hyperparam. Note that if use_log_scale,
         # use_log_eta, or use_log_sigmas are not True, the output is not
@@ -294,7 +315,9 @@ class Posterior(object):
             # Jacobian of the input is the Hessian).
             log_eta_guess = log_hyperparam_guess[:scale_index]
             res = root(jacobian_partial_func, log_eta_guess,
-                       use_log=self.likelihood.use_log_eta, verbose=verbose)
+                       use_log=self.likelihood.use_log_eta, tol=tol,
+                       max_iter=max_iter, max_bracket_trials=6,
+                       verbose=verbose)
             x = res['optimization']['state_vector']
 
             # Check second derivative is positive, which the root does not
@@ -334,7 +357,7 @@ class Posterior(object):
             # Minimize
             res = minimize(posterior_partial_func, log_hyperparam_guess,
                            method=optimization_method, tol=tol,
-                           use_rel_error=use_rel_error,
+                           max_iter=max_iter, use_rel_error=use_rel_error,
                            jac=jacobian_partial_func,
                            hess=hessian_partial_func, verbose=verbose)
 
@@ -356,5 +379,33 @@ class Posterior(object):
         res['optimization']['num_fun_eval'] = self.num_fun_eval
         res['optimization']['num_jac_eval'] = self.num_jac_eval
         res['optimization']['num_hes_eval'] = self.num_hes_eval
+        res['optimization']['num_cor_eval'] = \
+            self.likelihood.cov.cor.num_cor_eval
+
+        # Correlation times
+        res['time']['cor_wall_time'] = self.likelihood.cov.cor.timer.wall_time
+        res['time']['cor_proc_time'] = self.likelihood.cov.cor.timer.proc_time
+
+        # mixed_cor logdet timer
+        res['time']['det_wall_time'] = \
+            self.likelihood.cov.mixed_cor.logdet_timer.wall_time
+        res['time']['det_proc_time'] = \
+            self.likelihood.cov.mixed_cor.logdet_timer.proc_time
+
+        # mixed_cor traceinv timer
+        res['time']['trc_wall_time'] = \
+            self.likelihood.cov.mixed_cor.traceinv_timer.wall_time
+        res['time']['trc_proc_time'] = \
+            self.likelihood.cov.mixed_cor.traceinv_timer.proc_time
+            
+        # mixed_cor solve timer
+        res['time']['sol_wall_time'] = \
+            self.likelihood.cov.mixed_cor.solve_timer.wall_time
+        res['time']['sol_proc_time'] = \
+            self.likelihood.cov.mixed_cor.solve_timer.proc_time
+
+        # Likelihood timer
+        res['time']['lik_wall_time'] = self.likelihood.timer.wall_time
+        res['time']['lik_proc_time'] = self.likelihood.timer.proc_time
 
         return res

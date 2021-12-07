@@ -11,10 +11,10 @@
 # Imports
 # =======
 
-import time
 import numpy
 import scipy
 from ._chandrupatla import chandrupatla
+from .._utilities.timer import Timer
 
 __all__ = ['root']
 
@@ -26,7 +26,7 @@ __all__ = ['root']
 def _find_bracket(
         fun,
         bracket,
-        num_bracket_trials,
+        max_bracket_trials,
         use_log,
         verbose=False):
     """
@@ -36,7 +36,7 @@ def _find_bracket(
     *bracketing* the function.
 
     If the initial interval is not a suitable *bracket*, then it iterates
-    *num_bracket_trials* times. If within the iterations, the bracket is yet
+    *max_bracket_trials* times. If within the iterations, the bracket is yet
     not found, it returns False status.
     """
 
@@ -53,7 +53,7 @@ def _find_bracket(
 
     # Trials
     iterations = 0
-    while (not bracket_found) and (iterations < num_bracket_trials):
+    while (not bracket_found) and (iterations < max_bracket_trials):
         iterations += 1
 
         if numpy.sign(f0) != numpy.sign(f1):
@@ -166,7 +166,7 @@ def root(
         method='chandrupatla',
         tol=1e-6,
         max_iter=100,
-        num_bracket_trials=6,
+        max_bracket_trials=6,
         verbose=False):
     """
     Finds roots of a function. If the Jacobian is given, it also checks if the
@@ -179,8 +179,8 @@ def root(
     """
 
     # Keeping times
-    initial_wall_time = time.time()
-    initial_proc_time = time.process_time()
+    timer = Timer()
+    timer.tic()
 
     # Ensure x_guess is a scalar
     if not numpy.isscalar(x_guess):
@@ -207,7 +207,7 @@ def root(
 
     # Search for bracket (an interval with sign-change)
     bracket_found, bracket, bracket_values = _find_bracket(
-            fun, interval, num_bracket_trials, use_log, verbose=verbose)
+            fun, interval, max_bracket_trials, use_log, verbose=verbose)
 
     # If bracket was not found, check if fun at zero has opposite sign
     if not bracket_found:
@@ -267,8 +267,7 @@ def root(
             x = numpy.inf
 
     # Adding time to the results
-    wall_time = time.time() - initial_wall_time
-    proc_time = time.process_time() - initial_proc_time
+    timer.toc()
 
     # Output dictionary
     result = {
@@ -276,7 +275,7 @@ def root(
         {
             'method': method,
             'max_iter': max_iter,
-            'num_bracket_trials': num_bracket_trials,
+            'max_bracket_trials': max_bracket_trials,
             'tol': tol,
         },
         'optimization':
@@ -292,8 +291,8 @@ def root(
         },
         'time':
         {
-            'wall_time': wall_time,
-            'proc_time': proc_time
+            'opt_wall_time': timer.wall_time,
+            'opt_proc_time': timer.proc_time
         }
     }
 

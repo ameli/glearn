@@ -199,6 +199,7 @@ class GaussianProcess(object):
             log_hyperparam=True,
             optimization_method='Newton-CG',
             tol=1e-3,
+            max_iter=1000,
             use_rel_error=True,
             verbose=False,
             plot=False):
@@ -226,15 +227,15 @@ class GaussianProcess(object):
         self.training_result = self.posterior.maximize_posterior(
                 hyperparam_guess=hyperparam_guess,
                 optimization_method=optimization_method, tol=tol,
-                use_rel_error=use_rel_error, verbose=verbose)
+                max_iter=max_iter, use_rel_error=use_rel_error,
+                verbose=verbose)
 
         if plot:
             plot_training_convergence(
                     self.posterior, self.training_result, verbose)
 
-        # TODO
-        # if verbose:
-        #     print_training_result(self.posterior, self.training_result)
+        if verbose:
+            print_training_result(self.posterior, self.training_result)
 
         # Set optimal parameters (sigma, sigma0) to covariance object
         sigma = self.training_result['hyperparam']['sigma']

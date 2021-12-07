@@ -2,8 +2,8 @@
 
 #PBS -k o
 #PBS -N benchmark_speed
-#PBS -o localhost:$PBS_O_WORKDIR/Log_logdet.log
-#PBS -e localhost:$PBS_O_WORKDIR/Err_logdet.err
+#PBS -o localhost:$PBS_O_WORKDIR/Log_speed.log
+#PBS -e localhost:$PBS_O_WORKDIR/Err_speed.err
 #PBS -l cput=2880:00:00
 #PBS -l walltime=144:00:00
 #PBS -l nodes=1:ppn=20
