@@ -344,9 +344,7 @@ class ProfileLikelihood(BaseLikelihood):
         """
 
         # Computing w = Sinv*z, where S is sigma**2 * K + sigma0**2 * I
-        self.timer.tic()  # Test
         w = self.mixed_cor.solve(z, eta=eta)
-        self.timer.toc()  # Test
 
         # Computing Mz
         Ytz = numpy.matmul(Y.T, z)
@@ -398,9 +396,7 @@ class ProfileLikelihood(BaseLikelihood):
             # is factored out. For example, self.B is indeed B1 = B/(sigma**2),
             # and self.C here is C1 = C/(sigma**2). That is, B and C denoted in
             # this code are B1 and C1 of the notations used in the paper.
-            self.timer.tic()  # Test
             self.Y = self.mixed_cor.solve(self.X, eta=eta)
-            self.timer.toc()  # Test
             self.Cinv = numpy.matmul(self.X.T, self.Y) + self.Binv
             self.C = numpy.linalg.inv(self.Cinv)
             self.Mz = self.M_dot(self.C, self.Y, eta, self.z)
@@ -636,7 +632,7 @@ class ProfileLikelihood(BaseLikelihood):
         log-likelihood function.
         """
 
-        # self.timer.tic()  # Test
+        self.timer.tic()
 
         if numpy.isscalar(hyperparam):
             hyperparam_ = numpy.array([hyperparam], dtype=float)
@@ -718,7 +714,7 @@ class ProfileLikelihood(BaseLikelihood):
         if sign_switch:
             ell = -ell
 
-        # self.timer.toc()  # Test
+        self.timer.toc()
 
         return ell
 
@@ -744,12 +740,8 @@ class ProfileLikelihood(BaseLikelihood):
             scale = self._hyperparam_to_scale(hyperparam[self.scale_index:])
             self.mixed_cor.set_scale(scale)
 
-        # self.timer.tic()  # Test
-
         # Update Y, C, Mz
         self._update_Y_C_Mz(hyperparam)
-
-        # self.timer.toc()  # Test
 
         # Find optimal sigma2
         sigma2 = self._find_optimal_sigma2(hyperparam)
@@ -1133,7 +1125,7 @@ class ProfileLikelihood(BaseLikelihood):
         Computes Jacobian w.r.t eta, and if given, scale.
         """
 
-        # self.timer.tic()  # Test
+        self.timer.tic()
 
         if numpy.isscalar(hyperparam):
             hyperparam_ = numpy.array([hyperparam], dtype=float)
@@ -1186,7 +1178,7 @@ class ProfileLikelihood(BaseLikelihood):
         if sign_switch:
             jacobian = -jacobian
 
-        # self.timer.toc()  # Test
+        self.timer.toc()
 
         return jacobian
 
@@ -1199,7 +1191,7 @@ class ProfileLikelihood(BaseLikelihood):
         Computes Hessian w.r.t eta, and if given, scale.
         """
 
-        # self.timer.tic()  # Test
+        self.timer.tic()
 
         if numpy.isscalar(hyperparam):
             hyperparam_ = numpy.array([hyperparam], dtype=float)
@@ -1294,7 +1286,7 @@ class ProfileLikelihood(BaseLikelihood):
         if sign_switch:
             hessian = -hessian
 
-        # self.timer.toc()  # Test
+        self.timer.toc()
 
         return hessian
 

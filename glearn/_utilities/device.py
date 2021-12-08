@@ -13,8 +13,10 @@
 
 import os
 import re
+import sys
 import platform
 import subprocess
+import resource
 
 
 # ==================
@@ -45,6 +47,19 @@ def get_processor_name():
                 return re.sub(".*model name.*:", "", line, 1)[1:]
 
     return ""
+
+
+# ===================
+# get num cpu threads
+# ===================
+
+def get_num_cpu_threads():
+    """
+    Returns the number of cpu threads.
+    """
+
+    num_cpu_threads = len(os.sched_getaffinity(0))
+    return num_cpu_threads
 
 
 # ============
@@ -100,6 +115,25 @@ def get_num_gpu_devices():
     return num_gpu_devices
 
 
+# ================
+# get memory usage
+# ================
+
+def get_memory_usage():
+    """
+    Returns the memory usage of the current python process.
+    """
+
+    rusage_denom = 1024.0
+
+    if sys.platform == 'darwin':
+        # In OSX the output is different units
+        rusage_denom = rusage_denom * rusage_denom
+    mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / rusage_denom
+
+    return mem
+
+
 # ============================
 # restrict to single processor
 # ============================
@@ -115,7 +149,7 @@ def restrict_to_single_processor():
     scipy.optimize.differential_evolution) is to restrict the whole python
     script to use a single code. This function does that.
 
-    Note, other scipy.optimzie methods (like shgo) do not have this issue. That
+    Note, other scipy.optimize methods (like shgo) do not have this issue. That
     means, you can still run the code in parallel and the time.process_time()
     measures the CPU time of all cores properly.
     """
@@ -127,4 +161,3 @@ def restrict_to_single_processor():
     os.environ["MKL_NUM_THREADS"] = "1"
     os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
     os.environ["NUMEXPR_NUM_THREADS"] = "1"
-

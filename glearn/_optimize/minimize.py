@@ -38,19 +38,18 @@ def minimize(
 
     # Minimize Terminator to gracefully terminate scipy.optimize.minimize once
     # tolerance is reached.
-    terminate = False  # Test
     minimize_terminator = MinimizeTerminator(tol, use_rel_error=use_rel_error,
-                                             terminate=terminate,
                                              verbose=verbose)
 
     options = {
         'maxiter': max_iter,
+        'xtol': tol,
         'xatol': tol,
         'fatol': tol,
         'disp': False
     }
 
-    # Keeping times
+    # Keeping elapsed times of optimization
     timer = Timer()
     timer.tic()
 
@@ -65,18 +64,6 @@ def minimize(
         hyperparam = res.x
         max_fun = -res.fun
         num_opt_iter = res.nit
-        num_fun_eval = res.nfev
-
-        if hasattr(res, 'njev'):
-            num_jac_eval = res.njev
-        else:
-            num_jac_eval = 0
-
-        if hasattr(res, 'nhev'):
-            num_hes_eval = res.nhev
-        else:
-            num_hes_eval = 0
-
         message = res.message
         success = res.success
 
@@ -86,51 +73,38 @@ def minimize(
         hyperparam = minimize_terminator.hyperparams[-1, :]
         max_fun = -fun(hyperparam)
         num_opt_iter = minimize_terminator.counter
-        num_fun_eval = None
-        num_jac_eval = None
-        num_hes_eval = None
         message = 'Minimization algorithm is terminated successfully for ' + \
                   'reaching the tolerance %0.3e on all variables ' % tol + \
                   'after %d iterations' % num_opt_iter
         success = minimize_terminator.all_converged
 
     # Get convergence of hyperparam and its error
-    hyperparams = minimize_terminator.hyperparams
-    errors = minimize_terminator.errors
-    converged = minimize_terminator.converged
+    # hyperparams = minimize_terminator.hyperparams
+    # errors = minimize_terminator.errors
+    # converged = minimize_terminator.converged
 
     # Adding time to the results
     timer.toc()
 
     result = {
-        'config':
-        {
-            'method': method,
-            'max_iter': options['maxiter'],
-            'tol': tol,
-            'use_rel_error': use_rel_error,
-        },
+        # 'convergence':
+        # {
+        #     'converged': converged,
+        #     'errors': errors,
+        #     'hyperparams': hyperparams,
+        # },
         'optimization':
         {
             'state_vector': hyperparam,
             'max_fun': max_fun,
             'num_opt_iter': num_opt_iter,
-            'num_fun_eval': num_fun_eval,
-            'num_jac_eval': num_jac_eval,
-            'num_hes_eval': num_hes_eval,
             'message': message,
             'success': success
         },
-        'convergence':
-        {
-            'converged': converged,
-            'errors': errors,
-            'hyperparams': hyperparams,
-        },
         'time':
         {
-            'opt_wall_time': timer.wall_time,
-            'opt_proc_time': timer.proc_time
+            'wall_time': timer.wall_time,
+            'proc_time': timer.proc_time
         }
     }
 

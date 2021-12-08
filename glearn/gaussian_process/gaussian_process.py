@@ -216,6 +216,9 @@ class GaussianProcess(object):
                                    profile_hyperparam=profile_hyperparam,
                                    log_hyperparam=log_hyperparam)
 
+        # Reset function evaluation counters and timers
+        self.posterior.reset()
+
         # Prepare or suggest hyperparameter guess
         if hyperparam_guess is not None:
             self._check_hyperparam_guess(hyperparam_guess, profile_hyperparam)
@@ -225,9 +228,8 @@ class GaussianProcess(object):
 
         # Maximize posterior w.r.t hyperparameters
         self.training_result = self.posterior.maximize_posterior(
-                hyperparam_guess=hyperparam_guess,
-                optimization_method=optimization_method, tol=tol,
-                max_iter=max_iter, use_rel_error=use_rel_error,
+                hyperparam_guess, optimization_method=optimization_method,
+                tol=tol, max_iter=max_iter, use_rel_error=use_rel_error,
                 verbose=verbose)
 
         if plot:

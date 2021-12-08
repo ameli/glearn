@@ -34,7 +34,7 @@ from glearn import GaussianProcess
 def main():
 
     # Restrict to single processor
-    restrict_to_single_processor()
+    # restrict_to_single_processor()
 
     # For reproducibility
     numpy.random.seed(0)
@@ -42,7 +42,7 @@ def main():
     # Generate data points
     dimension = 2
     grid = True
-    num_points = 2**5
+    num_points = 30
     points = generate_points(num_points, dimension, grid)
 
     # Generate noisy data
@@ -83,8 +83,8 @@ def main():
     # cor.plot()
 
     # Covariance
-    # imate_method = 'eigenvalue'
-    imate_method = 'cholesky'
+    imate_method = 'eigenvalue'
+    # imate_method = 'cholesky'
     # imate_method = 'hutchinson'
     # imate_method = 'slq'
     cov = Covariance(cor, imate_method=imate_method)
@@ -110,7 +110,7 @@ def main():
     # hyperparam_guess = [1.0]
     # hyperparam_guess = [0, 0.1, 0.1]
     # hyperparam_guess = [-1, 1e-1]
-    # hyperparam_guess = [10]
+    # hyperparam_guess = [1]
     # hyperparam_guess = [0.1, 0.1]
     # hyperparam_guess = [1.0, 0.1]
     # hyperparam_guess = [0.1, 0.1, 0.1, 0.1]

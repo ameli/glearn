@@ -66,8 +66,7 @@ def _check_import():
 # =======
 
 try:
-    from ._utilities import get_processor_name, get_gpu_name, \
-            get_num_gpu_devices, restrict_to_single_processor
+    from ._utilities import restrict_to_single_processor
     from .mean import LinearModel
     from .priors import Uniform
     from .correlation import Correlation
@@ -82,7 +81,6 @@ except Exception as e:
     raise e
 
 __all__ = ['LinearModel', 'Uniform', 'Correlation', 'Covariance',
-           'GaussianProcess', 'get_processor_name', 'get_gpu_name',
-           'get_num_gpu_devices']
+           'GaussianProcess', 'restrict_to_single_processor']
 
 from.__version__ import __version__                                # noqa: F401

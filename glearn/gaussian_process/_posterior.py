@@ -16,6 +16,8 @@ from functools import partial
 from .._likelihood.likelihood import likelihood
 from .._likelihood._profile_likelihood import ProfileLikelihood
 from .._optimize import minimize, root
+from .._utilities.device import get_num_cpu_threads, get_num_gpu_devices, \
+        get_memory_usage
 import warnings
 
 
@@ -43,6 +45,7 @@ class Posterior(object):
         Initialization.
         """
 
+        self.profile_hyperparam = profile_hyperparam
         self.likelihood = likelihood(mean, cov, z, log_hyperparam,
                                      profile_hyperparam)
 
@@ -66,7 +69,7 @@ class Posterior(object):
     # reset
     # =====
 
-    def _reset(self):
+    def reset(self):
         """
         Resets the number of function and matrix evaluations and all timers.
         """
@@ -243,9 +246,10 @@ class Posterior(object):
 
     def maximize_posterior(
             self,
+            hyperparam_guess,
             tol=1e-3,
             max_iter=1000,
-            hyperparam_guess=[0.1, 0.1],
+            max_bracket_trials=6,
             log_hyperparam=True,
             optimization_method='Nelder-Mead',
             use_rel_error=True,
@@ -257,12 +261,9 @@ class Posterior(object):
         In this function, hyperparam = [sigma, sigma0].
         """
 
-        # Resets the number of function and matrix evaluations and all timers.
-        self._reset()
-
         # Convert hyperparam to log of hyperparam. Note that if use_log_scale,
         # use_log_eta, or use_log_sigmas are not True, the output is not
-        # converted to log, despite we named the outout with "log_" prefix.
+        # converted to log, despite we named the output with "log_" prefix.
         log_hyperparam_guess = self.likelihood.hyperparam_to_log_hyperparam(
                 hyperparam_guess)
 
@@ -316,8 +317,8 @@ class Posterior(object):
             log_eta_guess = log_hyperparam_guess[:scale_index]
             res = root(jacobian_partial_func, log_eta_guess,
                        use_log=self.likelihood.use_log_eta, tol=tol,
-                       max_iter=max_iter, max_bracket_trials=6,
-                       verbose=verbose)
+                       max_iter=max_iter,
+                       max_bracket_trials=max_bracket_trials, verbose=verbose)
             x = res['optimization']['state_vector']
 
             # Check second derivative is positive, which the root does not
@@ -373,39 +374,83 @@ class Posterior(object):
             'scale': scale
         }
 
-        res['hyperparam'] = hyperparam
-
-        # Modify number of function, jacobian, and hessian evaluations
-        res['optimization']['num_fun_eval'] = self.num_fun_eval
-        res['optimization']['num_jac_eval'] = self.num_jac_eval
-        res['optimization']['num_hes_eval'] = self.num_hes_eval
-        res['optimization']['num_cor_eval'] = \
-            self.likelihood.cov.cor.num_cor_eval
+        # Number of function, Jacobian, and Hessian evaluations
+        optimization = {
+            'num_fun_eval': self.num_fun_eval,
+            'num_jac_eval': self.num_jac_eval,
+            'num_hes_eval': self.num_hes_eval,
+            'num_cor_eval': self.likelihood.cov.cor.num_cor_eval,
+            'max_fun': res['optimization']['max_fun'],
+            'num_opt_iter': res['optimization']['num_opt_iter'],
+            'message': res['optimization']['message']
+        }
 
         # Correlation times
-        res['time']['cor_wall_time'] = self.likelihood.cov.cor.timer.wall_time
-        res['time']['cor_proc_time'] = self.likelihood.cov.cor.timer.proc_time
+        time = {
+            # correlation timer
+            'cor_wall_time': self.likelihood.cov.cor.timer.wall_time,
+            'cor_proc_time': self.likelihood.cov.cor.timer.proc_time,
 
-        # mixed_cor logdet timer
-        res['time']['det_wall_time'] = \
-            self.likelihood.cov.mixed_cor.logdet_timer.wall_time
-        res['time']['det_proc_time'] = \
-            self.likelihood.cov.mixed_cor.logdet_timer.proc_time
+            # mixed_cor logdet timer
+            'det_wall_time':
+                self.likelihood.cov.mixed_cor.logdet_timer.wall_time,
+            'det_proc_time':
+                self.likelihood.cov.mixed_cor.logdet_timer.proc_time,
 
-        # mixed_cor traceinv timer
-        res['time']['trc_wall_time'] = \
-            self.likelihood.cov.mixed_cor.traceinv_timer.wall_time
-        res['time']['trc_proc_time'] = \
-            self.likelihood.cov.mixed_cor.traceinv_timer.proc_time
-            
-        # mixed_cor solve timer
-        res['time']['sol_wall_time'] = \
-            self.likelihood.cov.mixed_cor.solve_timer.wall_time
-        res['time']['sol_proc_time'] = \
-            self.likelihood.cov.mixed_cor.solve_timer.proc_time
+            # mixed_cor traceinv timer
+            'trc_wall_time':
+                self.likelihood.cov.mixed_cor.traceinv_timer.wall_time,
+            'trc_proc_time':
+                self.likelihood.cov.mixed_cor.traceinv_timer.proc_time,
 
-        # Likelihood timer
-        res['time']['lik_wall_time'] = self.likelihood.timer.wall_time
-        res['time']['lik_proc_time'] = self.likelihood.timer.proc_time
+            # mixed_cor solve timer
+            'sol_wall_time':
+                self.likelihood.cov.mixed_cor.solve_timer.wall_time,
+            'sol_proc_time':
+                self.likelihood.cov.mixed_cor.solve_timer.proc_time,
+
+            # Likelihood timer
+            'lik_wall_time': self.likelihood.timer.wall_time,
+            'lik_proc_time': self.likelihood.timer.proc_time,
+
+            # Optimization timer
+            'opt_wall_time': res['time']['wall_time'],
+            'opt_proc_time': res['time']['proc_time']
+        }
+
+        # Configuration
+        config = {
+            'profile_hyperparam': self.profile_hyperparam,
+            'optimization_method': optimization_method,
+            'max_iter': max_iter,
+            'max_bracket_trials': max_bracket_trials,
+            'use_rel_error': use_rel_error,
+            'tol': tol,
+            'imate_method': self.likelihood.cov.imate_method,
+            'imate_tol': self.likelihood.cov.tol,
+            'imate_interpolate': self.likelihood.cov.mixed_cor.interpolate,
+        }
+
+        # Device information. Device is queried only if verbose is enabled,
+        # since gpu inquiries can be time consuming.
+        if verbose:
+            device = {
+                'num_cpu_threads': get_num_cpu_threads(),
+                'num_gpu_devices': get_num_gpu_devices(),
+                'num_gpu_multiproc': 0,
+                'num_gpu_threads_per_multiproc': 0,
+                'memory_usage': get_memory_usage()
+            }
+        else:
+            device = {}
+
+        # Create output dictionary
+        res = {
+            'hyperparam': hyperparam,
+            'optimization': optimization,
+            'config': config,
+            'time': time,
+            'device': device
+        }
 
         return res

@@ -74,7 +74,12 @@ class MinimizeTerminator(object):
     # init
     # ====
 
-    def __init__(self, tol, use_rel_error=True, terminate=True, verbose=False):
+    def __init__(
+            self,
+            tol,
+            use_rel_error=True,
+            terminate=False,
+            verbose=False):
         """
         Initialization.
         """

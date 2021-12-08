@@ -185,7 +185,6 @@ def chandrupatla(
     res = {
         'root': xm,
         'num_opt_iter': iterations,
-        'num_fun_eval': iterations + 2,
         'converged': converged
     }
 

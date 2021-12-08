@@ -25,14 +25,6 @@ Asymptotic Relations
   and in ``likelihood``, ``likelihood_jacobian``, and ``likelihood_hessian``,
   refer to these functions.
 
-------------
-measure time
-------------
-
-* likelihood tic toc measure elapsed time and process time of computing imate.
-* measure time (wall, proc) of computing correlations.
-* measure number of correlation evaluations (``num_cor_eval``)
-
 -------------
 imate configs
 -------------

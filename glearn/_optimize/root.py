@@ -238,7 +238,7 @@ def root(
                                              method=method, xtol=tol)
             x = res.root
             num_opt_iter = res.iterations
-            num_fun_eval = res.function_calls
+            message = ''
             success = res.converged
 
         elif method == 'chandrupatla':
@@ -247,7 +247,7 @@ def root(
                                eps_m=tol, eps_a=tol, maxiter=max_iter)
             x = res['root']
             num_opt_iter = res['num_opt_iter']
-            num_fun_eval = res['num_fun_eval']
+            message = ''
             success = res['converged']
 
         else:
@@ -256,43 +256,31 @@ def root(
 
     else:
         # bracket with sign change was not found.
-
-        # No algorithm iteration. Also num_fun_eval will be found in later.
+        x = numpy.inf
         num_opt_iter = 0
-        num_fun_eval = None
         success = True
+        message = 'No bracket with sign change was found. Assume root at inf.'
 
         if verbose:
-            print('No bracket with sign change was found. Assume root at inf.')
-            x = numpy.inf
+            print(message)
 
     # Adding time to the results
     timer.toc()
 
     # Output dictionary
     result = {
-        'config':
-        {
-            'method': method,
-            'max_iter': max_iter,
-            'max_bracket_trials': max_bracket_trials,
-            'tol': tol,
-        },
         'optimization':
         {
             'state_vector': x,
-            'max_fun': 'not evaluated',
+            'max_fun': 'N/A',
             'num_opt_iter': num_opt_iter,
-            'num_fun_eval': None,
-            'num_jac_eval': num_fun_eval,  # fun here is Jacobian of posterior
-            'num_hes_eval': None,
-            'message': '',
+            'message': message,
             'success': success
         },
         'time':
         {
-            'opt_wall_time': timer.wall_time,
-            'opt_proc_time': timer.proc_time
+            'wall_time': timer.wall_time,
+            'proc_time': timer.proc_time
         }
     }
 

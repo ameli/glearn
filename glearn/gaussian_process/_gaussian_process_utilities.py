@@ -21,34 +21,108 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 
 # =====================
+# human readable memory
+# =====================
+
+def _human_readable_memory(kbytes):
+    """
+    Converts memory in Kilo-Bytes to human readable unit.
+    """
+
+    k = 2**10
+    bytes = kbytes * k
+
+    counter = 0
+    hr_bytes = bytes
+    while hr_bytes > k:
+        hr_bytes /= k
+        counter += 1
+
+    if counter == 0:
+        unit = ' b'
+    elif counter == 1:
+        unit = 'Kb'
+    elif counter == 2:
+        unit = 'Mb'
+    elif counter == 3:
+        unit = 'Gb'
+    elif counter == 4:
+        unit = 'Tb'
+    elif counter == 5:
+        unit = 'Pb'
+
+    return hr_bytes, unit
+
+
+# =====================
 # print training result
 # =====================
 
-def print_training_result(posterior, training_result):
+def print_training_result(posterior, res):
     """
     Prints the training results.
     """
 
-    # Test
-    import pprint
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(training_result)
+    # Optimization config
+    profile_hyperparam = res['config']['profile_hyperparam']
+    optimization_method = res['config']['optimization_method']
+    tol = res['config']['tol']
+    max_iter = res['config']['max_iter']
+    max_bracket_trials = res['config']['max_bracket_trials']
+    # use_rel_error = res['config']['use_rel_error']
 
-    hyperparam = training_result['optimization']['state_vector']
-    errors = training_result['convergence']['errors']
-    converged = training_result['convergence']['converged']
-    num_opt_iter = training_result['optimization']['num_opt_iter']
-    num_fun_eval = training_result['optimization']['num_fun_eval']
-    num_jac_eval = training_result['optimization']['num_jac_eval']
-    num_hes_eval = training_result['optimization']['num_hes_eval']
-    wall_time = training_result['time']['wall_time']
-    proc_time = training_result['time']['proc_time']
+    # Imate config
+    imate_method = res['config']['imate_method']
+    imate_interpolate = res['config']['imate_interpolate']
+    imate_tol = res['config']['imate_tol']
 
-    # Test TODO
-    if errors is not None:
-        error = errors[-1, :]
+    # Hyperparam
+    hyperparam = res['hyperparam']
+    eta = hyperparam['eta']
+    sigma = hyperparam['sigma']
+    sigma0 = hyperparam['sigma0']
+    scale = numpy.asarray(hyperparam['scale'])
+
+    # Optimization
+    max_fun = res['optimization']['max_fun']
+    num_opt_iter = res['optimization']['num_opt_iter']
+    num_fun_eval = res['optimization']['num_fun_eval']
+    num_jac_eval = res['optimization']['num_jac_eval']
+    num_hes_eval = res['optimization']['num_hes_eval']
+    num_cor_eval = res['optimization']['num_cor_eval']
+
+    # Time
+    cor_wall_time = res['time']['cor_wall_time']
+    cor_proc_time = res['time']['cor_proc_time']
+    det_wall_time = res['time']['det_wall_time']
+    det_proc_time = res['time']['det_proc_time']
+    trc_wall_time = res['time']['trc_wall_time']
+    trc_proc_time = res['time']['trc_proc_time']
+    sol_wall_time = res['time']['sol_wall_time']
+    sol_proc_time = res['time']['sol_proc_time']
+    # lik_wall_time = res['time']['lik_wall_time']
+    # lik_proc_time = res['time']['lik_proc_time']
+    opt_wall_time = res['time']['opt_wall_time']
+    opt_proc_time = res['time']['opt_proc_time']
+
+    # Device
+    num_cpu_threads = res['device']['num_cpu_threads']
+    num_gpu_devices = res['device']['num_gpu_devices']
+    num_gpu_multiproc = res['device']['num_gpu_multiproc']
+    num_gpu_threads_per_multiproc = \
+        res['device']['num_gpu_threads_per_multiproc']
+    memory_usage = res['device']['memory_usage']
+    mem_hr_bytes, mem_unit = _human_readable_memory(memory_usage)
+
+    # Convert scale (theta) to string
+    if scale.size == 1:
+        theta_string = '%0.6f' % scale[0]
     else:
-        error = None
+        theta_string = ''
+        for i in range(scale.size):
+            theta_string += '%0.1e' % scale[i]
+            if i < scale.size-1:
+                theta_string += ', '
 
     # Print hyperparameters
     print('')
@@ -56,42 +130,78 @@ def print_training_result(posterior, training_result):
           '             ')
     print('=================================================================' +
           '=============')
-    print('i   variable     value      error     converged')
-    print('=================================================================' +
-          '=============')
+    print('    posterior/param               optimization                ima' +
+          'te solver    ')
+    print('-----------------------      ----------------------      --------' +
+          '-------------')
+    colspace = '      '
+    print('posterior  %+0.5e' % max_fun, end=colspace)
+    print('method    %12s' % optimization_method, end=colspace)
+    print('method   %12s' % imate_method)
 
-    scale_index = posterior.likelihood.scale_index
-    if scale_index == 1:
-        # Print eta
-        print('1   eta        %+0.4e   %+0.4e    %s'
-              % (hyperparam[0], error[0], converged[0]))
-    elif scale_index == 2:
-        # Print eta
-        print('1   sigma      %+0.4e   %+0.4e    %s'
-              % (hyperparam[0], error[0], converged[0]))
-        print('2   sigma0     %+0.4e   %+0.4e    %s'
-              % (hyperparam[1], error[1], converged[1]))
+    print('eta        %0.6e' % eta, end=colspace)
+    print('tol           %0.2e' % tol, end=colspace)
+    print('tol          %0.2e' % imate_tol)
 
-    # Print scale parameters
-    num_scales = error.size - scale_index
-    for i in range(scale_index, hyperparam.size):
-        print('%d  theta_%d    %+0.4e   %+0.4e    %s'
-              % (i+1, i-scale_index+1, hyperparam[i], error[i],
-                 converged[i]))
+    print('sigma      %0.6e' % sigma, end=colspace)
+    print('max iter          %3d' % max_iter, end=colspace)
+    print('interpolate     %5s' % imate_interpolate)
 
-    # Print user configurations
+    print('sigma0     %0.6e' % sigma0, end=colspace)
+    print('max bracket trials  %2d' % max_bracket_trials)
+
+    print('theta %17s' % theta_string, end=colspace)
+    print('profile param  %7s' % profile_hyperparam, end=colspace)
     print('')
-    print('                                    config                       ' +
+
+    # Print process info (elapsed times, number of function evaluations, cpu
+    # and gpu device info).
+    print('')
+    print('                                    Process                      ' +
           '             ')
     print('=================================================================' +
           '=============')
+    print('           time (sec)                   evaluations              ' +
+          'processor ')
+    print('-------------------------------      ------------------      ----' +
+          '-------------')
+    print('task         clock     process       task             #      devi' +
+          'ce          #')
+    print('=================================================================' +
+          '=============')
+    colspace = '      '
+    print('correlation  %0.2e  %0.2e'
+          % (cor_wall_time, cor_proc_time), end=colspace)
+    print('correlation   %4d' % num_cor_eval, end=colspace)
+    print('cpu threads   %3d' % num_cpu_threads)
+
+    print('logdet       %0.2e  %0.2e'
+          % (det_wall_time, det_proc_time), end=colspace)
+    print('likelihood    %4d' % num_fun_eval, end=colspace)
+    print('gpu devices   %3d' % num_gpu_devices)
+
+    print('traceinv     %0.2e  %0.2e'
+          % (trc_wall_time, trc_proc_time), end=colspace)
+    print('jacobian      %4d' % num_jac_eval, end=colspace)
+    print('gpu multiproc %3d' % num_gpu_multiproc)
+
+    print('solver       %0.2e  %0.2e'
+          % (sol_wall_time, sol_proc_time), end=colspace)
+    print('hessian       %4d' % num_hes_eval, end=colspace)
+    print('gpu thrds/sm  %3d' % num_gpu_threads_per_multiproc)
+
+    print('overall      %0.2e  %0.2e'
+          % (opt_wall_time, opt_proc_time), end=colspace)
+    print('optimization  %4d' % num_opt_iter, end=colspace)
+    print('mem used (%s) %3.0f' % (mem_unit, mem_hr_bytes))
+    print('')
 
 
 # =========================
 # plot training convergence
 # =========================
 
-def plot_training_convergence(posterior, training_result, verbose):
+def plot_training_convergence(posterior, res, verbose):
     """
     """
 
@@ -100,9 +210,9 @@ def plot_training_convergence(posterior, training_result, verbose):
     fig, ax = plt.subplots(figsize=(6, 4.8))
     markersize = 3
 
-    use_rel_error = training_result['config']['use_rel_error']
-    tol = training_result['config']['tol']
-    errors = training_result['convergence']['errors'][1:]
+    use_rel_error = res['config']['use_rel_error']
+    tol = res['config']['tol']
+    errors = res['convergence']['errors'][1:]
     iter = numpy.arange(errors.shape[0]) + 2
 
     scale_index = posterior.likelihood.scale_index
