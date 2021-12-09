@@ -12,6 +12,7 @@
 # =======
 
 import numpy
+from numpy import format_float_scientific as ffs
 import scipy
 from .._utilities.plot_utilities import *                    # noqa: F401, F403
 from .._utilities.plot_utilities import load_plot_settings, save_plot, plt, \
@@ -24,16 +25,15 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 # human readable memory
 # =====================
 
-def _human_readable_memory(kbytes):
+def _human_readable_memory(mem_bytes):
     """
     Converts memory in Kilo-Bytes to human readable unit.
     """
 
     k = 2**10
-    bytes = kbytes * k
-
     counter = 0
-    hr_bytes = bytes
+    hr_bytes = mem_bytes
+
     while hr_bytes > k:
         hr_bytes /= k
         counter += 1
@@ -112,88 +112,109 @@ def print_training_result(posterior, res):
     num_gpu_threads_per_multiproc = \
         res['device']['num_gpu_threads_per_multiproc']
     memory_usage = res['device']['memory_usage']
-    mem_hr_bytes, mem_unit = _human_readable_memory(memory_usage)
+    if not isinstance(memory_usage, str):
+        mem_hr_bytes, mem_unit = _human_readable_memory(memory_usage)
 
     # Convert scale (theta) to string
     if scale.size == 1:
-        theta_string = '%0.6f' % scale[0]
+        theta_string = '%0.10f' % scale[0]
     else:
+        if scale.size == 2:
+            digit = 2
+        else:
+            digit = 1
         theta_string = ''
         for i in range(scale.size):
-            theta_string += '%0.1e' % scale[i]
+            theta_string += '%s' \
+                % ffs(scale[i], precision=digit, min_digits=digit,
+                      exp_digits=1)
             if i < scale.size-1:
                 theta_string += ', '
 
     # Print hyperparameters
     print('')
-    print('                               training summary                  ' +
-          '             ')
+    print('                                Training Summary                 ' +
+          '               ')
     print('=================================================================' +
-          '=============')
-    print('    posterior/param               optimization                ima' +
-          'te solver    ')
-    print('-----------------------      ----------------------      --------' +
-          '-------------')
+          '===============')
+    print('       posterior/param                optimization              i' +
+          'mate solver    ')
+    print('-----------------------------      -------------------      -----' +
+          '---------------')
     colspace = '      '
-    print('posterior  %+0.5e' % max_fun, end=colspace)
-    print('method    %12s' % optimization_method, end=colspace)
-    print('method   %12s' % imate_method)
+    print('posterior    %+0.9e' % max_fun, end=colspace)
+    print('method %12s' % optimization_method, end=colspace)
+    print('method  %12s' % imate_method)
 
-    print('eta        %0.6e' % eta, end=colspace)
-    print('tol           %0.2e' % tol, end=colspace)
-    print('tol          %0.2e' % imate_tol)
+    print('eta          %0.10e' % eta, end=colspace)
+    print('tol        %0.2e' % tol, end=colspace)
+    print('tol         %0.2e' % imate_tol)
 
-    print('sigma      %0.6e' % sigma, end=colspace)
-    print('max iter          %3d' % max_iter, end=colspace)
-    print('interpolate     %5s' % imate_interpolate)
+    print('sigma        %0.10e' % sigma, end=colspace)
+    print('max iter       %3d' % max_iter, end=colspace)
+    print('interpolate    %5s' % imate_interpolate)
 
-    print('sigma0     %0.6e' % sigma0, end=colspace)
-    print('max bracket trials  %2d' % max_bracket_trials)
+    print('sigma0       %0.10e' % sigma0, end=colspace)
+    print('max bracket try  %2d' % max_bracket_trials)
 
-    print('theta %17s' % theta_string, end=colspace)
-    print('profile param  %7s' % profile_hyperparam, end=colspace)
+    print('theta %23s' % theta_string, end=colspace)
+    print('profile param %5s' % profile_hyperparam, end=colspace)
     print('')
 
     # Print process info (elapsed times, number of function evaluations, cpu
     # and gpu device info).
     print('')
     print('                                    Process                      ' +
-          '             ')
+          '               ')
     print('=================================================================' +
-          '=============')
-    print('           time (sec)                   evaluations              ' +
-          'processor ')
-    print('-------------------------------      ------------------      ----' +
-          '-------------')
-    print('task         clock     process       task             #      devi' +
-          'ce          #')
+          '===============')
+    print('         time (sec)                    evaluations               ' +
+          'processor      ')
+    print('-----------------------------      -------------------      -----' +
+          '---------------')
+    print('task         clock    process      task              #      devic' +
+          'e             #')
     print('=================================================================' +
-          '=============')
+          '===============')
     colspace = '      '
-    print('correlation  %0.2e  %0.2e'
-          % (cor_wall_time, cor_proc_time), end=colspace)
-    print('correlation   %4d' % num_cor_eval, end=colspace)
-    print('cpu threads   %3d' % num_cpu_threads)
+    print('correlation  %s  %s'
+          % (ffs(cor_wall_time, precision=2, min_digits=2, exp_digits=1),
+             ffs(cor_proc_time, precision=2, min_digits=2, exp_digits=1)),
+          end=colspace)
+    print('correlation   %5d' % num_cor_eval, end=colspace)
+    print('cpu threads   %6d' % num_cpu_threads)
 
-    print('logdet       %0.2e  %0.2e'
-          % (det_wall_time, det_proc_time), end=colspace)
-    print('likelihood    %4d' % num_fun_eval, end=colspace)
-    print('gpu devices   %3d' % num_gpu_devices)
+    print('logdet       %s  %s'
+          % (ffs(det_wall_time, precision=2, min_digits=2, exp_digits=1),
+             ffs(det_proc_time, precision=2, min_digits=2, exp_digits=1)),
+          end=colspace)
+    print('likelihood    %5d' % num_fun_eval, end=colspace)
+    print('gpu devices   %6d' % num_gpu_devices)
 
-    print('traceinv     %0.2e  %0.2e'
-          % (trc_wall_time, trc_proc_time), end=colspace)
-    print('jacobian      %4d' % num_jac_eval, end=colspace)
-    print('gpu multiproc %3d' % num_gpu_multiproc)
+    print('traceinv     %s  %s'
+          % (ffs(trc_wall_time, precision=2, min_digits=2, exp_digits=1),
+             ffs(trc_proc_time, precision=2, min_digits=2, exp_digits=1)),
+          end=colspace)
+    print('jacobian      %5d' % num_jac_eval, end=colspace)
+    print('gpu multiproc %6d' % num_gpu_multiproc)
 
-    print('solver       %0.2e  %0.2e'
-          % (sol_wall_time, sol_proc_time), end=colspace)
-    print('hessian       %4d' % num_hes_eval, end=colspace)
-    print('gpu thrds/sm  %3d' % num_gpu_threads_per_multiproc)
+    print('solver       %s  %s'
+          % (ffs(sol_wall_time, precision=2, min_digits=2, exp_digits=1),
+             ffs(sol_proc_time, precision=2, min_digits=2, exp_digits=1)),
+          end=colspace)
+    print('hessian       %5d' % num_hes_eval, end=colspace)
+    print('gpu thrds/sm  %6d' % num_gpu_threads_per_multiproc)
 
-    print('overall      %0.2e  %0.2e'
-          % (opt_wall_time, opt_proc_time), end=colspace)
-    print('optimization  %4d' % num_opt_iter, end=colspace)
-    print('mem used (%s) %3.0f' % (mem_unit, mem_hr_bytes))
+    print('overall      %s  %s'
+          % (ffs(opt_wall_time, precision=2, min_digits=2, exp_digits=1),
+             ffs(opt_proc_time, precision=2, min_digits=2, exp_digits=1)),
+          end=colspace)
+    print('optimization  %5d' % num_opt_iter, end=colspace)
+    if not isinstance(memory_usage, str):
+        print('mem used (%s) %6.0f' % (mem_unit, mem_hr_bytes))
+    else:
+        # At this point, memory_usage should be "n/a"
+        print('mem used %10s ' % memory_usage)
     print('')
 
 

@@ -16,7 +16,10 @@ import re
 import sys
 import platform
 import subprocess
-import resource
+
+# resource is not available in windows
+if os.name == 'posix':
+    import resource
 
 
 # ==================
@@ -73,19 +76,22 @@ def get_gpu_name():
 
     command = ['nvidia-smi', '-a', '|', 'grep', '-i', '"Product Name"', '-m',
                '1', '|', 'grep', '-o', '":.*"', '|', 'cut', '-c', '3-']
-    return subprocess.getoutput(command).strip()
 
-    process = subprocess.Popen(command, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
-    stdout, _ = process.communicate()
-    error_code = process.poll()
+    try:
+        process = subprocess.Popen(command, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+        stdout, _ = process.communicate()
+        error_code = process.poll()
 
-    # Error code 127 means nvidia-smi is not a recognized command. Error code
-    # 9 means nvidia-smi could not find any device.
-    if error_code != 0:
-        gpu_name = 'none'
-    else:
-        gpu_name = stdout.strip()
+        # Error code 127 means nvidia-smi is not a recognized command. Error
+        # code 9 means nvidia-smi could not find any device.
+        if error_code != 0:
+            gpu_name = 'none'
+        else:
+            gpu_name = stdout.strip()
+
+    except FileNotFoundError:
+        gpu_name = 0
 
     return gpu_name
 
@@ -100,17 +106,22 @@ def get_num_gpu_devices():
     """
 
     command = ['nvidia-smi', '--list-gpus', '|', 'wc', '-l']
-    process = subprocess.Popen(command, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
-    stdout, _ = process.communicate()
-    error_code = process.poll()
 
-    # Error code 127 means nvidia-smi is not a recognized command. Error code
-    # 9 means nvidia-smi could not find any device.
-    if error_code != 0:
+    try:
+        process = subprocess.Popen(command, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+        stdout, _ = process.communicate()
+        error_code = process.poll()
+
+        # Error code 127 means nvidia-smi is not a recognized command. Error
+        # code 9 means nvidia-smi could not find any device.
+        if error_code != 0:
+            num_gpu_devices = 0
+        else:
+            num_gpu_devices = int(stdout)
+
+    except FileNotFoundError:
         num_gpu_devices = 0
-    else:
-        num_gpu_devices = int(stdout)
 
     return num_gpu_devices
 
@@ -121,15 +132,65 @@ def get_num_gpu_devices():
 
 def get_memory_usage():
     """
-    Returns the memory usage of the current python process.
+    Returns the memory usage of the current python process in bytes.
     """
 
-    rusage_denom = 1024.0
+    # Convert Kb to bytes
+    k = 2**10
 
-    if sys.platform == 'darwin':
-        # In OSX the output is different units
-        rusage_denom = rusage_denom * rusage_denom
-    mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / rusage_denom
+    if os.name == 'posix':
+        # In Linux and MaxOS
+        mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+
+        # In Linux, the output of the command is in Kb. Convert to Bytes.
+        if sys.platform == 'linux':
+            mem *= k
+
+    else:
+        # In windows
+        pid = os.getpid()
+        command = ['tasklist', '/fi', '"pid eq %d"' % pid]
+
+        try:
+            pid = os.getpid()
+            command = ['tasklist', '/fi', 'pid eq %d' % pid]
+            process = subprocess.Popen(command, stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+            stdout, stderr = process.communicate()
+            error_code = process.poll()
+            if error_code != 0:
+                mem = 'n/a'
+                return mem
+
+            # Parse output
+            last_line = stdout.strip().decode().split("\n")[-1]
+
+            # Check last line of output has any number in it
+            is_digit = [char.isdigit() for char in last_line]
+            if not any(is_digit):
+                mem = 'n/a'
+                return mem
+
+            # Get memory as string and its unit
+            mem_string = last_line.split(' ')[-2].replace(',', '')
+            mem = int(mem_string)
+            mem_unit = last_line.split(' ')[-1]
+
+            # Convert bytes based on the unit
+            if mem_unit == 'K':
+                exponent = 1
+            if mem_unit == 'M':
+                exponent = 2
+            if mem_unit == 'G':
+                exponent = 3
+            if mem_unit == 'T':
+                exponent = 4
+
+            # Memory in bytes
+            mem = mem * (k**exponent)
+
+        except FileNotFoundError:
+            mem = 'n/a'
 
     return mem
 
