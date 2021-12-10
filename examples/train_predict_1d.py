@@ -36,15 +36,11 @@ def main():
     numpy.random.seed(0)
 
     # Generate data points
-    # num_points = 30
-    # num_points = 50
-    # dimension = 1
-    # grid = True
-    # points = generate_points(num_points, dimension, grid)
-    points_1 = numpy.random.rand(5) * 0.4
-    points_2 = numpy.random.rand(40) * 0.2 + 0.4
-    points_3 = numpy.random.rand(5) * 0.4 + 0.6
-    points = numpy.r_[points_1, points_2, points_3]
+    num_points = 50
+    dimension = 1
+    grid = True
+    points = generate_points(num_points, dimension=dimension, a=0.4,
+                             b=0.6, ratio=0.8, grid=False)
 
     # Generate noisy data
     # noise_magnitude = 0.2

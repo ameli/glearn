@@ -12,7 +12,8 @@
 # =======
 
 import numpy
-import matplotlib.pyplot as plt
+from .._utilities.plot_utilities import *                    # noqa: F401, F403
+from .._utilities.plot_utilities import load_plot_settings, plt
 
 __all__ = ['generate_data']
 
@@ -54,36 +55,58 @@ def generate_data(points, noise_magnitude, plot=False):
 
     # Plot data
     if plot:
-
-        if dimension == 1:
-
-            fig, ax = plt.subplots()
-            ax.plot(points, z, 'o', color='black', markersize=4)
-            ax.set_xlim([points[0], points[-1]])
-            ax.set_xlabel(r'$x$')
-            ax.set_ylabel(r'$z(x)$')
-            ax.set_title('Sample one dimensional data')
-
-            plt.show()
-
-        elif dimension == 2:
-
-            fig = plt.figure()
-            ax = fig.gca(projection='3d')
-            num_points_on_axis = numpy.sqrt(num_points).astype(int)
-            x_mesh = points[:, 0].reshape(num_points_on_axis, -1)
-            y_mesh = points[:, 1].reshape(num_points_on_axis, -1)
-            z_mesh = z.reshape(num_points_on_axis, num_points_on_axis)
-            p = ax.plot_surface(x_mesh, y_mesh, z_mesh, linewidth=0,
-                                antialiased=False)
-            fig.colorbar(p, ax=ax)
-            ax.set_xlabel(r'$x_1$')
-            ax.set_ylabel(r'$x_2$')
-            ax.set_zlabel(r'$z(x_1, x_2)$')
-            ax.set_title('Sample two dimensional data')
-            plt.show()
-
-        else:
-            raise ValueError('Dimension should be "1" or "2" to plot data.')
+        _plot_data(points, z)
 
     return z
+
+
+# =========
+# plot data
+# =========
+
+def _plot_data(points, z):
+    """
+    Plots 1D or 2D data.
+    """
+
+    load_plot_settings()
+
+    num_points = points.shape[0]
+    dimension = points.shape[1]
+
+    if dimension == 1:
+
+        x = points
+        xi = numpy.linspace(0, 1)
+        zi = generate_data(xi, 0.0, False)
+
+        fig, ax = plt.subplots()
+        ax.plot(x, z, 'o', color='black', markersize=4, label='noisy data')
+        ax.plot(xi, zi, color='black', label='noise-free data')
+        ax.set_xlim([0, 1])
+        ax.set_xlabel(r'$x$')
+        ax.set_ylabel(r'$z(x)$')
+        ax.set_title('Sample one dimensional data')
+        ax.legend()
+
+        plt.show()
+
+    elif dimension == 2:
+
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        num_points_on_axis = numpy.sqrt(num_points).astype(int)
+        x_mesh = points[:, 0].reshape(num_points_on_axis, -1)
+        y_mesh = points[:, 1].reshape(num_points_on_axis, -1)
+        z_mesh = z.reshape(num_points_on_axis, num_points_on_axis)
+        p = ax.plot_surface(x_mesh, y_mesh, z_mesh, linewidth=0,
+                            antialiased=False)
+        fig.colorbar(p, ax=ax)
+        ax.set_xlabel(r'$x_1$')
+        ax.set_ylabel(r'$x_2$')
+        ax.set_zlabel(r'$z(x_1, x_2)$')
+        ax.set_title('Sample two dimensional data')
+        plt.show()
+
+    else:
+        raise ValueError('Dimension should be "1" or "2" to plot data.')

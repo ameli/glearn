@@ -29,7 +29,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Build package wheel
-ENV USE_CUDA=1
+# ENV USE_CUDA=1
 RUN mkdir /tmp/glearn
 ADD . /tmp/glearn/
 WORKDIR /tmp/glearn
