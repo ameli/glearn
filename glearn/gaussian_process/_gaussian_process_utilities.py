@@ -72,9 +72,11 @@ def print_training_result(posterior, res):
     # use_rel_error = res['config']['use_rel_error']
 
     # Imate config
-    imate_method = res['config']['imate_method']
-    imate_interpolate = res['config']['imate_interpolate']
-    imate_tol = res['config']['imate_tol']
+    imate_method = res['imate_config']['imate_method']
+    imate_interpolate = res['imate_config']['imate_interpolate']
+    imate_tol = res['imate_config']['imate_tol']
+    imate_min_num_samples = res['imate_config']['min_num_samples']
+    imate_max_num_samples = res['imate_config']['max_num_samples']
 
     # Hyperparam
     hyperparam = res['hyperparam']
@@ -155,11 +157,12 @@ def print_training_result(posterior, res):
     print('interpolate    %5s' % imate_interpolate)
 
     print('sigma0       %0.10e' % sigma0, end=colspace)
-    print('max bracket try  %2d' % max_bracket_trials)
+    print('max bracket try  %2d' % max_bracket_trials, end=colspace)
+    print('min num samples %4d' % imate_min_num_samples)
 
     print('theta %23s' % theta_string, end=colspace)
     print('profile param %5s' % profile_hyperparam, end=colspace)
-    print('')
+    print('max num samples %4d' % imate_max_num_samples)
 
     # Print process info (elapsed times, number of function evaluations, cpu
     # and gpu device info).

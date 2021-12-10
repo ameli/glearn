@@ -20,7 +20,7 @@ Interactive Tutorial
 
 |binder|
 
-Launch an online interactive tutorial in `Jupyter notebook <https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2FSpecial%20Functions.ipynb>`_.
+Launch an online interactive tutorial in `Jupyter notebook <https://mybinder.org/v2/gh/ameli/glearn/main?labpath=notebooks%2Fdemo.ipynb>`_.
 
 
 =====
@@ -300,4 +300,4 @@ Credit
 .. |release| image:: https://img.shields.io/github/v/tag/ameli/glearn
    :target: https://github.com/ameli/glearn/releases/
 .. |binder| image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2FSpecial%20Functions.ipynb
+   :target: https://mybinder.org/v2/gh/ameli/glearn/main?labpath=notebooks%2Fdemo.ipynb

@@ -426,19 +426,42 @@ class Posterior(object):
             'max_bracket_trials': max_bracket_trials,
             'use_rel_error': use_rel_error,
             'tol': tol,
+        }
+
+        # imate configuration
+        imate_config = {
             'imate_method': self.likelihood.cov.imate_method,
             'imate_tol': self.likelihood.cov.tol,
             'imate_interpolate': self.likelihood.cov.mixed_cor.interpolate,
         }
+        if self.likelihood.cov.mixed_cor.imate_info != {}:
+            imate_info = self.likelihood.cov.mixed_cor.imate_info
+            imate_config['min_num_samples'] = imate_info['min_num_samples']
+            imate_config['max_num_samples'] = imate_info['max_num_samples']
+            imate_config['device'] = imate_info['device']
+            imate_config['solver'] = imate_info['solver']
 
         # Device information. Device is queried only if verbose is enabled,
         # since gpu inquiries can be time consuming.
         if verbose:
+            if self.likelihood.cov.mixed_cor.imate_info != {}:
+                imate_info = self.likelihood.cov.mixed_cor.imate_info
+                num_cpu_threads = imate_info['device']['num_cpu_threads']
+                num_gpu_devices = imate_info['device']['num_gpu_devices']
+                num_gpu_multiproc = \
+                    imate_info['device']['num_gpu_multiprocessors']
+                num_gpu_threads_per_multiproc = \
+                    imate_info['device']['num_gpu_threads_per_multiprocessor']
+            else:
+                num_cpu_threads = get_num_cpu_threads()
+                num_gpu_devices = get_num_gpu_devices()
+                num_gpu_multiproc = 0
+                num_gpu_threads_per_multiproc = 0
             device = {
-                'num_cpu_threads': get_num_cpu_threads(),
-                'num_gpu_devices': get_num_gpu_devices(),
-                'num_gpu_multiproc': 0,
-                'num_gpu_threads_per_multiproc': 0,
+                'num_cpu_threads': num_cpu_threads,
+                'num_gpu_devices': num_gpu_devices,
+                'num_gpu_multiproc': num_gpu_multiproc,
+                'num_gpu_threads_per_multiproc': num_gpu_threads_per_multiproc,
                 'memory_usage': get_memory_usage()
             }
         else:
@@ -449,6 +472,7 @@ class Posterior(object):
             'hyperparam': hyperparam,
             'optimization': optimization,
             'config': config,
+            'imate_config': imate_config,
             'time': time,
             'device': device
         }
