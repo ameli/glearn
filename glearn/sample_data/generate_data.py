@@ -22,7 +22,10 @@ __all__ = ['generate_data']
 # generate data
 # =============
 
-def generate_data(points, noise_magnitude, plot=False):
+def generate_data(
+        points,
+        noise_magnitude,
+        plot=False):
     """
     Generates 1D array of data points. The data are the additive ``sin``
     function along each axis plus uniform noise.

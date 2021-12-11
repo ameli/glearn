@@ -26,6 +26,8 @@ recursive-include tests *.py
 recursive-include tests *.rst
 recursive-include scripts *.sh
 
+recursive-exclude notebooks *.pdf
+recursive-exclude notebooks *.svg
 recursive-exclude examples *.pdf
 recursive-exclude examples *.svg
 recursive-exclude tests *.svg

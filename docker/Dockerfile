@@ -24,6 +24,7 @@ RUN apt-get update && \
         python3-dev \
         python3-pip \
         wget \
+        libgomp1 \
         && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*

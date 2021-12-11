@@ -23,10 +23,10 @@ __all__ = ['generate_points']
 def generate_points(
         num_points,
         dimension=2,
+        grid=False,
         a=None,
         b=None,
-        ratio=0.0,
-        grid=False):
+        ratio=0.0):
     """
     Generates 2D array of size ``(n, m)`` where ``m`` is the dimension of the
     space, and ``n`` is the number of generated points inside a unit hypercube.

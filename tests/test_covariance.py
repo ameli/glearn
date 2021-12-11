@@ -202,7 +202,7 @@ def test_covariance():
     num_points = 20
     dimension = 2
     grid = True
-    points = generate_points(num_points, dimension, grid)
+    points = generate_points(num_points, dimension=dimension, grid=grid)
 
     # Correlation
     kernel = Matern()

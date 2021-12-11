@@ -91,7 +91,7 @@ def get_gpu_name():
             gpu_name = stdout.strip()
 
     except FileNotFoundError:
-        gpu_name = 0
+        gpu_name = 'none'
 
     return gpu_name
 
@@ -130,7 +130,7 @@ def get_num_gpu_devices():
 # get memory usage
 # ================
 
-def get_memory_usage():
+def get_memory_usage(human_readable=False):
     """
     Returns the memory usage of the current python process in bytes.
     """
@@ -192,7 +192,47 @@ def get_memory_usage():
         except FileNotFoundError:
             mem = 'n/a'
 
-    return mem
+    # Default unit is bytes.
+    unit = 'b'
+
+    # Convert from bytes to the closets unit
+    if human_readable:
+        mem, unit = _human_readable_memory(mem)
+
+    return mem, unit
+
+
+# =====================
+# human readable memory
+# =====================
+
+def _human_readable_memory(mem_bytes):
+    """
+    Converts memory in Kilo-Bytes to human readable unit.
+    """
+
+    k = 2**10
+    counter = 0
+    hr_bytes = mem_bytes
+
+    while hr_bytes > k:
+        hr_bytes /= k
+        counter += 1
+
+    if counter == 0:
+        unit = ' b'
+    elif counter == 1:
+        unit = 'Kb'
+    elif counter == 2:
+        unit = 'Mb'
+    elif counter == 3:
+        unit = 'Gb'
+    elif counter == 4:
+        unit = 'Tb'
+    elif counter == 5:
+        unit = 'Pb'
+
+    return hr_bytes, unit
 
 
 # ============================

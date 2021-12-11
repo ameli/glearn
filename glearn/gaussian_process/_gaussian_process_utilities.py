@@ -22,39 +22,6 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 
 # =====================
-# human readable memory
-# =====================
-
-def _human_readable_memory(mem_bytes):
-    """
-    Converts memory in Kilo-Bytes to human readable unit.
-    """
-
-    k = 2**10
-    counter = 0
-    hr_bytes = mem_bytes
-
-    while hr_bytes > k:
-        hr_bytes /= k
-        counter += 1
-
-    if counter == 0:
-        unit = ' b'
-    elif counter == 1:
-        unit = 'Kb'
-    elif counter == 2:
-        unit = 'Mb'
-    elif counter == 3:
-        unit = 'Gb'
-    elif counter == 4:
-        unit = 'Tb'
-    elif counter == 5:
-        unit = 'Pb'
-
-    return hr_bytes, unit
-
-
-# =====================
 # print training result
 # =====================
 
@@ -113,9 +80,7 @@ def print_training_result(posterior, res):
     num_gpu_multiproc = res['device']['num_gpu_multiproc']
     num_gpu_threads_per_multiproc = \
         res['device']['num_gpu_threads_per_multiproc']
-    memory_usage = res['device']['memory_usage']
-    if not isinstance(memory_usage, str):
-        mem_hr_bytes, mem_unit = _human_readable_memory(memory_usage)
+    mem_usage, mem_unit = res['device']['memory_usage']
 
     # Convert scale (theta) to string
     if scale.size == 1:
@@ -213,11 +178,11 @@ def print_training_result(posterior, res):
              ffs(opt_proc_time, precision=2, min_digits=2, exp_digits=1)),
           end=colspace)
     print('optimization  %5d' % num_opt_iter, end=colspace)
-    if not isinstance(memory_usage, str):
-        print('mem used (%s) %6.0f' % (mem_unit, mem_hr_bytes))
+    if not isinstance(mem_usage, str):
+        print('mem used (%s) %6.0f' % (mem_unit, mem_usage))
     else:
         # At this point, memory_usage should be "n/a"
-        print('mem used %10s ' % memory_usage)
+        print('mem used %10s ' % mem_usage)
     print('')
 
 

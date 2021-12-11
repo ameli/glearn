@@ -462,7 +462,7 @@ class Posterior(object):
                 'num_gpu_devices': num_gpu_devices,
                 'num_gpu_multiproc': num_gpu_multiproc,
                 'num_gpu_threads_per_multiproc': num_gpu_threads_per_multiproc,
-                'memory_usage': get_memory_usage()
+                'memory_usage': get_memory_usage(human_readable=True)
             }
         else:
             device = {}
