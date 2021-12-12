@@ -16,8 +16,8 @@ from functools import partial
 from .._likelihood.likelihood import likelihood
 from .._likelihood._profile_likelihood import ProfileLikelihood
 from .._optimize import minimize, root
-from .._utilities.device import get_num_cpu_threads, get_num_gpu_devices, \
-        get_memory_usage
+from .._utilities.device import get_num_cpu_threads, get_num_gpu_devices
+from .._utilities.memory import get_memory_usage, human_readable_memory
 import warnings
 
 
@@ -65,6 +65,9 @@ class Posterior(object):
         self.num_jac_eval = 0
         self.num_hes_eval = 0
 
+        # Record initial resident memory (rss) of this currnet process in bytes
+        self.init_mem_used = 0
+
     # =====
     # reset
     # =====
@@ -86,6 +89,9 @@ class Posterior(object):
         self.likelihood.cov.mixed_cor.traceinv_timer.reset()
         self.likelihood.cov.mixed_cor.solve_timer.reset()
         self.likelihood.timer.reset()
+
+        # Reset memory usage
+        self.init_mem_used = 0
 
     # =========
     # posterior
@@ -261,6 +267,10 @@ class Posterior(object):
         In this function, hyperparam = [sigma, sigma0].
         """
 
+        # Record the used memory of the current process at this point in bytes
+        if verbose:
+            self.init_mem_used, _ = get_memory_usage()
+
         # Convert hyperparam to log of hyperparam. Note that if use_log_scale,
         # use_log_eta, or use_log_sigmas are not True, the output is not
         # converted to log, despite we named the output with "log_" prefix.
@@ -366,6 +376,26 @@ class Posterior(object):
             sigma, sigma0, eta, scale = self.likelihood.extract_hyperparam(
                     res['optimization']['state_vector'])
 
+        # Create output dictionary
+        res = self._create_output_dict(res, sigma, sigma0, eta, scale,
+                                       optimization_method, max_iter,
+                                       max_bracket_trials, use_rel_error, tol,
+                                       verbose)
+
+        return res
+
+    # ==================
+    # create output dict
+    # ==================
+
+    def _create_output_dict(self, res, sigma, sigma0, eta, scale,
+                            optimization_method, max_iter, max_bracket_trials,
+                            use_rel_error, tol, verbose):
+        """
+        Creates a dictionary with a full information about the training
+        process.
+        """
+
         # Append optimal hyperparameter to the result dictionary
         hyperparam = {
             'sigma': sigma,
@@ -457,12 +487,17 @@ class Posterior(object):
                 num_gpu_devices = get_num_gpu_devices()
                 num_gpu_multiproc = 0
                 num_gpu_threads_per_multiproc = 0
+
+            # Find the memory used only during the training process
+            final_mem_used, _ = get_memory_usage()
+            mem_used, mem_unit = human_readable_memory(
+                final_mem_used - self.init_mem_used)
             device = {
                 'num_cpu_threads': num_cpu_threads,
                 'num_gpu_devices': num_gpu_devices,
                 'num_gpu_multiproc': num_gpu_multiproc,
                 'num_gpu_threads_per_multiproc': num_gpu_threads_per_multiproc,
-                'memory_usage': get_memory_usage(human_readable=True)
+                'memory_usage': [mem_used, mem_unit]
             }
         else:
             device = {}

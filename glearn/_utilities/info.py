@@ -12,7 +12,8 @@
 # =======
 
 from .device import get_processor_name, get_num_cpu_threads, get_gpu_name, \
-        get_num_gpu_devices, get_memory_usage
+        get_num_gpu_devices
+from .memory import get_memory_usage
 from .cuda import locate_cuda, get_cuda_version
 from ..__version__ import __version__
 import imate
@@ -55,5 +56,5 @@ def info():
     print('     gpu device: %s' % gpu_name)
     print('num gpu devices: %d' % num_gpu_devices)
     print('   cuda version: %s' % cuda_version_)
-    print('    memory used: %0.1f (%s)' % (mem_used, mem_unit))
+    print(' process memory: %0.1f (%s)' % (mem_used, mem_unit))
     print('')

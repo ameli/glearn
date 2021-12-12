@@ -4,7 +4,8 @@
 
 # -----------------------------------------------------------------------------
 # How to build
-#   $ docker build -t sameli/glearn -f <This-Filename> .
+#   $ cd ..  # go to root dir of package
+#   $ docker build . -t sameli/glearn -f docker/Dockerfile
 #
 # How to run:
 #   $ docker run -it -v/host_dir:/image_dir glearn
@@ -14,7 +15,7 @@
 # Build
 # -----
 
-FROM sameli/imate as builder
+FROM nvidia/cuda:11.4.1-devel-ubuntu20.04 as builder
 MAINTAINER Siavash Ameli <samei@berkeley.edu>
 LABEL Description="glearn python package with cuda-11 support"
 
@@ -24,7 +25,6 @@ RUN apt-get update && \
         python3-dev \
         python3-pip \
         wget \
-        libgomp1 \
         && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -34,6 +34,7 @@ RUN apt-get update && \
 RUN mkdir /tmp/glearn
 ADD . /tmp/glearn/
 WORKDIR /tmp/glearn
+RUN rm -rf build dist
 RUN /usr/bin/python3 setup.py bdist_wheel
 
 # -------

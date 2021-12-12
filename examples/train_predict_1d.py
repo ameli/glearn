@@ -65,14 +65,14 @@ def main():
                        hyperbolic_coeff=hyperbolic_coeff, b=b, B=B)
 
     # Prior for scale of correlation
-    scale_prior = Uniform()
-    # scale_prior = Cauchy()
-    # scale_prior = StudentT()
-    # scale_prior = InverseGamma()
-    # scale_prior = Normal()
-    # scale_prior = Erlang()
-    # scale_prior = BetaPrime()
-    # scale_prior.plot()
+    scale = Uniform()
+    # scale = Cauchy()
+    # scale = StudentT()
+    # scale = InverseGamma()
+    # scale = Normal()
+    # scale = Erlang()
+    # scale = BetaPrime()
+    # scale.plot()
 
     # Kernel
     # kernel = Matern()
@@ -82,9 +82,9 @@ def main():
     # kernel = RationalQuadratic()
 
     # Correlation
-    cor = Correlation(points, kernel=kernel, scale=0.07, sparse=False)
+    # cor = Correlation(points, kernel=kernel, scale=0.07, sparse=False)
     # cor = Correlation(points, kernel=kernel, sparse=False)
-    # cor = Correlation(points, kernel=kernel, scale=scale_prior, sparse=False)
+    cor = Correlation(points, kernel=kernel, scale=scale, sparse=False)
     # cor.plot()
 
     # Covariance
