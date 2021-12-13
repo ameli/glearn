@@ -14,8 +14,9 @@
 import numpy
 import scipy
 from .._utilities.plot_utilities import *                    # noqa: F401, F403
-from .._utilities.plot_utilities import load_plot_settings, save_plot, plt, \
-        mark_inset, InsetPosition, matplotlib, make_axes_locatable
+from .._utilities.plot_utilities import load_plot_settings, plt, \
+        show_or_save_plot, mark_inset, InsetPosition, matplotlib, \
+        make_axes_locatable
 
 
 # ====
@@ -274,7 +275,7 @@ def _plot_likelihood_versus_scale(
     ax[1, 1].grid(True, which='both')
 
     plt.tight_layout()
-    plt.show()
+    show_or_save_plot(plt, 'likelihood_vs_scale', transparent_background=True)
 
 
 # ==========================
@@ -516,7 +517,7 @@ def _plot_likelihood_versus_eta(
     ax[1, 1].grid(True, which='both')
 
     plt.tight_layout()
-    plt.show()
+    show_or_save_plot(plt, 'likelihood_vs_eta', transparent_background=True)
 
 
 # ================================
@@ -693,7 +694,8 @@ def _plot_likelihood_versus_eta_scale(profile_likelihood, result):
     ax[2].grid(True)
 
     plt.tight_layout()
-    plt.show()
+    show_or_save_plot(plt, 'likelihood_vs_eta_scale',
+                      transparent_background=True)
 
 
 # ========================
@@ -906,8 +908,6 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
 
     # Save plots
     plt.tight_layout()
-    filename = 'likelihood_first_derivative'
-    save_plot(plt, filename, transparent_background=False, pdf=True,
-              bbox_extra_artists=(lg, ))
-
-    plt.show()
+    show_or_save_plot(plt, 'likelihood_derivative',
+                      transparent_background=False,
+                      pdf=True, bbox_extra_artists=(lg, ))

@@ -31,7 +31,7 @@ import warnings
 
 # Check DISPLAY
 if ((not bool(os.environ.get('DISPLAY', None))) or
-        (bool(os.environ.get('IMATE_NO_DISPLAY', None)))) and \
+        (bool(os.environ.get('GLEARN_NO_DISPLAY', None)))) and \
         (not is_notebook()):
 
     # No display found (used on servers). Using non-interactive backend
@@ -80,7 +80,7 @@ def load_plot_settings():
                 r'\usepackage{amsmath}'
             matplotlib.font_manager._rebuild()
 
-            # LaTeX font is a bit small. Increaset axes font size
+            # LaTeX font is a bit small. Increase axes font size
             sns.set(font_scale=1.2)
 
         except Exception:
@@ -149,3 +149,28 @@ def save_plot(
                 print('Plot saved to "%s".' % (save_fullname_pdf))
     else:
         print('Cannot save plot to %s. Directory is not writable.' % save_dir)
+
+
+# =================
+# show or save plot
+# =================
+
+def show_or_save_plot(
+        plt,
+        filename,
+        transparent_background=True,
+        pdf=True,
+        bbox_extra_artists=None,
+        verbose=False):
+    """
+    Shows the plot. If no graphical beckend exists, saves the plot.
+    """
+
+    # Check if the graphical back-end exists
+    if matplotlib.get_backend() != 'agg' or is_notebook():
+        plt.show()
+    else:
+        # write the plot as SVG file in the current working directory
+        save_plot(plt, filename, transparent_background=transparent_background,
+                  pdf=pdf, bbox_extra_artists=bbox_extra_artists,
+                  verbose=verbose)

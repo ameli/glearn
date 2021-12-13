@@ -17,7 +17,7 @@ from .._likelihood.likelihood import likelihood
 from .._likelihood._profile_likelihood import ProfileLikelihood
 from .._optimize import minimize, root
 from .._utilities.device import get_num_cpu_threads, get_num_gpu_devices
-from .._utilities.memory import get_memory_usage, human_readable_memory
+from .._utilities.memory import Memory
 import warnings
 
 
@@ -65,8 +65,8 @@ class Posterior(object):
         self.num_jac_eval = 0
         self.num_hes_eval = 0
 
-        # Record initial resident memory (rss) of this currnet process in bytes
-        self.init_mem_used = 0
+        # Record resident memory (rss) of this current process in bytes
+        self.memory = Memory()
 
     # =====
     # reset
@@ -89,9 +89,7 @@ class Posterior(object):
         self.likelihood.cov.mixed_cor.traceinv_timer.reset()
         self.likelihood.cov.mixed_cor.solve_timer.reset()
         self.likelihood.timer.reset()
-
-        # Reset memory usage
-        self.init_mem_used = 0
+        self.memory.reset()
 
     # =========
     # posterior
@@ -269,7 +267,7 @@ class Posterior(object):
 
         # Record the used memory of the current process at this point in bytes
         if verbose:
-            self.init_mem_used, _ = get_memory_usage()
+            self.memory.start()
 
         # Convert hyperparam to log of hyperparam. Note that if use_log_scale,
         # use_log_eta, or use_log_sigmas are not True, the output is not
@@ -375,6 +373,10 @@ class Posterior(object):
             # convert back log-hyperparam to hyperparam
             sigma, sigma0, eta, scale = self.likelihood.extract_hyperparam(
                     res['optimization']['state_vector'])
+
+        # Find the memory used only during the training process
+        if verbose:
+            self.memory.stop()
 
         # Create output dictionary
         res = self._create_output_dict(res, sigma, sigma0, eta, scale,
@@ -488,16 +490,12 @@ class Posterior(object):
                 num_gpu_multiproc = 0
                 num_gpu_threads_per_multiproc = 0
 
-            # Find the memory used only during the training process
-            final_mem_used, _ = get_memory_usage()
-            mem_used, mem_unit = human_readable_memory(
-                final_mem_used - self.init_mem_used)
             device = {
                 'num_cpu_threads': num_cpu_threads,
                 'num_gpu_devices': num_gpu_devices,
                 'num_gpu_multiproc': num_gpu_multiproc,
                 'num_gpu_threads_per_multiproc': num_gpu_threads_per_multiproc,
-                'memory_usage': [mem_used, mem_unit]
+                'memory_usage': [self.memory.mem, self.memory.unit]
             }
         else:
             device = {}

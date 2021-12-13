@@ -13,7 +13,8 @@
 
 import numpy
 from .._utilities.plot_utilities import *                    # noqa: F401, F403
-from .._utilities.plot_utilities import load_plot_settings, plt
+from .._utilities.plot_utilities import load_plot_settings, plt, \
+    show_or_save_plot
 
 
 # =====
@@ -32,7 +33,7 @@ class Prior(object):
 
         # When True, derivatives of the pdf are taken w.r.t the logarithm of
         # the input hyperparameter. Default is True, but the Posterior class
-        # can overwrite this attribute.
+        # can overwrite this attribute:
         self.use_log_scale = True
 
         # Using half distribution
@@ -145,7 +146,7 @@ class Prior(object):
 
     # ===============
     # log pdf hessian
-    # ==============
+    # ===============
 
     def log_pdf_hessian(self, hyperparam):
         """
@@ -196,7 +197,7 @@ class Prior(object):
     # plot
     # ====
 
-    def plot(self, x_range=[0, 2]):
+    def plot(self, x_range=[0, 2], log_scale=False, compare_numerical=False):
         """
         Plots the distribution.
         """
@@ -212,19 +213,19 @@ class Prior(object):
             raise ValueError('"x_range[0]" should be less than "x_range[1]".')
 
         # Avoid plotting from origin in log-scale x-axis
-        if self.use_log_scale and x_range[0] == 0.0:
+        if log_scale and x_range[0] == 0.0:
             x_range[0] = numpy.min([(x_range[1] - x_range[0]) * 1e-2, 1e-2])
 
         # Abscissa
         num_points = 200
-        if self.use_log_scale:
+        if log_scale:
             x = numpy.logspace(numpy.log10(x_range[0]),
                                numpy.log10(x_range[1]), num_points)
         else:
             x = numpy.linspace(x_range[0], x_range[1], num_points)
 
-        # Convert x to log of x (if enabled by self.use_log_scale)
-        if self.use_log_scale:
+        # Convert x to log of x (if enabled by log_scale)
+        if log_scale:
             hyperparam = numpy.log10(numpy.abs(x))
         else:
             # Note: don't use abs(x), for some distributions, x may be negative
@@ -239,43 +240,56 @@ class Prior(object):
         for i in range(hyperparam.size):
 
             # Compute the pdf and its first and second derivative
-            d0f[i] = self.log_pdf(hyperparam[i])
-            d1f[i] = self.log_pdf_jacobian(hyperparam[i])
-            d2f[i] = self.log_pdf_hessian(hyperparam[i])
+            if log_scale:
+                d0f[i] = self.log_pdf(hyperparam[i])
+                d1f[i] = self.log_pdf_jacobian(hyperparam[i])
+                d2f[i] = self.log_pdf_hessian(hyperparam[i])
+            else:
+                d0f[i] = self.pdf(hyperparam[i])
+                d1f[i] = self.pdf_jacobian(hyperparam[i])
+                d2f[i] = self.pdf_hessian(hyperparam[i])
 
-        # Numerical derivative
-        d1f_num = numpy.zeros_like(hyperparam.size-2)
-        d2f_num = numpy.zeros_like(hyperparam.size-4)
+        # Compare analytic derivative with numerical derivative
+        if compare_numerical:
+            d1f_num = numpy.zeros_like(hyperparam.size-2)
+            d2f_num = numpy.zeros_like(hyperparam.size-4)
 
-        d1f_num = (d0f[2:] - d0f[:-2]) / (hyperparam[2:] - hyperparam[:-2])
-        d2f_num = (d1f_num[2:] - d1f_num[:-2]) / \
-            (hyperparam[3:-1] - hyperparam[1:-3])
+            d1f_num = (d0f[2:] - d0f[:-2]) / (hyperparam[2:] - hyperparam[:-2])
+            d2f_num = (d1f_num[2:] - d1f_num[:-2]) / \
+                (hyperparam[3:-1] - hyperparam[1:-3])
 
         # Plotting
         fig, ax = plt.subplots(ncols=3, figsize=(17, 5))
         ax[0].plot(x, d0f, color='black')
         ax[1].plot(x, d1f, color='black', label='analytic')
-        ax[1].plot(x[1:-1], d1f_num, '--', color='black', label='numerical')
         ax[2].plot(x, d2f, color='black', label='analytic')
-        ax[2].plot(x[2:-2], d2f_num, '--', color='black', label='numerical')
         ax[0].set_xlabel(r'$x$')
         ax[1].set_xlabel(r'$x$')
         ax[2].set_xlabel(r'$x$')
-        ax[0].set_ylabel(r'$\ln p(x)$')
 
-        ax[1].legend()
-        ax[2].legend()
+        if compare_numerical:
+            ax[1].plot(x[1:-1], d1f_num, '--', color='black',
+                       label='numerical')
+            ax[2].plot(x[2:-2], d2f_num, '--', color='black',
+                       label='numerical')
+            ax[1].legend()
+            ax[2].legend()
 
-        if self.use_log_scale:
+        if log_scale:
+            ax[0].set_ylabel(r'$\ln p(x)$')
+        else:
+            ax[0].set_ylabel(r'$p(x)$')
+
+        if log_scale:
             ax[1].set_ylabel(r'$\frac{\mathrm{d}\ln p(x)}{\mathrm{d}(\ln x)}$')
         else:
-            ax[1].set_ylabel(r'$\frac{\mathrm{d}\ln p(x)}{\mathrm{d}x}$')
+            ax[1].set_ylabel(r'$\frac{\mathrm{d}p(x)}{\mathrm{d}x}$')
 
-        if self.use_log_scale:
+        if log_scale:
             ax[2].set_ylabel(r'$\frac{\mathrm{d}^2\ln p(x)}{\mathrm{d} ' +
                              r'(\ln x)^2}$')
         else:
-            ax[2].set_ylabel(r'$\frac{\mathrm{d}^2\ln p(x)}{\mathrm{d}x^2}$')
+            ax[2].set_ylabel(r'$\frac{\mathrm{d}^2 p(x)}{\mathrm{d}x^2}$')
 
         ax[0].set_title('Probability distribution')
         ax[1].set_title('First derivative of probability distribution')
@@ -287,10 +301,10 @@ class Prior(object):
         ax[1].grid(True, which='both')
         ax[2].grid(True, which='both')
 
-        if self.use_log_scale:
+        if log_scale:
             ax[0].set_xscale('log', base=10)
             ax[1].set_xscale('log', base=10)
             ax[2].set_xscale('log', base=10)
 
         plt.tight_layout()
-        plt.show()
+        show_or_save_plot(plt, 'prior', transparent_background=True)

@@ -15,7 +15,7 @@ import numpy
 import scipy
 from .._utilities.plot_utilities import *                    # noqa: F401, F403
 from .._utilities.plot_utilities import load_plot_settings, plt, matplotlib, \
-        make_axes_locatable
+        make_axes_locatable, show_or_save_plot
 
 
 # ====
@@ -371,7 +371,7 @@ def _plot_likelihood_versus_scale(
     ax[1, 2].set_axis_off()
 
     plt.tight_layout()
-    plt.show()
+    show_or_save_plot(plt, 'likelihood_vs_scale', transparent_background=False)
 
 
 # ============================
@@ -710,7 +710,7 @@ def _plot_likelihood_versus_sigma(
     ax[1, 2].set_axis_off()
 
     plt.tight_layout()
-    plt.show()
+    show_or_save_plot(plt, 'likelihood_vs_sigma', transparent_background=False)
 
 
 # =============================
@@ -1046,7 +1046,8 @@ def _plot_likelihood_versus_sigma0(
     ax[1, 2].set_axis_off()
 
     plt.tight_layout()
-    plt.show()
+    show_or_save_plot(plt, 'likelihood_vs_sigma0',
+                      transparent_background=False)
 
 
 # ===================================
@@ -1222,4 +1223,5 @@ def _plot_likelihood_versus_sigma0_sigma(full_likelihood, result=None):
     ax[2].grid(True)
 
     plt.tight_layout()
-    plt.show()
+    show_or_save_plot(plt, 'likelihood_vs_sigma_sigma0',
+                      transparent_background=False)

@@ -15,7 +15,9 @@ import numpy
 from ..priors.prior import Prior
 from ._posterior import Posterior
 from ._gaussian_process_utilities import plot_training_convergence, \
-    print_training_result, plot_prediction
+    print_training_summary, plot_prediction, print_prediction_summary
+from .._utilities.memory import Memory
+from .._utilities.timer import Timer
 
 
 # ================
@@ -27,7 +29,7 @@ class GaussianProcess(object):
     Gaussian process for regression.
 
     :param X: Linear basis functions for the mean function. A 2D array of size
-        ``(n, m)`` whre ``n`` is the size of the data and ``m`` is the number
+        ``(n, m)`` where ``n`` is the size of the data and ``m`` is the number
         of the basis functions.
     :type X: numpy.ndarray
 
@@ -52,9 +54,16 @@ class GaussianProcess(object):
         self.z = None
         self.posterior = None
         self.training_result = None
+        self.prediction_result = None
         self.w = None
         self.Y = None
         self.Mz = None
+
+        # Counting elapsed wall time and cpu proc time
+        self.timer = Timer()
+
+        # Record resident memory (rss) of this current process in bytes
+        self.memory = Memory()
 
     # ======================
     # check hyperparam guess
@@ -163,11 +172,14 @@ class GaussianProcess(object):
             # hyperparameters are sigma and sigma0. We assume all data is
             # noise, hence we set sigma to zero and solve sigma0 from
             # ordinary least square (OLS) solution.
-            sigma_guess = 1e-2  # Small nonzero ro avoid singularity
+            sigma_guess = 1e-2  # Small nonzero to avoid singularity
             sigma0_guess = self.posterior.likelihood.ols_solution()
             hyperparam_guess = numpy.r_[sigma_guess, sigma0_guess, scale_guess]
 
         elif profile_hyperparam == 'var':
+            # Set scale before calling likelihood.asymptotic_maxima
+            self.posterior.likelihood.cov.set_scale(scale_guess)
+
             # hyperparameter is eta. Use asymptotic relations to guess eta
             asym_degree = 2
             asym_maxima = self.posterior.likelihood.asymptotic_maxima(
@@ -237,7 +249,7 @@ class GaussianProcess(object):
                     self.posterior, self.training_result, verbose)
 
         if verbose:
-            print_training_result(self.posterior, self.training_result)
+            print_training_summary(self.training_result)
 
         # Set optimal parameters (sigma, sigma0) to covariance object
         sigma = self.training_result['hyperparam']['sigma']
@@ -315,6 +327,13 @@ class GaussianProcess(object):
             raise ValueError('"test_points" should have the same dimension ' +
                              'as the training points.')
 
+        # Record the used memory of the current process at this point in bytes
+        if verbose:
+            self.timer.reset()
+            self.timer.tic()
+            self.memory.reset()
+            self.memory.start()
+
         # Design matrix on test points
         X_star = self.mean.generate_design_matrix(test_points)
 
@@ -366,6 +385,25 @@ class GaussianProcess(object):
             # Posterior predictive covariance
             z_star_cov = cov_star_star - cov_star.T @ Sinv_cov_star + \
                 numpy.matmul(R.T, numpy.matmul(C, R))
+
+        # Print summary
+        if verbose:
+            self.timer.toc()
+            self.memory.stop()
+
+            self.prediction_result = {
+                'config': {
+                    'num_training_points': self.z.size,
+                    'num_test_points': test_points.shape[0],
+                    'cov': cov
+                },
+                'process': {
+                    'wall_time': self.timer.wall_time,
+                    'proc_time': self.timer.proc_time,
+                    'memory': [self.memory.mem, self.memory.unit]
+                }
+            }
+            print_prediction_summary(self.prediction_result)
 
         # Plot prediction
         if plot:

@@ -24,8 +24,8 @@ from ..priors.uniform import Uniform
 from .._utilities.timer import Timer
 
 try:
-    from .._utilities.plot_utilities import matplotlib, plt
-    from .._utilities.plot_utilities import load_plot_settings, save_plot
+    from .._utilities.plot_utilities import plt, load_plot_settings, \
+        show_or_save_plot
     plot_modules_exist = True
 except ImportError:
     plot_modules_exist = False
@@ -676,10 +676,4 @@ class Correlation(object):
         ax.set_ylabel('Index $j$')
 
         plt.tight_layout()
-
-        # Check if the graphical backend exists
-        if matplotlib.get_backend() != 'agg':
-            plt.show()
-        else:
-            # write the plot as SVG file in the current working directory
-            save_plot(plt, 'correlation', transparent_background=True)
+        show_or_save_plot(plt, 'correlation', transparent_background=True)

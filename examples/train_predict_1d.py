@@ -15,6 +15,7 @@
 
 import sys
 import numpy
+import glearn
 from glearn.sample_data import generate_points, generate_data
 from glearn.mean import LinearModel
 from glearn.kernels import Matern, Exponential, SquareExponential, \
@@ -32,6 +33,7 @@ from glearn import GaussianProcess
 
 def main():
 
+    glearn.info()
 
     # For reproducibility
     numpy.random.seed(0)
@@ -144,7 +146,7 @@ def main():
     # Predict
     z_star_mean, z_star_cov = gp.predict(test_points, cov=True, plot=False,
                                          confidence_level=0.95,
-                                         true_data=z_true)
+                                         true_data=z_true, verbose=True)
 
 
 # ===========

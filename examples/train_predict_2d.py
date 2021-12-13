@@ -15,6 +15,7 @@
 
 import sys
 import numpy
+import glearn
 from glearn.sample_data import generate_points, generate_data
 from glearn.mean import LinearModel
 from glearn.kernels import Matern, Exponential, SquareExponential, \
@@ -31,6 +32,8 @@ from glearn import GaussianProcess
 # ====
 
 def main():
+
+    glearn.info()
 
     # For reproducibility
     numpy.random.seed(0)

@@ -15,17 +15,17 @@ import numpy
 from numpy import format_float_scientific as ffs
 import scipy
 from .._utilities.plot_utilities import *                    # noqa: F401, F403
-from .._utilities.plot_utilities import load_plot_settings, save_plot, plt, \
-    matplotlib
+from .._utilities.plot_utilities import load_plot_settings, plt, \
+        show_or_save_plot, matplotlib
 
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 
-# =====================
-# print training result
-# =====================
+# ======================
+# print training summary
+# ======================
 
-def print_training_result(posterior, res):
+def print_training_summary(res):
     """
     Prints the training results.
     """
@@ -84,7 +84,7 @@ def print_training_result(posterior, res):
 
     # Convert scale (theta) to string
     if scale.size == 1:
-        theta_string = '%0.10f' % scale[0]
+        theta_string = '%0.10e' % scale[0]
     else:
         if scale.size == 2:
             digit = 2
@@ -179,7 +179,12 @@ def print_training_result(posterior, res):
           end=colspace)
     print('optimization  %5d' % num_opt_iter, end=colspace)
     if not isinstance(mem_usage, str):
-        print('mem used (%s) %6.0f' % (mem_unit, mem_usage))
+        if len(mem_unit) == 1:
+            # unit is b
+            print('mem used (%s) %7.0f' % (mem_unit, mem_usage))
+        else:
+            # unit is Kb, Mb, etc
+            print('mem used (%s) %6.0f' % (mem_unit, mem_usage))
     else:
         # At this point, memory_usage should be "n/a"
         print('mem used %10s ' % mem_usage)
@@ -265,13 +270,8 @@ def plot_training_convergence(posterior, res, verbose):
 
     # Save plots
     plt.tight_layout()
-    filename = 'training_convergence'
-    save_plot(plt, filename, transparent_background=False, pdf=True)
-
-    if verbose:
-        print('Plot saved to %s.' % filename)
-
-    plt.show()
+    show_or_save_plot(plt, 'training_convergence',
+                      transparent_background=True, verbose=verbose)
 
 
 # ===============
@@ -392,11 +392,8 @@ def plot_prediction_1d(
 
     # Save plots
     plt.tight_layout()
-    filename = 'prediction'
-    save_plot(plt, filename, transparent_background=False, pdf=True,
-              verbose=verbose)
-
-    plt.show()
+    show_or_save_plot(plt, 'prediction', transparent_background=True,
+                      verbose=verbose)
 
 
 # ==================
@@ -533,8 +530,56 @@ def plot_prediction_2d(
 
     # Save plots
     plt.tight_layout()
-    filename = 'prediction'
-    save_plot(plt, filename, transparent_background=False, pdf=True,
-              verbose=verbose)
+    show_or_save_plot(plt, 'prediction', transparent_background=True,
+                      verbose=verbose)
 
-    plt.show()
+
+# ========================
+# print prediction summary
+# ========================
+
+def print_prediction_summary(res):
+    """
+    Prints a summary of prediction result.
+    """
+
+    # Config
+    num_training_points = res['config']['num_training_points']
+    num_test_points = res['config']['num_test_points']
+    cov = res['config']['cov']
+
+    # Process
+    wall_time = res['process']['wall_time']
+    proc_time = res['process']['proc_time']
+    mem_used, mem_unit = res['process']['memory']
+
+    colspace = '      '
+    print('')
+    print('                               Prediction Summary                ' +
+          '               ')
+    print('=================================================================' +
+          '===============')
+    print('               process                                    config ' +
+          '               ')
+    print('-------------------------------------      ----------------------' +
+          '---------------')
+    print('wall time (sec)   %19s'
+          % (ffs(wall_time, precision=2, min_digits=2, exp_digits=1)),
+          end=colspace)
+    print('num training points  %16d' % num_training_points)
+
+    print('proc time (sec)   %19s'
+          % (ffs(proc_time, precision=2, min_digits=2, exp_digits=1)),
+          end=colspace)
+    print('num test points   %19d' % num_test_points)
+
+    if len(mem_unit) == 1:
+        # Mem unit is b
+        print('memory used (%s)  %20d' % (mem_unit, mem_used),
+              end=colspace)
+    else:
+        # Mem unit is Kb, Mb, etc
+        print('memory used (%s)  %19d' % (mem_unit, mem_used),
+              end=colspace)
+    print('compute covariance  %17s' % cov)
+    print('')

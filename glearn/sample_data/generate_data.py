@@ -13,7 +13,8 @@
 
 import numpy
 from .._utilities.plot_utilities import *                    # noqa: F401, F403
-from .._utilities.plot_utilities import load_plot_settings, plt
+from .._utilities.plot_utilities import load_plot_settings, plt, \
+    show_or_save_plot
 
 __all__ = ['generate_data']
 
@@ -34,7 +35,7 @@ def generate_data(
         coordinate.
     :param points: numpy.ndarray
 
-    :param noise_magntude: The magnitude of additive noise to the data.
+    :param noise_magnitude: The magnitude of additive noise to the data.
     :type noise_magnitude: float
 
     :return: 1D array of data
@@ -92,7 +93,7 @@ def _plot_data(points, z):
         ax.set_title('Sample one dimensional data')
         ax.legend()
 
-        plt.show()
+        show_or_save_plot(plt, 'data', transparent_background=True)
 
     elif dimension == 2:
 
@@ -109,7 +110,8 @@ def _plot_data(points, z):
         ax.set_ylabel(r'$x_2$')
         ax.set_zlabel(r'$z(x_1, x_2)$')
         ax.set_title('Sample two dimensional data')
-        plt.show()
+
+        show_or_save_plot(plt, 'data', transparent_background=True)
 
     else:
         raise ValueError('Dimension should be "1" or "2" to plot data.')

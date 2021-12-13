@@ -15,7 +15,7 @@ import numpy
 import scipy
 from .._utilities.plot_utilities import *                    # noqa: F401, F403
 from .._utilities.plot_utilities import load_plot_settings, plt, matplotlib, \
-        make_axes_locatable
+        make_axes_locatable, show_or_save_plot
 
 
 # ====
@@ -173,7 +173,7 @@ def _plot_likelihood_versus_scale_1d(double_profile_likelihood, result=None):
     ax[1, 1].grid(True)
 
     plt.tight_layout()
-    plt.show()
+    show_or_save_plot(plt, 'likelihood_vs_scale', transparent_background=False)
 
 
 # ===============================
@@ -335,4 +335,4 @@ def _plot_likelihood_versus_scale_2d(double_profile_likelihood, result=None):
     ax[1].set_title(r'Optimal $\eta$ for $(\theta_1, \theta_2)$')
 
     plt.tight_layout()
-    plt.show()
+    show_or_save_plot(plt, 'likelihood_vs_scale', transparent_background=False)

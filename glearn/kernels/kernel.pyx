@@ -17,7 +17,8 @@ from libc.math cimport NAN
 
 try:
     from .._utilities.plot_utilities import matplotlib, plt
-    from .._utilities.plot_utilities import load_plot_settings, save_plot
+    from .._utilities.plot_utilities import load_plot_settings, \
+        show_or_save_plot
     plot_modules_exist = True
 except ImportError:
     plot_modules_exist = False
@@ -91,7 +92,7 @@ cdef class Kernel(object):
     # plot
     # ====
 
-    def plot(self, numerical_derivative=True, x_max=4.0):
+    def plot(self, compare_numerical=False, x_max=4.0):
         """
         Plots the kernel function and its first and second derivative
         """
@@ -108,6 +109,7 @@ cdef class Kernel(object):
         d0y = numpy.zeros_like(x)
         d1y = numpy.zeros_like(x)
         d2y = numpy.zeros_like(x)
+        n = x.size
 
         for i in range(x.size):
             d0y[i] = self.kernel(x[i], derivative=0)
@@ -118,21 +120,21 @@ cdef class Kernel(object):
         ax[1].plot(x, d1y, color='black', label='Analytic')
         ax[2].plot(x, d2y, color='black', label='Analytic')
 
-        # Numerical derivative
-        if numerical_derivative:
-            d1y_num = (d0y[2:] - d0y[:-2]) / (x[2:] - x[:-2])
-            d2y_num = (d1y_num[2:] - d1y_num[:-2]) / (x[3:-1] - x[1:-3])
-            ax[1].plot(x[1:-1], d1y_num, '--', color='black',
+        # Compare analytic derivative with numerical derivative
+        if compare_numerical:
+            d1y_num = (d0y[2:] - d0y[:n-2]) / (x[2:] - x[:n-2])
+            d2y_num = (d1y_num[2:] - d1y_num[:n-2]) / (x[3:n-1] - x[1:n-3])
+            ax[1].plot(x[1:n-1], d1y_num, '--', color='black',
                        label='Numerical')
-            ax[2].plot(x[2:-2], d2y_num, '--', color='black',
+            ax[2].plot(x[2:n-2], d2y_num, '--', color='black',
                        label='Numerical')
             ax[1].legend()
             ax[2].legend()
 
         ax[0].set_ylim([0, 1])
-        ax[0].set_xlim([x[0], x[x.size-1]])
-        ax[1].set_xlim([x[0], x[x.size-1]])
-        ax[2].set_xlim([x[0], x[x.size-1]])
+        ax[0].set_xlim([x[0], x[n-1]])
+        ax[1].set_xlim([x[0], x[n-1]])
+        ax[2].set_xlim([x[0], x[n-1]])
 
         ax[0].set_xlabel(r'$x$')
         ax[1].set_xlabel(r'$x$')
@@ -151,10 +153,4 @@ cdef class Kernel(object):
         ax[2].grid(True)
 
         plt.tight_layout()
-
-        # Check if the graphical backend exists
-        if matplotlib.get_backend() != 'agg':
-            plt.show()
-        else:
-            # write the plot as SVG file in the current working directory
-            save_plot(plt, 'kernel', transparent_background=True)
+        show_or_save_plot(plt, 'kernel', transparent_background=True)

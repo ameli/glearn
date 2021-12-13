@@ -19,126 +19,194 @@ import sys
 if os.name == 'posix':
     import resource
 
-__all__ = ['get_memory_usage']
+__all__ = ['Memory']
 
 
-# ================
-# get memory usage
-# ================
+# ======
+# memory
+# ======
 
-def get_memory_usage(human_readable=False):
+class Memory(object):
     """
-    Returns the resident memory (or RSS) for the current python process. RSS
-    means the memory that only resides on the RAM. If the current process
-    overflows some of its memory onto the hard disk swap space, only the
-    memory residing on RAM will be reflected in RSS.
-
-    If ``human_readable`` is ``False``, the output is in Bytes. If
-    ``human_readable`` is ``True``, the output is converted to a human readable
-    unit.
+    Measures resident memory usage of the current process.
     """
 
-    # Convert Kb to bytes
-    k = 2**10
+    # ====
+    # init
+    # ====
 
-    if os.name == 'posix':
-        # In Linux and MaxOS
-        mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    def __init__(self):
+        """
+        Initialization.
+        """
 
-        # In Linux, the output of the command is in Kb. Convert to Bytes.
-        if sys.platform == 'linux':
-            mem *= k
+        # Internal variables
+        self.init_mem_used = 0
 
-    else:
-        # In windows
-        pid = os.getpid()
-        command = ['tasklist', '/fi', '"pid eq %d"' % pid]
+        # Public attributes
+        self.mem = 0
+        self.unit = 'b'
 
-        try:
+    # =====
+    # reset
+    # =====
+
+    def reset(self):
+        """
+        Resets attributes.
+        """
+
+        self.init_mem_used = 0
+        self.mem = 0
+        self.unit = 'b'
+
+    # =====
+    # start
+    # =====
+
+    def start(self):
+        """
+        Starts measuring the memory usage.
+        """
+
+        # Get memory usage in bytes as of the current moment.
+        self.init_mem_used, _ = Memory.get_memory_usage()
+
+    # ====
+    # stop
+    # ====
+
+    def stop(self):
+        """
+        Starts measuring the memory usage.
+        """
+
+        final_mem_used, _ = Memory.get_memory_usage()
+
+        # Memory increase in bytes
+        mem_increase = final_mem_used - self.init_mem_used
+
+        # Convert to human readable unit
+        self.mem, self.unit = Memory._human_readable_memory(mem_increase)
+
+    # ================
+    # get memory usage
+    # ================
+
+    @staticmethod
+    def get_memory_usage(human_readable=False):
+        """
+        Returns the resident memory (or RSS) for the current python process.
+        RSS means the memory that only resides on the RAM. If the current
+        process overflows some of its memory onto the hard disk swap space,
+        only the memory residing on RAM will be reflected in RSS.
+
+        If ``human_readable`` is ``False``, the output is in Bytes. If
+        ``human_readable`` is ``True``, the output is converted to a human
+        readable unit.
+        """
+
+        # Convert Kb to bytes
+        k = 2**10
+
+        if os.name == 'posix':
+            # In Linux and MaxOS
+            mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+
+            # In Linux, the output of the command is in Kb. Convert to Bytes.
+            if sys.platform == 'linux':
+                mem *= k
+
+        else:
+            # In windows
             pid = os.getpid()
-            command = ['tasklist', '/fi', 'pid eq %d' % pid]
-            process = subprocess.Popen(command, stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
-            stdout, stderr = process.communicate()
-            error_code = process.poll()
-            if error_code != 0:
+            command = ['tasklist', '/fi', '"pid eq %d"' % pid]
+
+            try:
+                pid = os.getpid()
+                command = ['tasklist', '/fi', 'pid eq %d' % pid]
+                process = subprocess.Popen(command, stdout=subprocess.PIPE,
+                                           stderr=subprocess.PIPE)
+                stdout, stderr = process.communicate()
+                error_code = process.poll()
+                if error_code != 0:
+                    mem = 'n/a'
+                    return mem
+
+                # Parse output
+                last_line = stdout.strip().decode().split("\n")[-1]
+
+                # Check last line of output has any number in it
+                is_digit = [char.isdigit() for char in last_line]
+                if not any(is_digit):
+                    mem = 'n/a'
+                    return mem
+
+                # Get memory as string and its unit
+                mem_string = last_line.split(' ')[-2].replace(',', '')
+                mem = int(mem_string)
+                mem_unit = last_line.split(' ')[-1]
+
+                # Convert bytes based on the unit
+                if mem_unit == 'K':
+                    exponent = 1
+                if mem_unit == 'M':
+                    exponent = 2
+                if mem_unit == 'G':
+                    exponent = 3
+                if mem_unit == 'T':
+                    exponent = 4
+
+                # Memory in bytes
+                mem = mem * (k**exponent)
+
+            except FileNotFoundError:
                 mem = 'n/a'
-                return mem
 
-            # Parse output
-            last_line = stdout.strip().decode().split("\n")[-1]
+        # Default unit is bytes.
+        unit = 'b'
 
-            # Check last line of output has any number in it
-            is_digit = [char.isdigit() for char in last_line]
-            if not any(is_digit):
-                mem = 'n/a'
-                return mem
+        # Convert from bytes to the closets unit
+        if human_readable:
+            mem, unit = Memory._human_readable_memory(mem)
 
-            # Get memory as string and its unit
-            mem_string = last_line.split(' ')[-2].replace(',', '')
-            mem = int(mem_string)
-            mem_unit = last_line.split(' ')[-1]
+        return mem, unit
 
-            # Convert bytes based on the unit
-            if mem_unit == 'K':
-                exponent = 1
-            if mem_unit == 'M':
-                exponent = 2
-            if mem_unit == 'G':
-                exponent = 3
-            if mem_unit == 'T':
-                exponent = 4
+    # =====================
+    # human readable memory
+    # =====================
 
-            # Memory in bytes
-            mem = mem * (k**exponent)
+    @staticmethod
+    def _human_readable_memory(mem_bytes):
+        """
+        Converts memory in Bytes to human readable unit.
+        """
 
-        except FileNotFoundError:
-            mem = 'n/a'
+        k = 2**10
+        counter = 0
+        mem_hr = mem_bytes
 
-    # Default unit is bytes.
-    unit = 'b'
+        while mem_hr > k:
+            mem_hr /= k
+            counter += 1
 
-    # Convert from bytes to the closets unit
-    if human_readable:
-        mem, unit = human_readable_memory(mem)
+        if counter == 0:
+            unit = 'b'       # Byte
+        elif counter == 1:
+            unit = 'Kb'      # Kilo byte
+        elif counter == 2:
+            unit = 'Mb'      # Mega byte
+        elif counter == 3:
+            unit = 'Gb'      # Giga byte
+        elif counter == 4:
+            unit = 'Tb'      # Tera byte
+        elif counter == 5:
+            unit = 'Pb'      # Peta byte
+        elif counter == 6:
+            unit = 'Eb'      # Exa byte
+        elif counter == 7:
+            unit = 'Zb'      # Zetta byte
+        elif counter == 8:
+            unit = 'Yb'      # Yotta byte
 
-    return mem, unit
-
-
-# =====================
-# human readable memory
-# =====================
-
-def human_readable_memory(mem_bytes):
-    """
-    Converts memory in Bytes to human readable unit.
-    """
-
-    k = 2**10
-    counter = 0
-    mem_hr = mem_bytes
-
-    while mem_hr > k:
-        mem_hr /= k
-        counter += 1
-
-    if counter == 0:
-        unit = ' b'      # Byte
-    elif counter == 1:
-        unit = 'Kb'      # Kilo byte
-    elif counter == 2:
-        unit = 'Mb'      # Mega byte
-    elif counter == 3:
-        unit = 'Gb'      # Giga byte
-    elif counter == 4:
-        unit = 'Tb'      # Tera byte
-    elif counter == 5:
-        unit = 'Pb'      # Peta byte
-    elif counter == 6:
-        unit = 'Eb'      # Exa byte
-    elif counter == 7:
-        unit = 'Zb'      # Zetta byte
-    elif counter == 8:
-        unit = 'Yb'      # Yotta byte
-
-    return mem_hr, unit
+        return mem_hr, unit

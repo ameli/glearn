@@ -128,6 +128,8 @@ class MinimizeTerminator(object):
         Overwriting the ``__call__`` function.
         """
 
+        delimiter = ' ' * 3
+
         if self.hyperparams is None:
 
             # Initialization
@@ -143,10 +145,25 @@ class MinimizeTerminator(object):
             self.counter += 1
 
             if self.verbose:
-                errors_string = ', '.join(('%+9f' % e) for e in
-                                          self.errors[-1, :].tolist())
-                print('iter: %03d, conv err: %s'
-                      % (self.counter, errors_string))
+                errors_string = delimiter.join(('%8f' % e) for e in
+                                               self.errors[-1, :].tolist())
+                line = '%03d%s%s' % (self.counter, delimiter, errors_string)
+                header = '=' * len(line)
+                title = 'Convergence'
+                left_space = ' ' * ((len(header) - len(title)) // 2)
+                right_space = ' ' * \
+                    (len(header) - len(title) - len(left_space))
+                print('')
+                print(left_space + title + right_space)
+                print(header)
+                subtitle = 'itr'
+                subheader = '---'
+                for i in range(self.hyperparams.size):
+                    subtitle += delimiter + 'param %2d' % (i+1)
+                    subheader += delimiter + '--------'
+                print(subtitle)
+                print(subheader)
+                print(line)
         else:
             if not self.all_converged:
 
@@ -174,10 +191,10 @@ class MinimizeTerminator(object):
 
                 # Print convergence error for each of the variables.
                 if self.verbose:
-                    errors_string = ', '.join(('%+0.2e' % e) for e in
-                                              self.errors[-1, :].tolist())
-                    print('iter: %03d, conv err: %s'
-                          % (self.counter, errors_string))
+                    errors_string = delimiter.join(('%0.2e' % e) for e in
+                                                   self.errors[-1, :].tolist())
+                    print('%03d%s%s'
+                          % (self.counter, delimiter,  errors_string))
 
                 self.converged[:] = self.errors[-1, :] < self.tol
                 self.all_converged = numpy.all(self.converged)
