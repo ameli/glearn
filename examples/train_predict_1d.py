@@ -22,7 +22,6 @@ from glearn.kernels import Matern, Exponential, SquareExponential, \
         RationalQuadratic, Linear
 from glearn.priors import Uniform, Cauchy, StudentT, Erlang, \
         Gamma, InverseGamma, Normal, BetaPrime
-from glearn import Correlation
 from glearn import Covariance
 from glearn import GaussianProcess
 
@@ -35,20 +34,18 @@ def main():
 
     glearn.info()
 
-    # For reproducibility
-    numpy.random.seed(0)
-
     # Generate data points
     num_points = 50
     dimension = 1
     grid = True
+    seed = 0
     points = generate_points(num_points, dimension=dimension, a=0.4,
-                             b=0.6, ratio=0.8, grid=False)
+                             b=0.6, ratio=0.8, grid=False, seed=seed)
 
     # Generate noisy data
     # noise_magnitude = 0.2
     noise_magnitude = 0.05
-    z_noisy = generate_data(points, noise_magnitude, plot=False)
+    z_noisy = generate_data(points, noise_magnitude, plot=False, seed=seed)
 
     # Mean
     # b = numpy.zeros((6, ))
@@ -83,18 +80,9 @@ def main():
     # kernel = SquareExponential()
     # kernel = RationalQuadratic()
 
-    # Correlation
-    # cor = Correlation(points, kernel=kernel, scale=0.07, sparse=False)
-    # cor = Correlation(points, kernel=kernel, sparse=False)
-    cor = Correlation(points, kernel=kernel, scale=scale, sparse=False)
-    # cor.plot()
-
     # Covariance
-    # imate_method = 'eigenvalue'
-    imate_method = 'cholesky'
-    # imate_method = 'hutchinson'
-    # imate_method = 'slq'
-    cov = Covariance(cor, imate_method=imate_method)
+    # cov = Covariance(points, kernel=kernel, scale=0.07, sparse=False)
+    cov = Covariance(points, kernel=kernel, scale=scale, sparse=False)
 
     # Gaussian process
     gp = GaussianProcess(mean, cov)
@@ -124,12 +112,21 @@ def main():
     # hyperparam_guess = [0.01, 0.01, 0.1]
     hyperparam_guess = None
 
+    # imate options
+    # imate_method = 'eigenvalue'
+    imate_method = 'cholesky'
+    # imate_method = 'hutchinson'
+    # imate_method = 'slq'
+    imate_options = {
+        'method': imate_method,
+    }
+
     # gp.train(z, options=options, plot=False)
     result = gp.train(z_noisy, profile_hyperparam=profile_hyperparam,
                       log_hyperparam=True, hyperparam_guess=hyperparam_guess,
                       optimization_method=optimization_method, tol=1e-6,
                       max_iter=1000, use_rel_error=True,
-                      verbose=True, plot=False)
+                      imate_options=imate_options, verbose=True, plot=False)
 
     # gp.plot_likelihood()
 

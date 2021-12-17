@@ -26,6 +26,7 @@ __all__ = ['generate_data']
 def generate_data(
         points,
         noise_magnitude,
+        seed=0,
         plot=False):
     """
     Generates 1D array of data points. The data are the additive ``sin``
@@ -54,8 +55,11 @@ def generate_data(
         z += numpy.sin(points[:, i]*numpy.pi)
 
     # Add noise
-    numpy.random.seed(31)
-    z += noise_magnitude*numpy.random.randn(num_points)
+    if seed is None:
+        rng = numpy.random.RandomState()
+    else:
+        rng = numpy.random.RandomState(seed)
+    z += noise_magnitude*rng.randn(num_points)
 
     # Plot data
     if plot:
@@ -75,7 +79,6 @@ def _plot_data(points, z):
 
     load_plot_settings()
 
-    num_points = points.shape[0]
     dimension = points.shape[1]
 
     if dimension == 1:
@@ -90,27 +93,50 @@ def _plot_data(points, z):
         ax.set_xlim([0, 1])
         ax.set_xlabel(r'$x$')
         ax.set_ylabel(r'$z(x)$')
-        ax.set_title('Sample one dimensional data')
-        ax.legend()
+        ax.set_title('Sample one -dimensional data')
+        ax.legend(fontsize='small')
 
+        plt.tight_layout()
         show_or_save_plot(plt, 'data', transparent_background=True)
 
     elif dimension == 2:
 
+        # Noise free data
+        xi = numpy.linspace(0, 1)
+        yi = numpy.linspace(0, 1)
+        Xi, Yi = numpy.meshgrid(xi, yi)
+        XY = numpy.c_[Xi.ravel(), Yi.ravel()]
+        zi = generate_data(XY, 0.0, False)
+        Zi = numpy.reshape(zi, (xi.size, yi.size))
+
         fig = plt.figure()
-        ax = fig.gca(projection='3d')
-        num_points_on_axis = numpy.sqrt(num_points).astype(int)
-        x_mesh = points[:, 0].reshape(num_points_on_axis, -1)
-        y_mesh = points[:, 1].reshape(num_points_on_axis, -1)
-        z_mesh = z.reshape(num_points_on_axis, num_points_on_axis)
-        p = ax.plot_surface(x_mesh, y_mesh, z_mesh, linewidth=0,
-                            antialiased=False)
-        fig.colorbar(p, ax=ax)
+        ax = fig.add_subplot(1, 1, 1, projection='3d')
+
+        ax.scatter(points[:, 0], points[:, 1], z, marker='.', s=7, c='black',
+                   label='noisy data')
+
+        surf = ax.plot_surface(Xi, Yi, Zi, linewidth=0, antialiased=False,
+                               color='darkgray', label='noise-free data')
+
+        # To avoid a bug in matplotlib
+        surf._facecolors2d = surf._facecolor3d
+        surf._edgecolors2d = surf._edgecolor3d
+
+        x_min = numpy.min(points[:, 0])
+        x_max = numpy.max(points[:, 0])
+        y_min = numpy.min(points[:, 1])
+        y_max = numpy.max(points[:, 1])
+
+        ax.set_xlim([x_min, x_max])
+        ax.set_ylim([y_min, y_max])
         ax.set_xlabel(r'$x_1$')
         ax.set_ylabel(r'$x_2$')
         ax.set_zlabel(r'$z(x_1, x_2)$')
-        ax.set_title('Sample two dimensional data')
+        ax.set_title('Sample two-dimensional data')
+        ax.legend(fontsize='small')
+        ax.view_init(elev=40, azim=120)
 
+        plt.tight_layout()
         show_or_save_plot(plt, 'data', transparent_background=True)
 
     else:

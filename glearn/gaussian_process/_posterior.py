@@ -461,8 +461,9 @@ class Posterior(object):
         }
 
         # imate configuration
+        imate_method = self.likelihood.cov.mixed_cor.imate_options['method']
         imate_config = {
-            'imate_method': self.likelihood.cov.imate_method,
+            'imate_method': imate_method,
             'imate_tol': self.likelihood.cov.tol,
             'imate_interpolate': self.likelihood.cov.mixed_cor.interpolate,
         }
@@ -500,10 +501,17 @@ class Posterior(object):
         else:
             device = {}
 
+        # Convergence
+        if 'convergence' in res:
+            convergence = res['convergence']
+        else:
+            convergence = {}
+
         # Create output dictionary
         res = {
             'hyperparam': hyperparam,
             'optimization': optimization,
+            'convergence': convergence,
             'config': config,
             'imate_config': imate_config,
             'time': time,

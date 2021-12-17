@@ -55,7 +55,7 @@ class FullLikelihood(BaseLikelihood):
         # Determine to compute traceinv (only for some of inner computations of
         # derivatives w.r.t scale) using direct inversion of matrices or with
         # Hutchinson method (a stochastic method).
-        if self.cov.imate_method in ['hutchinson', 'slq']:
+        if self.cov.mixed_cor.imate_options['method'] in ['hutchinson', 'slq']:
             # Use Hutchinson method (note: SLQ method cannot be used).
             self.stochastic_traceinv = True
         else:
@@ -780,8 +780,9 @@ class FullLikelihood(BaseLikelihood):
                 # Cholesky method in imate. The only viable option is
                 # Hutchinson's method.
                 Sp = self.cov.get_matrix(sigma, sigma0, derivative=[p])
-                trace_SpSinv = self.cov.traceinv(sigma, sigma0, B=Sp,
-                                                 imate_method='hutchinson')
+                trace_SpSinv = self.cov.traceinv(
+                        sigma, sigma0, B=Sp,
+                        imate_options={'method': 'hutchinson'})
             else:
                 # Using exact method (compute inverse directly)
                 trace_SpSinv, _ = imate.trace(self.SpSinv[p], method='exact')
@@ -866,8 +867,9 @@ class FullLikelihood(BaseLikelihood):
                 # Note that since Kp is not positive-definite, we cannot use
                 # Cholesky method in imate. The only viable option is
                 # Hutchinson's method.
-                trace_KpSinv = self.cov.traceinv(sigma, sigma0, B=Kp,
-                                                 imate_method='hutchinson')
+                trace_KpSinv = self.cov.traceinv(
+                        sigma, sigma0, B=Kp,
+                        imate_options={'method': 'hutchinson'})
             else:
                 trace_KpSinv, _ = imate.trace(self.KpSinv[p], method='exact')
 
@@ -887,9 +889,9 @@ class FullLikelihood(BaseLikelihood):
                 # that since Sp is not positive-definite, we cannot use
                 # Cholesky method in imate. The only viable option is
                 # Hutchinson's method.
-                trace_SpSinv = self.cov.traceinv(sigma, sigma0, B=Sp,
-                                                 exponent=1,
-                                                 imate_method='hutchinson')
+                trace_SpSinv = self.cov.traceinv(
+                        sigma, sigma0, B=Sp, exponent=1,
+                        imate_options={'method': 'hutchinson'})
             else:
                 SinvSpSinv = numpy.matmul(self.Sinv, self.SpSinv[p])
                 trace_SpSinv, _ = imate.trace(self.SpSinv[p], method='exact')
@@ -908,9 +910,9 @@ class FullLikelihood(BaseLikelihood):
                 # that since Sp is not positive-definite, we cannot use
                 # Cholesky method in imate. The only viable option is
                 # Hutchinson's method.
-                trace_MSpM_1 = self.cov.traceinv(sigma, sigma0, B=Sp,
-                                                 exponent=2,
-                                                 imate_method='hutchinson')
+                trace_MSpM_1 = self.cov.traceinv(
+                        sigma, sigma0, B=Sp, exponent=2,
+                        imate_options={'method': 'hutchinson'})
             else:
                 SinvSpSinv = numpy.matmul(self.Sinv, self.SpSinv[p])
                 trace_MSpM_1, _ = imate.trace(SinvSpSinv, method='exact')
@@ -1012,7 +1014,8 @@ class FullLikelihood(BaseLikelihood):
                     # Cholesky method in imate. The only viable option is
                     # Hutchinson's method.
                     trace_SpqSinv = self.cov.traceinv(
-                            sigma, sigma0, B=Spq, imate_method='hutchinson')
+                            sigma, sigma0, B=Spq,
+                            imate_options={'method': 'hutchinson'})
                 else:
                     SpqSinv = numpy.matmul(Spq, self.Sinv)
                     trace_SpqSinv, _ = imate.trace(SpqSinv, method='exact')
@@ -1034,7 +1037,7 @@ class FullLikelihood(BaseLikelihood):
                 if self.stochastic_traceinv:
                     trace_SpMSqM_1 = self.cov.traceinv(
                             sigma, sigma0, B=Sq, C=Sp,
-                            imate_method='hutchinson')
+                            imate_optons={'method': 'hutchinson'})
                 else:
                     SpSinvSqSinv = numpy.matmul(self.SpSinv[p], self.SpSinv[q])
                     trace_SpMSqM_1, _ = imate.trace(SpSinvSqSinv,

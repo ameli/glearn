@@ -25,17 +25,11 @@ __all__ = ['info']
 # info
 # ====
 
-def info():
+def info(print_only=True):
     """
     Prints info about device, package version and memory usage.
     """
 
-    glearn_version = __version__
-    imate_version = imate.__version__
-    processor_name = get_processor_name()
-    num_cpu_threads = get_num_cpu_threads()
-    gpu_name = get_gpu_name()
-    num_gpu_devices = get_num_gpu_devices()
     mem_used, mem_unit = Memory.get_memory_usage(human_readable=True)
 
     # Get cuda version
@@ -48,14 +42,30 @@ def info():
     else:
         cuda_version_ = 'not found'
 
+    info_ = {
+        'glearn_version': __version__,
+        'imate_version': imate.__version__,
+        'processor_name': get_processor_name(),
+        'num_cpu_threads': get_num_cpu_threads(),
+        'gpu_name': get_gpu_name(),
+        'num_gpu_devices': get_num_gpu_devices(),
+        'mem_used': mem_used,
+        'mem_unit': mem_unit,
+        'cuda_version': cuda_version_
+    }
+
     # Print
-    print('')
-    print('glearn version  : %s' % glearn_version)
-    print('imate version   : %s' % imate_version)
-    print('processor       : %s' % processor_name)
-    print('num threads     : %d' % num_cpu_threads)
-    print('gpu device      : %s' % gpu_name)
-    print('num gpu devices : %d' % num_gpu_devices)
-    print('cuda version    : %s' % cuda_version_)
-    print('process memory  : %0.1f (%s)' % (mem_used, mem_unit))
-    print('')
+    if print_only:
+        print('')
+        print('glearn version  : %s' % info_['glearn_version'])
+        print('imate version   : %s' % info_['imate_version'])
+        print('processor       : %s' % info_['processor_name'])
+        print('num threads     : %d' % info_['num_cpu_threads'])
+        print('gpu device      : %s' % info_['gpu_name'])
+        print('num gpu devices : %d' % info_['num_gpu_devices'])
+        print('cuda version    : %s' % info_['cuda_version'])
+        print('process memory  : %0.1f (%s)'
+              % (info_['mem_used'], info_['mem_unit']))
+        print('')
+    else:
+        return info_

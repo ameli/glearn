@@ -1055,7 +1055,7 @@ def main(argv):
     extensions = []
 
     extensions.append(create_extension(package_name, 'kernels'))
-    extensions.append(create_extension(package_name, 'correlation'))
+    extensions.append(create_extension(package_name, '_correlation'))
 
     # Cythonize
     external_modules = cythonize_extensions(extensions)

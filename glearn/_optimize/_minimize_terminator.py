@@ -149,7 +149,7 @@ class MinimizeTerminator(object):
                                                self.errors[-1, :].tolist())
                 line = '%03d%s%s' % (self.counter, delimiter, errors_string)
                 header = '=' * len(line)
-                title = 'Convergence'
+                title = 'Error'
                 left_space = ' ' * ((len(header) - len(title)) // 2)
                 right_space = ' ' * \
                     (len(header) - len(title) - len(left_space))

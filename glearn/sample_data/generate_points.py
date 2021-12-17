@@ -26,7 +26,8 @@ def generate_points(
         grid=False,
         a=None,
         b=None,
-        ratio=0.0):
+        ratio=0.0,
+        seed=0):
     """
     Generates 2D array of size ``(n, m)`` where ``m`` is the dimension of the
     space, and ``n`` is the number of generated points inside a unit hypercube.
@@ -58,11 +59,11 @@ def generate_points(
     """
 
     # Check arguments
-    _check_arguments(num_points, dimension, a, b, ratio, grid)
+    a, b = _check_arguments(num_points, dimension, a, b, ratio, grid)
 
     if ratio == 0 or a is None or b is None:
         # All points are uniformly distributed in hypercube [0, 1]
-        points = _generate_uniform_points(num_points, dimension, grid)
+        points = _generate_uniform_points(num_points, dimension, grid, seed)
 
     else:
         # Inner volume
@@ -79,10 +80,10 @@ def generate_points(
         num_outer_points = num_points - num_inner_points
 
         # Generate inner points
-        inner_points = _generate_uniform_points(
-                num_inner_points, dimension, grid)
-        outer_points = _generate_uniform_points(
-                num_outer_points, dimension, grid)
+        inner_points = _generate_uniform_points(num_inner_points, dimension,
+                                                grid, seed)
+        outer_points = _generate_uniform_points(num_outer_points, dimension,
+                                                grid, seed)
 
         if dimension == 1:
             a = numpy.asarray([a])
@@ -112,21 +113,23 @@ def _check_arguments(num_points, dimension, a, b, ratio, grid):
     """
 
     # Check num_points
-    if not isinstance(num_points, int):
+    if not isinstance(num_points, (int, numpy.int64)):
         raise TypeError('"num_points" should be an integer.')
     elif num_points < 2:
         raise ValueError('"num_points" should be greater than 1.')
 
     # Check dimension
-    if not isinstance(dimension, int):
+    if not isinstance(dimension, (int, numpy.int64)):
         raise TypeError('"dimension" should be an integer.')
     elif dimension < 1:
         raise ValueError('"dimension" should be greater or equal to 1.')
 
     # Check a
     if a is not None:
-        if not isinstance(a, (int, float, numpy.ndarray)):
-            raise TypeError('"a" should be a real number or an array.')
+        if not isinstance(a, (int, numpy.int64, float, numpy.ndarray, list)):
+            raise TypeError('"a" should be a real number, list, or an array.')
+        if isinstance(a, list):
+            a = numpy.array(a, dtype=float)
         if numpy.isscalar(a) and dimension != 1:
             raise ValueError('"a" should be a scalar when "dimension" is 1.')
         elif isinstance(a, numpy.ndarray) and a.size != dimension:
@@ -140,8 +143,10 @@ def _check_arguments(num_points, dimension, a, b, ratio, grid):
 
     # Check b
     if b is not None:
-        if not isinstance(a, (int, float, numpy.ndarray)):
-            raise TypeError('"a" should be a real number or an array.')
+        if not isinstance(a, (int, numpy.int64, float, numpy.ndarray, list)):
+            raise TypeError('"a" should be a real number, list, or an array.')
+        if isinstance(b, list):
+            b = numpy.array(b, dtype=float)
         if numpy.isscalar(b) and dimension != 1:
             raise ValueError('"b" should be a scalar when "dimension" is 1.')
         elif isinstance(b, numpy.ndarray) and b.size != dimension:
@@ -154,7 +159,7 @@ def _check_arguments(num_points, dimension, a, b, ratio, grid):
                              '"a".')
 
     # Check ratio
-    if not isinstance(ratio, (int, float)):
+    if not isinstance(ratio, (int, numpy.int64, float)):
         raise TypeError('"ratio" should be a real number.')
     elif a is None and ratio != 0.0:
         raise ValueError('"ratio" should be zero when "a" and "b" are None.')
@@ -165,12 +170,14 @@ def _check_arguments(num_points, dimension, a, b, ratio, grid):
     if not isinstance(grid, bool):
         raise TypeError('"grid" should be boolean.')
 
+    return a, b
+
 
 # =======================
 # generate uniform points
 # =======================
 
-def _generate_uniform_points(num_points, dimension, grid):
+def _generate_uniform_points(num_points, dimension, grid, seed):
     """
     Generates points in the hypercube [0, 1]^dimension using uniform
     distribution.
@@ -190,6 +197,10 @@ def _generate_uniform_points(num_points, dimension, grid):
 
     else:
         # Randomized points in a square area
-        points = numpy.random.rand(num_points, dimension)
+        if seed is None:
+            rng = numpy.random.RandomState()
+        else:
+            rng = numpy.random.RandomState(seed)
+        points = rng.rand(num_points, dimension)
 
     return points

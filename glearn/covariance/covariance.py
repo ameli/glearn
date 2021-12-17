@@ -14,7 +14,7 @@
 import numpy
 import scipy
 from scipy.sparse import isspmatrix
-from ..correlation import Correlation
+from .._correlation import Correlation
 from ._mixed_correlation import MixedCorrelation
 import imate
 
@@ -33,38 +33,44 @@ class Covariance(object):
 
     def __init__(
             self,
-            cor,
+            points,
             sigma=None,
             sigma0=None,
-            imate_method='cholesky',
-            imate_options={},
+            kernel=None,
+            scale=None,
+            sparse=False,
+            kernel_threshold=None,
+            density=1e-3,
+            imate_options={'method': 'cholesky'},
             interpolate=False,
-            tol=1e-8):
+            tol=1e-8,
+            verbose=False):
         """
         """
 
-        self._check_arguments(cor, sigma, sigma0, tol)
+        # The rest of argument will be checked in self.cor
+        self._check_arguments(sigma, sigma0, tol)
 
         # Set attributes
-        self.cor = cor
         self.sigma = sigma
         self.sigma0 = sigma0
         self.tol = tol
 
-        # Options for imate
-        self.imate_method = imate_method
-        self.imate_options = imate_options
+        # Correlation (matrix K)
+        self.cor = Correlation(points, kernel=kernel, scale=scale,
+                               sparse=sparse,
+                               kernel_threshold=kernel_threshold,
+                               density=density, verbose=verbose)
 
         # Mixed correlation (K + eta I)
         self.mixed_cor = MixedCorrelation(self.cor, interpolate=interpolate,
-                                          imate_method=self.imate_method,
-                                          imate_options=self.imate_options)
+                                          imate_options=imate_options)
 
     # ===============
     # Check arguments
     # ===============
 
-    def _check_arguments(self, cor, sigma, sigma0, tol):
+    def _check_arguments(self, sigma, sigma0, tol):
         """
         """
 
@@ -73,32 +79,6 @@ class Covariance(object):
             raise TypeError('"tol" should be a float number.')
         elif tol < 0.0:
             raise ValueError('"tol" should be non-negative.')
-
-        # Check cor
-        if cor is None:
-            raise ValueError('"cor" cannot be None.')
-
-        elif not isinstance(cor, numpy.ndarray) and \
-                not isspmatrix(cor) and \
-                not isinstance(cor, Correlation):
-            raise TypeError('"cor" should be either a "numpy.ndarray" ' +
-                            'matrix or an instance of "Correlation" class.')
-
-        if isinstance(cor, numpy.ndarray):
-            if cor.ndim != 2:
-                raise ValueError('"cor" should be a 2D matrix.')
-
-            elif cor.shape[0] != cor.shape[1]:
-                raise ValueError('"cor" should be a square matrix.')
-
-            not_correlation = False
-            for i in range(cor.shape[0]):
-                if cor[i, i] != 1.0:
-                    not_correlation = True
-                    break
-
-            if not_correlation:
-                raise ValueError('Diagonal elements of "cor" should be "1".')
 
         # Check sigma
         if sigma is not None:
@@ -114,13 +94,24 @@ class Covariance(object):
             elif sigma0 < 0.0:
                 raise ValueError('"sigma0" cannot be negative.')
 
+    # =================
+    # set imate options
+    # =================
+
+    def set_imate_options(self, imate_options):
+        """
+        Updates the imate options for self.mixed_cor object.
+        """
+
+        self.mixed_cor.imate_options = imate_options
+
     # =========
     # set scale
     # =========
 
     def set_scale(self, scale):
         """
-        Sets the scale attribute of coreelation matrix.
+        Sets the scale attribute of correlation matrix.
         """
 
         self.mixed_cor.set_scale(scale)
@@ -239,7 +230,7 @@ class Covariance(object):
             scale=None,
             exponent=1,
             derivative=[],
-            imate_method=None):
+            imate_options={}):
         """
         Computes
 
@@ -291,7 +282,7 @@ class Covariance(object):
 
             eta = (sigma0 / sigma)**2
             trace_ = sigma**(2.0*exponent) * self.mixed_cor.trace(
-                    eta, scale, exponent, derivative, imate_method)
+                    eta, scale, exponent, derivative, imate_options)
 
         return trace_
 
@@ -308,7 +299,7 @@ class Covariance(object):
             scale=None,
             exponent=1,
             derivative=[],
-            imate_method=None):
+            imate_options={}):
         """
         Computes
 
@@ -395,7 +386,7 @@ class Covariance(object):
 
             eta = (sigma0 / sigma)**2
             traceinv_ = self.mixed_cor.traceinv(
-                    eta, B, C, scale, exponent, derivative, imate_method)
+                    eta, B, C, scale, exponent, derivative, imate_options)
             if C is None:
                 traceinv_ /= sigma**(2.0*exponent)
             else:
@@ -415,7 +406,7 @@ class Covariance(object):
             scale=None,
             exponent=1,
             derivative=[],
-            imate_method=None):
+            imate_options={}):
         """
         Computes
 
@@ -470,7 +461,7 @@ class Covariance(object):
             eta = (sigma0 / sigma)**2
             logdet_ = (2.0*exponent*n) * numpy.log(sigma) + \
                 self.mixed_cor.logdet(eta, scale, exponent, derivative,
-                                      imate_method)
+                                      imate_options)
 
         return logdet_
 

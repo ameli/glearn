@@ -31,9 +31,6 @@ imate configs
 
 * move ``imate_method`` argument from ``cov`` object to ``gp.train()``
   argument. pass imate config settings to the interface.
-* add ``gpu`` option to config.
-
-* Update notebook. check runtime of repeated prediction.
 
 ======
 Issues

@@ -174,11 +174,12 @@ class GaussianProcess(object):
             # ordinary least square (OLS) solution.
             sigma_guess = 1e-2  # Small nonzero to avoid singularity
             sigma0_guess = self.posterior.likelihood.ols_solution()
-            hyperparam_guess = numpy.r_[sigma_guess, sigma0_guess, scale_guess]
+            hyperparam_guess = numpy.r_[sigma_guess, sigma0_guess]
 
         elif profile_hyperparam == 'var':
             # Set scale before calling likelihood.asymptotic_maxima
-            self.posterior.likelihood.cov.set_scale(scale_guess)
+            if len(scale_guess) > 0:
+                self.posterior.likelihood.cov.set_scale(scale_guess)
 
             # hyperparameter is eta. Use asymptotic relations to guess eta
             asym_degree = 2
@@ -191,11 +192,15 @@ class GaussianProcess(object):
                 # In case no asymptotic root was found (all negative, complex)
                 eta_guess = 1.0
 
-            hyperparam_guess = numpy.r_[eta_guess, scale_guess]
+            hyperparam_guess = numpy.r_[eta_guess]
 
         elif profile_hyperparam == 'var_noise':
             # No hyperparameter
-            hyperparam_guess = scale_guess
+            pass
+
+        # Include scale guess
+        if scale_guess != []:
+            hyperparam_guess = numpy.r_[hyperparam_guess, scale_guess]
 
         return hyperparam_guess
 
@@ -213,6 +218,8 @@ class GaussianProcess(object):
             tol=1e-3,
             max_iter=1000,
             use_rel_error=True,
+            imate_options={},
+            gpu=False,
             verbose=False,
             plot=False):
         """
@@ -221,6 +228,9 @@ class GaussianProcess(object):
         Note: ``use_rel_error`` can be None, True, or False. When it is set to
         None, the callback function for minimize is not used.
         """
+
+        # Set self.cov with imate options
+        self.cov.set_imate_options(imate_options)
 
         # Create a posterior object. Note that self.posterior should be defined
         # before calling self._check_hyperparam_guess

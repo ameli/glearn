@@ -59,7 +59,7 @@ class ProfileLikelihood(BaseLikelihood):
         # Determine to compute traceinv (only for some of inner computations of
         # derivatives w.r.t scale) using direct inversion of matrices or with
         # Hutchinson method (a stochastic method).
-        if self.mixed_cor.imate_method in ['hutchinson', 'slq']:
+        if self.mixed_cor.imate_options['method'] in ['hutchinson', 'slq']:
             # Use Hutchinson method (note: SLQ method cannot be used).
             self.stochastic_traceinv = True
         else:
@@ -871,7 +871,7 @@ class ProfileLikelihood(BaseLikelihood):
                 # Hutchinson's method.
                 Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
                 trace_KnpKninv = self.mixed_cor.traceinv(
-                        eta, B=Knp, imate_method='hutchinson')
+                        eta, B=Knp, imate_options={'method': 'hutchinson'})
             else:
                 trace_KnpKninv, _ = imate.trace(self.KnpKninv[p],
                                                 method='exact')
@@ -952,7 +952,8 @@ class ProfileLikelihood(BaseLikelihood):
                 Knpq = self.mixed_cor.get_matrix(eta, derivative=[p, q])
                 if self.stochastic_traceinv:
                     trace_KnpqKninv = self.mixed_cor.traceinv(
-                            eta, B=Knpq, imate_method='hutchinson')
+                            eta, B=Knpq,
+                            imate_options={'method': 'hutchinson'})
                 else:
                     KnpqKninv = Knpq @ self.Kninv
                     trace_KnpqKninv, _ = imate.trace(KnpqKninv, method='exact')
@@ -973,7 +974,8 @@ class ProfileLikelihood(BaseLikelihood):
                 Knq = self.mixed_cor.get_matrix(eta, derivative=[q])
                 if self.stochastic_traceinv:
                     trace_KnpMKnqM_1 = self.mixed_cor.traceinv(
-                            eta, B=Knq, C=Knp, imate_method='hutchinson')
+                        eta, B=Knq, C=Knp,
+                        imate_options={'method': 'hutchinson'})
                 else:
                     KnpKninvKnqKninv = numpy.matmul(self.KnpKninv[p],
                                                     self.KnpKninv[q])
@@ -1088,7 +1090,8 @@ class ProfileLikelihood(BaseLikelihood):
             Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
             if self.stochastic_traceinv:
                 trace_KnpKninv2 = self.mixed_cor.traceinv(
-                        eta, B=Knp, exponent=2, imate_method='hutchinson')
+                        eta, B=Knp, exponent=2,
+                        imate_options={'method': 'hutchinson'})
             else:
                 KnpKninv2 = Knp @ Kninv2
                 trace_KnpKninv2, _ = imate.trace(KnpKninv2, method='exact')

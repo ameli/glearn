@@ -21,14 +21,11 @@ import numpy
 import multiprocessing
 from datetime import datetime
 
-from glearn.sample_data import generate_points, generate_data
-from glearn import get_processor_name, get_gpu_name, get_num_gpu_devices
-from glearn.mean import LinearModel
-from glearn.kernels import Matern, Exponential, SquareExponential  # noqa: F401
-from glearn.kernels import RationalQuadratic, Linear               # noqa: F401
-from glearn.priors import Uniform, Cauchy, StudentT, Erlang        # noqa: F401
-from glearn.priors import Gamma, InverseGamma, Normal, BetaPrime   # noqa: F401
-from glearn import Correlation
+import glearn
+from glearn import sample_data
+from glearn import LinearModel
+from glearn import kernels
+from glearn import priors
 from glearn import Covariance
 from glearn import GaussianProcess
 
@@ -102,7 +99,7 @@ def benchmark(argv):
     # Settings
     config = {
         'dimension': 1,
-        'data_sizes': 2**numpy.arange(8, 14),
+        'data_sizes': 2**numpy.arange(8, 12),
         'grid': True,
         'noise_magnitude': 0.05,
         'polynomial_degree': 2,
@@ -111,24 +108,17 @@ def benchmark(argv):
         'b': None,
         'B': None,
         'scale': 0.07,
-        'scale_prior': 'Uniform',
         'kernel': 'Exponential',
-        'sparse': True,
+        'sparse': False,
         'kernel_threshold': 0.03,
-        # 'imate_method': 'cholesky',
-        'imate_method': 'slq',
+        'imate_options': {'method': 'cholesky'},
         'hyperparam_guess': None,
         'profile_hyperparam': ['none', 'var'],
         'optimization_method': 'Nelder-Mead',
         'verbose': False,
     }
 
-    devices = {
-        'cpu_name': get_processor_name(),
-        'gpu_name': get_gpu_name(),
-        'num_all_cpu_threads': multiprocessing.cpu_count(),
-        'num_all_gpu_devices': get_num_gpu_devices()
-    }
+    devices = glearn.info(print_only=False)
 
     # For reproducibility
     numpy.random.seed(0)
@@ -147,11 +137,13 @@ def benchmark(argv):
         # Generate data points
         dimension = config['dimension']
         grid = config['grid']
-        points = generate_points(data_size, dimension, grid)
+        points = sample_data.generate_points(data_size, dimension=dimension,
+                                             grid=grid)
 
         # Generate noisy data
         noise_magnitude = config['noise_magnitude']
-        z_noisy = generate_data(points, noise_magnitude, plot=False)
+        z_noisy = sample_data.generate_data(
+                points, noise_magnitude=noise_magnitude)
 
         # Mean
         b = config['b']
@@ -164,37 +156,22 @@ def benchmark(argv):
                            hyperbolic_coeff=hyperbolic_coeff, b=b, B=B)
 
         # Prior for scale of correlation
-        # scale_prior = Uniform()
-        # scale_prior = Cauchy()
-        # scale_prior = StudentT()
-        # scale_prior = InverseGamma()
-        # scale_prior = Normal()
-        # scale_prior = Erlang()
-        # scale_prior = BetaPrime()
-        # scale_prior_name = config['scale_prior']
-        # scale_prior = eval(scale_prior_name)
+        scale_name = config['scale']
+        if scale_name is not str:
+            scale = scale_name
+        else:
+            scale = eval('priors.' + scale_name)
 
         # Kernel
-        # kernel = Matern()
-        # kernel = Exponential()
-        # kernel = Linear()
-        # kernel = SquareExponential()
-        # kernel = RationalQuadratic()
         kernel_name = config['kernel']
-        kernel = eval(kernel_name + "()")
+        kernel = eval('kernels.' + kernel_name + "()")
 
-        # Correlation
+        # Covariance
         scale = config['scale']
         sparse = config['sparse']
         kernel_threshold = config['kernel_threshold']
-        # cor = Correlation(points, kernel=kernel, scale=scale_prior,
-        #                   sparse=sparse)
-        cor = Correlation(points, kernel=kernel, scale=scale, sparse=sparse,
-                          kernel_threshold=kernel_threshold)
-
-        # Covariance
-        imate_method = config['imate_method']
-        cov = Covariance(cor, imate_method=imate_method)
+        cov = Covariance(points, kernel=kernel, scale=scale, sparse=sparse,
+                         kernel_threshold=kernel_threshold)
 
         # Gaussian process
         gp = GaussianProcess(mean, cov)
@@ -203,16 +180,16 @@ def benchmark(argv):
         hyperparam_guess = config['hyperparam_guess']
         optimization_method = config['optimization_method']
         verbose = config['verbose']
-
         full_likelihood_res = None
         profile_likelihood_res = None
+        imate_options = config['imate_options']
 
         for profile_hyperparam in profile_hyperparams:
             res = gp.train(z_noisy, profile_hyperparam=profile_hyperparam,
                            log_hyperparam=True,
                            optimization_method=optimization_method, tol=1e-6,
                            hyperparam_guess=hyperparam_guess, verbose=verbose,
-                           plot=False)
+                           imate_options=imate_options, plot=False)
 
             if profile_hyperparam == 'none':
                 full_likelihood_res = res

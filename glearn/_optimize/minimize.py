@@ -38,7 +38,9 @@ def minimize(
 
     # Minimize Terminator to gracefully terminate scipy.optimize.minimize once
     # tolerance is reached.
+    terminate = False
     minimize_terminator = MinimizeTerminator(tol, use_rel_error=use_rel_error,
+                                             terminate=terminate,
                                              verbose=verbose)
 
     options = {
@@ -79,20 +81,20 @@ def minimize(
         success = minimize_terminator.all_converged
 
     # Get convergence of hyperparam and its error
-    # hyperparams = minimize_terminator.hyperparams
-    # errors = minimize_terminator.errors
-    # converged = minimize_terminator.converged
+    hyperparams = minimize_terminator.hyperparams
+    errors = minimize_terminator.errors
+    converged = minimize_terminator.converged
 
     # Adding time to the results
     timer.toc()
 
     result = {
-        # 'convergence':
-        # {
-        #     'converged': converged,
-        #     'errors': errors,
-        #     'hyperparams': hyperparams,
-        # },
+        'convergence':
+        {
+            'converged': converged,
+            'errors': errors,
+            'hyperparams': hyperparams,
+        },
         'optimization':
         {
             'state_vector': hyperparam,
