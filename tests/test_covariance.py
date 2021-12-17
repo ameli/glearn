@@ -16,9 +16,9 @@
 import sys
 import numpy
 import numpy.linalg
-from glearn.sample_data import generate_points
+from glearn import sample_data
 from glearn.kernels import Matern
-from glearn import Correlation, Covariance
+from glearn import Covariance
 
 
 # ==============
@@ -77,9 +77,10 @@ def check_functions(
                     if len(derivative) > 0:
                         if function in ('solve', 'traceinv'):
                             continue
-                        if cov.mixed_cor.imate_method == 'cholesky':
+                        if cov.mixed_cor.imate_options['method'] == 'cholesky':
                             continue
-                        if cov.mixed_cor.imate_method == 'hutchinson' and \
+                        if cov.mixed_cor.imate_options['method'] == \
+                                'hutchinson' and \
                                 function == 'logdet':
                             continue
 
@@ -202,7 +203,8 @@ def test_covariance():
     num_points = 20
     dimension = 2
     grid = True
-    points = generate_points(num_points, dimension=dimension, grid=grid)
+    points = sample_data.generate_points(num_points, dimension=dimension,
+                                         grid=grid)
 
     # Correlation
     kernel = Matern()
@@ -212,9 +214,6 @@ def test_covariance():
         print('--------------------------')
         print('Using sparse matrix: %s' % sparse)
         print('--------------------------\n')
-
-        cor = Correlation(points, kernel=kernel, scale=0.1, sparse=sparse,
-                          density=0.01)
 
         # Check each function
         for imate_method in imate_methods:
@@ -229,8 +228,11 @@ def test_covariance():
             else:
                 error_rtol = 1e-8  # in percent
 
+            imate_options = {'method': imate_method}
+
             # Covariance
-            cov = Covariance(cor, imate_method=imate_method)
+            cov = Covariance(points, kernel=kernel, scale=0.1, sparse=sparse,
+                             density=0.01, imate_options=imate_options)
             print('imate method: %s' % imate_method)
 
             for function in functions:
