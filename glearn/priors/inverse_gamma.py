@@ -15,6 +15,8 @@ import numpy
 from scipy.special import gamma
 from .prior import Prior
 
+__all__ = ['InverseGamma']
+
 
 # =============
 # Inverse Gamma

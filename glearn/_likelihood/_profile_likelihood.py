@@ -15,6 +15,8 @@ import numpy
 import imate
 from ._base_likelihood import BaseLikelihood
 
+__all__ = ['ProfileLikelihood']
+
 
 # ==================
 # Profile Likelihood

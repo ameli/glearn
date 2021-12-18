@@ -18,6 +18,8 @@ from .._utilities.plot_utilities import load_plot_settings, plt, \
         show_or_save_plot, mark_inset, InsetPosition, matplotlib, \
         make_axes_locatable
 
+__all__ = ['plot']
+
 
 # ====
 # plot

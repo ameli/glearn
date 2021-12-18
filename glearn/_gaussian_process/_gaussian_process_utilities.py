@@ -20,6 +20,9 @@ from .._utilities.plot_utilities import load_plot_settings, plt, \
 
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
+__all__ = ['print_training_summary', 'plot_training_convergence',
+           'plot_prediction', 'print_prediction_summary']
+
 
 # ======================
 # print training summary
@@ -293,16 +296,16 @@ def plot_prediction(
 
     if points.ndim == 1 or points.shape[1] == 1:
         # Plot 1D data
-        plot_prediction_1d(points, test_points, z, z_star_mean, z_star_cov,
-                           confidence_level, true_data, verbose)
+        _plot_prediction_1d(points, test_points, z, z_star_mean, z_star_cov,
+                            confidence_level, true_data, verbose)
     elif points.shape[1] == 2:
 
         if true_data is not None:
             raise RuntimeError('"true_data" can be plotted for only 1D data.')
 
         # Plot 2D data
-        plot_prediction_2d(points, test_points, z, z_star_mean, z_star_cov,
-                           confidence_level, verbose)
+        _plot_prediction_2d(points, test_points, z, z_star_mean, z_star_cov,
+                            confidence_level, verbose)
     else:
         raise ValueError('Predictions can be plotted for only 1D and 2D data.')
 
@@ -311,7 +314,7 @@ def plot_prediction(
 # plot prediction 1D
 # ==================
 
-def plot_prediction_1d(
+def _plot_prediction_1d(
         points,
         test_points,
         z,
@@ -400,7 +403,7 @@ def plot_prediction_1d(
 # plot prediction 2D
 # ==================
 
-def plot_prediction_2d(
+def _plot_prediction_2d(
         points,
         test_points,
         z,

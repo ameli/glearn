@@ -67,9 +67,9 @@ def _check_import():
 
 try:
     from ._utilities import restrict_to_single_processor, info
-    from .mean import LinearModel
-    from .covariance import Covariance
-    from .gaussian_process import GaussianProcess
+    from ._mean import LinearModel
+    from ._covariance import Covariance
+    from ._gaussian_process import GaussianProcess
 
 except Exception as e:
     # Before printing the exception, check if the exception is raised due to

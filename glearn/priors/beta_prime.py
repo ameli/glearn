@@ -15,6 +15,8 @@ import numpy
 from scipy.special import beta as beta_function
 from .prior import Prior
 
+__all__ = ['BetaPrime']
+
 
 # ==========
 # Beta Prime

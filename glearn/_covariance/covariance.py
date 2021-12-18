@@ -18,6 +18,8 @@ from .._correlation import Correlation
 from ._mixed_correlation import MixedCorrelation
 import imate
 
+__all__ = ['Covariance']
+
 
 # ==========
 # Covariance

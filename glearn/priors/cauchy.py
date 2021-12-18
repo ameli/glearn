@@ -14,6 +14,8 @@
 import numpy
 from .prior import Prior
 
+__all__ = ['Cauchy']
+
 
 # ======
 # Cauchy

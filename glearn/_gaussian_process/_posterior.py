@@ -20,6 +20,8 @@ from .._utilities.device import get_num_cpu_threads, get_num_gpu_devices
 from .._utilities.memory import Memory
 import warnings
 
+__all__ = ['Posterior']
+
 
 # =========
 # Posterior

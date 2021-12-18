@@ -17,6 +17,8 @@ from .._utilities.plot_utilities import *                    # noqa: F401, F403
 from .._utilities.plot_utilities import load_plot_settings, plt, matplotlib, \
         make_axes_locatable, show_or_save_plot
 
+__all__ = ['plot']
+
 
 # ====
 # plot

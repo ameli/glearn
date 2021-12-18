@@ -19,6 +19,8 @@ from ._gaussian_process_utilities import plot_training_convergence, \
 from .._utilities.memory import Memory
 from .._utilities.timer import Timer
 
+__all__ = ['GaussianProcess']
+
 
 # ================
 # gaussian process
@@ -199,7 +201,7 @@ class GaussianProcess(object):
             pass
 
         # Include scale guess
-        if scale_guess != []:
+        if len(scale_guess) > 0:
             hyperparam_guess = numpy.r_[hyperparam_guess, scale_guess]
 
         return hyperparam_guess

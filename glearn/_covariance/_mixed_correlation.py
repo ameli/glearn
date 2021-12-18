@@ -19,6 +19,8 @@ import imate
 from ._linear_solver import linear_solver
 from .._utilities.timer import Timer
 
+__all__ = ['MixedCorrelation']
+
 
 # =================
 # Mixed Correlation

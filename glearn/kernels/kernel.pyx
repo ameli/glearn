@@ -23,6 +23,8 @@ try:
 except ImportError:
     plot_modules_exist = False
 
+__all__ = ['Kernel']
+
 
 # ======
 # Kernel

@@ -13,6 +13,8 @@
 
 import numpy
 
+__all__ = ['LinearModel']
+
 
 # ============
 # linear model

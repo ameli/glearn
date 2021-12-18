@@ -22,12 +22,8 @@ import multiprocessing
 from datetime import datetime
 
 import glearn
-from glearn import sample_data
-from glearn import LinearModel
-from glearn import kernels
-from glearn import priors
-from glearn import Covariance
-from glearn import GaussianProcess
+from glearn import sample_data, LinearModel, kernels, priors, Covariance, \
+        GaussianProcess
 
 
 # ===============
@@ -97,31 +93,59 @@ def benchmark(argv):
     benchmark_dir = '..'
 
     # Settings
+    # config = {
+    #     'dimension': 1,
+    #     'data_sizes': 2**numpy.arange(8, 13),
+    #     'grid': True,
+    #     'noise_magnitude': 0.2,
+    #     'polynomial_degree': 2,
+    #     'trigonometric_coeff': None,
+    #     'hyperbolic_coeff': None,
+    #     'b': None,
+    #     'B': None,
+    #     'scale': 0.07,
+    #     'kernel': 'Exponential',
+    #     'sparse': False,
+    #     'kernel_threshold': 0.03,
+    #     'imate_options': {'method': 'eigenvalue'},
+    #     'hyperparam_guess': None,
+    #     'profile_hyperparam': ['none', 'var'],
+    #     'optimization_method': 'Nelder-Mead',
+    #     'verbose': False,
+    # }
+
     config = {
-        'dimension': 1,
-        'data_sizes': 2**numpy.arange(8, 12),
+        'dimension': 2,
+        'data_sizes': 2**numpy.arange(4, 8),
         'grid': True,
-        'noise_magnitude': 0.05,
+        'noise_magnitude': 0.2,
         'polynomial_degree': 2,
         'trigonometric_coeff': None,
         'hyperbolic_coeff': None,
         'b': None,
         'B': None,
-        'scale': 0.07,
+        'scale': 0.002,
         'kernel': 'Exponential',
-        'sparse': False,
+        'sparse': True,
         'kernel_threshold': 0.03,
-        'imate_options': {'method': 'cholesky'},
-        'hyperparam_guess': None,
-        'profile_hyperparam': ['none', 'var'],
-        'optimization_method': 'Nelder-Mead',
+        'imate_options': {
+            'method': 'slq',
+            'min_num_samples': 100,
+            'max_num_samples': 500,
+            'lanczos_degree': 70,
+            },
+        'hyperparam_guesses': {'var': None, 'none': [0.1, 0.1]},
+        # 'hyperparam_guesses': {'var': None, 'none': None},
+        'profile_hyperparam': ['var', 'none'],
+        # 'optimization_method': {'var': 'chandrupatla', 'none': 'Nelder-Mead'},
+        # 'optimization_method': {'var': 'Newton-CG', 'none': 'newton-CG'},
+        'optimization_method': {'var': 'CG', 'none': 'CG'},
+        # 'optimization_method': {'var': 'BFGS', 'none': 'BFGS'},
+        'tol': 1e-6,
         'verbose': False,
     }
 
     devices = glearn.info(print_only=False)
-
-    # For reproducibility
-    numpy.random.seed(0)
 
     # Loop variables
     data_sizes = config['data_sizes']
@@ -177,17 +201,24 @@ def benchmark(argv):
         gp = GaussianProcess(mean, cov)
 
         # Training
-        hyperparam_guess = config['hyperparam_guess']
-        optimization_method = config['optimization_method']
         verbose = config['verbose']
         full_likelihood_res = None
         profile_likelihood_res = None
         imate_options = config['imate_options']
+        tol = config['tol']
 
         for profile_hyperparam in profile_hyperparams:
+
+            if profile_hyperparam == 'none':
+                hyperparam_guess = config['hyperparam_guesses']['none']
+                optimization_method = config['optimization_method']['none']
+            elif profile_hyperparam == 'var':
+                hyperparam_guess = config['hyperparam_guesses']['var']
+                optimization_method = config['optimization_method']['var']
+
             res = gp.train(z_noisy, profile_hyperparam=profile_hyperparam,
                            log_hyperparam=True,
-                           optimization_method=optimization_method, tol=1e-6,
+                           optimization_method=optimization_method, tol=tol,
                            hyperparam_guess=hyperparam_guess, verbose=verbose,
                            imate_options=imate_options, plot=False)
 
@@ -199,9 +230,9 @@ def benchmark(argv):
                 print('\t prof likelihood')
 
         result = {
-                'data_size': data_size,
-                'full_likelihood': full_likelihood_res,
-                'prof_likelihood': profile_likelihood_res,
+            'data_size': data_size,
+            'full_likelihood': full_likelihood_res,
+            'prof_likelihood': profile_likelihood_res,
         }
 
         results.append(result)

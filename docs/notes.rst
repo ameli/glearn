@@ -25,12 +25,14 @@ Asymptotic Relations
   and in ``likelihood``, ``likelihood_jacobian``, and ``likelihood_hessian``,
   refer to these functions.
 
--------------
-imate configs
--------------
 
-* move ``imate_method`` argument from ``cov`` object to ``gp.train()``
-  argument. pass imate config settings to the interface.
+* why eta 1 for none method
+* why var method does not find sigma, sigma0 correctly
+* data dictionary: size, density, dimension, nnz, avg_row_nnz, 
+* show actual data size instead of num data along axis
+* why 2^4 takes more time than 2^6
+* average times, repeat
+
 
 ======
 Issues

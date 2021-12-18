@@ -16,6 +16,8 @@ import scipy.sparse
 import scipy.linalg
 import scipy.sparse.linalg
 
+__all__ = ['linear_solver']
+
 
 # =============
 # linear solver

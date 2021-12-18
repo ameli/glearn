@@ -22,6 +22,8 @@ from functools import partial
 from ._base_likelihood import BaseLikelihood
 from ._profile_likelihood import ProfileLikelihood
 
+__all__ = ['DoubleProfileLikelihood']
+
 
 # =========================
 # Double Profile Likelihood

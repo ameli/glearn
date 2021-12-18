@@ -16,6 +16,8 @@ from .._utilities.plot_utilities import *                    # noqa: F401, F403
 from .._utilities.plot_utilities import load_plot_settings, plt, \
     show_or_save_plot
 
+__all__ = ['Prior']
+
 
 # =====
 # Prior

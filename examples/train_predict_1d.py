@@ -17,7 +17,7 @@ import sys
 import numpy
 import glearn
 from glearn.sample_data import generate_points, generate_data
-from glearn.mean import LinearModel
+from glearn import LinearModel
 from glearn.kernels import Matern, Exponential, SquareExponential, \
         RationalQuadratic, Linear
 from glearn.priors import Uniform, Cauchy, StudentT, Erlang, \
@@ -36,16 +36,13 @@ def main():
 
     # Generate data points
     num_points = 50
-    dimension = 1
-    grid = True
-    seed = 0
-    points = generate_points(num_points, dimension=dimension, a=0.4,
-                             b=0.6, ratio=0.8, grid=False, seed=seed)
+    points = generate_points(num_points, dimension=1, grid=False, seed=0,
+                             a=0.4, b=0.6, ratio=0.8)
 
     # Generate noisy data
     # noise_magnitude = 0.2
     noise_magnitude = 0.05
-    z_noisy = generate_data(points, noise_magnitude, plot=False, seed=seed)
+    z_noisy = generate_data(points, noise_magnitude, plot=False, seed=0)
 
     # Mean
     # b = numpy.zeros((6, ))
@@ -113,12 +110,11 @@ def main():
     hyperparam_guess = None
 
     # imate options
-    # imate_method = 'eigenvalue'
-    imate_method = 'cholesky'
-    # imate_method = 'hutchinson'
-    # imate_method = 'slq'
     imate_options = {
-        'method': imate_method,
+        'method': 'eigenvalue',
+        # 'method': 'cholesky',
+        # 'method': 'hutchinson',
+        # 'method': 'slq',
     }
 
     # gp.train(z, options=options, plot=False)
