@@ -115,8 +115,9 @@ def benchmark(argv):
     # }
 
     config = {
+        'repeat': 1,
         'dimension': 2,
-        'data_sizes': 2**numpy.arange(4, 8),
+        'data_sizes': (2**numpy.arange(6, 7.51, 0.2)).astype(int),
         'grid': True,
         'noise_magnitude': 0.2,
         'polynomial_degree': 2,
@@ -124,24 +125,29 @@ def benchmark(argv):
         'hyperbolic_coeff': None,
         'b': None,
         'B': None,
-        'scale': 0.002,
+        'scale': 0.005,
         'kernel': 'Exponential',
         'sparse': True,
         'kernel_threshold': 0.03,
         'imate_options': {
-            'method': 'slq',
-            'min_num_samples': 100,
-            'max_num_samples': 500,
-            'lanczos_degree': 70,
+            'var': {
+                'method': 'slq',
+                'min_num_samples': 10,
+                'max_num_samples': 50,
+                'lanczos_degree': 30,
+                },
+            'none': {
+                'method': 'cholesky',
+                },
             },
-        'hyperparam_guesses': {'var': None, 'none': [0.1, 0.1]},
+        'hyperparam_guesses': {'var': [1], 'none': [0.1, 0.1]},
         # 'hyperparam_guesses': {'var': None, 'none': None},
         'profile_hyperparam': ['var', 'none'],
-        # 'optimization_method': {'var': 'chandrupatla', 'none': 'Nelder-Mead'},
+        'optimization_method': {'var': 'chandrupatla', 'none': 'Nelder-Mead'},
         # 'optimization_method': {'var': 'Newton-CG', 'none': 'newton-CG'},
-        'optimization_method': {'var': 'CG', 'none': 'CG'},
+        # 'optimization_method': {'var': 'CG', 'none': 'CG'},
         # 'optimization_method': {'var': 'BFGS', 'none': 'BFGS'},
-        'tol': 1e-6,
+        'tol': 1e-4,
         'verbose': False,
     }
 
@@ -156,7 +162,11 @@ def benchmark(argv):
     for i in range(data_sizes.size):
 
         data_size = data_sizes[i]
-        print('data size: %d' % data_size)
+        if config['grid']:
+            num_all_points = data_size**config['dimension']
+        else:
+            num_all_points = data_size
+        print('data size: %d' % num_all_points)
 
         # Generate data points
         dimension = config['dimension']
@@ -202,9 +212,8 @@ def benchmark(argv):
 
         # Training
         verbose = config['verbose']
-        full_likelihood_res = None
-        profile_likelihood_res = None
-        imate_options = config['imate_options']
+        full_likelihood_res = []
+        profile_likelihood_res = []
         tol = config['tol']
 
         for profile_hyperparam in profile_hyperparams:
@@ -212,22 +221,33 @@ def benchmark(argv):
             if profile_hyperparam == 'none':
                 hyperparam_guess = config['hyperparam_guesses']['none']
                 optimization_method = config['optimization_method']['none']
+                imate_options = config['imate_options']['none']
             elif profile_hyperparam == 'var':
                 hyperparam_guess = config['hyperparam_guesses']['var']
                 optimization_method = config['optimization_method']['var']
-
-            res = gp.train(z_noisy, profile_hyperparam=profile_hyperparam,
-                           log_hyperparam=True,
-                           optimization_method=optimization_method, tol=tol,
-                           hyperparam_guess=hyperparam_guess, verbose=verbose,
-                           imate_options=imate_options, plot=False)
+                imate_options = config['imate_options']['var']
 
             if profile_hyperparam == 'none':
-                full_likelihood_res = res
-                print('\t full likelihood')
+                print('\t full likelihood ', end='')
             else:
-                profile_likelihood_res = res
-                print('\t prof likelihood')
+                print('\t prof likelihood ', end='')
+
+            for j in range(config['repeat']):
+                print('.', end='', flush=True)
+
+                res = gp.train(z_noisy, profile_hyperparam=profile_hyperparam,
+                               log_hyperparam=True,
+                               optimization_method=optimization_method,
+                               tol=tol, hyperparam_guess=hyperparam_guess,
+                               verbose=verbose, imate_options=imate_options,
+                               plot=False)
+
+                if profile_hyperparam == 'none':
+                    full_likelihood_res.append(res)
+                else:
+                    profile_likelihood_res.append(res)
+
+            print(' Done.')
 
         result = {
             'data_size': data_size,

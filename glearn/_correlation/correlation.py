@@ -151,6 +151,89 @@ class Correlation(object):
         self.num_cor_eval = 0
 
     # =========
+    # is sparse
+    # =========
+
+    def is_sparse(self, derivative=[]):
+        """
+        Returns True or False whether the underlying correlation matrix is
+        sparse or not.
+        """
+
+        if len(derivative) == 0:
+            return scipy.sparse.isspmatrix(self.K_der0)
+        elif len(derivative) == 1:
+            return scipy.sparse.isspmatrix(self.K_der1)
+        elif len(derivative) == 2:
+            return scipy.sparse.isspmatrix(self.K_der2)
+        else:
+            raise ValueError('Derivative order should be "0", "1", or "2".')
+
+    # =======
+    # get nnz
+    # =======
+
+    def get_nnz(self, derivative=[]):
+        """
+        Returns number of nonzero elements of underlying correlation matrix.
+        If the matrix is not sparse, the nnz is the number of all elements of
+        the matrix.
+        """
+
+        if len(derivative) == 0:
+            if self.is_sparse(derivative):
+                return self.K_der0.nnz
+            else:
+                return numpy.prod(self.K_der0.shape)
+        elif len(derivative) == 1:
+            if self.is_sparse(derivative):
+                return self.K_der1.nnz
+            else:
+                return numpy.prod(self.K_der1.shape)
+        elif len(derivative) == 2:
+            if self.is_sparse(derivative):
+                return self.K_der2.nnz
+            else:
+                return numpy.prod(self.K_der2.shape)
+        else:
+            raise ValueError('Derivative order should be "0", "1", or "2".')
+
+    # ===========
+    # get density
+    # ===========
+
+    def get_density(self, derivative=[]):
+        """
+        Returns the sparse density of underlying correlation matrix. If the
+        matrix is not sparse, the density is one.
+        """
+
+        if self.is_sparse(derivative):
+            nnz = self.get_nnz(derivative)
+            num_elements = numpy.prod(self.K_der0.shape)
+            density = nnz / num_elements
+        else:
+            density = 1.0
+
+        return density
+
+    # ===================
+    # get average row nnz
+    # ===================
+
+    def get_average_row_nnz(self, derivative=[]):
+        """
+        Returns the average number of nonzero elements in each row. When the
+        matrix is not sparse, it returns the number of columns.
+        """
+
+        num_columns = self.get_matrix_size()
+        density = self.get_density()
+        avg_row_nnz = density * num_columns
+
+        return avg_row_nnz
+
+    # =========
     # get scale
     # =========
 

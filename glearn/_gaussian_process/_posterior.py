@@ -376,13 +376,16 @@ class Posterior(object):
             sigma, sigma0, eta, scale = self.likelihood.extract_hyperparam(
                     res['optimization']['state_vector'])
 
+        # Equivalent sigma, which determines the total uncertainty
+        eq_sigma = numpy.sqrt(sigma**2 + sigma0**2)
+
         # Find the memory used only during the training process
         if verbose:
             self.memory.stop()
 
         # Create output dictionary
-        res = self._create_output_dict(res, sigma, sigma0, eta, scale,
-                                       optimization_method, max_iter,
+        res = self._create_output_dict(res, sigma, sigma0, eq_sigma, eta,
+                                       scale, optimization_method, max_iter,
                                        max_bracket_trials, use_rel_error, tol,
                                        verbose)
 
@@ -392,7 +395,7 @@ class Posterior(object):
     # create output dict
     # ==================
 
-    def _create_output_dict(self, res, sigma, sigma0, eta, scale,
+    def _create_output_dict(self, res, sigma, sigma0, eq_sigma, eta, scale,
                             optimization_method, max_iter, max_bracket_trials,
                             use_rel_error, tol, verbose):
         """
@@ -400,10 +403,24 @@ class Posterior(object):
         process.
         """
 
+        # Information about data and covariance matrix
+        z = self.likelihood.z
+        cor = self.likelihood.cov.cor
+        data = {
+            'dimension': cor.points.shape[0],
+            'size': z.size,
+            'kernel_threshold': cor.kernel_threshold,
+            'sparse': cor.sparse,
+            'nnz': cor.get_nnz(),
+            'density': cor.get_density(),
+            'avg_row_nnz': cor.get_average_row_nnz(),
+        }
+
         # Append optimal hyperparameter to the result dictionary
         hyperparam = {
             'sigma': sigma,
             'sigma0': sigma0,
+            'eq_sigma': eq_sigma,
             'eta': eta,
             'scale': scale
         }
@@ -511,6 +528,7 @@ class Posterior(object):
 
         # Create output dictionary
         res = {
+            'data': data,
             'hyperparam': hyperparam,
             'optimization': optimization,
             'convergence': convergence,

@@ -35,7 +35,7 @@ def main():
     glearn.info()
 
     # Generate data points
-    num_points = 2**(14//2)
+    num_points = 2**(12//2)
     points = generate_points(num_points, dimension=2, grid=True)
                              # a=[0, 0], b=[0.1, 0.1], ratio=0.4)
 
@@ -86,16 +86,16 @@ def main():
     gp = GaussianProcess(mean, cov)
 
     # Training options
-    # profile_hyperparam = 'none'
-    profile_hyperparam = 'var'
+    profile_hyperparam = 'none'
+    # profile_hyperparam = 'var'
     # profile_hyperparam = 'var_noise'
 
     # optimization_method = 'chandrupatla'  # requires jacobian
     # optimization_method = 'brentq'         # requires jacobian
     # optimization_method = 'Nelder-Mead'     # requires func
     # optimization_method = 'BFGS'          # requires func, jacobian
-    # optimization_method = 'CG'            # requires func, jacobian
-    optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
+    optimization_method = 'CG'            # requires func, jacobian
+    # optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
     # optimization_method = 'dogleg'        # requires func, jacobian, hessian
     # optimization_method = 'trust-exact'   # requires func, jacobian, hessian
     # optimization_method = 'trust-ncg'     # requires func, jacobian, hessian
@@ -104,11 +104,11 @@ def main():
     # hyperparam_guess = [0, 0.1, 0.1]
     # hyperparam_guess = [-1, 1e-1]
     # hyperparam_guess = [1.0]
-    # hyperparam_guess = [0.1, 0.1]
+    hyperparam_guess = [0.1, 0.1]
     # hyperparam_guess = [1.0, 0.1]
     # hyperparam_guess = [0.1, 0.1, 0.1, 0.1]
     # hyperparam_guess = [0.01, 0.01, 0.1]
-    hyperparam_guess = None
+    # hyperparam_guess = None
     
     # imate options
     imate_options = {
@@ -116,12 +116,15 @@ def main():
         # 'method': 'cholesky',
         # 'method': 'hutchinson',
         'method': 'slq',
+        'min_num_samples': 100,
+        'max_num_samples': 500,
+        'lanczos_degree': 70,
     }
 
     # gp.train(z, options=options, plot=False)
     result = gp.train(z_noisy, profile_hyperparam=profile_hyperparam,
                       log_hyperparam=True,
-                      optimization_method=optimization_method, tol=1e-3,
+                      optimization_method=optimization_method, tol=1e-6,
                       hyperparam_guess=hyperparam_guess, verbose=True,
                       imate_options=imate_options, plot=False)
 

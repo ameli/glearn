@@ -26,14 +26,6 @@ Asymptotic Relations
   refer to these functions.
 
 
-* why eta 1 for none method
-* why var method does not find sigma, sigma0 correctly
-* data dictionary: size, density, dimension, nnz, avg_row_nnz, 
-* show actual data size instead of num data along axis
-* why 2^4 takes more time than 2^6
-* average times, repeat
-
-
 ======
 Issues
 ======
