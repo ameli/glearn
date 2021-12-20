@@ -14,14 +14,11 @@
 # =======
 
 import sys
-import numpy
 import glearn
 from glearn.sample_data import generate_points, generate_data
 from glearn import LinearModel
-from glearn.kernels import Matern, Exponential, SquareExponential, \
-        RationalQuadratic, Linear
-from glearn.priors import Uniform, Cauchy, StudentT, Erlang, \
-        Gamma, InverseGamma, Normal, BetaPrime
+from glearn import kernels
+from glearn import priors
 from glearn import Covariance
 from glearn import GaussianProcess
 
@@ -35,7 +32,7 @@ def main():
     glearn.info()
 
     # Generate data points
-    num_points = 2**(12//2)
+    num_points = int(2**(13/2.0))
     points = generate_points(num_points, dimension=2, grid=True)
                              # a=[0, 0], b=[0.1, 0.1], ratio=0.4)
 
@@ -61,40 +58,40 @@ def main():
                        hyperbolic_coeff=hyperbolic_coeff, b=b, B=B)
 
     # Prior for scale of correlation
-    # scale = Uniform()
-    # scale = Cauchy()
-    # scale = StudentT()
-    # scale = InverseGamma()
-    # scale = Normal()
-    # scale = Erlang()
-    # scale = BetaPrime()
+    # scale = priors.Uniform()
+    # scale = priors.Cauchy()
+    # scale = priors.StudentT()
+    # scale = priors.InverseGamma()
+    # scale = priors.Normal()
+    # scale = priors.Erlang()
+    # scale = priors.BetaPrime()
     scale = 0.005
     # scale.plot()
 
     # Kernel
-    # kernel = Matern()
-    kernel = Exponential()
-    # kernel = Linear()
-    # kernel = SquareExponential()
-    # kernel = RationalQuadratic()
+    # kernel = kernels.Matern()
+    kernel = kernels.Exponential()
+    # kernel = kernels.Linear()
+    # kernel = kernels.SquareExponential()
+    # kernel = kernels.RationalQuadratic()
 
     # Covariance
     cov = Covariance(points, kernel=kernel, scale=scale, sparse=True,
-                     kernel_threshold=0.03)
+                     kernel_threshold=0.02)
 
     # Gaussian process
     gp = GaussianProcess(mean, cov)
 
     # Training options
-    profile_hyperparam = 'none'
-    # profile_hyperparam = 'var'
+    # profile_hyperparam = 'none'
+    profile_hyperparam = 'var'
     # profile_hyperparam = 'var_noise'
 
     # optimization_method = 'chandrupatla'  # requires jacobian
     # optimization_method = 'brentq'         # requires jacobian
-    # optimization_method = 'Nelder-Mead'     # requires func
+    optimization_method = 'Nelder-Mead'     # requires func
     # optimization_method = 'BFGS'          # requires func, jacobian
-    optimization_method = 'CG'            # requires func, jacobian
+    # optimization_method = 'CG'            # requires func, jacobian
     # optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
     # optimization_method = 'dogleg'        # requires func, jacobian, hessian
     # optimization_method = 'trust-exact'   # requires func, jacobian, hessian
@@ -103,30 +100,49 @@ def main():
     # hyperparam_guess = [1.0]
     # hyperparam_guess = [0, 0.1, 0.1]
     # hyperparam_guess = [-1, 1e-1]
-    # hyperparam_guess = [1.0]
-    hyperparam_guess = [0.1, 0.1]
+    hyperparam_guess = [2.3]
+    # hyperparam_guess = [0.1, 0.1]
     # hyperparam_guess = [1.0, 0.1]
     # hyperparam_guess = [0.1, 0.1, 0.1, 0.1]
     # hyperparam_guess = [0.01, 0.01, 0.1]
     # hyperparam_guess = None
-    
+
     # imate options
     imate_options = {
         # 'method': 'eigenvalue',
         # 'method': 'cholesky',
         # 'method': 'hutchinson',
         'method': 'slq',
-        'min_num_samples': 100,
-        'max_num_samples': 500,
-        'lanczos_degree': 70,
+        'min_num_samples': 50,
+        'max_num_samples': 100,
+        'lanczos_degree': 50,
     }
 
     # gp.train(z, options=options, plot=False)
     result = gp.train(z_noisy, profile_hyperparam=profile_hyperparam,
-                      log_hyperparam=True,
+                      log_hyperparam=True, max_iter=2000,
                       optimization_method=optimization_method, tol=1e-6,
                       hyperparam_guess=hyperparam_guess, verbose=True,
                       imate_options=imate_options, plot=False)
+
+    det_time = result['time']['det_proc_time']
+    det_count = result['time']['det_count']
+    det = 1e+3 * det_time / det_count
+
+
+    trc_time = result['time']['trc_proc_time']
+    trc_count = result['time']['trc_count']
+    if trc_count > 0:
+        trc = 1e+3 * trc_time / trc_count
+    else:
+        trc = 0
+
+    sol_time = result['time']['sol_proc_time']
+    sol_count = result['time']['sol_count']
+    sol = 1e+3 * sol_time / sol_count
+    print('det: %d, %0.3f' % (det_count, det))
+    print('trc: %d, %0.3f' % (trc_count, trc))
+    print('sol: %d, %0.3f' % (sol_count, sol))
 
     # gp.plot_likelihood()
 

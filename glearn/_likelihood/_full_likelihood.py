@@ -378,6 +378,9 @@ class FullLikelihood(BaseLikelihood):
         avoid re-computation when the hyperparam is the same.
         """
 
+        # Test
+        self.update_called += 1
+
         # Check if likelihood is already computed for an identical hyperparam
         if (self.Y is None) or \
                 (self.C is None) or \
@@ -409,6 +412,9 @@ class FullLikelihood(BaseLikelihood):
 
             # Update the current hyperparam
             self.Y_C_Mz_hyperparam = hyperparam
+            
+            # Test
+            self.update_performed += 1
 
     # ===================
     # update MMz KMz MKMz

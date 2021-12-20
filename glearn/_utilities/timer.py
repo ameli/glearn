@@ -28,24 +28,33 @@ else:
 class Timer(object):
     """
     A timer to record elapsed wall time and CPU process time.
+
+    A counter counts a completed tic-toc call. If there is one tic but multiple
+    toc calls later, this is counted as only once.
+
+    When ``hold`` is True, the times between successive tic-toc calls are
+    commulative.
     """
 
     # ====
     # init
     # ====
 
-    def __init__(self):
+    def __init__(self, hold=True):
         """
         Initialization.
         """
 
-        # Internal variable used to store inital timestamps
+        # Internal variable used to store initial timestamps
         self.init_wall_time = 0.0
         self.init_proc_time = 0.0
+        self.tic_initiated = False
+        self.hold = hold
 
         # Public attributes
         self.wall_time = 0.0
         self.proc_time = 0.0
+        self.count = 0
 
     # ===
     # tic
@@ -63,6 +72,9 @@ class Timer(object):
         else:
             self.init_proc_time = time.process_time()
 
+        # This variable is used to count a complete tic-toc call.
+        self.tic_initiated = True
+
     # ===
     # toc
     # ===
@@ -72,12 +84,27 @@ class Timer(object):
         Measures the elapsed time from the last tic.
         """
 
-        self.wall_time += time.time() - self.init_wall_time
+        wall_time_ = time.time() - self.init_wall_time
 
         if python2:
-            self.proc_time += time.time() - self.init_proc_time
+            proc_time_ = time.time() - self.init_proc_time
         else:
-            self.proc_time += time.process_time() - self.init_proc_time
+            proc_time_ = time.process_time() - self.init_proc_time
+
+        if self.hold:
+            # Commulative time between successive tic-toc
+            self.wall_time += wall_time_
+            self.proc_time += proc_time_
+        else:
+            # Only measures the elapsed time for the current tic-toc
+            self.wall_time = wall_time_
+            self.proc_time = proc_time_
+
+        # Prevents counting multiple toc calls which were initiated with one
+        # tic call.
+        if self.tic_initiated:
+            self.tic_initiated = False
+            self.count += 1
 
     # =====
     # reset
@@ -91,3 +118,5 @@ class Timer(object):
 
         self.wall_time = 0.0
         self.proc_time = 0.0
+        self.tic_initiated = False
+        self.count = 0

@@ -389,6 +389,9 @@ class Posterior(object):
                                        max_bracket_trials, use_rel_error, tol,
                                        verbose)
 
+        print('update called: %d' % self.likelihood.update_called)
+        print('update performed: %d' % self.likelihood.update_performed)
+
         return res
 
     # ==================
@@ -407,7 +410,7 @@ class Posterior(object):
         z = self.likelihood.z
         cor = self.likelihood.cov.cor
         data = {
-            'dimension': cor.points.shape[0],
+            'dimension': cor.points.shape[1],
             'size': z.size,
             'kernel_threshold': cor.kernel_threshold,
             'sparse': cor.sparse,
@@ -441,28 +444,33 @@ class Posterior(object):
             # correlation timer
             'cor_wall_time': self.likelihood.cov.cor.timer.wall_time,
             'cor_proc_time': self.likelihood.cov.cor.timer.proc_time,
+            'cor_count': self.likelihood.cov.cor.timer.count,
 
             # mixed_cor logdet timer
             'det_wall_time':
                 self.likelihood.cov.mixed_cor.logdet_timer.wall_time,
             'det_proc_time':
                 self.likelihood.cov.mixed_cor.logdet_timer.proc_time,
+            'det_count': self.likelihood.cov.mixed_cor.logdet_timer.count,
 
             # mixed_cor traceinv timer
             'trc_wall_time':
                 self.likelihood.cov.mixed_cor.traceinv_timer.wall_time,
             'trc_proc_time':
                 self.likelihood.cov.mixed_cor.traceinv_timer.proc_time,
+            'trc_count': self.likelihood.cov.mixed_cor.traceinv_timer.count,
 
             # mixed_cor solve timer
             'sol_wall_time':
                 self.likelihood.cov.mixed_cor.solve_timer.wall_time,
             'sol_proc_time':
                 self.likelihood.cov.mixed_cor.solve_timer.proc_time,
+            'sol_count': self.likelihood.cov.mixed_cor.solve_timer.count,
 
             # Likelihood timer
             'lik_wall_time': self.likelihood.timer.wall_time,
             'lik_proc_time': self.likelihood.timer.proc_time,
+            'lik_count': self.likelihood.timer.count,
 
             # Optimization timer
             'opt_wall_time': res['time']['wall_time'],

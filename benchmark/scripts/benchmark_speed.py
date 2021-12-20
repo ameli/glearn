@@ -115,9 +115,9 @@ def benchmark(argv):
     # }
 
     config = {
-        'repeat': 1,
+        'repeat': 2,
         'dimension': 2,
-        'data_sizes': (2**numpy.arange(6, 7.51, 0.2)).astype(int),
+        'data_sizes': (2**numpy.arange(6, 7.01, 1.0/6.0)).astype(int),
         'grid': True,
         'noise_magnitude': 0.2,
         'polynomial_degree': 2,
@@ -128,23 +128,29 @@ def benchmark(argv):
         'scale': 0.005,
         'kernel': 'Exponential',
         'sparse': True,
-        'kernel_threshold': 0.03,
+        'kernel_threshold': 0.02,
         'imate_options': {
             'var': {
                 'method': 'slq',
-                'min_num_samples': 10,
-                'max_num_samples': 50,
-                'lanczos_degree': 30,
+                'min_num_samples': 50,
+                'max_num_samples': 100,
+                'lanczos_degree': 50,
                 },
             'none': {
-                'method': 'cholesky',
+                # 'method': 'cholesky',
+                'method': 'slq',
+                'min_num_samples': 50,
+                'max_num_samples': 100,
+                'lanczos_degree': 50,
                 },
             },
-        'hyperparam_guesses': {'var': [1], 'none': [0.1, 0.1]},
-        # 'hyperparam_guesses': {'var': None, 'none': None},
-        'profile_hyperparam': ['var', 'none'],
-        'optimization_method': {'var': 'chandrupatla', 'none': 'Nelder-Mead'},
-        # 'optimization_method': {'var': 'Newton-CG', 'none': 'newton-CG'},
+        # 'hyperparam_guesses': {'var': None, 'none': [0.1, 0.1]},
+        'hyperparam_guesses': {'var': None, 'none': None},
+        # 'profile_hyperparam': ['var', 'none'],
+        'profile_hyperparam': ['none', 'var'],
+        # 'optimization_method': {'var': 'chandrupatla', 'none': 'Nelder-Mead'},
+        'optimization_method': {'var': 'BFGS', 'none': 'BFGS'},
+        # 'optimization_method': {'var': 'Newton-CG', 'none': 'Newton-CG'},
         # 'optimization_method': {'var': 'CG', 'none': 'CG'},
         # 'optimization_method': {'var': 'BFGS', 'none': 'BFGS'},
         'tol': 1e-4,
@@ -166,7 +172,9 @@ def benchmark(argv):
             num_all_points = data_size**config['dimension']
         else:
             num_all_points = data_size
-        print('data size: %d' % num_all_points)
+        log2_num_all_points = numpy.log2(num_all_points)
+        print('%2d/%2d  size: 2**%0.3f'
+              % (i+1, data_sizes.size, log2_num_all_points), flush=True)
 
         # Generate data points
         dimension = config['dimension']
@@ -185,9 +193,9 @@ def benchmark(argv):
         polynomial_degree = config['polynomial_degree']
         trigonometric_coeff = config['trigonometric_coeff']
         hyperbolic_coeff = config['hyperbolic_coeff']
-        mean = LinearModel(points, polynomial_degree=polynomial_degree,
-                           trigonometric_coeff=trigonometric_coeff,
-                           hyperbolic_coeff=hyperbolic_coeff, b=b, B=B)
+        # mean = LinearModel(points, polynomial_degree=polynomial_degree,
+        #                    trigonometric_coeff=trigonometric_coeff,
+        #                    hyperbolic_coeff=hyperbolic_coeff, b=b, B=B)
 
         # Prior for scale of correlation
         scale_name = config['scale']
@@ -204,11 +212,11 @@ def benchmark(argv):
         scale = config['scale']
         sparse = config['sparse']
         kernel_threshold = config['kernel_threshold']
-        cov = Covariance(points, kernel=kernel, scale=scale, sparse=sparse,
-                         kernel_threshold=kernel_threshold)
+        # cov = Covariance(points, kernel=kernel, scale=scale, sparse=sparse,
+        #                  kernel_threshold=kernel_threshold)
 
         # Gaussian process
-        gp = GaussianProcess(mean, cov)
+        # gp = GaussianProcess(mean, cov)
 
         # Training
         verbose = config['verbose']
@@ -217,6 +225,13 @@ def benchmark(argv):
         tol = config['tol']
 
         for profile_hyperparam in profile_hyperparams:
+
+            mean = LinearModel(points, polynomial_degree=polynomial_degree,
+                               trigonometric_coeff=trigonometric_coeff,
+                               hyperbolic_coeff=hyperbolic_coeff, b=b, B=B)
+            cov = Covariance(points, kernel=kernel, scale=scale, sparse=sparse,
+                             kernel_threshold=kernel_threshold)
+            gp = GaussianProcess(mean, cov)
 
             if profile_hyperparam == 'none':
                 hyperparam_guess = config['hyperparam_guesses']['none']
@@ -228,9 +243,9 @@ def benchmark(argv):
                 imate_options = config['imate_options']['var']
 
             if profile_hyperparam == 'none':
-                print('\t full likelihood ', end='')
+                print('       full likelihood ', end='', flush=True)
             else:
-                print('\t prof likelihood ', end='')
+                print('       prof likelihood ', end='', flush=True)
 
             for j in range(config['repeat']):
                 print('.', end='', flush=True)
@@ -247,7 +262,11 @@ def benchmark(argv):
                 else:
                     profile_likelihood_res.append(res)
 
-            print(' Done.')
+            print(' Done.', flush=True)
+
+            del mean
+            del cov
+            del gp
 
         result = {
             'data_size': data_size,

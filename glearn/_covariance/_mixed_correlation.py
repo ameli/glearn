@@ -80,7 +80,8 @@ class MixedCorrelation(object):
         # Elapsed time of computing functions (all iterations combined)
         self.logdet_timer = Timer()
         self.traceinv_timer = Timer()
-        self.solve_timer = Timer()
+        # self.solve_timer = Timer()
+        self.solve_timer = Timer(hold=False)  # Test
 
     # =================
     # update imate info
@@ -658,7 +659,7 @@ class MixedCorrelation(object):
         * :math:`\\eta` is a real number.
         """
 
-        self.solve_timer.tic()
+        # self.solve_timer.tic()  # Test
 
         # Get eta (if None, uses class attribute)
         eta = self.get_eta(eta)
@@ -682,6 +683,7 @@ class MixedCorrelation(object):
 
         else:
             # Get matrix
+            self.solve_timer.tic()  # Test
             Kn = self.get_matrix(eta, scale, derivative)
 
             if len(derivative) > 0:
@@ -693,7 +695,13 @@ class MixedCorrelation(object):
             for i in range(exponent):
                 X = linear_solver(Kn, X, assume_matrix=assume_matrix)
 
-        self.solve_timer.toc()
+            self.solve_timer.toc()  # Test
+        # self.solve_timer.toc()  # Test
+
+        # Test
+        proc = 1e+3 * self.solve_timer.proc_time
+        wall = 1e+3 * self.solve_timer.wall_time
+        print('eta: %0.8e, wall: %0.3f, proc: %0.3f' % (eta, wall, proc))
 
         return X
 
