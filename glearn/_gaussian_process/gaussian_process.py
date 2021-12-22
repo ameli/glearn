@@ -246,6 +246,13 @@ class GaussianProcess(object):
         # Prepare or suggest hyperparameter guess
         if hyperparam_guess is not None:
             self._check_hyperparam_guess(hyperparam_guess, profile_hyperparam)
+
+            # Convert hyperparam_guess to numpy array
+            if isinstance(hyperparam_guess, list):
+                hyperparam_guess = numpy.array(hyperparam_guess, dtype=float)
+            elif numpy.isscalar(hyperparam_guess):
+                hyperparam_guess = numpy.array([hyperparam_guess])
+
         else:
             hyperparam_guess = self._suggest_hyperparam_guess(
                     profile_hyperparam)

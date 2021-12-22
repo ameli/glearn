@@ -60,7 +60,3 @@ class BaseLikelihood(object):
 
         # Counting elapsed wall time and cpu proc time
         self.timer = Timer()
-
-        # Test
-        self. update_called = 0
-        self.update_performed = 0

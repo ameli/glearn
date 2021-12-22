@@ -271,6 +271,16 @@ class Posterior(object):
         if verbose:
             self.memory.start()
 
+        # If scale is not a hyperparameter to be found, compute the correlation
+        # matrix with the given scale. We update correlation here in advance
+        # of training so to separate their elapsed time.
+        scale_index = self.likelihood.scale_index
+        if hyperparam_guess.size <= scale_index:
+            # scale is not a part of hyperparam_guess, hence not being
+            # optimized. Scale should have been set in correlation already.
+            # Here, we update the correlation to compute its matrix.
+            self.likelihood.cov.cor._update_matrix()
+
         # Convert hyperparam to log of hyperparam. Note that if use_log_scale,
         # use_log_eta, or use_log_sigmas are not True, the output is not
         # converted to log, despite we named the output with "log_" prefix.
@@ -388,9 +398,6 @@ class Posterior(object):
                                        scale, optimization_method, max_iter,
                                        max_bracket_trials, use_rel_error, tol,
                                        verbose)
-
-        print('update called: %d' % self.likelihood.update_called)
-        print('update performed: %d' % self.likelihood.update_performed)
 
         return res
 

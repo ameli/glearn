@@ -89,8 +89,8 @@ def main():
 
     # optimization_method = 'chandrupatla'  # requires jacobian
     # optimization_method = 'brentq'         # requires jacobian
-    optimization_method = 'Nelder-Mead'     # requires func
-    # optimization_method = 'BFGS'          # requires func, jacobian
+    # optimization_method = 'Nelder-Mead'     # requires func
+    optimization_method = 'BFGS'          # requires func, jacobian
     # optimization_method = 'CG'            # requires func, jacobian
     # optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
     # optimization_method = 'dogleg'        # requires func, jacobian, hessian
@@ -124,25 +124,6 @@ def main():
                       optimization_method=optimization_method, tol=1e-6,
                       hyperparam_guess=hyperparam_guess, verbose=True,
                       imate_options=imate_options, plot=False)
-
-    det_time = result['time']['det_proc_time']
-    det_count = result['time']['det_count']
-    det = 1e+3 * det_time / det_count
-
-
-    trc_time = result['time']['trc_proc_time']
-    trc_count = result['time']['trc_count']
-    if trc_count > 0:
-        trc = 1e+3 * trc_time / trc_count
-    else:
-        trc = 0
-
-    sol_time = result['time']['sol_proc_time']
-    sol_count = result['time']['sol_count']
-    sol = 1e+3 * sol_time / sol_count
-    print('det: %d, %0.3f' % (det_count, det))
-    print('trc: %d, %0.3f' % (trc_count, trc))
-    print('sol: %d, %0.3f' % (sol_count, sol))
 
     # gp.plot_likelihood()
 

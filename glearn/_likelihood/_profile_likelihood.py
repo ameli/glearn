@@ -372,9 +372,6 @@ class ProfileLikelihood(BaseLikelihood):
         else:
             hyperparam_ = hyperparam
 
-        # Test
-        self.update_called += 1
-
         # Check if likelihood is already computed for an identical hyperparam
         if (self.Y is None) or \
                 (self.Cinv is None) or \
@@ -408,9 +405,6 @@ class ProfileLikelihood(BaseLikelihood):
 
             # Update the current hyperparam
             self.Y_C_Mz_hyperparam = hyperparam_
-
-            # Test
-            self.update_performed += 1
 
     # =========================
     # find optimal sigma sigma0

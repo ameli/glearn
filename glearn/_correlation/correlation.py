@@ -458,15 +458,16 @@ class Correlation(object):
         # Update matrix (if needed)
         self._update_matrix(scale)
 
-        if self.K_eig_smallest is None or self.K_eig_largest is None or \
-                self.K_der0 is None or self.current_scale_changed:
+        if (self.K_eig_smallest is None) or (self.K_eig_largest is None) or \
+                (self.K_der0 is None) or (self.current_scale_changed):
 
             n = self.matrix_size
 
             # Compute smallest eigenvalue
             if self.sparse:
                 self.K_eig_smallest = scipy.sparse.linalg.eigsh(
-                        self.K_der0, k=1, which='SM', return_eigenvector=False)
+                        self.K_der0, k=1, which='SM',
+                        return_eigenvectors=False)
             else:
                 self.K_eig_smallest = scipy.linalg.eigh(
                         self.K_der0, eigvals_only=True, check_finite=False,
@@ -474,8 +475,9 @@ class Correlation(object):
 
             # Compute largest eigenvalue
             if self.sparse:
-                self.K_eig_smallest = scipy.sparse.linalg.eigsh(
-                        self.K_der0, k=1, which='LM', return_eigenvector=False)
+                self.K_eig_largest = scipy.sparse.linalg.eigsh(
+                        self.K_der0, k=1, which='LM',
+                        return_eigenvectors=False)
             else:
                 self.K_eig_largest = scipy.linalg.eigh(
                         self.K_der0, eigvals_only=True, check_finite=False,

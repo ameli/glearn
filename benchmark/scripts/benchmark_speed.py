@@ -115,7 +115,7 @@ def benchmark(argv):
     # }
 
     config = {
-        'repeat': 2,
+        'repeat': 5,
         'dimension': 2,
         'data_sizes': (2**numpy.arange(6, 7.01, 1.0/6.0)).astype(int),
         'grid': True,
@@ -132,26 +132,26 @@ def benchmark(argv):
         'imate_options': {
             'var': {
                 'method': 'slq',
-                'min_num_samples': 50,
-                'max_num_samples': 100,
+                'min_num_samples': 100,
+                'max_num_samples': 200,
                 'lanczos_degree': 50,
                 },
             'none': {
                 # 'method': 'cholesky',
                 'method': 'slq',
-                'min_num_samples': 50,
-                'max_num_samples': 100,
+                'min_num_samples': 100,
+                'max_num_samples': 200,
                 'lanczos_degree': 50,
                 },
             },
-        # 'hyperparam_guesses': {'var': None, 'none': [0.1, 0.1]},
-        'hyperparam_guesses': {'var': None, 'none': None},
+        'hyperparam_guesses': {'var': [1.0], 'none': [0.1, 0.1]},
+        # 'hyperparam_guesses': {'var': None, 'none': None},
         # 'profile_hyperparam': ['var', 'none'],
         'profile_hyperparam': ['none', 'var'],
         # 'optimization_method': {'var': 'chandrupatla', 'none': 'Nelder-Mead'},
-        'optimization_method': {'var': 'BFGS', 'none': 'BFGS'},
+        # 'optimization_method': {'var': 'BFGS', 'none': 'BFGS'},
         # 'optimization_method': {'var': 'Newton-CG', 'none': 'Newton-CG'},
-        # 'optimization_method': {'var': 'CG', 'none': 'CG'},
+        'optimization_method': {'var': 'CG', 'none': 'CG'},
         # 'optimization_method': {'var': 'BFGS', 'none': 'BFGS'},
         'tol': 1e-4,
         'verbose': False,
@@ -226,13 +226,6 @@ def benchmark(argv):
 
         for profile_hyperparam in profile_hyperparams:
 
-            mean = LinearModel(points, polynomial_degree=polynomial_degree,
-                               trigonometric_coeff=trigonometric_coeff,
-                               hyperbolic_coeff=hyperbolic_coeff, b=b, B=B)
-            cov = Covariance(points, kernel=kernel, scale=scale, sparse=sparse,
-                             kernel_threshold=kernel_threshold)
-            gp = GaussianProcess(mean, cov)
-
             if profile_hyperparam == 'none':
                 hyperparam_guess = config['hyperparam_guesses']['none']
                 optimization_method = config['optimization_method']['none']
@@ -250,6 +243,14 @@ def benchmark(argv):
             for j in range(config['repeat']):
                 print('.', end='', flush=True)
 
+                mean = LinearModel(points, polynomial_degree=polynomial_degree,
+                                   trigonometric_coeff=trigonometric_coeff,
+                                   hyperbolic_coeff=hyperbolic_coeff, b=b, B=B)
+                cov = Covariance(points, kernel=kernel, scale=scale,
+                                 sparse=sparse,
+                                 kernel_threshold=kernel_threshold)
+                gp = GaussianProcess(mean, cov)
+
                 res = gp.train(z_noisy, profile_hyperparam=profile_hyperparam,
                                log_hyperparam=True,
                                optimization_method=optimization_method,
@@ -262,11 +263,11 @@ def benchmark(argv):
                 else:
                     profile_likelihood_res.append(res)
 
-            print(' Done.', flush=True)
+                del mean
+                del cov
+                del gp
 
-            del mean
-            del cov
-            del gp
+            print(' Done.', flush=True)
 
         result = {
             'data_size': data_size,
