@@ -185,8 +185,9 @@ class GaussianProcess(object):
 
             # hyperparameter is eta. Use asymptotic relations to guess eta
             asym_degree = 2
-            asym_maxima = self.posterior.likelihood.asymptotic_maxima(
-                    degree=asym_degree)
+            asym_maxima = \
+                self.posterior.likelihood.approx.maximaize_likelihood(
+                        degree=asym_degree)
 
             if asym_maxima != []:
                 eta_guess = asym_maxima[0]

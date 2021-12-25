@@ -58,5 +58,5 @@ class BaseLikelihood(object):
         n = self.X.shape[0]
         self.rdof = n - self.dof
 
-        # Counting elapsed wall time and cpu proc time
+        # Counting elapsed wall time and cpu process time
         self.timer = Timer()

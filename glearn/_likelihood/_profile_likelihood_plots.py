@@ -757,7 +757,7 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
 
     # Compute upper and lower bound of derivative
     dell_deta_upper_bound, dell_deta_lower_bound = \
-        profile_likelihood.bounds_der1_eta(eta)
+        profile_likelihood.approx.bounds_der1_eta(eta)
 
     # Compute asymptote of first derivative, using both first and second
     # order approximation
@@ -769,11 +769,11 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
 
     # To compute both first and second order asymptotic relations, compute the
     # second orders first bemuse it also computes the first order.
-    asym_maxima_ord2 = profile_likelihood.asymptotic_maxima(degree=2)
-    asym_maxima_ord1 = profile_likelihood.asymptotic_maxima(degree=1)
-    asym_dell_deta_ord2 = profile_likelihood._asymptotic_likelihood_der1_eta(
+    asym_maxima_ord2 = profile_likelihood.approx.maximaize_likelihood(degree=2)
+    asym_maxima_ord1 = profile_likelihood.approx.maximaize_likelihood(degree=1)
+    asym_dell_deta_ord2 = profile_likelihood.approx._likelihood_der1_eta(
             x, degree=2)
-    asym_dell_deta_ord1 = profile_likelihood._asymptotic_likelihood_der1_eta(
+    asym_dell_deta_ord1 = profile_likelihood.approx._likelihood_der1_eta(
             x, degree=1)
 
     # Main plot

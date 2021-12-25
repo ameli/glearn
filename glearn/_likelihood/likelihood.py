@@ -30,6 +30,8 @@ def likelihood(mean, cov, z, log_hyperparam=True, profile_hyperparam='var'):
         return FullLikelihood(mean, cov, z, log_hyperparam)
     elif profile_hyperparam == 'var':
         return ProfileLikelihood(mean, cov, z, log_hyperparam)
+    elif profile_hyperparam == 'var_approx':
+        return ProfileLikelihoodApprox(mean, cov, z)
     elif profile_hyperparam == 'var_noise':
         return DoubleProfileLikelihood(mean, cov, z, log_hyperparam)
     else:
