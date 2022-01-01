@@ -43,10 +43,15 @@ class ProfileLikelihoodApprox(BaseLikelihood):
         # Super class constructor sets self.z, self.X, self.cov, self.mixed_cor
         super().__init__(mean, cov, z)
 
+        # Configuration
+        self.hyperparam_tol = 1e-8
+
         # Storing variables to prevent redundant updates
-        self.asym_poly = None
-        self.asym_roots = None
-        self.asym_C = None
+        self.poly_coeffs = None
+        self.C = None
+
+        # Store hyperparam used to compute polynomial coefficients
+        self.scale_hyperparam = None
 
     # ===============
     # bounds der1 eta
@@ -85,7 +90,8 @@ class ProfileLikelihoodApprox(BaseLikelihood):
         """
 
         Xtz = numpy.dot(self.X.T, z)
-        CXtz = self.asym_C @ Xtz
+        C = self._get_C()
+        CXtz = C @ Xtz
         XCXtz = numpy.dot(self.X, CXtz)
 
         Qz = z - XCXtz
@@ -109,6 +115,160 @@ class ProfileLikelihoodApprox(BaseLikelihood):
 
         return Nz
 
+    # =====
+    # get C
+    # =====
+
+    def _get_C(self):
+        """
+        Computes C is it has bot been already, and returns it.
+        """
+
+        # C is the inv(X.T*X)
+        if self.C is None:
+            Cinv = self.X.T @ self.X
+            self.C = numpy.linalg.inv(Cinv)
+
+        return self.C
+
+    # ===========
+    # compute tau
+    # ===========
+
+    def _compute_tau(self, K, XtKiX, i):
+        """
+        Computes the trace of N^i where N = K @ Q, where Q is
+        Q = I - X @(X.T @ X)^{-1} @ Xt
+
+        Let define Li = XtKiX, and Ki = K^i, and C = inv(X.T @ X), P = XCXt.
+        Thus,
+            Q = I - P, and N = K - KP.
+
+        Example: here we find the trace of N^3, which is
+            trace(N^3) = (K - KP) (K - KP) (K - KP)
+                       = KKK - KKP - KPK + KPP - PKK + PKP + PPK - PPP
+
+        There are 8=2**3 components in the above. The sign of each component is
+        determined by the products of (-P).
+
+        Since trace has cyclic property on the product of matrices, trace of
+        powers of K@Q is to find in which cyclic order the matrix K and P
+        are arranged. For example
+
+            trace(KKP) = trace(PKK) = trace(CL2)
+            trace(KPP) = trace(PPK) = trace(PPL1)
+            ...
+
+        and so on. Overall, the sequence of 8 components
+
+            KKK - KKP - KPK + KPP - PKK + PKP + PPK - PPP   (original sequence)
+
+        can be coded to
+
+            K3 - CL2 - CL2 + CCL1 - CL2 + CCL1 + CCL1 - CCC    (coded sequence)
+
+        which in reality is
+
+            trace(K^3) - trace(C@L2) - trace(C@L2) ...
+
+        So, the problem is how to find the coded sequence from the original
+        sequence in the above. For each P in the sequence, we assign the
+        integer m, which denote the number of times K is followed P, in cyclic
+        sense. Then write the sequence only with Ps and their m, with out any K
+        such as in the examples below:
+
+            PPP => P(m=0) P(m=0) P(m=0)
+            PPK => P(m=0) P(m=1)
+            KPP => PPK => P(m=0) P(m=1)
+            KPK => PKK => P(m=2)
+
+        To code the above from P/K to C/L matrices replace P with C followed
+        by L(m+1). For the above examples:
+
+            PPP => P(m=0) P(m=0) P(m=0)     => C L1 C L1 C L1
+            PPK => P(m=0) P(m=1)            => C L1 C L2
+            KPP => PPK => P(m=0) P(m=1)     => C L1 C L2
+            KPK => PKK => P(m=2)            => C L3
+
+        and the sign of each component is determined by the number of (-C) in
+        the component.
+
+        The first component of the sequence (KKK) where there is no P in there
+        is an exception, since KKK is coded to K3 itself.
+
+        To code the above, we use the binary system, where 0 is K and 1 is P.
+
+            KKK => 000 => + K3
+            KKP => 001 => - C @ L3
+            KPK => 010 => - C @ L3
+            KPP => 011 => + C @ L1 @ C @ L2
+            PKK => 100 => - C @ L3
+            PKP => 101 => + C @ L1 @ C @ L2
+            PPK => 110 => + C @ L1 @ C @ L2
+            PPP => 111 => - C @ L1 @ C @ L1 @ C @ L1
+        """
+
+        # At i = 0, we have two cases:
+        # 1. If Binv is zero: tau = trace(Q @ N^0)/rdof = (n-m) / (n-m) = 1
+        # 2. If Binv is not zero, tau = trace(K_tilde^0) / n = 1
+        if i == 0:
+            tau = 1.0
+            return tau
+
+        # C is the inverse of X.T @ X
+        C = self._get_C()
+
+        # Initialize the trace of all components. The first component of the
+        # sequence is K..K = Ki which has no P in it.
+        trace, _ = imate.trace(K, exponent=i, method='exact')
+
+        # For the rest of components where there is at least one P in the K/P
+        # sequence, we add their trace as follows.
+        for j in range(1, 2**i):
+
+            # Initialize a matrix to be the product of C/L matrices for each
+            # component. For example, the component KKP is coded to
+            # C L1 C L2, and hence G = C @ L1 @ C @ L2.
+            G = numpy.eye(self.X.shape[1], dtype=float)
+
+            # Code i to binary. For example i=6 is 110. 1 correspond to P and
+            # 0 correspond to K.
+            code = numpy.base_repr(j).zfill(i)
+
+            # Find the first P (or 1) in code
+            P_index = [i for i in range(len(code)) if code.startswith('1', i)]
+            P_index = numpy.asarray(P_index, dtype=int)
+
+            # Find m for each P. m is the number of Ks followed after each P.
+            # For example if we have KPPKKP, then the m for each of the three P
+            # is 0, 2, 1. For the last P, we used the cyclic pattern.
+            m = numpy.zeros_like(P_index)
+            for k in range(P_index.size):
+                # For the last P, use cyclic pattern to count not only all Ks
+                # after P, but also Ks in the beginning.
+                if k == P_index.size-1:
+                    # Count Ks after P till end of code
+                    m[k] = len(code) - (P_index[k]+1)
+
+                    # Count Ks in the beginning
+                    m[k] += P_index[0]
+                else:
+                    m[k] = P_index[k+1] - P_index[k] - 1
+
+            # Form G by multiplications with C or Li. The rule is, for each P,
+            # multiply G with C @ L(m+1) of the m corresponding to that P.
+            # Recall that Li = X.T @ K^i @ X
+            for k in range(P_index.size):
+                G = G @ (-C) @ XtKiX[m[k]+1]
+
+            # Add the trace of G to the trace
+            trace += numpy.trace(G)
+
+        # Normalize trace to to the residual degrees of freedom.
+        tau = trace / self.rdof
+
+        return tau
+
     # ========================
     # compute polynomial coeff
     # ========================
@@ -122,71 +282,81 @@ class ProfileLikelihoodApprox(BaseLikelihood):
         2), then it returns the first two entries of the polynomial coeffs.
         """
 
-        if degree != 1 and degree != 2:
-            raise ValueError('Asymptotic polynomial degree should be either ' +
-                             '"1" or "2".')
+        if degree < 1:
+            raise ValueError('Polynomial degree should be at least 1.')
+
+        # Get the current scale hyperparam to compare with the previous scale
+        # to check if scale has been changed. If not, the previous computation
+        # of the polynomial coefficients could be used.
+        scale = self.cov.get_scale()
 
         # Check if polynomial coeffs need to be computed
-        if self.asym_poly is None or \
-                (degree == 2 and self.asym_poly.size != 4):
+        if (self.poly_coeffs is None) or \
+                (self.poly_coeffs.size != 2*degree) or \
+                (self.scale_hyperparam is None) or \
+                (not numpy.allclose(scale, self.scale_hyperparam,
+                                    atol=self.hyperparam_tol)):
 
-            # asym_C is X.T*X
-            if self.asym_C is None:
-                asym_Cinv = self.X.T @ self.X
-                self.asym_C = numpy.linalg.inv(asym_Cinv)
+            Qz = self._Q_dot(self.z)
+            zQz = numpy.dot(self.z, Qz)
+            z_Qnorm = numpy.sqrt(zQz)
+            zq = self.z / z_Qnorm
 
-            Rz = self._Q_dot(self.z)
-            zRz = numpy.dot(self.z, Rz)
-            z_Rnorm = numpy.sqrt(zRz)
-            zc = self.z / z_Rnorm
+            # Compute N^i * zq. With i = 0, 1, ..., (degree+1)
+            Nizq = [None] * (2*degree+1)
+            Nizq[0] = zq
+            for i in range(1, 2*degree+1):
+                Nizq[i] = self._N_dot(Nizq[i-1])
 
-            # Powers of N
-            Nzc = self._N_dot(zc)
-            N2zc = self._N_dot(Nzc)
-            if degree == 2:
-                N3zc = self._N_dot(N2zc)
-                N4zc = self._N_dot(N3zc)
-
-            # Traces of N and N2
+            # Compute K^i * X. Only half of powers of i are needed.
+            KiX = [None] * (degree+1)
+            KiX[0] = self.X
             K = self.mixed_cor.get_matrix(0.0)
-            KX = K @ self.X
-            XtKX = self.X.T @ KX
-            XtK2X = KX.T @ KX
-            D1 = self.asym_C @ XtKX
-            D2 = self.asym_C @ XtK2X
-            trace_K = self.mixed_cor.trace(eta=0, exponent=1)
-            trace_K2 = self.mixed_cor.trace(eta=0, exponent=2)
-            trace_N = trace_K - numpy.trace(self.asym_C @ XtKX)
-            trace_N2 = trace_K2 - 2.0*numpy.trace(D2) + numpy.trace(D1 @ D1)
+            for i in range(1, degree+1):
+                KiX[i] = K @ KiX[i-1]
 
-            # Normalized traces of N and N2
-            mtrN = trace_N/self.rdof
-            mtrN2 = trace_N2/self.rdof
+            # Computing X.T * N^i * X for i = 1, ..., degree+1. The first one,
+            # which is XtKX[0] is None and will not be used, and only used to
+            # keep the indices i start from 1 to degree+1.
+            XtKiX = [None] * (2*degree+1)
+            for i in range(1, 2*degree+1):
+                if i % 2 == 0:
+                    XtKiX[i] = KiX[i//2].T @ KiX[i//2]
+                else:
+                    XtKiX[i] = KiX[i//2].T @ KiX[i//2+1]
 
-            # Compute A0, A1, A2, A3
-            A0zc = -self._Q_dot(mtrN*zc - Nzc)
-            A1zc = self._Q_dot(mtrN*Nzc + mtrN2*zc - 2.0*N2zc)
-            if degree == 2:
-                A2zc = -self._Q_dot(mtrN*N2zc + mtrN2*Nzc - 2.0*N3zc)
-                A3zc = self._Q_dot(mtrN2*N2zc - N4zc)
+            # Traces of N^i, i = 1, ..., (degree+1)
+            tau = numpy.zeros((degree+1, ), dtype=float)
+            for i in range(degree+1):
+                tau[i] = self._compute_tau(K, XtKiX, i)
 
-            # Coefficients
-            a0 = numpy.dot(zc, A0zc)
-            a1 = numpy.dot(zc, A1zc)
-            if degree == 2:
-                a2 = numpy.dot(zc, A2zc)
-                a3 = numpy.dot(zc, A3zc)
+            # Compute matrices Ai*zq for i = 0, ..., degree-1
+            Aizq = [None] * (2*degree)
+            for i in range(degree):
+                Bzq = numpy.zeros_like(zq, dtype=float)
+                for j in range(i+2):
+                    Bzq += tau[i+1-j] * Nizq[j]
+                Bzq -= (i+2)*Nizq[i+1]
+                Aizq[i] = (-1.0)**(i+1) * self._Q_dot(Bzq)
 
-            # Coefficients as array
-            if degree == 1:
-                self.asym_poly = numpy.array([a0, a1], dtype=float)
-            else:
-                self.asym_poly = numpy.array([a0, a1, a2, a3], dtype=float)
+            # Compute matrices Ai*zq for i = degree, ..., 2*degree
+            for i in range(degree, 2*degree):
+                Bzq = numpy.zeros_like(zq, dtype=float)
+                for j in range(i+1-degree, degree+1):
+                    Bzq += tau[i+1-j] * Nizq[j]
+                Bzq -= (2*degree-i)*Nizq[i+1]
+                Aizq[i] = (-1.0)**(i+1) * self._Q_dot(Bzq)
 
-        if degree == 1:
-            return self.asym_poly[:2]
-        elif degree == 1:
-            return self.asym_poly
+            # Coefficients of polynomial
+            self.poly_coeffs = numpy.zeros((2*degree, ), dtype=float)
+            for i in range(2*degree):
+                self.poly_coeffs[i] = numpy.dot(zq, Aizq[i])
+
+            # Store scale to avoid repetitive computation if this function is
+            # called with the same scale.
+            self.scale_hyperparam = scale
+
+        return self.poly_coeffs
 
     # ===================
     # maximize likelihood
@@ -199,37 +369,134 @@ class ProfileLikelihoodApprox(BaseLikelihood):
         If the second derivative at the root is negative, the root is maxima.
         """
 
-        if degree != 1 and degree != 2:
-            raise ValueError('Asymptotic polynomial degree should be either ' +
-                             '"1" or "2".')
+        if degree < 1:
+            raise ValueError('Polynomial degree should be at least 1.')
 
-        # Ensure asymptotes are calculated
+        # Ensure polynomial coefficients are calculated
         self._compute_polynomial_coeff(degree=degree)
 
         # All roots
-        if degree == 1:
-            roots = numpy.roots(self.asym_poly[:2])
-        else:
-            roots = numpy.roots(self.asym_poly)
+        poly_roots = numpy.roots(self.poly_coeffs)
 
         # Remove complex roots
-        roots = numpy.sort(numpy.real(
-            roots[numpy.abs(numpy.imag(roots)) < 1e-10]))
+        poly_roots = numpy.sort(numpy.real(
+            poly_roots[numpy.abs(numpy.imag(poly_roots)) < 1e-10]))
 
-        # Remove positive roots
-        roots = roots[roots >= 0.0]
+        # Remove negative roots
+        poly_roots = poly_roots[poly_roots >= 0.0]
 
         # Output
-        asym_maxima = []
+        maxima = []
 
         # Check sign of the second derivative
-        for i in range(roots.size):
-            asym_d2ell_deta2 = self._likelihood_der2_eta(
-                    roots[i], degree=degree)
-            if asym_d2ell_deta2 <= 0.0:
-                asym_maxima.append(roots[i])
+        for i in range(poly_roots.size):
 
-        return asym_maxima
+            # Compute second derivative on each root of the first derivative
+            d2ell_deta2 = self._likelihood_der2_eta(
+                    poly_roots[i], degree=degree)
+
+            if d2ell_deta2 <= 0.0:
+                maxima.append(poly_roots[i])
+
+        return maxima
+
+    # ====================
+    # find optimal sigma02
+    # ====================
+
+    def _find_optimal_sigma02(self):
+        """
+        When eta is very large, we assume sigma is zero. Thus, sigma0 is
+        computed by this function. This is the Ordinary Least Square (OLS)
+        solution of the regression problem where we assume there is no
+        correlation between points, hence sigma is assumed to be zero.
+
+        This function does not require update of self.mixed_cor with
+        hyperparameters.
+        """
+
+        # Note: this sigma0 is only when eta is at infinity. Hence, computing
+        # it does not require eta, update of self.mixed_cor, or update of Y, C,
+        # Mz. Hence, once it is computed, it can be reused even if other
+        # variables like eta changed. Here, it suffice to only check of
+        # self.sigma0 is None to compute it for the first time. On next calls,
+        # it does not have to be recomputed.
+        if self.sigma02 is None:
+
+            if self.B is None:
+                Cinv = numpy.matmul(self.X.T, self.X)
+                C = numpy.linalg.inv(Cinv)
+                Xtz = numpy.matmul(self.X.T, self.z)
+                XCXtz = numpy.matmul(self.X, numpy.matmul(C, Xtz))
+                self.sigma02 = numpy.dot(self.z, self.z-XCXtz) / self.rdof
+
+            else:
+                self.sigma02 = numpy.dot(self.z, self.z) / self.rdof
+
+        return self.sigma02
+
+    # ==============
+    # likelihood inf
+    # ==============
+
+    def _likelihood_inf(self):
+        """
+        Returns the value of likelihood function at eta=infinity.
+        """
+ 
+        # Optimal sigma02 when eta is very large
+        sigma02 = self._find_optimal_sigma02()
+
+        # Log likelihood
+        ell = -0.5*self.rdof * (numpy.log(2.0*numpy.pi) + 1.0 +
+                                numpy.log(sigma02))
+
+        if self.B is None:
+            Cinv = numpy.matmul(self.X.T, self.X)
+            logdet_Cinv = numpy.log(numpy.linalg.det(Cinv))
+            ell += - 0.5*logdet_Cinv
+
+        return ell
+
+    # ==========
+    # likelihood
+    # ==========
+
+    def likelihood(self, eta, degree=2):
+        """
+        Computes the likelihood first derivative w.r.t eta.
+        """
+
+        if degree < 1:
+            raise ValueError('Polynomial degree should be at least 1.')
+
+        # Ensure polynomial coefficients are calculated
+        self._compute_polynomial_coeff(degree=degree)
+
+        # Ensure array
+        if numpy.isscalar(eta):
+            eta_ = numpy.asarray([eta])
+        else:
+            eta_ = eta
+
+        # Initialize output
+        ell = numpy.zeros((eta_.size, ), dtype=float)
+
+        # Initialize ell with constant of integration. This constant is the
+        # value of ell at eta=infinity.
+        ell[:] = self._likelihood_inf()
+
+        # Add terms of polynomial which is the integral of polynomial derived
+        # for its first derivative, dell_deta
+        for i in range(eta_.size):
+            for j in range(self.poly_coeffs.size):
+                ell[i] += (1.0/(j+1.0)) * self.poly_coeffs[j] / (eta_[i]**j)
+            ell[i] *= (0.5 * self.rdof / eta_[i])
+
+        if numpy.isscalar(eta):
+            return ell[0]
+        else:
+            return ell
 
     # ===================
     # likelihood der1 eta
@@ -237,14 +504,13 @@ class ProfileLikelihoodApprox(BaseLikelihood):
 
     def _likelihood_der1_eta(self, eta, degree=2):
         """
-        Computes the asymptote of the likelihood first derivative w.r.t eta.
+        Computes the likelihood first derivative w.r.t eta.
         """
 
-        if degree != 1 and degree != 2:
-            raise ValueError('Asymptotic polynomial degree should be either ' +
-                             '"1" or "2".')
+        if degree < 1:
+            raise ValueError('Polynomial degree should be at least 1.')
 
-        # Ensure asymptotes are calculated
+        # Ensure polynomial coefficients are calculated
         self._compute_polynomial_coeff(degree=degree)
 
         # Ensure array
@@ -254,28 +520,17 @@ class ProfileLikelihoodApprox(BaseLikelihood):
             eta_ = eta
 
         # Initialize output
-        asym_dell_deta = numpy.empty(numpy.asarray(eta).size)
+        dell_deta = numpy.zeros((eta_.size, ), dtype=float)
 
         for i in range(eta_.size):
-
-            if degree == 1:
-                asym_dell_deta[i] = (-0.5*self.rdof) * \
-                        (self.asym_poly[0] +
-                         self.asym_poly[1]/eta_[i]) / \
-                        eta_[i]**2
-
-            elif degree == 2:
-                asym_dell_deta[i] = (-0.5*self.rdof) * \
-                    (self.asym_poly[0] +
-                     self.asym_poly[1]/eta_[i] +
-                     self.asym_poly[2]/eta_[i]**2 +
-                     self.asym_poly[3]/eta_[i]**3) / \
-                    eta_[i]**2
+            for j in range(self.poly_coeffs.size):
+                dell_deta[i] += self.poly_coeffs[j] / (eta_[i]**j)
+            dell_deta[i] *= (-0.5 * self.rdof / eta_[i]**2)
 
         if numpy.isscalar(eta):
-            return asym_dell_deta[0]
+            return dell_deta[0]
         else:
-            return asym_dell_deta
+            return dell_deta
 
     # ===================
     # likelihood der2 eta
@@ -283,14 +538,13 @@ class ProfileLikelihoodApprox(BaseLikelihood):
 
     def _likelihood_der2_eta(self, eta, degree=2):
         """
-        Computes the asymptote of the likelihood second derivative w.r.t eta.
+        Computes the likelihood second derivative w.r.t eta.
         """
 
-        if degree != 1 and degree != 2:
-            raise ValueError('Asymptotic polynomial degree should be either ' +
-                             '"1" or "2".')
+        if degree < 1:
+            raise ValueError('Polynomial degree should be at least 1.')
 
-        # Ensure asymptotes are calculated
+        # Ensure polynomial coefficients are calculated
         self._compute_polynomial_coeff(degree=degree)
 
         # Ensure array
@@ -300,25 +554,14 @@ class ProfileLikelihoodApprox(BaseLikelihood):
             eta_ = eta
 
         # Initialize output
-        asym_d2ell_deta2 = numpy.empty(numpy.asarray(eta).size)
+        d2ell_deta2 = numpy.zeros((eta_.size, ), dtype=float)
 
         for i in range(eta_.size):
-
-            if degree == 1:
-                asym_d2ell_deta2[i] = (0.5*self.rdof) * \
-                        (2.0*self.asym_poly[0] +
-                         3.0*self.asym_poly[1]/eta_[i]) / \
-                        eta_[i]**3
-
-            elif degree == 2:
-                asym_d2ell_deta2[i] = (0.5*self.rdof) * \
-                    (2.0*self.asym_poly[0] +
-                     3.0*self.asym_poly[1]/eta_[i] +
-                     4.0*self.asym_poly[2]/eta_[i]**2 +
-                     5.0*self.asym_poly[3]/eta_[i]**3) / \
-                    eta_[i]**3
+            for j in range(self.poly_coeffs.size):
+                d2ell_deta2[i] += (j+2) * self.poly_coeffs[j] / (eta_[i]**j)
+            d2ell_deta2[i] *= (0.5 * self.rdof / eta_[i]**3)
 
         if numpy.isscalar(eta):
-            return asym_d2ell_deta2[0]
+            return d2ell_deta2[0]
         else:
-            return asym_d2ell_deta2
+            return d2ell_deta2

@@ -50,7 +50,7 @@ def main():
     # B = 1e+5 * B.T @ B
     b = None
     B = None
-    polynomial_degree = 5
+    polynomial_degree = 2
     # trigonometric_coeff = [0.2]
     # trigonometric_coeff = [0.1, 0.2, 0.3, 1.0]
     trigonometric_coeff = None
@@ -61,13 +61,14 @@ def main():
                        hyperbolic_coeff=hyperbolic_coeff, b=b, B=B)
 
     # Prior for scale of correlation
-    scale = Uniform()
+    # scale = Uniform()
     # scale = Cauchy()
     # scale = StudentT()
     # scale = InverseGamma()
     # scale = Normal()
     # scale = Erlang()
     # scale = BetaPrime()
+    scale = 0.07
     # scale.plot()
 
     # Kernel
@@ -124,7 +125,7 @@ def main():
                       max_iter=1000, use_rel_error=True,
                       imate_options=imate_options, verbose=True, plot=False)
 
-    # gp.plot_likelihood()
+    gp.plot_likelihood()
 
     # Generate test points
     num_points = 100

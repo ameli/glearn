@@ -35,14 +35,16 @@ def main():
     glearn.info()
 
     # Generate data points
-    num_points = 100
-    points = generate_points(num_points, dimension=2, grid=False, seed=0,
-                             a=[0, 0], b=[0.1, 0.1], ratio=0.4)
+    # num_points = 100
+    num_points = 50
+    # points = generate_points(num_points, dimension=2, grid=False, seed=0,
+    #                          a=[0, 0], b=[0.1, 0.1], ratio=0.4)
+    points = generate_points(num_points, dimension=2, grid=True)
 
     # Generate noisy data
-    # noise_magnitude = 0.2
-    noise_magnitude = 0.05
-    z_noisy = generate_data(points, noise_magnitude, plot=False, seed=0)
+    noise_magnitude = 0.2
+    # noise_magnitude = 0.05
+    z_noisy = generate_data(points, noise_magnitude, plot=False, seed=31)
 
     # Mean
     # b = numpy.zeros((6, ))
@@ -50,7 +52,8 @@ def main():
     # B = 1e+5 * B.T @ B
     b = None
     B = None
-    polynomial_degree = 5
+    # polynomial_degree = 5
+    polynomial_degree = 2
     # trigonometric_coeff = [0.2]
     # trigonometric_coeff = [0.1, 0.2, 0.3, 1.0]
     trigonometric_coeff = None
@@ -61,13 +64,14 @@ def main():
                        hyperbolic_coeff=hyperbolic_coeff, b=b, B=B)
 
     # Prior for scale of correlation
-    scale = Uniform()
+    # scale = Uniform()
     # scale = Cauchy()
     # scale = StudentT()
     # scale = InverseGamma()
     # scale = Normal()
     # scale = Erlang()
     # scale = BetaPrime()
+    scale = 0.1
     # scale.plot()
 
     # Kernel
@@ -88,12 +92,12 @@ def main():
     profile_hyperparam = 'var'
     # profile_hyperparam = 'var_noise'
 
-    # optimization_method = 'chandrupatla'  # requires jacobian
+    optimization_method = 'chandrupatla'  # requires jacobian
     # optimization_method = 'brentq'         # requires jacobian
     # optimization_method = 'Nelder-Mead'     # requires func
     # optimization_method = 'BFGS'          # requires func, jacobian
     # optimization_method = 'CG'            # requires func, jacobian
-    optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
+    # optimization_method = 'Newton-CG'     # requires func, jacobian, hessian
     # optimization_method = 'dogleg'        # requires func, jacobian, hessian
     # optimization_method = 'trust-exact'   # requires func, jacobian, hessian
     # optimization_method = 'trust-ncg'     # requires func, jacobian, hessian
@@ -119,11 +123,11 @@ def main():
     # gp.train(z, options=options, plot=False)
     result = gp.train(z_noisy, profile_hyperparam=profile_hyperparam,
                       log_hyperparam=True,
-                      optimization_method=optimization_method, tol=1e-3,
+                      optimization_method=optimization_method, tol=1e-6,
                       hyperparam_guess=hyperparam_guess, verbose=True,
                       imate_options=imate_options, plot=False)
 
-    # gp.plot_likelihood()
+    gp.plot_likelihood()
 
     # Generate test points
     num_points = 40

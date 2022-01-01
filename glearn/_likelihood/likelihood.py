@@ -13,6 +13,7 @@
 
 from ._full_likelihood import FullLikelihood
 from ._profile_likelihood import ProfileLikelihood
+from ._profile_likelihood_approx import ProfileLikelihoodApprox
 from ._double_profile_likelihood import DoubleProfileLikelihood
 
 
