@@ -220,7 +220,7 @@ class ProfileLikelihoodApprox(BaseLikelihood):
 
         # Initialize the trace of all components. The first component of the
         # sequence is K..K = Ki which has no P in it.
-        trace, _ = imate.trace(K, exponent=i, method='exact')
+        trace = imate.trace(K, p=i, method='exact')
 
         # For the rest of components where there is at least one P in the K/P
         # sequence, we add their trace as follows.
@@ -443,7 +443,7 @@ class ProfileLikelihoodApprox(BaseLikelihood):
         """
         Returns the value of likelihood function at eta=infinity.
         """
- 
+
         # Optimal sigma02 when eta is very large
         sigma02 = self._find_optimal_sigma02()
 

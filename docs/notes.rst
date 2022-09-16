@@ -12,19 +12,6 @@ Notes
 ToDo
 ====
 
---------------------
-Asymptotic Relations
---------------------
-
-* Add the option ``use_asymptotic``. If True, whenever eta is larger than the
-  largest eigenvalue of K, computation of ell, ell_jacobian and ell_hessian
-  should switch to their asymptotic relation. So create these functions:
-      + ``asymp_likelihood``
-      + ``asymp_likelihood_der1_eta``
-      + ``asymp_likelihood_der2_eta``
-  and in ``likelihood``, ``likelihood_jacobian``, and ``likelihood_hessian``,
-  refer to these functions.
-
 
 ======
 Issues

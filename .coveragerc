@@ -6,7 +6,6 @@ omit =
     tests
     setup.py
     glearn/__version__.py
-    glearn/__config__.py
     *__init__.py
     *__init__.pxd
 

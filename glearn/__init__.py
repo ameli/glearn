@@ -66,16 +66,18 @@ def _check_import():
 # =======
 
 try:
-    from ._utilities import restrict_to_single_processor, info
-    from ._mean import LinearModel
-    from ._covariance import Covariance
-    from ._gaussian_process import GaussianProcess
+    from ._utilities import restrict_to_single_processor, info     # noqa: E402
+    from ._mean import LinearModel                                 # noqa: E402
+    from ._covariance import Covariance                            # noqa: E402
+    from ._gaussian_process import GaussianProcess                 # noqa: E402
 
 except Exception as e:
     # Before printing the exception, check if the exception is raised due to
     # being on the wrong directory.
     _check_import()
 
+    # If the error was not due to being in the source directory, raise previous
+    # error.
     raise e
 
 __all__ = ['LinearModel', 'Covariance', 'GaussianProcess', 'info',

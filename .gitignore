@@ -12,9 +12,11 @@
 # cache
 __pycache__/
 *.py[cod]
+.ipynb_checkpoints/
 
-# C extentions
+# C extensions
 *.so
+*.o
 
 # Distribution
 bin/
@@ -23,6 +25,7 @@ develop-eggs/
 dist/
 eggs/
 sdist/
+tmp/
 .eggs/
 *.egg-info/
 .installed.cfg
@@ -36,4 +39,4 @@ nosetests.xml
 coverage.xml
 
 # Sphinx documentation
-docs/_build/
+docs/build/

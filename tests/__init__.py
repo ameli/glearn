@@ -14,8 +14,7 @@ the figures should be saved into ``SVG`` file. To do so, the utility file
 ``/imate/Utilities/PlotUtilities.py`` handles this as follows:
 
 * If the environment variable ``DISPLAY`` does not exist or is ``''``, or
-* If the environment variable ``GAUSSIAN_PROC_NO_DISPLAY`` is set to
-  ``'True'``,
+* If the environment variable ``GLEARN_NO_DISPLAY`` is set to ``'True'``,
 
 then, the ``matplotlib`` is imported with ``'agg'`` mode, which prevents the
 interactive plot, and instead, the plots are saved as ``SVG`` files.
@@ -31,7 +30,7 @@ these lines should be added:
 ::
 
     import os
-    os.environ['GAUSSIAN_PROC_NO_DISPLAY'] = 'True'
+    os.environ['GLEARN_NO_DISPLAY'] = 'True'
 
 However, the above approach yet does not prevent the interactive plotting when
 *all* test files are tested using ``pytest``. When the command
@@ -42,7 +41,7 @@ However, the above approach yet does not prevent the interactive plotting when
 
 is used, it runs all test files, including those that do not produce figure.
 Because those test files do not set the environment variable
-``GAUSSIAN_PROC_NO_DISPLAY``, the ``matplotlib`` in the module
+``GLEARN_NO_DISPLAY``, the ``matplotlib`` in the module
 ``plot_utilities.py`` will be loaded without the ``agg`` mode, which then
 affects the other test files that define such environment variable, since the
 ``matplotlib`` is already loaded.
@@ -54,4 +53,4 @@ here in this ``__init__.py`` file.
 
 # For plotting matrix, we disable interactive display
 import os
-os.environ['GAUSSIAN_PROC_NO_DISPLAY'] = 'True'  # define before importing
+os.environ['GLEARN_NO_DISPLAY'] = 'True'  # define before importing

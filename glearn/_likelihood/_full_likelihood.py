@@ -787,7 +787,7 @@ class FullLikelihood(BaseLikelihood):
                         imate_options={'method': 'hutchinson'})
             else:
                 # Using exact method (compute inverse directly)
-                trace_SpSinv, _ = imate.trace(self.SpSinv[p], method='exact')
+                trace_SpSinv = imate.trace(self.SpSinv[p], method='exact')
 
             # Compute the second component of trace of Sp * M
             SpY = self.cov.dot(self.Y, sigma=sigma, sigma0=sigma0,
@@ -873,7 +873,7 @@ class FullLikelihood(BaseLikelihood):
                         sigma, sigma0, B=Kp,
                         imate_options={'method': 'hutchinson'})
             else:
-                trace_KpSinv, _ = imate.trace(self.KpSinv[p], method='exact')
+                trace_KpSinv = imate.trace(self.KpSinv[p], method='exact')
 
             # Compute the second component of trace of Kp * M
             KpY = self.cov.dot(self.Y, sigma=1.0, sigma0=0.0,
@@ -896,12 +896,12 @@ class FullLikelihood(BaseLikelihood):
                         imate_options={'method': 'hutchinson'})
             else:
                 SinvSpSinv = numpy.matmul(self.Sinv, self.SpSinv[p])
-                trace_SpSinv, _ = imate.trace(self.SpSinv[p], method='exact')
+                trace_SpSinv = imate.trace(self.SpSinv[p], method='exact')
 
             SpY = KpY * (sigma**2)
             YtSpY = numpy.matmul(self.Y.T, SpY)
             CYtSpY = numpy.matmul(self.C, YtSpY)
-            trace_CYtSpY, _ = imate.trace(CYtSpY, method='exact')
+            trace_CYtSpY = imate.trace(CYtSpY, method='exact')
             trace_SpM = trace_SpSinv - trace_CYtSpY
 
             # 1.5. Compute trace of M * Sp * M
@@ -917,7 +917,7 @@ class FullLikelihood(BaseLikelihood):
                         imate_options={'method': 'hutchinson'})
             else:
                 SinvSpSinv = numpy.matmul(self.Sinv, self.SpSinv[p])
-                trace_MSpM_1, _ = imate.trace(SinvSpSinv, method='exact')
+                trace_MSpM_1 = imate.trace(SinvSpSinv, method='exact')
 
             # Compute the second part of trace of M * Sp * M
             SinvSpY = self.cov.solve(SpY, sigma=sigma, sigma0=sigma0)
@@ -1020,7 +1020,7 @@ class FullLikelihood(BaseLikelihood):
                             imate_options={'method': 'hutchinson'})
                 else:
                     SpqSinv = numpy.matmul(Spq, self.Sinv)
-                    trace_SpqSinv, _ = imate.trace(SpqSinv, method='exact')
+                    trace_SpqSinv = imate.trace(SpqSinv, method='exact')
 
                 # Compute the second component of trace of Spq * M
                 SpqY = self.cov.dot(self.Y, sigma=sigma, sigma0=sigma0,
@@ -1042,8 +1042,7 @@ class FullLikelihood(BaseLikelihood):
                             imate_optons={'method': 'hutchinson'})
                 else:
                     SpSinvSqSinv = numpy.matmul(self.SpSinv[p], self.SpSinv[q])
-                    trace_SpMSqM_1, _ = imate.trace(SpSinvSqSinv,
-                                                    method='exact')
+                    trace_SpMSqM_1 = imate.trace(SpSinvSqSinv, method='exact')
 
                 # Compute the second part of trace of Sp * M * Sq * M
                 SpY = numpy.matmul(Sp, self.Y)

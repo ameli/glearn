@@ -63,8 +63,8 @@ class MixedCorrelation(object):
                                 '"interpolant_points" cannot be None.')
 
             # Create interpolation object (only for traceinv)
-            self.interpolate_traceinv = imate.InterpolateTraceInv(
-                    self.K, traceinv_options=imate_options)
+            self.interpolate_traceinv = imate.InterpolateTrace(
+                    self.K, options=imate_options)
 
         # Identity matrix
         if self.cor.sparse:
@@ -319,7 +319,8 @@ class MixedCorrelation(object):
                 trace_ = 0.0
                 for q in range(int(exponent)+1):
                     Kq_trace, info = imate.trace(K, method='exact', gram=False,
-                                                 exponent=(exponent-q))
+                                                 p=(exponent-q),
+                                                 return_info=True)
                     self._update_imate_info(info)
 
                     trace_ += binom(exponent, q) * Kq_trace * (eta**q)
@@ -331,7 +332,8 @@ class MixedCorrelation(object):
 
                 # Using eigenvalues only. Here, K will not be used.
                 trace_, info = imate.trace(K, eigenvalues=Kn_eigenvalues,
-                                           exponent=exponent, gram=False,
+                                           p=exponent, gram=False,
+                                           return_info=True,
                                            assume_matrix='sym',
                                            **imate_options)
                 self._update_imate_info(info)
@@ -343,8 +345,8 @@ class MixedCorrelation(object):
 
                 # Passing the affine matrix function
                 trace_, info = imate.trace(K_amf, parameters=eta,
-                                           exponent=exponent, gram=False,
-                                           **imate_options)
+                                           p=exponent, gram=False,
+                                           return_info=True, **imate_options)
                 self._update_imate_info(info)
 
             else:
@@ -421,7 +423,8 @@ class MixedCorrelation(object):
             else:
                 # B is not identity
                 if C is None:
-                    traceinv_, info = imate.trace(B, method='exact')
+                    traceinv_, info = imate.trace(B, method='exact',
+                                                  return_info=True)
                     self._update_imate_info(info)
                 else:
                     # C is not identity. Compute trace of C*B
@@ -437,7 +440,8 @@ class MixedCorrelation(object):
             else:
                 # B is not identity
                 if C is None:
-                    traceinv_, info = imate.trace(B, method='exact') / \
+                    traceinv_, info = imate.trace(
+                            B, method='exact', return_info=True) / \
                             (eta**exponent)
                     self._update_imate_info(info)
                 else:
@@ -476,7 +480,8 @@ class MixedCorrelation(object):
 
                 # Using eigenvalues only. Here, K will not be used.
                 traceinv_, info = imate.traceinv(K, eigenvalues=Kn_eigenvalues,
-                                                 exponent=exponent, gram=False,
+                                                 p=exponent, gram=False,
+                                                 return_info=True,
                                                  assume_matrix='sym',
                                                  **imate_options)
                 self._update_imate_info(info)
@@ -487,8 +492,9 @@ class MixedCorrelation(object):
                 Kn = self.get_matrix(eta, scale, derivative)
 
                 # Calling cholesky method
-                traceinv_, info = imate.traceinv(Kn, B, exponent=exponent,
-                                                 gram=False, **imate_options)
+                traceinv_, info = imate.traceinv(Kn, B=B, p=exponent,
+                                                 gram=False, return_info=True,
+                                                 **imate_options)
                 self._update_imate_info(info)
 
             elif imate_options['method'] == 'hutchinson':
@@ -502,8 +508,8 @@ class MixedCorrelation(object):
                     assume_matrix = 'sym_pos'
 
                 # Calling cholesky method
-                traceinv_, info = imate.traceinv(Kn, B, C, exponent=exponent,
-                                                 gram=False,
+                traceinv_, info = imate.traceinv(Kn, B=B, C=C, p=exponent,
+                                                 gram=False, return_info=True,
                                                  assume_matrix=assume_matrix,
                                                  **imate_options)
                 self._update_imate_info(info)
@@ -515,7 +521,8 @@ class MixedCorrelation(object):
 
                 # Passing the affine matrix function
                 traceinv_, info = imate.traceinv(K_amf, parameters=eta,
-                                                 exponent=exponent, gram=False,
+                                                 p=exponent, gram=False,
+                                                 return_info=True,
                                                  **imate_options)
                 self._update_imate_info(info)
 
@@ -595,7 +602,8 @@ class MixedCorrelation(object):
 
                 # Using eigenvalues only. Here, K will not be used.
                 logdet_, info = imate.logdet(K, eigenvalues=Kn_eigenvalues,
-                                             exponent=exponent, gram=False,
+                                             p=exponent, gram=False,
+                                             return_info=True,
                                              assume_matrix='sym',
                                              **imate_options)
                 self._update_imate_info(info)
@@ -609,9 +617,8 @@ class MixedCorrelation(object):
                 Kn = self.get_matrix(eta, scale, derivative)
 
                 # Calling cholesky method
-                logdet_, info = imate.logdet(Kn, gram=False,
-                                             exponent=exponent,
-                                             **imate_options)
+                logdet_, info = imate.logdet(Kn, gram=False, p=exponent,
+                                             return_info=True, **imate_options)
                 self._update_imate_info(info)
 
             elif imate_options['method'] == 'slq':
@@ -621,8 +628,8 @@ class MixedCorrelation(object):
 
                 # Passing the affine matrix function
                 logdet_, info = imate.logdet(K_amf, parameters=eta,
-                                             exponent=exponent, gram=False,
-                                             **imate_options)
+                                             p=exponent, gram=False,
+                                             return_info=True, **imate_options)
                 self._update_imate_info(info)
 
             else:

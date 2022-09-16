@@ -1,0 +1,13 @@
+sphinx
+sphinx-math-dollar
+sphinx-toggleprompt
+pydata_sphinx_theme==0.9.0
+graphviz
+sphinx-automodapi
+numpydoc
+nbsphinx
+sphinx_design
+sphinx-multitoc-numbering
+sphinx-prompt
+sphinx-copybutton
+sphinx-gallery

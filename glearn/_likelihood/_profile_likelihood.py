@@ -874,8 +874,7 @@ class ProfileLikelihood(BaseLikelihood):
                 trace_KnpKninv = self.mixed_cor.traceinv(
                         eta, B=Knp, imate_options={'method': 'hutchinson'})
             else:
-                trace_KnpKninv, _ = imate.trace(self.KnpKninv[p],
-                                                method='exact')
+                trace_KnpKninv = imate.trace(self.KnpKninv[p], method='exact')
 
             # Compute the second component of trace of Knp * M
             KnpY = self.mixed_cor.dot(self.Y, eta=eta, derivative=[p])
@@ -957,7 +956,7 @@ class ProfileLikelihood(BaseLikelihood):
                             imate_options={'method': 'hutchinson'})
                 else:
                     KnpqKninv = Knpq @ self.Kninv
-                    trace_KnpqKninv, _ = imate.trace(KnpqKninv, method='exact')
+                    trace_KnpqKninv = imate.trace(KnpqKninv, method='exact')
 
                 # Compute the second component of trace of Knpq * M
                 KnpqY = self.mixed_cor.dot(self.Y, eta=eta, derivative=[p, q])
@@ -980,8 +979,8 @@ class ProfileLikelihood(BaseLikelihood):
                 else:
                     KnpKninvKnqKninv = numpy.matmul(self.KnpKninv[p],
                                                     self.KnpKninv[q])
-                    trace_KnpMKnqM_1, _ = imate.trace(KnpKninvKnqKninv,
-                                                      method='exact')
+                    trace_KnpMKnqM_1 = imate.trace(KnpKninvKnqKninv,
+                                                   method='exact')
 
                 # Compute the second part of trace of Knp * M * Knq * M
                 KnpY = Knp @ self.Y
@@ -1095,7 +1094,7 @@ class ProfileLikelihood(BaseLikelihood):
                         imate_options={'method': 'hutchinson'})
             else:
                 KnpKninv2 = Knp @ Kninv2
-                trace_KnpKninv2, _ = imate.trace(KnpKninv2, method='exact')
+                trace_KnpKninv2 = imate.trace(KnpKninv2, method='exact')
 
             # Compute traces
             KnpY = self.mixed_cor.dot(self.Y, eta=eta, derivative=[p])

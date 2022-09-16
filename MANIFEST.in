@@ -13,10 +13,12 @@ recursive-include docs *.py
 recursive-include docs *.rst
 recursive-include docs *.svg
 recursive-include docs Makefile
-recursive-include _modules *.rst
-recursive-exclude docs/images *.pdf
 recursive-include docs *.bib
 recursive-include docs *.in
+recursive-include docs *.txt
+recursive-exclude docs *.html
+recursive-exclude docs *.pdf
+recursive-include docs/source *.html
 
 recursive-include glearn *.rst
 recursive-include examples *.py
@@ -31,6 +33,7 @@ recursive-exclude notebooks *.svg
 recursive-exclude examples *.pdf
 recursive-exclude examples *.svg
 recursive-exclude tests *.svg
+recursive-include tests *.txt
 
 include CHANGELOG.rst
 include README.rst
@@ -45,10 +48,10 @@ include .dockerignore
 include docker/Dockerfile
 
 exclude TODO.rst
-exclude .travis.yml
 exclude .coverage
 exclude .gitattributes
 
+prune docs/build
 prune .git
 prune tmp
 prune .tox
