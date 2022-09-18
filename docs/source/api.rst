@@ -55,141 +55,6 @@ The `imate.logdet` function has the following methods:
     api/imate.logdet.cholesky
     api/imate.logdet.slq
 
-===========================================  =============================  ===========================  ===========================  =============
-Method                                       Algorithm                      Matrix size                  Matrix type                  Solution
-===========================================  =============================  ===========================  ===========================  =============
-:ref:`eigenvalue <imate.logdet.eigenvalue>`  Eigenvalue decomposition       Small :math:`n < 2^{12}`     Any                          Exact
-:ref:`cholesky <imate.logdet.cholesky>`      Cholesky decomposition         Moderate :math:`n < 2^{15}`  Symmetric Positive-definite  Exact
-:ref:`slq <imate.logdet.slq>`                Stochastic Lanczos Quadrature  Large :math:`n > 2^{12}`     Any                          Approximation
-===========================================  =============================  ===========================  ===========================  =============
-
-.. _Trace of Inverses:
-
-Trace of Inverse
-----------------
-
-.. autosummary::
-    :toctree: generated
-    :caption: traceinv
-    :recursive:
-    :template: autosummary/member.rst
-
-    imate.traceinv
-
-This function computes the trace of :math:`\mathbf{A}^{-p}` or the Gramian matrix :math:`(\mathbf{A}^{\intercal} \mathbf{A})^{-p}` where :math:`p` is a positive real exponent.
-
-The `imate.traceinv` function has the following methods:
-
-.. toctree::
-
-    api/imate.traceinv.eigenvalue
-    api/imate.traceinv.cholesky
-    api/imate.traceinv.hutchinson
-    api/imate.traceinv.slq
-
-============  =============================  ===========================  ============================================
-Method        Algorithm                      Matrix Size                  Notes
-============  =============================  ===========================  ============================================
-`eigenvalue`  Eigenvalue decomposition       Small :math:`n < 2^{12}`     For testing and benchmarking other methods
-`cholesky`    Cholesky decomposition         Moderate :math:`n < 2^{15}`  Exact solution
-`hutchinson`  Hutchinson                     Large :math:`2^{12} < n`     Randomized method using Monte-Carlo sampling
-`slq`         Stochastic Lanczos Quadrature  Large :math:`2^{12} < n`     Randomized method using Monte-Carlo sampling
-============  =============================  ===========================  ============================================
-
-.. _Trace:
-
-Trace
------
-
-.. autosummary::
-    :toctree: generated
-    :caption: trace
-    :recursive:
-    :template: autosummary/member.rst
-
-    imate.trace
-
-This function computes the trace of :math:`\mathbf{A}^p` or the Gramian matrix :math:`(\mathbf{A}^{\intercal} \mathbf{A})^p` where :math:`p` is a positive real exponent.
-
-The `imate.trace` function has the following methods:
-
-.. toctree::
-
-    api/imate.trace.exact
-    api/imate.trace.eigenvalue
-    api/imate.trace.slq
-
-============  =============================  ========================  ============================================
-Method        Algorithm                      Matrix Size               Notes
-============  =============================  ========================  ============================================
-`exact`       Direct                         All sizes                 For all purposes
-`eigenvalue`  Eigenvalue decomposition       Small :math:`n < 2^{12}`  For testing and benchmarking other methods
-`slq`         Stochastic Lanczos Quadrature  Large :math:`2^{12} < n`  Randomized method using Monte-Carlo sampling
-============  =============================  ========================  ============================================
- 
-
-.. _Schatten Norm:
-
-Schatten Norm
--------------
-
-.. autosummary::
-    :toctree: generated
-    :caption: Schatten Norm
-    :recursive:
-    :template: autosummary/member.rst
-
-    imate.schatten
-
-This function computes the Schatten norm of :math:`\mathbf{A}^p` or the Gramian matrix :math:`(\mathbf{A}^{\intercal} \mathbf{A})^p` where :math:`p` is a real exponent.
-
-.. _Interpolators:
-
-Interpolators
-=============
-
-Interpolate the various matrix functions of the one-parameter family of affine matrix function:
-
-.. math::
-
-    t \mapsto \mathbf{A} + t \mathbf{B}.
-
-.. autosummary::
-    :toctree: generated
-    :caption: Interpolators
-    :recursive:
-    :template: autosummary/class.rst
-
-    imate.InterpolateLogdet
-    imate.InterpolateTrace
-    imate.InterpolateSchatten
-
-Each of the above interpolator classes have the following interpolation methods:
-
-.. toctree::
-
-    api/imate.InterpolateSchatten.ext
-    api/imate.InterpolateSchatten.eig
-    api/imate.InterpolateSchatten.mbf
-    api/imate.InterpolateSchatten.imbf
-    api/imate.InterpolateSchatten.rbf
-    api/imate.InterpolateSchatten.crf
-    api/imate.InterpolateSchatten.spl
-    api/imate.InterpolateSchatten.rpf
-
-==========  ================================  ============
-`kind`      Description                       Results
-==========  ================================  ============
-``'ext'``   Exact (no interpolation)          exact
-``'eig'``   Eigenvalue (no interpolation)     exact
-``'mbf'``   Monomial Basis Functions          interpolated
-``'imbf'``  Inverse Monomial Basis Functions  interpolated
-``'rbf'``   Radial Basis Functions            interpolated
-``'crf'``   Chebyshev Rational Functions      interpolated
-``'spl'``   Spline                            interpolated
-``'rpf'``   Rational Polynomial Functions     interpolated
-==========  ================================  ============
-
 .. _Linear Operators:
 
 Linear Operators
@@ -199,12 +64,13 @@ Create linear operator objects as container for various matrix types with a unif
 
 .. autosummary::
     :toctree: generated
-    :caption: Linear Operators
+    :caption: Classes
     :recursive:
     :template: autosummary/class.rst
 
-    imate.Matrix
-    imate.AffineMatrixFunction
+    glearn.LinearModel
+    glearn.Covariance
+    glearn.GaussianProcess
 
 .. _Sample Matrices:
 

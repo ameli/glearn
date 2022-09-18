@@ -1354,8 +1354,8 @@ def cythonize_extensions(extensions):
         # Bind cython files with python objects
         compiler_derivatives['binding'] = True
 
-        # Line trace
-        compiler_derivatives['linetrace'] = True
+        # Line trace (commented, as it causes compilation error)
+        # compiler_derivatives['linetrace'] = True
 
     # Cythonize
     cythonized_extensions = cythonize(

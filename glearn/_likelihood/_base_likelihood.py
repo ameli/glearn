@@ -11,7 +11,7 @@
 # Imports
 # =======
 
-from .._utilities.timer import Timer
+from ..device._timer import Timer
 
 
 # ===============

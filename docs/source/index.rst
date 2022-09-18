@@ -349,12 +349,12 @@ Related Projects
 
        A python package for matrix determinant functions used in machine learning.
 
-   .. grid-item-card:: |ortho-light| |ortho-dark|
+   .. grid-item-card:: |special-light| |ortho-dark|
       :link: https://ameli.github.io/ortho/index.html
       :text-align: center
       :class-card: custom-card-link
 
-      A python package to generate orthogonal basis functions for matrix functions interpolation.
+      A python package providing both Python and Cython interface for special mathematical functions.
 
 .. |deploy-docs| image:: https://img.shields.io/github/workflow/status/ameli/glearn/deploy-docs?label=docs
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Adeploy-docs
@@ -380,17 +380,17 @@ Related Projects
    :target: https://anaconda.org/s-ameli/glearn
 .. |tokei| image:: https://tokei.rs/b1/github/ameli/glearn?category=lines
    :target: https://github.com/ameli/glearn
-.. |tokei-2| image:: https://img.shields.io/badge/code%20lines-67.0k-blue
+.. |tokei-2| image:: https://img.shields.io/badge/code%20lines-26.4k-blue
    :target: https://github.com/ameli/glearn
 .. |languages| image:: https://img.shields.io/github/languages/count/ameli/glearn
    :target: https://github.com/ameli/glearn
 .. |docker-pull| image:: https://img.shields.io/docker/pulls/sameli/glearn?color=green&label=downloads
    :target: https://hub.docker.com/r/sameli/glearn
 .. |imate-light| image:: _static/images/icons/logo-imate-light.svg
-   :height: 30
+   :height: 23
    :class: only-light
 .. |imate-dark| image:: _static/images/icons/logo-imate-dark.svg
-   :height: 30
+   :height: 23
    :class: only-dark
 .. |detkit-light| image:: _static/images/icons/logo-detkit-light.svg
    :height: 27
@@ -398,7 +398,7 @@ Related Projects
 .. |detkit-dark| image:: _static/images/icons/logo-detkit-dark.svg
    :height: 27
    :class: only-dark
-.. |ortho-light| image:: _static/images/icons/logo-ortho-light.svg
+.. |special-light| image:: _static/images/icons/logo-special-light.svg
    :height: 24
    :class: only-light
 .. |ortho-dark| image:: _static/images/icons/logo-ortho-dark.svg

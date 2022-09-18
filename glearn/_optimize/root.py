@@ -14,7 +14,7 @@
 import numpy
 import scipy
 from ._chandrupatla import chandrupatla
-from .._utilities.timer import Timer
+from ..device._timer import Timer
 
 __all__ = ['root']
 

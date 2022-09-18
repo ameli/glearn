@@ -24,6 +24,13 @@ Install |project| and its Python dependencies through `PyPI <https://pypi.org/pr
     python -m pip install --upgrade pip
     python -m pip install imate
 
+If you are using PyPy instead of Python, install with
+
+.. prompt:: bash
+    
+    pypy -m pip install --upgrade pip
+    pypy -m pip install imate
+
 Install with ``conda``
 ----------------------
 

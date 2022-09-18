@@ -66,10 +66,10 @@ def _check_import():
 # =======
 
 try:
-    from ._utilities import restrict_to_single_processor, info     # noqa: E402
     from ._mean import LinearModel                                 # noqa: E402
     from ._covariance import Covariance                            # noqa: E402
     from ._gaussian_process import GaussianProcess                 # noqa: E402
+    from .device import Timer, Memory, info
 
 except Exception as e:
     # Before printing the exception, check if the exception is raised due to
@@ -80,7 +80,7 @@ except Exception as e:
     # error.
     raise e
 
-__all__ = ['LinearModel', 'Covariance', 'GaussianProcess', 'info',
-           'restrict_to_single_processor']
+__all__ = ['LinearModel', 'Covariance', 'GaussianProcess', 'Timer', 'Memory',
+           'info']
 
 from.__version__ import __version__                                # noqa: F401

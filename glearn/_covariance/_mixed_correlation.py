@@ -17,7 +17,7 @@ from scipy.sparse import isspmatrix
 from scipy.special import binom
 import imate
 from ._linear_solver import linear_solver
-from .._utilities.timer import Timer
+from ..device._timer import Timer
 
 __all__ = ['MixedCorrelation']
 

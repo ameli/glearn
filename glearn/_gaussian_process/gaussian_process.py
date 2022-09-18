@@ -16,8 +16,8 @@ from ..priors.prior import Prior
 from ._posterior import Posterior
 from ._gaussian_process_utilities import plot_training_convergence, \
     print_training_summary, plot_prediction, print_prediction_summary
-from .._utilities.memory import Memory
-from .._utilities.timer import Timer
+from ..device._memory import Memory
+from ..device._timer import Timer
 
 __all__ = ['GaussianProcess']
 
@@ -411,6 +411,9 @@ class GaussianProcess(object):
             self.timer.toc()
             self.memory.stop()
 
+            # Read memory and its unit
+            mem_diff, mem_unit = self.memory.get_mem()
+
             self.prediction_result = {
                 'config': {
                     'num_training_points': self.z.size,
@@ -420,7 +423,7 @@ class GaussianProcess(object):
                 'process': {
                     'wall_time': self.timer.wall_time,
                     'proc_time': self.timer.proc_time,
-                    'memory': [self.memory.mem, self.memory.unit]
+                    'memory': [mem_diff, mem_unit]
                 }
             }
             print_prediction_summary(self.prediction_result)

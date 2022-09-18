@@ -18,7 +18,7 @@ from os.path import join
 import re
 import json
 
-__all__ = ['locate_cuda', 'get_cuda_version']
+__all__ = ['locate_cuda']
 
 
 # ============
@@ -46,9 +46,125 @@ def _find_in_path(executable_name, path):
 
 def locate_cuda():
     """
-    Finds the executable ``nvcc`` (or ``nvcc.exe`` if windows). If found,
-    creates a dictionary of cuda's executable path, include and lib directories
-    and home directory. This is used for GPU.
+    Returns the directory paths and version of CUDA Toolkit installation.
+
+    .. note::
+
+        Either of the environment variables ``CUDA_HOME``, ``CUDA_ROOT``, or
+        ``CUDA_PATH`` should be set with the home directory of the CUDA
+        Toolkit installation before calling this function.
+
+    Returns
+    -------
+
+    cuda : dict
+        A dictionary with the following keys:
+
+        * ``home``: `str`, home directory of CUDA.
+        * ``nvcc``: `str`, the path to ``nvcc`` compiler file.
+        * ``lib``: `str`, the path to the library directory of CUDA.
+        * ``include``: `str`, the path to the directory of header files.
+        * ``version``: `dict`, the version of CUDA Toolkit with the following
+          keys:
+
+            * ``major``: `int`, the major number of version
+            * ``minor``: `int`, the minor number of version
+            * ``parth``: `int`, the patch number of version
+
+        If no CUDA Toolkit is found, it returns an empty dictionary ``{}``.
+
+    Raises
+    ------
+
+    EnvironmentError
+        Raised if in the home directory of the CUDA Toolkit, the expected
+        sub-directories cannot be found.
+
+    See Also
+    --------
+
+    glearn.info
+    glearn.device.get_nvidia_driver_version
+
+    Notes
+    -----
+
+    **Setting Environment Variables:**
+
+    In order to find CUDA Toolkit information properly, either of the
+    environment variables ``CUDA_HOME``, ``CUDA_ROOT``, or ``CUDA_PATH`` should
+    be set to the directory where CUDA Toolkit is installed. Usually on UNIX
+    operating systems, this path is ``/usr/local/cuda``. In this case, set
+    ``CUDA_HOME`` (or any of the other variables mentioned in the above) as
+    follows:
+
+    ::
+
+        export CUDA_HOME=/usr/local/cuda
+
+    To permanently set this variable, place the above line in ``profile`` file,
+    such as in ``~/.bashrc``, or ``~/.profile``, and source this file, for
+    instance by
+
+    ::
+
+        source ~/.bashrc
+
+    .. note::
+
+        It is possible that the CUDA Toolkit is installed on the machine, but
+        ``cuda_version`` key shows `not found`. This is because the user did
+        not set the environment variables mentioned in the above.
+
+    **Expected Directory Structure:**
+
+    This function looks for the executable ``nvcc`` (or ``nvcc.exe`` if
+    windows) in the directory specified by ``CUDA_HOME``, ``CUDA_ROOT`` or
+    ``CUDA_PATH`` environment variables. If ``nvcc`` executable is found, it
+    continues searching for the directory structure as described below.
+
+    The expected sub-directories under the CUDA home directory should have the
+    following structure:
+
+    * ``/bin`` with the executable ``/bin/nvcc`` (or ``/bin/nvcc.exe`` in
+      Windows)
+    * ``/include`` with the file ``/include/cuda.h``
+    * ``/lib`` or ``lib64`` in UNIX, and ``lib/x86`` or ``lib/x64`` in Windows.
+
+    Examples
+    --------
+
+    Suppose the CUDA Toolkit is installed in ``/usr/local/cuda``. First, in a
+    Shell environment, export the variable
+
+    .. code-block:: bash
+
+        export CUDA_HOME=/usr/local/cuda
+
+    Then in Python script, obtain info about the CUDA paths and version using:
+
+    .. code-block:: python
+        :emphasize-lines: 3
+
+        >>> # Import function
+        >>> from glearn.device import locate_cuda
+        >>> cuda = locate_cuda()
+
+        >>> # Neatly print the dictionary using pprint
+        >>> from pprint import pprint
+        >>> pprint(cuda)
+        {
+            'home': '/usr/local/cuda/11.7',
+            'include': '/usr/local/cuda/11.7/include',
+            'lib': '/usr/local/cuda/11.7/lib64',
+            'nvcc': '/usr/local/cuda/11.7/bin/nvcc',
+            'version':
+            {
+                'major': 11,
+                'minor': 7,
+                'patch': 0
+            }
+        }
     """
 
     # List of environment variables to search for cuda
@@ -115,7 +231,7 @@ def locate_cuda():
                                    "be located in %s." % lib)
 
     # Get a dictionary of cuda version with keys 'major', 'minor', and 'patch'.
-    version = get_cuda_version(home)
+    version = _get_cuda_version(home)
 
     # Output dictionary of set of paths
     cuda = {
@@ -133,7 +249,7 @@ def locate_cuda():
 # get cuda version
 # ================
 
-def get_cuda_version(cuda_home):
+def _get_cuda_version(cuda_home):
     """
     Gets the version of CUDA library.
 

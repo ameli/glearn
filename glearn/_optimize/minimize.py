@@ -13,7 +13,7 @@
 
 import scipy.optimize
 from ._minimize_terminator import MinimizeTerminator, MinimizeTerminated
-from .._utilities.timer import Timer
+from ..device._timer import Timer
 
 __all__ = ['minimize']
 

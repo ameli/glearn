@@ -21,7 +21,7 @@ from ..kernels import Kernel, Matern
 import imate
 from ..priors.prior import Prior
 from ..priors.uniform import Uniform
-from .._utilities.timer import Timer
+from ..device._timer import Timer
 
 try:
     from .._utilities.plot_utilities import plt, load_plot_settings, \

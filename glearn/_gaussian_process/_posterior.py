@@ -16,8 +16,8 @@ from functools import partial
 from .._likelihood.likelihood import likelihood
 from .._likelihood._profile_likelihood import ProfileLikelihood
 from .._optimize import minimize, root
-from .._utilities.device import get_num_cpu_threads, get_num_gpu_devices
-from .._utilities.memory import Memory
+from ..device._device import get_num_cpu_threads, get_num_gpu_devices
+from ..device._memory import Memory
 import warnings
 
 __all__ = ['Posterior']
@@ -525,12 +525,15 @@ class Posterior(object):
                 num_gpu_multiproc = 0
                 num_gpu_threads_per_multiproc = 0
 
+            # Read memory and its unit
+            mem_diff, mem_unit = self.memory.get_mem()
+
             device = {
                 'num_cpu_threads': num_cpu_threads,
                 'num_gpu_devices': num_gpu_devices,
                 'num_gpu_multiproc': num_gpu_multiproc,
                 'num_gpu_threads_per_multiproc': num_gpu_threads_per_multiproc,
-                'memory_usage': [self.memory.mem, self.memory.unit]
+                'memory_usage': [mem_diff, mem_unit]
             }
         else:
             device = {}
