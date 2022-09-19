@@ -261,13 +261,13 @@ class Prior(object):
                 (hyperparam[3:-1] - hyperparam[1:-3])
 
         # Plotting
-        fig, ax = plt.subplots(ncols=3, figsize=(17, 5))
+        fig, ax = plt.subplots(ncols=3, figsize=(12.5, 4))
         ax[0].plot(x, d0f, color='black')
         ax[1].plot(x, d1f, color='black', label='analytic')
         ax[2].plot(x, d2f, color='black', label='analytic')
-        ax[0].set_xlabel(r'$x$')
-        ax[1].set_xlabel(r'$x$')
-        ax[2].set_xlabel(r'$x$')
+        ax[0].set_xlabel(r'$\theta$')
+        ax[1].set_xlabel(r'$\theta$')
+        ax[2].set_xlabel(r'$\theta$')
 
         if compare_numerical:
             ax[1].plot(x[1:-1], d1f_num, '--', color='black',
@@ -278,24 +278,27 @@ class Prior(object):
             ax[2].legend()
 
         if log_scale:
-            ax[0].set_ylabel(r'$\ln p(x)$')
+            ax[0].set_ylabel(r'$\ln p(\theta)$')
         else:
-            ax[0].set_ylabel(r'$p(x)$')
+            ax[0].set_ylabel(r'$p(\theta)$')
 
         if log_scale:
-            ax[1].set_ylabel(r'$\frac{\mathrm{d}\ln p(x)}{\mathrm{d}(\ln x)}$')
+            ax[1].set_ylabel(r'$\frac{\mathrm{d}\ln p(\theta)}' +
+                             r'{\mathrm{d}(\ln \theta)}$')
         else:
-            ax[1].set_ylabel(r'$\frac{\mathrm{d}p(x)}{\mathrm{d}x}$')
+            ax[1].set_ylabel(r'$\frac{\mathrm{d}p(\theta)}' +
+                             r'{\mathrm{d}\theta}$')
 
         if log_scale:
-            ax[2].set_ylabel(r'$\frac{\mathrm{d}^2\ln p(x)}{\mathrm{d} ' +
-                             r'(\ln x)^2}$')
+            ax[2].set_ylabel(r'$\frac{\mathrm{d}^2\ln p(\theta)}' +
+                             r'{\mathrm{d}(\ln \theta)^2}$')
         else:
-            ax[2].set_ylabel(r'$\frac{\mathrm{d}^2 p(x)}{\mathrm{d}x^2}$')
+            ax[2].set_ylabel(r'$\frac{\mathrm{d}^2 p(\theta)}' +
+                             r'{\mathrm{d}\theta^2}$')
 
-        ax[0].set_title('Probability distribution')
-        ax[1].set_title('First derivative of probability distribution')
-        ax[2].set_title('Second derivative of probability distribution')
+        ax[0].set_title('Probability Density Function (PDF)')
+        ax[1].set_title('First derivative of PDF')
+        ax[2].set_title('Second derivative of PDF')
         ax[0].set_xlim([x_range[0], x_range[1]])
         ax[1].set_xlim([x_range[0], x_range[1]])
         ax[2].set_xlim([x_range[0], x_range[1]])

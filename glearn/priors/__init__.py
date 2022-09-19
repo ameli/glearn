@@ -6,6 +6,7 @@
 # under the terms of the license found in the LICENSE.txt file in the root
 # directory of this source tree.
 
+from .prior import Prior
 from .uniform import Uniform
 from .cauchy import Cauchy
 from .student_t import StudentT
@@ -15,5 +16,5 @@ from .inverse_gamma import InverseGamma
 from .normal import Normal
 from .beta_prime import BetaPrime
 
-__all__ = ['Uniform', 'Cauchy', 'StudentT', 'Erlang', 'Gamma', 'InverseGamma',
-           'Normal', 'BetaPrime']
+__all__ = ['Prior', 'Uniform', 'Cauchy', 'StudentT', 'Erlang', 'Gamma',
+           'InverseGamma', 'Normal', 'BetaPrime']

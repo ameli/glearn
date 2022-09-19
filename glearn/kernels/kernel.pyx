@@ -31,6 +31,62 @@ __all__ = ['Kernel']
 # ======
 
 cdef class Kernel(object):
+    """
+    Base class of kernel functions.
+
+    .. warning::
+
+        This class is a base class and does not implement a kernel function.
+        Use the derivative of this class instead.
+
+    Methods
+    -------
+
+    __call__
+    plot
+
+    See Also
+    --------
+
+    glearn.kernels.Exponential
+    glearn.kernels.SquareExponential
+    glearn.kernels.Linear
+    glearn.kernels.RationalQuadratic
+    glearn.kernels.Matern
+
+    Examples
+    --------
+
+    **Create Kernel Object:**
+
+    .. code-block:: python
+
+        >>> from glearn import kernels
+
+        >>> # Create an exponential kernel
+        >>> kernel = kernels.Exponential()
+
+        >>> # Evaluate kernel at the point x=0.5
+        >>> x = 0.5
+        >>> kernel(x)
+        0.6065306597126334
+
+        >>> # Evaluate first derivative of kernel at the point x=0.5
+        >>> kernel(x, derivarive=1)
+        -0.6065306597126334
+
+        >>> # Evaluate second derivative of kernel at the point x=0.5
+        >>> kernel(x, derivarive=2)
+        0.6065306597126334
+
+        >>> # Plot kernel and its first and second derivative
+        >>> kernel.plot()
+
+    .. image:: ../_static/images/plots/kernel_exponential.png
+        :align: center
+        :width: 100%
+        :class: custom-dark
+    """
 
     # =========
     # cy kernel
@@ -66,13 +122,53 @@ cdef class Kernel(object):
                'a derived class.')
         return NAN
 
-    # ======
-    # kernel
-    # ======
+    # ========
+    # __call__
+    # ========
 
-    def kernel(self, x, derivative=0):
+    def __call__(self, x, derivative=0):
         """
-        A python wrapper for ``cy_kernel``.
+        Evaluate the kernel function or its derivatives.
+
+        Parameters
+        ----------
+
+        x : float or array_like[float]
+            Input points to the kernel function.
+
+        derivative : int, default=0
+            The order of the derivative of the kernel function. Zero means no
+            derivative.
+
+        Returns
+        -------
+
+        y : float or numpy.array[float]
+            The value of the kernel function or its derivatives. The size of
+            ``y`` is the same as the size of the input argument ``x``.
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+            >>> from glearn import kernels
+
+            >>> # Create an exponential kernel
+            >>> kernel = kernels.Exponential()
+
+            >>> # Evaluate kernel at the point x=0.5
+            >>> x = 0.5
+            >>> kernel(x)
+            0.6065306597126334
+
+            >>> # Evaluate first derivative of kernel at the point x=0.5
+            >>> kernel(x, derivarive=1)
+            -0.6065306597126334
+
+            >>> # Evaluate second derivative of kernel at the point x=0.5
+            >>> kernel(x, derivarive=2)
+            0.6065306597126334
         """
 
         if derivative == 0:
@@ -96,7 +192,61 @@ cdef class Kernel(object):
 
     def plot(self, compare_numerical=False, x_max=4.0):
         """
-        Plots the kernel function and its first and second derivative
+        Plot the kernel function and its first and second derivative.
+
+        Parameters
+        ----------
+
+        compare_numerical : bool, default=False
+            It `True`, it computes the derivatives of the kernel function and
+            plots the numerical derivatives together with the exact values of
+            the derivatives from analytical formula. This is used to validate
+            the analytical formulas.
+
+        x_max : float, default=4.0
+            Maximum range in the abscissa in the plot.
+
+        Notes
+        -----
+
+        * If no graphical backend exists (such as running the code on a remote
+          server or manually disabling the X11 backend), the plot will not be
+          shown, rather, it will be saved as an ``svg`` file in the current
+          directory.
+        * If the executable ``latex`` is available on ``PATH``, the plot is
+          rendered using :math:`\\rm\\LaTeX` and it may take slightly longer to
+          produce the plot.
+        * If :math:`\\rm\\LaTeX` is not installed, it uses any available
+          San-Serif font to render the plot.
+
+        To manually disable interactive plot display and save the plot as
+        ``svg`` instead, add the following at the very beginning of your code
+        before importing :mod:`imate`:
+
+        .. code-block:: python
+
+            >>> import os
+            >>> os.environ['GLEARN_NO_DISPLAY'] = 'True'
+
+        Examples
+        --------
+
+        **Create Kernel Object:**
+
+        .. code-block:: python
+
+            >>> from glearn import kernels
+
+            >>> # Create an exponential kernel
+            >>> kernel = kernels.Exponential()
+
+            >>> # Plot kernel and its first and second derivative
+            >>> kernel.plot()
+
+        .. image:: ../_static/images/plots/kernel_exponential.png
+            :align: center
+            :width: 100%
+            :class: custom-dark
         """
 
         # Load plot settings
@@ -114,9 +264,9 @@ cdef class Kernel(object):
         n = x.size
 
         for i in range(x.size):
-            d0y[i] = self.kernel(x[i], derivative=0)
-            d1y[i] = self.kernel(x[i], derivative=1)
-            d2y[i] = self.kernel(x[i], derivative=2)
+            d0y[i] = self.__call__(x[i], derivative=0)
+            d1y[i] = self.__call__(x[i], derivative=1)
+            d2y[i] = self.__call__(x[i], derivative=2)
 
         ax[0].plot(x, d0y, color='black')
         ax[1].plot(x, d1y, color='black', label='Analytic')

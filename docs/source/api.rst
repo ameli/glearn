@@ -15,56 +15,16 @@ The API reference contains:
   purposes.
 * :ref:`Device Inquiry <Device Inquiry>`: inquiry information about CPU and GPU devices.
 
-.. _Functions:
+.. _linear_model:
 
-Functions
-=========
+Linear Model
+============
 
-The functions of this package are:
-
-* :ref:`Log-Determinant <Log-Determinant>`: computes log-determinant of matrix.
-* :ref:`Trace of Inverses <Trace of Inverses>`: computes trace of the inverse of
-  a matrix or any negative power of the matrix.
-* :ref:`Trace <Trace>`: computes the trace of matrix or any positive power of
-  the matrix.
-* :ref:`Schatten Norm <Schatten Norm>`: computes the Schatten norm of order
-  :math:`p`, which includes the above three functions. 
-
-Each of the above functions are implemented using both direct and randomized algorithms, suitable for various matrices sizes.
-
-.. _Log-Determinant:
-
-Log-Determinant
----------------
+Define a customized linear model by creating modular objects representing correlation, covariance, mean, and a Gaussian process prior.
 
 .. autosummary::
     :toctree: generated
-    :caption: logdet
-    :recursive:
-    :template: autosummary/member.rst
-
-    imate.logdet
-
-This function computes the log-determinant of :math:`\mathbf{A}^p` or the Gramian matrix :math:`(\mathbf{A}^{\intercal} \mathbf{A})^p` where :math:`p` is a real exponent.
-
-The `imate.logdet` function has the following methods:
-
-.. toctree::
-
-    api/imate.logdet.eigenvalue
-    api/imate.logdet.cholesky
-    api/imate.logdet.slq
-
-.. _Linear Operators:
-
-Linear Operators
-================
-
-Create linear operator objects as container for various matrix types with a unified interface, establish a fully automatic dynamic buffer to allocate, deallocate, and transfer data between CPU and multiple GPU devices on demand, as well as perform basic matrix-vector operations with high performance on both CPU or GPU devices. These objects can be passed to |project| functions as input matrices.
-
-.. autosummary::
-    :toctree: generated
-    :caption: Classes
+    :caption: Linear Model
     :recursive:
     :template: autosummary/class.rst
 
@@ -72,25 +32,64 @@ Create linear operator objects as container for various matrix types with a unif
     glearn.Covariance
     glearn.GaussianProcess
 
-.. _Sample Matrices:
+.. _kernels:
 
-Sample Matrices
-===============
+Kernels
+=======
 
-Generate sample matrices for test purposes, such as correlation matrix and Toeplitz matrix. The matrix functions of Toeplitz matrix (such as its log-determinant, trace of its inverse, etc) are known analytically, making Toeplitz matrix suitable for benchmarking the result of randomized methods with analytical solutions.
+Defines various kernel functions for the covariance model.
+
+.. autosummary::
+    :toctree: generated
+    :caption: Kernels
+    :recursive:
+    :template: autosummary/class.rst
+
+    glearn.kernels.Kernel
+    glearn.kernels.Exponential
+    glearn.kernels.SquareExponential
+    glearn.kernels.Linear
+    glearn.kernels.RationalQuadratic
+    glearn.kernels.Matern
+
+.. _priors:
+
+Prior Distributions
+===================
+
+Define various prior distributions for the hyperparameters of the covariance model.
+
+.. autosummary::
+    :toctree: generated
+    :caption: Prior Distributions
+    :recursive:
+    :template: autosummary/class.rst
+
+    glearn.priors.Prior
+    glearn.priors.Uniform
+    glearn.priors.Normal
+    glearn.priors.Cauchy
+    glearn.priors.StudentT
+    glearn.priors.Erlang
+    glearn.priors.Gamma
+    glearn.priors.InverseGamma
+    glearn.priors.BetaPrime
+
+.. _sample_data:
+
+Sample Data
+===========
+
+Generate sample data for test purposes, such as multi-dimensional points and stochastic data on the points.
    
 .. autosummary::
     :toctree: generated
-    :caption: Sample Matrices
+    :caption: Sample Data
     :recursive:
     :template: autosummary/member.rst
 
-    imate.correlation_matrix
-    imate.toeplitz
-    imate.sample_matrices.toeplitz_logdet
-    imate.sample_matrices.toeplitz_trace
-    imate.sample_matrices.toeplitz_traceinv
-    imate.sample_matrices.toeplitz_schatten
+    glearn.sample_data.generate_points
+    glearn.sample_data.generate_data
 
 .. _Device Inquiry:
 
@@ -105,8 +104,8 @@ Measure the process time and consumed memory of the Python process during comput
     :recursive:
     :template: autosummary/class.rst
 
-    imate.Timer
-    imate.Memory
+    glearn.Timer
+    glearn.Memory
 
 Inquiry hardware information, including CPU and GPU devices employed during computation and get information about the CUDA Toolkit installation with the following functions.
 
@@ -115,11 +114,11 @@ Inquiry hardware information, including CPU and GPU devices employed during comp
     :recursive:
     :template: autosummary/member.rst
 
-    imate.info
-    imate.device.get_processor_name
-    imate.device.get_gpu_name
-    imate.device.get_num_cpu_threads
-    imate.device.get_num_gpu_devices
-    imate.device.get_nvidia_driver_version
-    imate.device.locate_cuda
-    imate.device.restrict_to_single_processor
+    glearn.info
+    glearn.device.get_processor_name
+    glearn.device.get_gpu_name
+    glearn.device.get_num_cpu_threads
+    glearn.device.get_num_gpu_devices
+    glearn.device.get_nvidia_driver_version
+    glearn.device.locate_cuda
+    glearn.device.restrict_to_single_processor

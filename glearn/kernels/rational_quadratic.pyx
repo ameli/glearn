@@ -25,6 +25,97 @@ __all__ = ['RationalQuadratic']
 
 cdef class RationalQuadratic(Kernel):
     """
+    Rational quadratic kernel.
+
+    The kernel object is used as input argument to the instants of
+    :class:`glearn.Covariance` class.
+
+    .. note::
+
+        For the methods of this class, see the base class
+        :class:`glearn.kernels.Kernel`.
+
+    Parameters
+    ----------
+
+    alpha : float, default=2.0
+        The parameter :math:`\\alpha` of the rational quadratic function (see
+        Notes below).
+
+    See Also
+    --------
+
+    glearn.Covariance
+
+    Notes
+    -----
+
+    The exponential kernel is defined as
+
+    .. math::
+
+        k(x) = \\left( 1 + \\frac{x^2}{2 \\alpha} \\right)^{-\\alpha}.
+
+    The first derivative of the kernel is
+
+    .. math::
+
+        \\frac{\\mathrm{d} k(x)}{\\mathrm{d}x} = -x k(x)^{-1-\\alpha},
+
+    and its second derivative is
+
+    .. math::
+
+        \\frac{\\mathrm{d} k(x)}{\\mathrm{d}x} =
+        x^2 (1 + \\alpha^{-1}) k(x)^{-2-\\alpha} - k(x)^{-1-\\alpha}.
+
+    Examples
+    --------
+
+    **Create Kernel Object:**
+
+    .. code-block:: python
+
+        >>> from glearn import kernels
+
+        >>> # Create an exponential kernel
+        >>> kernel = kernels.RationalQuadratic(alpha=2.0)
+
+        >>> # Evaluate kernel at the point x=0.5
+        >>> x = 0.5
+        >>> kernel(x)
+        0.8858131487889274
+
+        >>> # Evaluate first derivative of kernel at the point x=0.5
+        >>> kernel(x, derivarive=1)
+        0.416853246488907
+
+        >>> # Evaluate second derivative of kernel at the point x=0.5
+        >>> kernel(x, derivarive=2)
+        0.416853246488907
+
+        >>> # Plot kernel and its first and second derivative
+        >>> kernel.plot()
+
+    .. image:: ../_static/images/plots/kernel_rational_quadratic.png
+        :align: center
+        :width: 100%
+        :class: custom-dark
+
+    **Where to Use Kernel Object:**
+
+    Use the kernel object to define a covariance object:
+
+    .. code-block:: python
+        :emphasize-lines: 7
+
+        >>> # Generate a set of sample points
+        >>> from glearn.sample_data import generate_points
+        >>> points = generate_points(num_points=50)
+
+        >>> # Create covariance object of the points with the above kernel
+        >>> from glearn import covariance
+        >>> cov = glearn.Covariance(points, kernel=kernel)
     """
 
     # =====
@@ -64,7 +155,7 @@ cdef class RationalQuadratic(Kernel):
 
         .. math::
 
-            K(x) = \\exp(-x^2 / 2)
+            k(x) = \\left( 1 + \\frac{x^2}{2 \\alpha} \\right)^{-\\alpha}.
 
         :param x: The distance that represents the Euclidean distance between
             mutual points.

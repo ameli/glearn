@@ -22,6 +22,138 @@ from .prior import Prior
 class Uniform(Prior):
     """
     Uniform distribution.
+
+    .. note::
+
+        For the methods of this class, see the base class
+        :class:`glearn.priors.Prior`.
+
+    Parameters
+    ----------
+
+    a : float or array_like[float], default=0
+        The left point of an interval :math:`[a, b]` of the uniform
+        distribution. If ``a`` is given as an array :math:`(a_1, \\dots, a_p)`,
+        the prior is assumed to be :math:`p` independent distributions, each on
+        the interval :math:`[a_i, b_i]`.
+
+    b : float or array_like[float], default=numpy.inf
+        The right point of an interval :math:`[a, b]` of the uniform
+        distribution. If ``b`` is given as an array :math:`(b_1, \\dots, b_p)`,
+        the prior is assumed to be :math:`p` independent distributions, each on
+        the interval :math:`[a_i, b_i]`.
+
+    Methods
+    -------
+
+    suggest_hyperparam_guess
+    pdf
+    pdf_jacobian
+    pdf_hessian
+
+    See Also
+    --------
+
+    glearn.priors.Prior
+
+    Notes
+    -----
+
+    **Single Hyperparameter:**
+
+    The uniform distribution in the interval :math:`[a, b]` is defined by the
+    probability density function
+
+    .. math::
+
+        p(\\theta) =
+        \\begin{cases}
+            1, & a \\leq \\theta \\leq b, \\\\
+            0, & \\text{otherwise}.
+        \\end{cases}
+
+    **Multiple Hyperparameters:**
+
+    If an array of the hyperparameters are given, namely
+    :math:`\\boldsymbol{\\theta} = (\\theta_1, \\dots, \\theta_p)`, then
+    the prior is the product of independent priors
+
+    .. math::
+
+        p(\\boldsymbol{\\theta}) = p(\\theta_1) \\dots p(\\theta_p).
+
+    In this case, if the input arguments ``a`` and ``b`` are given as the
+    arrays :math:`\\boldsymbol{a} = (a_1, \\dots, a_p)` and
+    :math:`\\boldsymbol{b} = (b_1, \\dots, b_p)`, each prior
+    :math:`p(\\theta_i)` is defined as the uniform distribution on the interval
+    :math:`[a_i, b_i]`. In contrary, if ``a`` and ``b`` are given as the
+    scalars :math:`a` and :math:`b`, then all priors :math:`p(\\theta_i)` are
+    defined as uniform distributions in the interval :math:`[a, b]`.
+
+    Examples
+    --------
+
+    **Create Prior Objects:**
+
+    Create uniform prior in :math:`[0.2, 0.9]`:
+
+    .. code-block:: python
+
+        >>> from glearn import priors
+        >>> prior = priors.Uniform(0.2, 0.9)
+
+        >>> # Evaluate PDF function at multiple locations
+        >>> t = [0, 0.5, 1]
+        >>> prior.pdf(t)
+        array([0.        , 1.42857143, 0.        ])
+
+        >>> # Evaluate the Jacobian of the PDF
+        >>> prior.pdf_jacobian(t)
+        array([0., 0., 0.])
+
+        >>> # Evaluate the Hessian of the PDF
+        >>> prior.pdf_hessian(t)
+        array([[0., 0., 0.],
+               [0., 0., 0.],
+               [0., 0., 0.]])
+
+        >>> # Evaluate the log-PDF
+        >>> prior.log_pdf(t)
+        -inf
+
+        >>> # Evaluate the Jacobian of the log-PDF
+        >>> prior.log_pdf_jacobian(t)
+        array([nan, nan, nan])
+
+        >>> # Evaluate the Hessian of the log-PDF
+        >>> prior.log_pdf_hessian(t)
+        array([[nan,  0.,  0.],
+               [ 0., nan,  0.],
+               [ 0.,  0., nan]])
+
+        >>> # Plot the distribution and its first and second derivative
+        >>> prior.plot()
+
+    .. image:: ../_static/images/plots/prior_uniform.png
+        :align: center
+        :width: 100%
+        :class: custom-dark
+
+    **Where to Use the Prior object:**
+
+    Define a covariance model (see :class:`glearn.Covariance`) where its scale
+    parameter is a prior function.
+
+    .. code-block:: python
+        :emphasize-lines: 7
+
+        >>> # Generate a set of sample points
+        >>> from glearn.sample_data import generate_points
+        >>> points = generate_points(num_points=50)
+
+        >>> # Create covariance object of the points with the above kernel
+        >>> from glearn import covariance
+        >>> cov = glearn.Covariance(points, kernel=kernel, scale=prior)
     """
 
     # ====
@@ -159,8 +291,9 @@ class Uniform(Prior):
         Returns the mean of pdf.
         """
 
-        if numpy.isinf(numpy.abs(self.a)) or numpy.isinf(self.b):
-            self.mean = numpy.nan
+        if numpy.isinf(numpy.abs(self.a)).any() or numpy.isinf(self.b).any():
+            self.mean = numpy.zero_like(a)
+            self.mean[:] = numpy.nan
         else:
             self.mean = 0.5 * (self.b - self.a)
 

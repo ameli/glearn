@@ -78,7 +78,6 @@ def load_plot_settings():
             matplotlib.rcParams['text.usetex'] = True
             matplotlib.rcParams['text.latex.preamble'] = \
                 r'\usepackage{amsmath}'
-            matplotlib.font_manager._rebuild()
 
             # LaTeX font is a bit small. Increase axes font size
             sns.set(font_scale=1.2)

@@ -89,7 +89,7 @@ class Normal(Prior):
         """
 
         if self.half:
-            # For half-normal distirubiton, use std as inital hypepram guess.
+            # For half-normal distribution, use std as initial hyperparam guess
             hyperparam_guess = self.std
         else:
             # Otherwise, use its mean.
