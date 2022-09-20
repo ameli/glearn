@@ -43,10 +43,22 @@ class Uniform(Prior):
         the prior is assumed to be :math:`p` independent distributions, each on
         the interval :math:`[a_i, b_i]`.
 
+    Attributes
+    ----------
+
+    a : float or array_like[float], default=0
+        Input argument a
+
+    b : float or array_like[float], default=0
+        Input argument b
+
+    mean : float or array_like[float], default=0
+        Mean of the distribution
+
     Methods
     -------
 
-    suggest_hyperparam_guess
+    suggest_hyperparam
     pdf
     pdf_jacobian
     pdf_hessian
@@ -95,7 +107,7 @@ class Uniform(Prior):
 
     **Create Prior Objects:**
 
-    Create uniform prior in :math:`[0.2, 0.9]`:
+    Create uniform prior in the interval :math:`[0.2, 0.9]`:
 
     .. code-block:: python
 
@@ -217,13 +229,59 @@ class Uniform(Prior):
 
         return a, b
 
-    # ========================
-    # suggest hyperparam guess
-    # ========================
+    # ==================
+    # suggest hyperparam
+    # ==================
 
-    def suggest_hyperparam_guess(self):
+    def suggest_hyperparam(self):
         """
-        Suggests a guess for the hyperparam based on the prior distribution.
+        Find an initial guess for the hyperparameters based on the peaks of the
+        prior distribution.
+
+        Returns
+        -------
+
+        hyperparam : float or numpy.array[float]
+            A feasible guess for the hyperparameter. The output is either a
+            scalar or an array of the same size as the input parameters of the
+            distribution.
+
+        See Also
+        --------
+
+        glearn.GaussianProcess
+
+        Notes
+        -----
+
+        For the uniform distribution in the interval :math:`[a, b]`, the
+        suggested hyperparameter is the mid-point of the interval,
+        :math:`\\theta = (a+b)/2`.
+
+        If the input arguments ``a`` and ``b`` are given as the arrays
+        :math:`\\boldsymbol{a} = (a_1, \\dots, a_p)` and
+        :math:`\\boldsymbol{b} = (b_1, \\dots, b_p)`, the suggested array of
+        hyperparameters :math:`\\boldsymbol{\\theta} = (\\theta_1, \\dots,
+        \\theta_p)` are :math:`\\theta_i = (a_i + b_i) / 2`.
+
+        The suggested hyperparameters can be used as initial guess for the
+        optimization of the posterior functions when used with this prior.
+
+        Examples
+        --------
+
+        Create uniform prior in the interval :math:`[0.2, 0.9]`:
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.Uniform(0.2, 0.9)
+
+            >>> # Find a feasible hyperparameter value
+            >>> prior.suggest_hyperparam()
+            array([0.55])
+
+        The above value is the mid-point of the interval :math:`[0.2, 0.9]`.
         """
 
         hyperparam_guess = numpy.zeros_like(self.a)
@@ -292,7 +350,7 @@ class Uniform(Prior):
         """
 
         if numpy.isinf(numpy.abs(self.a)).any() or numpy.isinf(self.b).any():
-            self.mean = numpy.zero_like(a)
+            self.mean = numpy.zero_like(self.a)
             self.mean[:] = numpy.nan
         else:
             self.mean = 0.5 * (self.b - self.a)
@@ -303,9 +361,47 @@ class Uniform(Prior):
 
     def pdf(self, x):
         """
-        Returns the log-prior function for an array hyperparameter. It is
-        assumed that priors for each hyperparameters are independent. The
-        overall log-prior is the sum of log-prior for each hyperparameter.
+        Probability density function of the prior distribution.
+
+        Parameters
+        ----------
+
+        x : float or array_like[float]
+            Input hyperparameter or an array of hyperparameters.
+
+        Returns
+        -------
+
+        pdf : float or array_like[float]
+            The probability density function of the input hyperparameter(s).
+
+        See Also
+        --------
+
+        :func:`glearn.priors.Prior.log_pdf`
+        :func:`glearn.priors.Uniform.pdf_jacobian`
+        :func:`glearn.priors.Uniform.pdf_hessian`
+
+        Notes
+        -----
+
+        When an array of hyperparameters are given, it is assumed that prior
+        for each hyperparameter is independent of others.
+
+        Examples
+        --------
+
+        Create uniform prior in the interval :math:`[0.2, 0.9]`:
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.Uniform(0.2, 0.9)
+
+            >>> # Evaluate PDF function at multiple locations
+            >>> t = [0, 0.5, 1]
+            >>> prior.pdf(t)
+            array([0.        , 1.42857143, 0.        ])
         """
 
         # Convert hyperparam or self.a, and self.b to arrays of the same size
@@ -333,8 +429,54 @@ class Uniform(Prior):
 
     def pdf_jacobian(self, x):
         """
-        Returns the first derivative of log-prior function for an array of
-        hyperparameter input.
+        Jacobian of the probability density function of the prior distribution.
+
+        Parameters
+        ----------
+
+        x : float or array_like[float]
+            Input hyperparameter or an array of hyperparameters.
+
+        Returns
+        -------
+
+        jac : float or array_like[float]
+            The Jacobian of the probability density function of the input
+            hyperparameter(s).
+
+        See Also
+        --------
+
+        :func:`glearn.priors.Prior.log_pdf_jacobian`
+        :func:`glearn.priors.Uniform.pdf`
+        :func:`glearn.priors.Uniform.pdf_hessian`
+
+        Notes
+        -----
+
+        The first derivative of the probability density function is
+
+        .. math::
+
+            \\frac{\\mathrm{d}p(\\theta)}{\\mathrm{d}\\theta} = 0.
+
+        When an array of hyperparameters are given, it is assumed that prior
+        for each hyperparameter is independent of others.
+
+        Examples
+        --------
+
+        Create uniform prior in the interval :math:`[0.2, 0.9]`:
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.Uniform(0.2, 0.9)
+
+            >>> # Evaluate the Jacobian of the PDF
+            >>> t = [0, 0.5, 1]
+            >>> prior.pdf_jacobian(t)
+            array([0., 0., 0.])
         """
 
         # Convert hyperparam or self.a, and self.b to arrays of the same size
@@ -350,8 +492,56 @@ class Uniform(Prior):
 
     def pdf_hessian(self, x):
         """
-        Returns the second derivative of log-prior function for an array of
-        hyperparameter input.
+        Hessian of the probability density function of the prior distribution.
+
+        Parameters
+        ----------
+
+        x : float or array_like[float]
+            Input hyperparameter or an array of hyperparameters.
+
+        Returns
+        -------
+
+        hess : float or array_like[float]
+            The Hessian of the probability density function of the input
+            hyperparameter(s).
+
+        See Also
+        --------
+
+        :func:`glearn.priors.Prior.log_pdf_hessian`
+        :func:`glearn.priors.Uniform.pdf`
+        :func:`glearn.priors.Uniform.pdf_jacobian`
+
+        Notes
+        -----
+
+        The second derivative of the probability density function is
+
+        .. math::
+
+            \\frac{\\mathrm{d}^2p(\\theta)}{\\mathrm{d}\\theta^2} = 0.
+
+        When an array of hyperparameters are given, it is assumed that prior
+        for each hyperparameter is independent of others.
+
+        Examples
+        --------
+
+        Create uniform prior in the interval :math:`[0.2, 0.9]`:
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.Uniform(0.2, 0.9)
+
+            >>> # Evaluate the Hessian of the PDF
+            >>> t = [0, 0.5, 1]
+            >>> prior.pdf_hessian(t)
+            array([[0., 0., 0.],
+                   [0., 0., 0.],
+                   [0., 0., 0.]])
         """
 
         # Convert hyperparam or self.a, and self.b to arrays of the same size

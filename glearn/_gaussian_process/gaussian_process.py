@@ -114,11 +114,11 @@ class GaussianProcess(object):
                 % hyperparam_guess.size + ') does not match the number ' +
                 'of hyperparameters (which is %d).' % num_hyperparam)
 
-    # ========================
-    # suggest hyperparam guess
-    # ========================
+    # ==================
+    # suggest hyperparam
+    # ==================
 
-    def _suggest_hyperparam_guess(self, profile_hyperparam):
+    def _suggest_hyperparam(self, profile_hyperparam):
         """
         Suggests hyperparam_guess when it is None. ``hyperparam_guess`` may
         contain the following variables:
@@ -150,7 +150,7 @@ class GaussianProcess(object):
                                 'or as a prior distribution.')
 
             # Get the guess from the prior
-            scale_guess = scale_prior.suggest_hyperparam_guess()
+            scale_guess = scale_prior.suggest_hyperparam()
 
             # Check type of scale guess
             if numpy.isscalar(scale_guess):
@@ -255,7 +255,7 @@ class GaussianProcess(object):
                 hyperparam_guess = numpy.array([hyperparam_guess])
 
         else:
-            hyperparam_guess = self._suggest_hyperparam_guess(
+            hyperparam_guess = self._suggest_hyperparam(
                     profile_hyperparam)
 
         # Maximize posterior w.r.t hyperparameters

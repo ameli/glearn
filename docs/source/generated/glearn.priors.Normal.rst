@@ -20,7 +20,7 @@
          Normal.pdf_hessian
          Normal.pdf_jacobian
          Normal.plot
-         Normal.suggest_hyperparam_guess
+         Normal.suggest_hyperparam
       
   
 

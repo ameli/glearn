@@ -20,7 +20,7 @@
          BetaPrime.pdf_hessian
          BetaPrime.pdf_jacobian
          BetaPrime.plot
-         BetaPrime.suggest_hyperparam_guess
+         BetaPrime.suggest_hyperparam
       
   
 

@@ -20,7 +20,7 @@
          StudentT.pdf_hessian
          StudentT.pdf_jacobian
          StudentT.plot
-         StudentT.suggest_hyperparam_guess
+         StudentT.suggest_hyperparam
       
   
 

@@ -24,13 +24,166 @@ __all__ = ['Cauchy']
 class Cauchy(Prior):
     """
     Cauchy distribution.
+
+    .. note::
+
+        For the methods of this class, see the base class
+        :class:`glearn.priors.Prior`.
+
+    Parameters
+    ----------
+
+    media : float or array_like[float], default=0.0
+        The median :math:`\\theta_0` of Cauchy distribution. If an array
+        :math:`\\boldsymbol{\\theta}_0 = (\\theta_{01}, \\dots, \\theta_{0p})`
+        is given, the prior is assumed to be :math:`p` independent Cauchy
+        distributions each with median :math:`\\theta_{i0}`.
+
+    std : float or array_like[float], default=1.0
+        The scale parameter :math:`\\gamma` of Cauchy distribution. If an
+        array :math:`\\boldsymbol{\\gamma} = (\\gamma_1, \\dots, \\gamma_p)` is
+        given, the prior is assumed to be :math:`p` independent Cauchy
+        distributions each with scale :math:`\\gamma_i`.
+
+    half : bool, default=False
+        If `True`, the prior is the half-Cauchy distribution.
+
+    Attributes
+    ----------
+
+    median : float or array_like[float], default=0
+        Median :math:`\\theta_0` of the distribution
+
+    scale : float or array_like[float], default=0
+        Scale parameter :math:`\\gamma` of the distribution
+
+    Methods
+    -------
+
+    suggest_hyperparam
+    pdf
+    pdf_jacobian
+    pdf_hessian
+
+    See Also
+    --------
+
+    glearn.priors.Prior
+
+    Notes
+    -----
+
+    **Single Hyperparameter:**
+
+    The Cauchy distribution with median :math:`\\theta_0` and scale
+    :math:`gamma`is defined by the probability density function
+
+    .. math::
+
+        p(\\theta \\vert \\theta_0, \\gamma) = \\frac{1}{\\pi \\gamma}
+        \\frac{1}{1 + \\left( \\frac{\\theta - \\theta_0}{\\gamma}
+        \\right)^2}.
+
+    If ``half`` is `True`, the prior is the half-normal distribution
+
+    .. math::
+
+        p(\\theta \\vert \\theta_0, \\gamma) = \\frac{2}{\\pi \\gamma}
+        \\frac{1}{1 + \\left( \\frac{\\theta - \\theta_0}{\\gamma}
+        \\right)^2}.
+
+    **Multiple Hyperparameters:**
+
+    If an array of the hyperparameters are given, namely
+    :math:`\\boldsymbol{\\theta} = (\\theta_1, \\dots, \\theta_p)`, then
+    the prior is the product of independent priors
+
+    .. math::
+
+        p(\\boldsymbol{\\theta}) = p(\\theta_1) \\dots p(\\theta_p).
+
+    In this case, if the input arguments ``median`` and ``scale`` are given as
+    the arrays :math:`\\boldsymbol{\\theta}_0 = (\\theta_{01}, \\dots,
+    \\theta_{0p})` and :math:`\\boldsymbol{\\gamma} = (\\gamma_1, \\dots,
+    \\gamma_p)`, each prior :math:`p(\\theta_i)` is defined as the Cauchy
+    distribution with median :math:`\\theta_{0i}` and scale :math:`\\gamma_i`.
+    In contrary, if ``median`` and ``scale`` are given as the scalars
+    :math:`\\theta_0` and :math:`\\gamma`, then all priors :math:`p(\\theta_i)`
+    are defined as the Cauchy distribution with median :math:`\\theta_0` and
+    scale :math:`\\gamma`.
+
+    Examples
+    --------
+
+    **Create Prior Objects:**
+
+    Create the Cauchy distribution with median :math:`\\theta_0 = 1` and scale
+    :math:`\\gamma=2`.
+
+    .. code-block:: python
+
+        >>> from glearn import priors
+        >>> prior = priors.Cauchy(1, 2)
+
+        >>> # Evaluate PDF function at multiple locations
+        >>> t = [0, 0.5, 1]
+        >>> prior.pdf(t)
+        array([0.12732395, 0.14979289, 0.15915494])
+
+        >>> # Evaluate the Jacobian of the PDF
+        >>> prior.pdf_jacobian(t)
+        array([-0.        , -0.03524539, -0.07957747])
+
+        >>> # Evaluate the Hessian of the PDF
+        >>> prior.pdf_hessian(t)
+        array([[-0.05092958,  0.        ,  0.        ],
+               [ 0.        , -0.05390471,  0.        ],
+               [ 0.        ,  0.        ,  0.        ]])
+
+        >>> # Evaluate the log-PDF
+        >>> prior.log_pdf(t)
+        8.651043137341349
+
+        >>> # Evaluate the Jacobian of the log-PDF
+        >>> prior.log_pdf_jacobian(t)
+        array([-1.15129255, -5.30828143, -5.41784728])
+
+        >>> # Evaluate the Hessian of the log-PDF
+        >>> prior.log_pdf_hessian(t)
+        array([[-3.97642358,  0.        ,  0.        ],
+               [ 0.        ,  3.73231234,  0.        ],
+               [ 0.        ,  0.        ,  4.40296037]])
+
+        >>> # Plot the distribution and its first and second derivative
+        >>> prior.plot()
+
+    .. image:: ../_static/images/plots/prior_cauchy.png
+        :align: center
+        :width: 100%
+        :class: custom-dark
+
+    **Where to Use the Prior object:**
+
+    Define a covariance model (see :class:`glearn.Covariance`) where its scale
+    parameter is a prior function.
+
+    .. code-block:: python
+        :emphasize-lines: 7
+
+        >>> # Generate a set of sample points
+        >>> from glearn.sample_data import generate_points
+        >>> points = generate_points(num_points=50)
+
+        >>> # Create covariance object of the points with the above kernel
+        >>> from glearn import covariance
+        >>> cov = glearn.Covariance(points, kernel=kernel, scale=prior)
     """
 
     # ====
     # init
     # ====
 
-    def __init__(self, median=0.0, scale=1.0, half=True):
+    def __init__(self, median=0.0, scale=1.0, half=False):
         """
         Initialization.
         """
@@ -79,16 +232,57 @@ class Cauchy(Prior):
 
         return median, scale
 
-    # ========================
-    # suggest hyperparam guess
-    # ========================
+    # ==================
+    # suggest hyperparam
+    # ==================
 
-    def suggest_hyperparam_guess(self):
+    def suggest_hyperparam(self):
         """
-        Suggests a guess for the hyperparam based on the prior distribution.
+        Find an initial guess for the hyperparameters based on the peaks of the
+        prior distribution.
+
+        Returns
+        -------
+
+        hyperparam : float or numpy.array[float]
+            A feasible guess for the hyperparameter. The output is either a
+            scalar or an array of the same size as the input parameters of the
+            distribution.
+
+        See Also
+        --------
+
+        glearn.GaussianProcess
+
+        Notes
+        -----
+
+        For the Cauchy distribution, the suggested hyperparameter is the median
+        :math:`\\theta_0`. For the half-Cauchy distribution, the suggested
+        hyperparameter is the scale :math:`\\gamma`.
+
+        The suggested hyperparameters can be used as initial guess for the
+        optimization of the posterior functions when used with this prior.
+
+        Examples
+        --------
+
+        Create the Cauchy distribution with median :math:`\\theta_0 = 1` and
+        scale :math:`\\gamma=2`.
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.Cauchy(1, 2)
+
+            >>> # Find a feasible hyperparameter value
+            >>> prior.suggest_hyperparam()
+            array([1.])
+
+        The above value is the mean of the distribution.
         """
 
-        # Mediam of distribution (could be used for initial hyperparam guess)
+        # Median of distribution (could be used for initial hyperparam guess)
         if self.half:
             hyperparam_guess = self.scale
         else:
@@ -135,9 +329,63 @@ class Cauchy(Prior):
 
     def pdf(self, x):
         """
-        Returns the log-prior function for an array of hyperparameter. It is
-        assumed that priors for each of hyperparameters are independent. The
-        overall log-prior is the sum of log-prior for each hyperparameter.
+        Probability density function of the prior distribution.
+
+        Parameters
+        ----------
+
+        x : float or array_like[float]
+            Input hyperparameter or an array of hyperparameters.
+
+        Returns
+        -------
+
+        pdf : float or array_like[float]
+            The probability density function of the input hyperparameter(s).
+
+        See Also
+        --------
+
+        :func:`glearn.priors.Prior.log_pdf`
+        :func:`glearn.priors.Cauchy.pdf_jacobian`
+        :func:`glearn.priors.Cauchy.pdf_hessian`
+
+        Notes
+        -----
+
+        The probability density function is
+
+        .. math::
+
+            p(\\theta \\vert \\theta_0, \\gamma) = \\frac{1}{\\pi \\gamma}
+            \\frac{1}{z}.
+
+        where
+
+        .. math::
+
+            z = 1 + \\left( \\frac{\\theta - \\theta_0}{\\gamma}\\right)^2.
+
+        If ``half`` is `True`, the above function is doubled.
+
+        When an array of hyperparameters are given, it is assumed that prior
+        for each hyperparameter is independent of others.
+
+        Examples
+        --------
+
+        Create the Cauchy distribution with median :math:`\\theta_0 = 1` and
+        scale :math:`\\gamma=2`.
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.Cauchy(1, 2)
+
+            >>> # Evaluate PDF function at multiple locations
+            >>> t = [0, 0.5, 1]
+            >>> prior.pdf(t)
+            array([0.12732395, 0.14979289, 0.15915494])
         """
 
         # Convert x or self.scale to arrays of the same size
@@ -148,6 +396,9 @@ class Cauchy(Prior):
             k = 1.0 + ((x[i]-median[i])/scale[i])**2
             pdf_[i] = 1.0 / (scale[i] * numpy.pi * k)
 
+        if self.half:
+            pdf_ = 2.0*pdf_
+
         return pdf_
 
     # ============
@@ -156,8 +407,65 @@ class Cauchy(Prior):
 
     def pdf_jacobian(self, x):
         """
-        Returns the first derivative of log-prior function for an array of
-        hyperparameter input.
+        Jacobian of the probability density function of the prior distribution.
+
+        Parameters
+        ----------
+
+        x : float or array_like[float]
+            Input hyperparameter or an array of hyperparameters.
+
+        Returns
+        -------
+
+        jac : float or array_like[float]
+            The Jacobian of the probability density function of the input
+            hyperparameter(s).
+
+        See Also
+        --------
+
+        :func:`glearn.priors.Prior.log_pdf_jacobian`
+        :func:`glearn.priors.Cauchy.pdf`
+        :func:`glearn.priors.Cauchy.pdf_hessian`
+
+        Notes
+        -----
+
+        The first derivative of the probability density function is
+
+        .. math::
+
+            \\frac{\\mathrm{d}}{\\mathrm{d}\\theta}
+            p(\\theta \\vert \\theta_0, \\gamma) = \\frac{1}{\\pi \\gamma^3}
+            \\frac{-2\\theta}{z^2}.
+
+        where
+
+        .. math::
+
+            z = 1 + \\left( \\frac{\\theta - \\theta_0}{\\gamma}\\right)^2
+
+        If ``half`` is `True`, the above function is doubled.
+
+        When an array of hyperparameters are given, it is assumed that prior
+        for each hyperparameter is independent of others.
+
+        Examples
+        --------
+
+        Create the Cauchy distribution with median :math:`\\theta_0 = 1` and
+        scale :math:`\\gamma=2`.
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.Cauchy(1, 2)
+
+            >>> # Evaluate the Jacobian of the PDF
+            >>> t = [0, 0.5, 1]
+            >>> prior.pdf_jacobian(t)
+            array([-0.        , -0.03524539, -0.07957747])
         """
 
         # Convert x or self.scale to arrays of the same size
@@ -169,6 +477,9 @@ class Cauchy(Prior):
             k = 1.0 + ((x[i]-median[i])/scale[i])**2
             pdf_jacobian_[i] = -2.0*x[i] / (scale[i]**3 * numpy.pi * k**2)
 
+        if self.half:
+            pdf_jacobian_ = 2.0*pdf_jacobian_
+
         return pdf_jacobian_
 
     # ===========
@@ -177,8 +488,68 @@ class Cauchy(Prior):
 
     def pdf_hessian(self, x):
         """
-        Returns the second derivative of log-prior function for an array of
-        hyperparameter input.
+        Hessian of the probability density function of the prior distribution.
+
+        Parameters
+        ----------
+
+        x : float or array_like[float]
+            Input hyperparameter or an array of hyperparameters.
+
+        Returns
+        -------
+
+        hess : float or array_like[float]
+            The Hessian of the probability density function of the input
+            hyperparameter(s).
+
+        See Also
+        --------
+
+        :func:`glearn.priors.Prior.log_pdf_hessian`
+        :func:`glearn.priors.Cauchy.pdf`
+        :func:`glearn.priors.Cauchy.pdf_jacobian`
+
+        Notes
+        -----
+
+        The second derivative of the probability density function is
+
+        .. math::
+
+            \\frac{\\mathrm{d}^2}{\\mathrm{d}\\theta^2}
+            p(\\theta \\vert \\theta_0, \\gamma) =
+            \\frac{8 \\theta^2}{\\pi \\gamma^5 z^3} -
+            \\frac{2}{\\pi \\gamma^3 z^2},
+
+        where
+
+        .. math::
+
+            z = 1 + \\left( \\frac{\\theta - \\theta_0}{\\gamma}\\right)^2
+
+        If ``half`` is `True`, the above function is doubled.
+
+        When an array of hyperparameters are given, it is assumed that prior
+        for each hyperparameter is independent of others.
+
+        Examples
+        --------
+
+        Create the Cauchy distribution with median :math:`\\theta_0 = 1` and
+        scale :math:`\\gamma=2`.
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.Cauchy(1, 2)
+
+            >>> # Evaluate the Hessian of the PDF
+            >>> t = [0, 0.5, 1]
+            >>> prior.pdf_hessian(t)
+            array([[-0.05092958,  0.        ,  0.        ],
+                   [ 0.        , -0.05390471,  0.        ],
+                   [ 0.        ,  0.        ,  0.        ]])
         """
 
         # Convert x or self.scale to arrays of the same size
@@ -191,5 +562,8 @@ class Cauchy(Prior):
             pdf_hessian_[i, i] = 8.0*x[i]**2 / \
                 (scale[i]**5 * numpy.pi * k**3) - \
                 2.0 / (scale[i]**3 * numpy.pi * k**2)
+
+        if self.half:
+            pdf_hessian_ = 2.0*pdf_hessian_
 
         return pdf_hessian_

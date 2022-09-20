@@ -20,7 +20,7 @@
          Uniform.pdf_hessian
          Uniform.pdf_jacobian
          Uniform.plot
-         Uniform.suggest_hyperparam_guess
+         Uniform.suggest_hyperparam
       
   
 

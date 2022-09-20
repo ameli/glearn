@@ -24,6 +24,162 @@ __all__ = ['Normal']
 class Normal(Prior):
     """
     Normal distribution.
+
+    .. note::
+
+        For the methods of this class, see the base class
+        :class:`glearn.priors.Prior`.
+
+    Parameters
+    ----------
+
+    mean : float or array_like[float], default=0.0
+        The mean :math:`\\mu` of normal distribution. If an array
+        :math:`\\boldsymbol{\\mu} = (\\mu_1, \\dots, \\mu_p)` is given, the
+        prior is assumed to be :math:`p` independent normal distributions each
+        with mean :math:`\\mu_i`.
+
+    std : float or array_like[float], default=1.0
+        The standard deviation :math:`\\sigma` of normal distribution. If an
+        array :math:`\\boldsymbol{\\sigma} = (\\sigma_1, \\dots, \\sigma_p)` is
+        given, the prior is assumed to be :math:`p` independent normal
+        distributions each with standard deviation :math:`\\sigma_i`.
+
+    half : bool, default=False
+        If `True`, the prior is the half-normal distribution.
+
+    Attributes
+    ----------
+
+    mean : float or array_like[float], default=0
+        Mean of the distribution
+
+    std : float or array_like[float], default=0
+        Standard deviation of the distribution
+
+    Methods
+    -------
+
+    suggest_hyperparam
+    pdf
+    pdf_jacobian
+    pdf_hessian
+
+    See Also
+    --------
+
+    glearn.priors.Prior
+
+    Notes
+    -----
+
+    **Single Hyperparameter:**
+
+    The normal distribution :math:`\\mathcal{N}(\\mu, \\sigma^2)` is defined by
+    the probability density function
+
+    .. math::
+
+        p(\\theta \\vert \\mu, \\sigma^2) = \\frac{1}{\\sigma \\sqrt{2 \\pi}}
+        e^{-\\frac{1}{2}z^2},
+
+    where
+
+    .. math::
+
+        z = \\frac{\\theta - \\mu}{\\sigma}.
+
+    If ``half`` is `True`, the prior is the half-normal distribution for
+    :math:`\\theta \\geq 0` is
+
+    .. math::
+
+        p(\\theta \\vert \\mu, \\sigma^2) =
+        \\frac{\\sqrt{2}}{\\sigma \\sqrt{\\pi}} e^{-\\frac{1}{2}z^2},
+
+    **Multiple Hyperparameters:**
+
+    If an array of the hyperparameters are given, namely
+    :math:`\\boldsymbol{\\theta} = (\\theta_1, \\dots, \\theta_p)`, then
+    the prior is the product of independent priors
+
+    .. math::
+
+        p(\\boldsymbol{\\theta}) = p(\\theta_1) \\dots p(\\theta_p).
+
+    In this case, if the input arguments ``mean`` and ``std`` are given as the
+    arrays :math:`\\boldsymbol{\\mu} = (\\mu_1, \\dots, \\mu_p)` and
+    :math:`\\boldsymbol{\\sigma} = (\\sigma_1, \\dots, \\sigma_p)`, each prior
+    :math:`p(\\theta_i)` is defined as the normal distribution
+    :math:`\\mathcal{N}(\\mu_i, \\sigma_i^2)`. In contrary, if ``mean`` and
+    ``sigma`` are given as the scalars :math:`\\mu` and :math:`\\sigma`, then
+    all priors :math:`p(\\theta_i)` are defined as the normal distribution
+    :math:`\\mathcal{N}(\\mu, \\sigma^2)`.
+
+    Examples
+    --------
+
+    **Create Prior Objects:**
+
+    Create the normal distribution :math:`\\mathcal{N}(1, 3^2)`:
+
+    .. code-block:: python
+
+        >>> from glearn import priors
+        >>> prior = priors.Normal(1, 3)
+
+        >>> # Evaluate PDF function at multiple locations
+        >>> t = [0, 0.5, 1]
+        >>> prior.pdf(t)
+        array([0.12579441, 0.13114657, 0.13298076])
+
+        >>> # Evaluate the Jacobian of the PDF
+        >>> prior.pdf_jacobian(t)
+        array([ 0.01397716,  0.00728592, -0.        ])
+
+        >>> # Evaluate the Hessian of the PDF
+        >>> prior.pdf_hessian(t)
+        array([[-0.01242414,  0.        ,  0.        ],
+               [ 0.        , -0.01416707,  0.        ],
+               [ 0.        ,  0.        , -0.01477564]])
+
+        >>> # Evaluate the log-PDF
+        >>> prior.log_pdf(t)
+        -10.812399392266304
+
+        >>> # Evaluate the Jacobian of the log-PDF
+        >>> prior.log_pdf_jacobian(t)
+        array([ -0.        ,  -1.74938195, -23.02585093])
+
+        >>> # Evaluate the Hessian of the log-PDF
+        >>> prior.log_pdf_hessian(t)
+        array([[  -0.58909979,    0.        ,    0.        ],
+               [   0.        ,   -9.9190987 ,    0.        ],
+               [   0.        ,    0.        , -111.92896011]])
+
+        >>> # Plot the distribution and its first and second derivative
+        >>> prior.plot()
+
+    .. image:: ../_static/images/plots/prior_normal.png
+        :align: center
+        :width: 100%
+        :class: custom-dark
+
+    **Where to Use the Prior object:**
+
+    Define a covariance model (see :class:`glearn.Covariance`) where its scale
+    parameter is a prior function.
+
+    .. code-block:: python
+        :emphasize-lines: 7
+
+        >>> # Generate a set of sample points
+        >>> from glearn.sample_data import generate_points
+        >>> points = generate_points(num_points=50)
+
+        >>> # Create covariance object of the points with the above kernel
+        >>> from glearn import covariance
+        >>> cov = glearn.Covariance(points, kernel=kernel, scale=prior)
     """
 
     # ====
@@ -79,13 +235,56 @@ class Normal(Prior):
 
         return mean, std
 
-    # ========================
-    # suggest hyperparam guess
-    # ========================
+    # ==================
+    # suggest hyperparam
+    # ==================
 
-    def suggest_hyperparam_guess(self):
+    def suggest_hyperparam(self):
         """
-        Suggests a guess for the hyperparam based on the prior distribution.
+        Find an initial guess for the hyperparameters based on the peaks of the
+        prior distribution.
+
+        Returns
+        -------
+
+        hyperparam : float or numpy.array[float]
+            A feasible guess for the hyperparameter. The output is either a
+            scalar or an array of the same size as the input parameters of the
+            distribution.
+
+        See Also
+        --------
+
+        glearn.GaussianProcess
+
+        Notes
+        -----
+
+        For the normal distribution :math:`\\mathcal{N}(\\mu, \\sigma^2)`,
+        suggested hyperparameter is the mean :math:`\\mu`.
+
+        If the input arguments ``mean`` is given as an
+        :math:`\\boldsymbol{\\mu} = (\\mu_1, \\dots, \\mu_p)`, then
+        the output of this function is the array :math:`\\boldsymbol{\\mu}`.
+
+        The suggested hyperparameters can be used as initial guess for the
+        optimization of the posterior functions when used with this prior.
+
+        Examples
+        --------
+
+        Create the normal distribution :math:`\\mathcal{N}(1, 3^2)`:
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.Normal(1, 3)
+
+            >>> # Find a feasible hyperparameter value
+            >>> prior.suggest_hyperparam()
+            array([1.])
+
+        The above value is the mean of the distribution.
         """
 
         if self.half:
@@ -136,9 +335,62 @@ class Normal(Prior):
 
     def pdf(self, x):
         """
-        Returns the log-prior function for an array of hyperparameter. It is
-        assumed that priors for each of hyperparameters are independent. The
-        overall log-prior is the sum of log-prior for each hyperparameter.
+        Probability density function of the prior distribution.
+
+        Parameters
+        ----------
+
+        x : float or array_like[float]
+            Input hyperparameter or an array of hyperparameters.
+
+        Returns
+        -------
+
+        pdf : float or array_like[float]
+            The probability density function of the input hyperparameter(s).
+
+        See Also
+        --------
+
+        :func:`glearn.priors.Prior.log_pdf`
+        :func:`glearn.priors.Normal.pdf_jacobian`
+        :func:`glearn.priors.Normal.pdf_hessian`
+
+        Notes
+        -----
+
+        The probability density function is
+
+        .. math::
+
+            p(\\theta \\vert \\mu, \\sigma^2) =
+            \\frac{1}{\\sigma \\sqrt{2 \\pi}} e^{-\\frac{1}{2}z^2},
+
+        where
+
+        .. math::
+
+            z = \\frac{\\theta - \\mu}{\\sigma}.
+
+        If ``half`` is `True`, the above function is doubled.
+
+        When an array of hyperparameters are given, it is assumed that prior
+        for each hyperparameter is independent of others.
+
+        Examples
+        --------
+
+        Create the normal distribution :math:`\\mathcal{N}(1, 3^2)`:
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.Normal(1, 3)
+
+            >>> # Evaluate PDF function at multiple locations
+            >>> t = [0, 0.5, 1]
+            >>> prior.pdf(t)
+            array([0.12579441, 0.13114657, 0.13298076])
         """
 
         # Convert x or self.std to arrays of the same size
@@ -151,6 +403,9 @@ class Normal(Prior):
             k = numpy.exp(-0.5*m**2)
             pdf_[i] = coeff * k
 
+        if self.half:
+            pdf_ = 2.0*pdf_
+
         return pdf_
 
     # ============
@@ -159,8 +414,65 @@ class Normal(Prior):
 
     def pdf_jacobian(self, x):
         """
-        Returns the first derivative of log-prior function for an array of
-        hyperparameter input.
+        Jacobian of the probability density function of the prior distribution.
+
+        Parameters
+        ----------
+
+        x : float or array_like[float]
+            Input hyperparameter or an array of hyperparameters.
+
+        Returns
+        -------
+
+        jac : float or array_like[float]
+            The Jacobian of the probability density function of the input
+            hyperparameter(s).
+
+        See Also
+        --------
+
+        :func:`glearn.priors.Prior.log_pdf_jacobian`
+        :func:`glearn.priors.Normal.pdf`
+        :func:`glearn.priors.Normal.pdf_hessian`
+
+        Notes
+        -----
+
+        The first derivative of the probability density function is
+
+        .. math::
+
+            \\frac{\\mathrm{d}}{\\mathrm{d}\\theta}
+            p(\\theta \\vert \\mu, \\sigma) =
+            -\\frac{1}{\\sigma \\sqrt{2 \\pi}} \\frac{z}{\\sigma}
+            e^{-\\frac{1}{2}z^2},
+
+        where
+
+        .. math::
+
+            z = \\frac{\\theta - \\mu}{\\sigma}.
+
+        If ``half`` is `True`, the above function is doubled.
+
+        When an array of hyperparameters are given, it is assumed that prior
+        for each hyperparameter is independent of others.
+
+        Examples
+        --------
+
+        Create the normal distribution :math:`\\mathcal{N}(1, 3^2)`:
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.Normal(1, 3)
+
+            >>> # Evaluate the Jacobian of the PDF
+            >>> t = [0, 0.5, 1]
+            >>> prior.pdf_jacobian(t)
+            array([ 0.01397716,  0.00728592, -0.        ])
         """
 
         # Convert x or self.std to arrays of the same size
@@ -174,6 +486,9 @@ class Normal(Prior):
             k = numpy.exp(-0.5*m**2)
             pdf_jacobian_[i] = -coeff * m * k / std[i]
 
+        if self.half:
+            pdf_jacobian_ = 2.0*pdf_jacobian_
+
         return pdf_jacobian_
 
     # ===========
@@ -182,8 +497,67 @@ class Normal(Prior):
 
     def pdf_hessian(self, x):
         """
-        Returns the second derivative of log-prior function for an array of
-        hyperparameter input.
+        Hessian of the probability density function of the prior distribution.
+
+        Parameters
+        ----------
+
+        x : float or array_like[float]
+            Input hyperparameter or an array of hyperparameters.
+
+        Returns
+        -------
+
+        hess : float or array_like[float]
+            The Hessian of the probability density function of the input
+            hyperparameter(s).
+
+        See Also
+        --------
+
+        :func:`glearn.priors.Prior.log_pdf_hessian`
+        :func:`glearn.priors.Normal.pdf`
+        :func:`glearn.priors.Normal.pdf_jacobian`
+
+        Notes
+        -----
+
+        The second derivative of the probability density function is
+
+        .. math::
+
+            \\frac{\\mathrm{d}^2}{\\mathrm{d}\\theta^2}
+            p(\\theta \\vert \\mu, \\sigma) =
+            \\frac{1}{\\sigma \\sqrt{2 \\pi}} \\frac{z^2-1}{\\sigma^2}
+            e^{-\\frac{1}{2}z^2},
+
+        where
+
+        .. math::
+
+            z = \\frac{\\theta - \\mu}{\\sigma}.
+
+        If ``half`` is `True`, the above function is doubled.
+
+        When an array of hyperparameters are given, it is assumed that prior
+        for each hyperparameter is independent of others.
+
+        Examples
+        --------
+
+        Create the normal distribution :math:`\\mathcal{N}(1, 3^2)`:
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.Normal(1, 3)
+
+            >>> # Evaluate the Hessian of the PDF
+            >>> t = [0, 0.5, 1]
+            >>> prior.pdf_hessian(t)
+            array([[-0.01242414,  0.        ,  0.        ],
+                   [ 0.        , -0.01416707,  0.        ],
+                   [ 0.        ,  0.        , -0.01477564]])
         """
 
         # Convert x or self.std to arrays of the same size
@@ -196,5 +570,8 @@ class Normal(Prior):
             m = (x[i] - mean[i]) / std[i]
             k = numpy.exp(-0.5*m**2)
             pdf_hessian_[i, i] = coeff * k * (m**2 - 1.0) / std[i]**2
+
+        if self.half:
+            pdf_hessian_ = 2.0*pdf_hessian_
 
         return pdf_hessian_

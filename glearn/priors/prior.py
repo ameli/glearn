@@ -26,6 +26,111 @@ __all__ = ['Prior']
 class Prior(object):
     """
     Base class for prior distributions.
+    
+    .. warning::
+
+        This class is a base class and does not implement a kernel function.
+        Use the derivative of this class instead.
+
+    Attributes
+    ----------
+
+    use_log_scale : bool, default=True
+        If `True`, the input argument to the functions is assumed to be the
+        logarithm of the hyperparameter :math:`\\theta`. If `False`, the
+        input argument to the functions is assumed to be the hyperparameter
+        :math:`\\theta`.
+
+    half : bool, default=False
+        If `True`, the probability distribution is assumed to be the
+        half-distribution.
+
+    Methods
+    -------
+
+    log_pdf
+    log_pdf_jacobian
+    log_pdf_hessian
+    plot
+
+    See Also
+    --------
+
+    glearn.priors.Uniform
+    glearn.priors.Normal
+    glearn.priors.StudentT
+    glearn.priors.Cauchy
+    glearn.priors.Gamma
+    glearn.priors.InverseGamma
+    glearn.priors.Erlang
+    glearn.priors.BetaPrime
+
+    Examples
+    --------
+
+    **Create Prior Objects:**
+
+    Create the inverse Gamma distribution (see
+    :class:`glearn.priors.InverseGamma`) with the shape parameter
+    :math:`\\alpha=4` and rate parameter :math:`\\beta=2`.
+
+    .. code-block:: python
+
+        >>> from glearn import priors
+        >>> prior = priors.InverseGamma(4, 2)
+
+        >>> # Evaluate PDF function at multiple locations
+        >>> t = [0, 0.5, 1]
+        >>> prior.pdf(t)
+        array([       nan, 1.56293452, 0.36089409])
+
+        >>> # Evaluate the Jacobian of the PDF
+        >>> prior.pdf_jacobian(t)
+        array([        nan, -3.12586904, -1.08268227])
+
+        >>> # Evaluate the Hessian of the PDF
+        >>> prior.pdf_hessian(t)
+        array([[         nan,   0.        ,   0.        ],
+               [  0.        , -12.50347615,   0.        ],
+               [  0.        ,   0.        ,   3.60894089]])
+
+        >>> # Evaluate the log-PDF
+        >>> prior.log_pdf(t)
+        -17.15935597045384
+
+        >>> # Evaluate the Jacobian of the log-PDF
+        >>> prior.log_pdf_jacobian(t)
+        array([ -6.90775528, -10.05664278, -11.05240845])
+
+        >>> # Evaluate the Hessian of the log-PDF
+        >>> prior.log_pdf_hessian(t)
+        array([[-10.60379622,   0.        ,   0.        ],
+               [  0.        ,  -3.35321479,   0.        ],
+               [  0.        ,   0.        ,  -1.06037962]])
+
+        >>> # Plot the distribution and its first and second derivative
+        >>> prior.plot()
+
+    .. image:: ../_static/images/plots/prior_inverse_gamma.png
+        :align: center
+        :width: 100%
+        :class: custom-dark
+
+    **Where to Use the Prior object:**
+
+    Define a covariance model (see :class:`glearn.Covariance`) where its scale
+    parameter is a prior function.
+
+    .. code-block:: python
+        :emphasize-lines: 7
+
+        >>> # Generate a set of sample points
+        >>> from glearn.sample_data import generate_points
+        >>> points = generate_points(num_points=50)
+
+        >>> # Create covariance object of the points with the above kernel
+        >>> from glearn import covariance
+        >>> cov = glearn.Covariance(points, kernel=kernel, scale=prior)
     """
 
     def __init__(self, half=False):
@@ -91,7 +196,73 @@ class Prior(object):
 
     def log_pdf(self, hyperparam):
         """
-        Returns the log of probability distribution function.
+        Logarithm of the probability density function of the prior
+        distribution.
+
+        Parameters
+        ----------
+
+        x : float or array_like[float]
+            Input hyperparameter or an array of hyperparameters.
+
+        Returns
+        -------
+
+        pdf : float or array_like[float]
+            The logarithm of probability density function of the input
+            hyperparameter(s).
+
+        See Also
+        --------
+
+        :func:`glearn.priors.Prior.log_pdf_jacobian`
+        :func:`glearn.priors.Prior.log_pdf_hessian`
+
+        Notes
+        -----
+
+        This function returns :math:`\log p(\\theta)`.
+
+        **Using Log Scale:**
+
+        If the attribute ``use_log_scale`` is `True`, it is assumed that the
+        input argument :math:`\\theta` is the log of the hyperparameter, and
+        the input to :math:`p(\\theta)` function becomes
+
+          .. math::
+
+            \\theta \\gets 10^{\\theta}.
+        
+        **Multiple hyperparameters:**
+
+        When an array of hyperparameters :math:`\\boldsymbol{\\theta} =
+        (\\theta_, \\dots, \\theta_n)` are given, it is assumed that prior
+        for each hyperparameter is independent of others.
+
+        .. math::
+
+            p(\\boldsymbol{\\theta}) = \\prod_{i=1}^n p(\\theta_i)
+
+        The output of this function is then the sum of all log-probabilities
+
+        .. math::
+
+            \\sum_{i=1}^n \\log p(\\theta_i).
+
+        Examples
+        --------
+
+        Create the inverse Gamma distribution with the shape parameter
+        :math:`\\alpha=4` and rate parameter :math:`\\beta=2`.
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.InverseGamma(4, 2)
+
+            >>> # Evaluate the log-PDF
+            >>> prior.log_pdf(t)
+            -17.15935597045384
         """
 
         # Convert hyperparam from log to non-log.
@@ -107,9 +278,6 @@ class Prior(object):
         # Take log of the product of all distributions
         log_pdf_ = numpy.sum(numpy.log(pdf_))
 
-        if self.half:
-            log_pdf_ += numpy.log(2.0)
-
         return log_pdf_
 
     # ================
@@ -118,8 +286,77 @@ class Prior(object):
 
     def log_pdf_jacobian(self, hyperparam):
         """
-        Returns the Jacobian of prior probability density function either
-        with respect to the hyperparam or the log of hyperparam.
+        Jacobian of the logarithm of the probability density function of the
+        prior distribution.
+
+        Parameters
+        ----------
+
+        x : float or array_like[float]
+            Input hyperparameter or an array of hyperparameters.
+
+        Returns
+        -------
+
+        jac : float or array_like[float]
+            The Jacobian of the logarithm of probability density function of
+            the input hyperparameter(s).
+
+        See Also
+        --------
+
+        :func:`glearn.priors.Prior.log_pdf`
+        :func:`glearn.priors.Prior.log_pdf_hessian`
+
+        Notes
+        -----
+
+        The output of this function is
+
+        .. math::
+
+            \\frac{\\mathrm{d}}{\\mathrm{d} \\theta} 
+            \\log p(\\theta) =
+            \\frac{1}{(\\theta)} 
+            \\frac{\\mathrm{d}p(\\theta)}{\\mathrm{d} \\theta}.
+
+        **Using Log Scale:**
+
+        If the attribute ``use_log_scale`` is `True`, it is assumed that the
+        input argument :math:`\\theta` is the l<F4>o
+        g of the hyperparameter, and
+        the input to :math:`p(\\theta)` function becomes
+
+        .. math::
+
+            \\theta \\gets 10^{\\theta}.
+        
+        **Multiple hyperparameters:**
+
+        When an array of hyperparameters :math:`\\boldsymbol{\\theta} =
+        (\\theta_, \\dots, \\theta_n)` are given, it is assumed that prior
+        for each hyperparameter is independent of others. The output of this
+        function is the vector :math:`\\boldsymbol{J}` with the components
+        :math:`J_i` as
+
+        .. math::
+
+            J_i=\\frac{\\mathrm{d}}{\\mathrm{d} \\theta_i} \\log p(\\theta_i).
+
+        Examples
+        --------
+
+        Create the inverse Gamma distribution with the shape parameter
+        :math:`\\alpha=4` and rate parameter :math:`\\beta=2`.
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.InverseGamma(4, 2)
+
+            >>> # Evaluate the Jacobian of the log-PDF
+            >>> prior.log_pdf_jacobian(t)
+            array([ -6.90775528, -10.05664278, -11.05240845])
         """
 
         # Convert hyperparam from log to non-log (if needed)
@@ -152,8 +389,78 @@ class Prior(object):
 
     def log_pdf_hessian(self, hyperparam):
         """
-        Returns the Hessian of prior probability density function either
-        with respect to the hyperparam or the log of hyperparam.
+        Hessian of the logarithm of the probability density function of the
+        prior distribution.
+
+        Parameters
+        ----------
+
+        x : float or array_like[float]
+            Input hyperparameter or an array of hyperparameters.
+
+        Returns
+        -------
+
+        hess : float or array_like[float]
+            The Hessian of the logarithm of probability density function of
+            the input hyperparameter(s).
+
+        See Also
+        --------
+
+        :func:`glearn.priors.Prior.log_pdf`
+        :func:`glearn.priors.Prior.log_pdf_jacobian`
+
+        Notes
+        -----
+
+        The output of this function is
+
+        .. math::
+
+            \\frac{\\mathrm{d}^2}{\\mathrm{d} \\theta^2} 
+            \\log p(\\theta) =
+            \\frac{1}{(\\theta)} 
+            \\frac{\\mathrm{d}p(\\theta)}{\\mathrm{d} \\theta}.
+
+        **Using Log Scale:**
+
+        If the attribute ``use_log_scale`` is `True`, it is assumed that the
+        input argument :math:`\\theta` is the log of the hyperparameter, and
+        the input to :math:`p(\\theta)` function becomes
+
+          .. math::
+
+            \\theta \\gets 10^{\\theta}.
+        
+        **Multiple hyperparameters:**
+
+        When an array of hyperparameters :math:`\\boldsymbol{\\theta} =
+        (\\theta_, \\dots, \\theta_n)` are given, it is assumed that prior
+        for each hyperparameter is independent of others. The output of this
+        function is then the matrix :math:`\\mathbf{J}` with the components
+        :math:`J_i` as
+
+        .. math::
+
+            \\sum_{i=1}^n
+            \\frac{\\mathrm{d}}{\\mathrm{d} \\theta_i} 
+            \\log p(\\theta_i).
+
+        Examples
+        --------
+
+        Create the inverse Gamma distribution with the shape parameter
+        :math:`\\alpha=4` and rate parameter :math:`\\beta=2`.
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.InverseGamma(4, 2)
+
+            >>> # Evaluate the Jacobian of the log-PDF
+            >>> prior.log_pdf_jacobian(t)
+            array([ -6.90775528, -10.05664278, -11.05240845])
         """
 
         # Convert hyperparam from log to non-log (if needed)
@@ -199,7 +506,7 @@ class Prior(object):
     # plot
     # ====
 
-    def plot(self, x_range=[0, 2], log_scale=False, compare_numerical=False):
+    def plot(self, interval=[0, 2], log_scale=False, compare_numerical=False):
         """
         Plots the distribution.
         """
@@ -207,24 +514,25 @@ class Prior(object):
         load_plot_settings()
 
         # Check range
-        if not isinstance(x_range, (list, tuple)):
-            raise TypeError('"x_range" should be a list or a tuple')
-        elif len(x_range) != 2:
-            raise ValueError('"x_range" should be 1d array of size 2.')
-        elif x_range[0] >= x_range[1]:
-            raise ValueError('"x_range[0]" should be less than "x_range[1]".')
+        if not isinstance(interval, (list, tuple)):
+            raise TypeError('"interval" should be a list or a tuple')
+        elif len(interval) != 2:
+            raise ValueError('"interval" should be 1d array of size 2.')
+        elif interval[0] >= interval[1]:
+            raise ValueError('"interval[0]" should be less than ' +
+                             '"interval[1]".')
 
         # Avoid plotting from origin in log-scale x-axis
-        if log_scale and x_range[0] == 0.0:
-            x_range[0] = numpy.min([(x_range[1] - x_range[0]) * 1e-2, 1e-2])
+        if log_scale and interval[0] == 0.0:
+            interval[0] = numpy.min([(interval[1] - interval[0]) * 1e-2, 1e-2])
 
         # Abscissa
         num_points = 200
         if log_scale:
-            x = numpy.logspace(numpy.log10(x_range[0]),
-                               numpy.log10(x_range[1]), num_points)
+            x = numpy.logspace(numpy.log10(interval[0]),
+                               numpy.log10(interval[1]), num_points)
         else:
-            x = numpy.linspace(x_range[0], x_range[1], num_points)
+            x = numpy.linspace(interval[0], interval[1], num_points)
 
         # Convert x to log of x (if enabled by log_scale)
         if log_scale:
@@ -299,9 +607,9 @@ class Prior(object):
         ax[0].set_title('Probability Density Function (PDF)')
         ax[1].set_title('First derivative of PDF')
         ax[2].set_title('Second derivative of PDF')
-        ax[0].set_xlim([x_range[0], x_range[1]])
-        ax[1].set_xlim([x_range[0], x_range[1]])
-        ax[2].set_xlim([x_range[0], x_range[1]])
+        ax[0].set_xlim([interval[0], interval[1]])
+        ax[1].set_xlim([interval[0], interval[1]])
+        ax[2].set_xlim([interval[0], interval[1]])
         ax[0].grid(True, which='both')
         ax[1].grid(True, which='both')
         ax[2].grid(True, which='both')

@@ -20,7 +20,7 @@
          InverseGamma.pdf_hessian
          InverseGamma.pdf_jacobian
          InverseGamma.plot
-         InverseGamma.suggest_hyperparam_guess
+         InverseGamma.suggest_hyperparam
       
   
 

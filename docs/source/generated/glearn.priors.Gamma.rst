@@ -20,7 +20,7 @@
          Gamma.pdf_hessian
          Gamma.pdf_jacobian
          Gamma.plot
-         Gamma.suggest_hyperparam_guess
+         Gamma.suggest_hyperparam
       
   
 

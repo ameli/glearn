@@ -20,7 +20,7 @@
          Cauchy.pdf_hessian
          Cauchy.pdf_jacobian
          Cauchy.plot
-         Cauchy.suggest_hyperparam_guess
+         Cauchy.suggest_hyperparam
       
   
 

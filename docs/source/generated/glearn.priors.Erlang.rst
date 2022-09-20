@@ -20,7 +20,7 @@
          Erlang.pdf_hessian
          Erlang.pdf_jacobian
          Erlang.plot
-         Erlang.suggest_hyperparam_guess
+         Erlang.suggest_hyperparam
       
   
 
