@@ -631,9 +631,10 @@ span.prompt1:before {
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api.html#functions">Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#linear-operators">Linear Operators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#sample-matrices">Sample Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#linear-model">Linear Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#kernels">Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#prior-distributions">Prior Distributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#sample-data">Sample Data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#device-inquiry">Device Inquiry</a></li>
 </ul>
 </li>
@@ -695,10 +696,16 @@ span.prompt1:before {
 <h2>Features<a class="headerlink" href="#features" title="Permalink to this heading">#</a></h2>
 <ul class="simple">
 <li><p>Matrices can be dense or sparse (<cite>CSR</cite> or <cite>CSC</cite> format), with 32-bit, 64-bit, or 128-bit data types, and stored either by row-ordering (<cite>C</cite> style) or column-ordering (<cite>Fortran</cite> style).</p></li>
-<li><p>Matrices can be <strong>linear operators</strong> with parameters (see <a class="reference internal" href="generated/imate.Matrix.html#imate.Matrix" title="imate.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">imate.Matrix</span></code></a> and <a class="reference internal" href="generated/imate.AffineMatrixFunction.html#imate.AffineMatrixFunction" title="imate.AffineMatrixFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">imate.AffineMatrixFunction</span></code></a> classes).</p></li>
+<li><p>Matrices can be <strong>linear operators</strong> with parameters (see <code class="xref py py-class docutils literal notranslate"><span class="pre">imate.Matrix</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">imate.AffineMatrixFunction</span></code> classes).</p></li>
 <li><p><strong>Randomized algorithms</strong> using Hutchinson and stochastic Lanczos quadrature algorithms (see <a class="reference internal" href="overview.html#overview"><span class="std std-ref">Overview</span></a>)</p></li>
 <li><p>Novel method to <strong>interpolate</strong> matrix functions. See <a class="reference internal" href="performance/interpolation.html#interpolation"><span class="std std-ref">Interpolation of Affine Matrix Functions</span></a>.</p></li>
 <li><p>Parallel processing both on <strong>shared memory</strong> and CUDA Capable <strong>multi-GPU</strong> devices.</p></li>
+<li><p>GPU, parallel</p></li>
+<li><p>Sparse covariance</p></li>
+<li><p>Mixed covariance model, object</p></li>
+<li><p>Jacobian and Hessian based optimization</p></li>
+<li><p>Learn hyperparameters in reduced space (profile likelihood)</p></li>
+<li><p>Prediction in Dual, O(n)</p></li>
 </ul>
 </section>
 <section id="technical-notes">

@@ -47,13 +47,11 @@
     <script src="_static/js/custom-pydata.js"></script>
     <script src="_static/design-tabs.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/custom-pydata.css"></script>
     <link rel="shortcut icon" href="_static/logo-glearn.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="imate.logdet" href="generated/imate.logdet.html" />
+    <link rel="next" title="glearn.LinearModel" href="generated/glearn.LinearModel.html" />
     <link rel="prev" title="3. Using GPU Devices" href="tutorials/gpu.html" />
     <script defer data-domain="docs.scipy.org" src="https://views.scientific-python.org/js/script.js"></script>
 
@@ -202,19 +200,7 @@
     
     <p aria-level="2" class="caption" role="heading">
  <span class="caption-text">
-  logdet
- </span>
-</p>
-<ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.logdet.html">
-   imate.logdet
-  </a>
- </li>
-</ul>
-<p aria-level="2" class="caption" role="heading">
- <span class="caption-text">
-  Classes
+  Linear Model
  </span>
 </p>
 <ul class="nav bd-sidenav">
@@ -236,38 +222,107 @@
 </ul>
 <p aria-level="2" class="caption" role="heading">
  <span class="caption-text">
-  Sample Matrices
+  Kernels
  </span>
 </p>
 <ul class="nav bd-sidenav">
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.correlation_matrix.html">
-   imate.correlation_matrix
+  <a class="reference internal" href="generated/glearn.kernels.Kernel.html">
+   glearn.kernels.Kernel
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.toeplitz.html">
-   imate.toeplitz
+  <a class="reference internal" href="generated/glearn.kernels.Exponential.html">
+   glearn.kernels.Exponential
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.sample_matrices.toeplitz_logdet.html">
-   imate.sample_matrices.toeplitz_logdet
+  <a class="reference internal" href="generated/glearn.kernels.SquareExponential.html">
+   glearn.kernels.SquareExponential
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.sample_matrices.toeplitz_trace.html">
-   imate.sample_matrices.toeplitz_trace
+  <a class="reference internal" href="generated/glearn.kernels.Linear.html">
+   glearn.kernels.Linear
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.sample_matrices.toeplitz_traceinv.html">
-   imate.sample_matrices.toeplitz_traceinv
+  <a class="reference internal" href="generated/glearn.kernels.RationalQuadratic.html">
+   glearn.kernels.RationalQuadratic
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.sample_matrices.toeplitz_schatten.html">
-   imate.sample_matrices.toeplitz_schatten
+  <a class="reference internal" href="generated/glearn.kernels.Matern.html">
+   glearn.kernels.Matern
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Prior Distributions
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="generated/glearn.priors.Prior.html">
+   glearn.priors.Prior
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="generated/glearn.priors.Uniform.html">
+   glearn.priors.Uniform
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="generated/glearn.priors.Normal.html">
+   glearn.priors.Normal
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="generated/glearn.priors.Cauchy.html">
+   glearn.priors.Cauchy
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="generated/glearn.priors.StudentT.html">
+   glearn.priors.StudentT
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="generated/glearn.priors.Erlang.html">
+   glearn.priors.Erlang
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="generated/glearn.priors.Gamma.html">
+   glearn.priors.Gamma
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="generated/glearn.priors.InverseGamma.html">
+   glearn.priors.InverseGamma
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="generated/glearn.priors.BetaPrime.html">
+   glearn.priors.BetaPrime
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Sample Data
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="generated/glearn.sample_data.generate_points.html">
+   glearn.sample_data.generate_points
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="generated/glearn.sample_data.generate_data.html">
+   glearn.sample_data.generate_data
   </a>
  </li>
 </ul>
@@ -278,55 +333,55 @@
 </p>
 <ul class="nav bd-sidenav">
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.Timer.html">
-   imate.Timer
+  <a class="reference internal" href="generated/glearn.Timer.html">
+   glearn.Timer
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.Memory.html">
-   imate.Memory
+  <a class="reference internal" href="generated/glearn.Memory.html">
+   glearn.Memory
   </a>
  </li>
 </ul>
 <ul class="nav bd-sidenav">
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.info.html">
-   imate.info
+  <a class="reference internal" href="generated/glearn.info.html">
+   glearn.info
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.device.get_processor_name.html">
-   imate.device.get_processor_name
+  <a class="reference internal" href="generated/glearn.device.get_processor_name.html">
+   glearn.device.get_processor_name
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.device.get_gpu_name.html">
-   imate.device.get_gpu_name
+  <a class="reference internal" href="generated/glearn.device.get_gpu_name.html">
+   glearn.device.get_gpu_name
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.device.get_num_cpu_threads.html">
-   imate.device.get_num_cpu_threads
+  <a class="reference internal" href="generated/glearn.device.get_num_cpu_threads.html">
+   glearn.device.get_num_cpu_threads
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.device.get_num_gpu_devices.html">
-   imate.device.get_num_gpu_devices
+  <a class="reference internal" href="generated/glearn.device.get_num_gpu_devices.html">
+   glearn.device.get_num_gpu_devices
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.device.get_nvidia_driver_version.html">
-   imate.device.get_nvidia_driver_version
+  <a class="reference internal" href="generated/glearn.device.get_nvidia_driver_version.html">
+   glearn.device.get_nvidia_driver_version
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.device.locate_cuda.html">
-   imate.device.locate_cuda
+  <a class="reference internal" href="generated/glearn.device.locate_cuda.html">
+   glearn.device.locate_cuda
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="generated/imate.device.restrict_to_single_processor.html">
-   imate.device.restrict_to_single_processor
+  <a class="reference internal" href="generated/glearn.device.restrict_to_single_processor.html">
+   glearn.device.restrict_to_single_processor
   </a>
  </li>
 </ul>
@@ -355,27 +410,23 @@
 <nav id="bd-toc-nav">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#functions">
-   Functions
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#log-determinant">
-     Log-Determinant
-    </a>
-    <ul class="nav section-nav flex-column">
-    </ul>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#linear-operators">
-   Linear Operators
+  <a class="reference internal nav-link" href="#linear-model">
+   Linear Model
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#sample-matrices">
-   Sample Matrices
+  <a class="reference internal nav-link" href="#kernels">
+   Kernels
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#prior-distributions">
+   Prior Distributions
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#sample-data">
+   Sample Data
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
@@ -415,47 +466,19 @@
 <span id="api"></span><h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this heading">#</a></h1>
 <p>The API reference contains:</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#functions"><span class="std std-ref">Functions</span></a>: compute log-determinant and trace of functions
+<li><p><span class="xref std std-ref">Functions</span>: compute log-determinant and trace of functions
 of matrices.</p></li>
 <li><p><span class="xref std std-ref">Interpolators</span>: interpolate functions of one-parameter
 family of affine matrix functions.</p></li>
-<li><p><a class="reference internal" href="#linear-operators"><span class="std std-ref">Linear Operators</span></a>: classes that represent matrices
+<li><p><span class="xref std std-ref">Linear Operators</span>: classes that represent matrices
 and affine matrix functions.</p></li>
-<li><p><a class="reference internal" href="#sample-matrices"><span class="std std-ref">Sample Matrices</span></a>: generate matrices for test
+<li><p><span class="xref std std-ref">Sample Matrices</span>: generate matrices for test
 purposes.</p></li>
 <li><p><a class="reference internal" href="#device-inquiry"><span class="std std-ref">Device Inquiry</span></a>: inquiry information about CPU and GPU devices.</p></li>
 </ul>
-<section id="functions">
-<span id="id1"></span><h2>Functions<a class="headerlink" href="#functions" title="Permalink to this heading">#</a></h2>
-<p>The functions of this package are:</p>
-<ul class="simple">
-<li><p><a class="reference internal" href="#log-determinant"><span class="std std-ref">Log-Determinant</span></a>: computes log-determinant of matrix.</p></li>
-<li><p><span class="xref std std-ref">Trace of Inverses</span>: computes trace of the inverse of
-a matrix or any negative power of the matrix.</p></li>
-<li><p><span class="xref std std-ref">Trace</span>: computes the trace of matrix or any positive power of
-the matrix.</p></li>
-<li><p><span class="xref std std-ref">Schatten Norm</span>: computes the Schatten norm of order
-<span class="math notranslate nohighlight">\(p\)</span>, which includes the above three functions.</p></li>
-</ul>
-<p>Each of the above functions are implemented using both direct and randomized algorithms, suitable for various matrices sizes.</p>
-<section id="log-determinant">
-<span id="id2"></span><h3>Log-Determinant<a class="headerlink" href="#log-determinant" title="Permalink to this heading">#</a></h3>
-<table class="autosummary longtable table autosummary">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/imate.logdet.html#imate.logdet" title="imate.logdet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.logdet</span></code></a>(A[, gram, p, return_info, method])</p></td>
-<td><p>Log-determinant of non-singular matrix or linear operator.</p></td>
-</tr>
-</tbody>
-</table>
-<p>This function computes the log-determinant of <span class="math notranslate nohighlight">\(\mathbf{A}^p\)</span> or the Gramian matrix <span class="math notranslate nohighlight">\((\mathbf{A}^{\intercal} \mathbf{A})^p\)</span> where <span class="math notranslate nohighlight">\(p\)</span> is a real exponent.</p>
-<p>The <cite>imate.logdet</cite> function has the following methods:</p>
-<div class="toctree-wrapper compound">
-</div>
-</section>
-</section>
-<section id="linear-operators">
-<span id="id3"></span><h2>Linear Operators<a class="headerlink" href="#linear-operators" title="Permalink to this heading">#</a></h2>
-<p>Create linear operator objects as container for various matrix types with a unified interface, establish a fully automatic dynamic buffer to allocate, deallocate, and transfer data between CPU and multiple GPU devices on demand, as well as perform basic matrix-vector operations with high performance on both CPU or GPU devices. These objects can be passed to <span class="synco">g-learn</span> functions as input matrices.</p>
+<section id="linear-model">
+<span id="id1"></span><h2>Linear Model<a class="headerlink" href="#linear-model" title="Permalink to this heading">#</a></h2>
+<p>Define a customized linear model by creating modular objects representing correlation, covariance, mean, and a Gaussian process prior.</p>
 <table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/glearn.LinearModel.html#glearn.LinearModel" title="glearn.LinearModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.LinearModel</span></code></a>(points[, ...])</p></td>
@@ -470,41 +493,90 @@ the matrix.</p></li>
 </tbody>
 </table>
 </section>
-<section id="sample-matrices">
-<span id="id4"></span><h2>Sample Matrices<a class="headerlink" href="#sample-matrices" title="Permalink to this heading">#</a></h2>
-<p>Generate sample matrices for test purposes, such as correlation matrix and Toeplitz matrix. The matrix functions of Toeplitz matrix (such as its log-determinant, trace of its inverse, etc) are known analytically, making Toeplitz matrix suitable for benchmarking the result of randomized methods with analytical solutions.</p>
+<section id="kernels">
+<span id="id2"></span><h2>Kernels<a class="headerlink" href="#kernels" title="Permalink to this heading">#</a></h2>
+<p>Defines various kernel functions for the covariance model.</p>
 <table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/imate.correlation_matrix.html#imate.correlation_matrix" title="imate.correlation_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.correlation_matrix</span></code></a>([size, dimension, ...])</p></td>
-<td><p>Generate symmetric and positive-definite matrix for test purposes.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/glearn.kernels.Kernel.html#glearn.kernels.Kernel" title="glearn.kernels.Kernel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.kernels.Kernel</span></code></a></p></td>
+<td><p>Base class of kernel functions.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/imate.toeplitz.html#imate.toeplitz" title="imate.toeplitz"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.toeplitz</span></code></a>(a, b[, size, gram, format, dtype])</p></td>
-<td><p>Generate a sparse Toeplitz matrix for test purposes.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/glearn.kernels.Exponential.html#glearn.kernels.Exponential" title="glearn.kernels.Exponential"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.kernels.Exponential</span></code></a></p></td>
+<td><p>Exponential kernel.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/imate.sample_matrices.toeplitz_logdet.html#imate.sample_matrices.toeplitz_logdet" title="imate.sample_matrices.toeplitz_logdet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.sample_matrices.toeplitz_logdet</span></code></a>(a, b, size)</p></td>
-<td><p>Compute the log-determinant of Toeplitz matrix using an analytic formula.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/glearn.kernels.SquareExponential.html#glearn.kernels.SquareExponential" title="glearn.kernels.SquareExponential"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.kernels.SquareExponential</span></code></a></p></td>
+<td><p>Square exponential kernel.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/imate.sample_matrices.toeplitz_trace.html#imate.sample_matrices.toeplitz_trace" title="imate.sample_matrices.toeplitz_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.sample_matrices.toeplitz_trace</span></code></a>(a, b, size)</p></td>
-<td><p>Compute the trace of the Toeplitz matrix using an analytic formula.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/glearn.kernels.Linear.html#glearn.kernels.Linear" title="glearn.kernels.Linear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.kernels.Linear</span></code></a></p></td>
+<td><p>Linear kernel.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/imate.sample_matrices.toeplitz_traceinv.html#imate.sample_matrices.toeplitz_traceinv" title="imate.sample_matrices.toeplitz_traceinv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.sample_matrices.toeplitz_traceinv</span></code></a>(a, ...)</p></td>
-<td><p>Computes the trace of the inverse of Toeplitz matrix using an analytic formula.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/glearn.kernels.RationalQuadratic.html#glearn.kernels.RationalQuadratic" title="glearn.kernels.RationalQuadratic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.kernels.RationalQuadratic</span></code></a></p></td>
+<td><p>Rational quadratic kernel.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/imate.sample_matrices.toeplitz_schatten.html#imate.sample_matrices.toeplitz_schatten" title="imate.sample_matrices.toeplitz_schatten"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.sample_matrices.toeplitz_schatten</span></code></a>(a, ...)</p></td>
-<td><p>Compute the Schatten norm of Toeplitz matrix using an analytic formula.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/glearn.kernels.Matern.html#glearn.kernels.Matern" title="glearn.kernels.Matern"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.kernels.Matern</span></code></a></p></td>
+<td><p>Matern kernel.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="prior-distributions">
+<span id="priors"></span><h2>Prior Distributions<a class="headerlink" href="#prior-distributions" title="Permalink to this heading">#</a></h2>
+<p>Define various prior distributions for the hyperparameters of the covariance model.</p>
+<table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/glearn.priors.Prior.html#glearn.priors.Prior" title="glearn.priors.Prior"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.priors.Prior</span></code></a>([half])</p></td>
+<td><p>Base class for prior distributions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/glearn.priors.Uniform.html#glearn.priors.Uniform" title="glearn.priors.Uniform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.priors.Uniform</span></code></a>([a, b])</p></td>
+<td><p>Uniform distribution.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/glearn.priors.Normal.html#glearn.priors.Normal" title="glearn.priors.Normal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.priors.Normal</span></code></a>([mean, std, half])</p></td>
+<td><p>Normal distribution.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/glearn.priors.Cauchy.html#glearn.priors.Cauchy" title="glearn.priors.Cauchy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.priors.Cauchy</span></code></a>([median, scale, half])</p></td>
+<td><p>Cauchy distribution.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/glearn.priors.StudentT.html#glearn.priors.StudentT" title="glearn.priors.StudentT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.priors.StudentT</span></code></a>([dof, half])</p></td>
+<td><p>Student's t-distribution.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/glearn.priors.Erlang.html#glearn.priors.Erlang" title="glearn.priors.Erlang"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.priors.Erlang</span></code></a>([shape, rate])</p></td>
+<td><p>Erlang distribution.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/glearn.priors.Gamma.html#glearn.priors.Gamma" title="glearn.priors.Gamma"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.priors.Gamma</span></code></a>([shape, rate])</p></td>
+<td><p>Gamma distribution.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/glearn.priors.InverseGamma.html#glearn.priors.InverseGamma" title="glearn.priors.InverseGamma"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.priors.InverseGamma</span></code></a>([shape, scale])</p></td>
+<td><p>Inverse Gamma distribution.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/glearn.priors.BetaPrime.html#glearn.priors.BetaPrime" title="glearn.priors.BetaPrime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.priors.BetaPrime</span></code></a>([alpha, beta])</p></td>
+<td><p>Beta Prime distribution.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sample-data">
+<span id="id3"></span><h2>Sample Data<a class="headerlink" href="#sample-data" title="Permalink to this heading">#</a></h2>
+<p>Generate sample data for test purposes, such as multi-dimensional points and stochastic data on the points.</p>
+<table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/glearn.sample_data.generate_points.html#glearn.sample_data.generate_points" title="glearn.sample_data.generate_points"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.sample_data.generate_points</span></code></a>(num_points)</p></td>
+<td><p>Generate a set of points in the unit hypercube.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/glearn.sample_data.generate_data.html#glearn.sample_data.generate_data" title="glearn.sample_data.generate_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.sample_data.generate_data</span></code></a>(points, ...)</p></td>
+<td><p>Generate noisy sinusoidal data on a set of points.</p></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="device-inquiry">
-<span id="id5"></span><h2>Device Inquiry<a class="headerlink" href="#device-inquiry" title="Permalink to this heading">#</a></h2>
+<span id="id4"></span><h2>Device Inquiry<a class="headerlink" href="#device-inquiry" title="Permalink to this heading">#</a></h2>
 <p>Measure the process time and consumed memory of the Python process during computation with the following classes.</p>
 <table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/imate.Timer.html#imate.Timer" title="imate.Timer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.Timer</span></code></a>([hold])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/glearn.Timer.html#glearn.Timer" title="glearn.Timer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Timer</span></code></a>([hold])</p></td>
 <td><p>A timer to measure elapsed wall time and CPU process time of Python process.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/imate.Memory.html#imate.Memory" title="imate.Memory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.Memory</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/glearn.Memory.html#glearn.Memory" title="glearn.Memory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Memory</span></code></a>()</p></td>
 <td><p>Measures resident memory size or its change for the Python process.</p></td>
 </tr>
 </tbody>
@@ -512,28 +584,28 @@ the matrix.</p></li>
 <p>Inquiry hardware information, including CPU and GPU devices employed during computation and get information about the CUDA Toolkit installation with the following functions.</p>
 <table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/imate.info.html#imate.info" title="imate.info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.info</span></code></a>([print_only])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/glearn.info.html#glearn.info" title="glearn.info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.info</span></code></a>([print_only])</p></td>
 <td><p>Provides general information about hardware device, package version, and memory usage.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/imate.device.get_processor_name.html#imate.device.get_processor_name" title="imate.device.get_processor_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.device.get_processor_name</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/glearn.device.get_processor_name.html#glearn.device.get_processor_name" title="glearn.device.get_processor_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.device.get_processor_name</span></code></a>()</p></td>
 <td><p>Gets the model name of CPU processor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/imate.device.get_gpu_name.html#imate.device.get_gpu_name" title="imate.device.get_gpu_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.device.get_gpu_name</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/glearn.device.get_gpu_name.html#glearn.device.get_gpu_name" title="glearn.device.get_gpu_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.device.get_gpu_name</span></code></a>()</p></td>
 <td><p>Gets the model name of GPU device.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/imate.device.get_num_cpu_threads.html#imate.device.get_num_cpu_threads" title="imate.device.get_num_cpu_threads"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.device.get_num_cpu_threads</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/glearn.device.get_num_cpu_threads.html#glearn.device.get_num_cpu_threads" title="glearn.device.get_num_cpu_threads"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.device.get_num_cpu_threads</span></code></a>()</p></td>
 <td><p>Returns the number of available CPU processor threads.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/imate.device.get_num_gpu_devices.html#imate.device.get_num_gpu_devices" title="imate.device.get_num_gpu_devices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.device.get_num_gpu_devices</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/glearn.device.get_num_gpu_devices.html#glearn.device.get_num_gpu_devices" title="glearn.device.get_num_gpu_devices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.device.get_num_gpu_devices</span></code></a>()</p></td>
 <td><p>Returns the number of available GPU devices in multi-GPU platforms.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/imate.device.get_nvidia_driver_version.html#imate.device.get_nvidia_driver_version" title="imate.device.get_nvidia_driver_version"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.device.get_nvidia_driver_version</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/glearn.device.get_nvidia_driver_version.html#glearn.device.get_nvidia_driver_version" title="glearn.device.get_nvidia_driver_version"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.device.get_nvidia_driver_version</span></code></a>()</p></td>
 <td><p>Gets the NVIDIA graphic driver version.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/imate.device.locate_cuda.html#imate.device.locate_cuda" title="imate.device.locate_cuda"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.device.locate_cuda</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/glearn.device.locate_cuda.html#glearn.device.locate_cuda" title="glearn.device.locate_cuda"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.device.locate_cuda</span></code></a>()</p></td>
 <td><p>Returns the directory paths and version of CUDA Toolkit installation.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/imate.device.restrict_to_single_processor.html#imate.device.restrict_to_single_processor" title="imate.device.restrict_to_single_processor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imate.device.restrict_to_single_processor</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/glearn.device.restrict_to_single_processor.html#glearn.device.restrict_to_single_processor" title="glearn.device.restrict_to_single_processor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.device.restrict_to_single_processor</span></code></a>()</p></td>
 <td><p>Restricts the computations to only one CPU thread.</p></td>
 </tr>
 </tbody>
@@ -556,10 +628,10 @@ the matrix.</p></li>
           <p class="prev-next-title"><span class="section-number">3. </span>Using GPU Devices</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="generated/imate.logdet.html" title="next page">
+  <a class='right-next' id="next-link" href="generated/glearn.LinearModel.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">imate.logdet</p>
+      <p class="prev-next-title">glearn.LinearModel</p>
   </div>
   <i class="fas fa-angle-right"></i>
   </a>

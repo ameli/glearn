@@ -291,6 +291,13 @@ Features
 * Novel method to **interpolate** matrix functions. See :ref:`Interpolation of Affine Matrix Functions <interpolation>`.
 * Parallel processing both on **shared memory** and CUDA Capable **multi-GPU** devices.
 
+* GPU, parallel
+* Sparse covariance
+* Mixed covariance model, object
+* Jacobian and Hessian based optimization
+* Learn hyperparameters in reduced space (profile likelihood)
+* Prediction in Dual, O(n)
+
 Technical Notes
 ===============
 

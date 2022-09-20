@@ -1,0 +1,29 @@
+﻿glearn.priors.Normal
+====================
+
+.. currentmodule:: glearn.priors
+
+.. autoclass:: Normal
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+   .. HACK -- the point here is that we don't want this to appear in the output, but the autosummary should still generate the pages.
+      .. autosummary::
+         :toctree:
+      
+         Normal.log_pdf
+         Normal.log_pdf_hessian
+         Normal.log_pdf_jacobian
+         Normal.pdf
+         Normal.pdf_hessian
+         Normal.pdf_jacobian
+         Normal.plot
+         Normal.suggest_hyperparam
+      
+  
+
+  
+  
+  
