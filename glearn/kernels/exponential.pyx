@@ -78,11 +78,11 @@ cdef class Exponential(Kernel):
         0.6065306597126334
 
         >>> # Evaluate first derivative of kernel at the point x=0.5
-        >>> kernel(x, derivarive=1)
+        >>> kernel(x, derivative=1)
         -0.6065306597126334
 
         >>> # Evaluate second derivative of kernel at the point x=0.5
-        >>> kernel(x, derivarive=2)
+        >>> kernel(x, derivative=2)
         0.6065306597126334
 
         >>> # Plot kernel and its first and second derivative

@@ -352,9 +352,9 @@ class Normal(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf`
-        :func:`glearn.priors.Normal.pdf_jacobian`
-        :func:`glearn.priors.Normal.pdf_hessian`
+        :meth:`glearn.priors.Prior.log_pdf`
+        :meth:`glearn.priors.Normal.pdf_jacobian`
+        :meth:`glearn.priors.Normal.pdf_hessian`
 
         Notes
         -----
@@ -432,9 +432,9 @@ class Normal(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf_jacobian`
-        :func:`glearn.priors.Normal.pdf`
-        :func:`glearn.priors.Normal.pdf_hessian`
+        :meth:`glearn.priors.Prior.log_pdf_jacobian`
+        :meth:`glearn.priors.Normal.pdf`
+        :meth:`glearn.priors.Normal.pdf_hessian`
 
         Notes
         -----
@@ -515,9 +515,9 @@ class Normal(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf_hessian`
-        :func:`glearn.priors.Normal.pdf`
-        :func:`glearn.priors.Normal.pdf_jacobian`
+        :meth:`glearn.priors.Prior.log_pdf_hessian`
+        :meth:`glearn.priors.Normal.pdf`
+        :meth:`glearn.priors.Normal.pdf_jacobian`
 
         Notes
         -----

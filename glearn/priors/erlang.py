@@ -350,9 +350,9 @@ class Erlang(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf`
-        :func:`glearn.priors.Erlang.pdf_jacobian`
-        :func:`glearn.priors.Erlang.pdf_hessian`
+        :meth:`glearn.priors.Prior.log_pdf`
+        :meth:`glearn.priors.Erlang.pdf_jacobian`
+        :meth:`glearn.priors.Erlang.pdf_hessian`
 
         Notes
         -----
@@ -422,9 +422,9 @@ class Erlang(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf_jacobian`
-        :func:`glearn.priors.Erlang.pdf`
-        :func:`glearn.priors.Erlang.pdf_hessian`
+        :meth:`glearn.priors.Prior.log_pdf_jacobian`
+        :meth:`glearn.priors.Erlang.pdf`
+        :meth:`glearn.priors.Erlang.pdf_hessian`
 
         Notes
         -----
@@ -497,9 +497,9 @@ class Erlang(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf_hessian`
-        :func:`glearn.priors.Erlang.pdf`
-        :func:`glearn.priors.Erlang.pdf_jacobian`
+        :meth:`glearn.priors.Prior.log_pdf_hessian`
+        :meth:`glearn.priors.Erlang.pdf`
+        :meth:`glearn.priors.Erlang.pdf_jacobian`
 
         Notes
         -----

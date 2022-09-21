@@ -86,11 +86,11 @@ cdef class Linear(Kernel):
         0.5
 
         >>> # Evaluate first derivative of kernel at the point x=0.5
-        >>> kernel(x, derivarive=1)
+        >>> kernel(x, derivative=1)
         -1
 
         >>> # Evaluate second derivative of kernel at the point x=0.5
-        >>> kernel(x, derivarive=2)
+        >>> kernel(x, derivative=2)
         0
 
         >>> # Plot kernel and its first and second derivative

@@ -80,8 +80,8 @@ class Memory(object):
 
     The following example tracks the resident memory *acquired* during the
     computation of the log-determinant of a matrix. In particular, the
-    :meth:`glearn.Memory.get_mem` in this example reads the *difference* between
-    the resident memory of the two lines highlighted below.
+    :meth:`glearn.Memory.get_mem` in this example reads the *difference*
+    between the resident memory of the two lines highlighted below.
 
     .. code-block:: python
         :emphasize-lines: 10, 16

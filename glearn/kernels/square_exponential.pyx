@@ -78,11 +78,11 @@ cdef class SquareExponential(Kernel):
         0.8824969025845955
 
         >>> # Evaluate first derivative of kernel at the point x=0.5
-        >>> kernel(x, derivarive=1)
+        >>> kernel(x, derivative=1)
         0.4412484512922977
 
         >>> # Evaluate second derivative of kernel at the point x=0.5
-        >>> kernel(x, derivarive=2)
+        >>> kernel(x, derivative=2)
         0.6618726769384466
 
         >>> # Plot kernel and its first and second derivative

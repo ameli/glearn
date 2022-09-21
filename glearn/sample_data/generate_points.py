@@ -91,7 +91,7 @@ def generate_points(
     Returns
     -------
 
-    points : numpy.ndarray
+    x : numpy.ndarray
         A 2D array where each row is the coordinate of a point. The size of the
         array is ``(n, m)`` where ``m`` is the ``dimension`` of the space, and
         ``n`` is the number of generated points inside a unit hypercube. The
@@ -148,8 +148,8 @@ def generate_points(
       .. code-block:: python
 
           >>> from glearn.sample_data import generate_points
-          >>> points = generate_points(100, dimension=1, grid=False)
-          >>> points.shape
+          >>> x = generate_points(100, dimension=1, grid=False)
+          >>> x.shape
           (100, 1)
 
     * Generate 100 random points in the 1-dimensional interval :math:`[0, 1]`
@@ -159,8 +159,8 @@ def generate_points(
       .. code-block:: python
 
           >>> from glearn.sample_data import generate_points
-          >>> points = generate_points(100, dimension=1, grid=False, a=0.2,
-          ...                          b=0.5, contrast=0.7)
+          >>> x = generate_points(100, dimension=1, grid=False, a=0.2,
+          ...                     b=0.5, contrast=0.7)
 
     * Generate 100 random points on a 2-dimensional square :math:`[0, 1]^2`
       where :math:`70 \\%` more points are inside a rectangle of the points
@@ -169,9 +169,8 @@ def generate_points(
       .. code-block:: python
 
           >>> from glearn.sample_data import generate_points
-          >>> points = generate_points(100, dimension=2, grid=False,
-          ...                          a=(0.2, 0.3), b=(0.4, 0.5),
-          ...                          contrast=0.7)
+          >>> x = generate_points(100, dimension=2, grid=False, a=(0.2, 0.3),
+          ...                     b=(0.4, 0.5), contrast=0.7)
 
     * Generate a two-dimensional grid of :math:`30 \\times 30` points in the
       square :math:`[0, 1]^2`:
@@ -179,8 +178,8 @@ def generate_points(
       .. code-block:: python
 
           >>> from glearn.sample_data import generate_points
-          >>> points = generate_points(30, dimension=2, grid=True)
-          >>> points.shape
+          >>> x = generate_points(30, dimension=2, grid=True)
+          >>> x.shape
           (900, 2)
     """
 

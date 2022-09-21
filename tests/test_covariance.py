@@ -135,7 +135,11 @@ def check_functions(
                     # check logdet
                     elif function == 'logdet':
                         if sigma != 0 or sigma0 != 0:
-                            y0 = numpy.log(numpy.linalg.det(S))
+                            det_S = numpy.linalg.det(S)
+                            if numpy.abs(det_S) < 1e-15:
+                                y0 = -numpy.inf
+                            else:
+                                y0 = numpy.log(det_S)
                             y1 = cov.logdet(sigma, sigma0, exponent=exponent,
                                             derivative=derivative)
                         else:

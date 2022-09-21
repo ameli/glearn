@@ -14,7 +14,7 @@
 import numpy
 from .._utilities.plot_utilities import *                    # noqa: F401, F403
 from .._utilities.plot_utilities import load_plot_settings, plt, \
-    show_or_save_plot
+    save_plot, show_or_save_plot
 
 __all__ = ['Prior']
 
@@ -26,7 +26,7 @@ __all__ = ['Prior']
 class Prior(object):
     """
     Base class for prior distributions.
-    
+
     .. warning::
 
         This class is a base class and does not implement a kernel function.
@@ -215,39 +215,35 @@ class Prior(object):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf_jacobian`
-        :func:`glearn.priors.Prior.log_pdf_hessian`
+        :meth:`glearn.priors.Prior.log_pdf_jacobian`
+        :meth:`glearn.priors.Prior.log_pdf_hessian`
 
         Notes
         -----
 
-        This function returns :math:`\log p(\\theta)`.
+        This function returns :math:`\\log p(\\theta)`.
 
-        **Using Log Scale:**
-
-        If the attribute ``use_log_scale`` is `True`, it is assumed that the
-        input argument :math:`\\theta` is the log of the hyperparameter, and
-        the input to :math:`p(\\theta)` function becomes
-
-          .. math::
-
-            \\theta \\gets 10^{\\theta}.
-        
         **Multiple hyperparameters:**
 
         When an array of hyperparameters :math:`\\boldsymbol{\\theta} =
         (\\theta_, \\dots, \\theta_n)` are given, it is assumed that prior
-        for each hyperparameter is independent of others.
-
-        .. math::
-
-            p(\\boldsymbol{\\theta}) = \\prod_{i=1}^n p(\\theta_i)
-
-        The output of this function is then the sum of all log-probabilities
+        for each hyperparameter is independent of others. The output of this
+        function is then the sum of all log-probabilities
 
         .. math::
 
             \\sum_{i=1}^n \\log p(\\theta_i).
+
+        **Using Log Scale:**
+
+        If the attribute ``use_log_scale`` is `True`, it is assumed that the
+        input argument :math:`\\theta` is the log of the hyperparameter, so to
+        convert back to the original hyperparameter, the transformation below
+        is performed
+
+        .. math::
+
+            \\theta \\gets 10^{\\theta}.
 
         Examples
         --------
@@ -305,43 +301,41 @@ class Prior(object):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf`
-        :func:`glearn.priors.Prior.log_pdf_hessian`
+        :meth:`glearn.priors.Prior.log_pdf`
+        :meth:`glearn.priors.Prior.log_pdf_hessian`
 
         Notes
         -----
 
-        The output of this function is
+        **Multiple hyperparameters:**
+
+        Given an array of hyperparameters :math:`\\boldsymbol{\\theta} =
+        (\\theta_, \\dots, \\theta_n)`, this function returns the Jacobian
+        vector :math:`\\boldsymbol{J}` with the components :math:`J_i` as
 
         .. math::
 
-            \\frac{\\mathrm{d}}{\\mathrm{d} \\theta} 
-            \\log p(\\theta) =
-            \\frac{1}{(\\theta)} 
-            \\frac{\\mathrm{d}p(\\theta)}{\\mathrm{d} \\theta}.
+            J_i= \\frac{\\partial}{\\partial \\theta_i}
+            \\log p(\\theta_i) =
+            \\frac{1}{p(\\theta_i)}
+            \\frac{\\partial p(\\theta_i)}{\\partial \\theta_i}.
 
         **Using Log Scale:**
 
         If the attribute ``use_log_scale`` is `True`, it is assumed that the
-        input argument :math:`\\theta` is the l<F4>o
-        g of the hyperparameter, and
-        the input to :math:`p(\\theta)` function becomes
+        input argument :math:`\\theta` is the log of the hyperparameter, so to
+        convert back to the original hyperparameter, the transformation below
+        is performed
 
         .. math::
 
             \\theta \\gets 10^{\\theta}.
-        
-        **Multiple hyperparameters:**
 
-        When an array of hyperparameters :math:`\\boldsymbol{\\theta} =
-        (\\theta_, \\dots, \\theta_n)` are given, it is assumed that prior
-        for each hyperparameter is independent of others. The output of this
-        function is the vector :math:`\\boldsymbol{J}` with the components
-        :math:`J_i` as
+        As a result, the Jacobian is transformed by
 
         .. math::
 
-            J_i=\\frac{\\mathrm{d}}{\\mathrm{d} \\theta_i} \\log p(\\theta_i).
+            J_i \\gets \\log_e(10) \\theta_i J_i.
 
         Examples
         --------
@@ -408,44 +402,54 @@ class Prior(object):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf`
-        :func:`glearn.priors.Prior.log_pdf_jacobian`
+        :meth:`glearn.priors.Prior.log_pdf`
+        :meth:`glearn.priors.Prior.log_pdf_jacobian`
 
         Notes
         -----
 
-        The output of this function is
+        **Multiple hyperparameters:**
+
+        Given an array of hyperparameters :math:`\\boldsymbol{\\theta} =
+        (\\theta_, \\dots, \\theta_n)`, this function returns the Jacobian
+        vector :math:`\\mathbf{H}` with the components :math:`H_{ij} = 0` if
+        :math:`i \\neq j` and
 
         .. math::
 
-            \\frac{\\mathrm{d}^2}{\\mathrm{d} \\theta^2} 
-            \\log p(\\theta) =
-            \\frac{1}{(\\theta)} 
-            \\frac{\\mathrm{d}p(\\theta)}{\\mathrm{d} \\theta}.
+            H_{ii} = \\frac{\\partial^2}{\\partial \\theta_i^2}
+            \\log p(\\theta_i) =
+            \\frac{1}{p(\\theta_i)}
+            \\frac{\\partial^2 p(\\theta_i)}{\\partial \\theta_i^2}
+            - \\left( \\frac{J_i}{p(\\theta_i)} \\right)^2,
+
+        where :math:`J_i` is the Jacobian
+
+        .. math::
+
+            J_i = \\frac{\\partial}{\\partial \\theta_i} \\log p(\\theta_i).
 
         **Using Log Scale:**
 
         If the attribute ``use_log_scale`` is `True`, it is assumed that the
-        input argument :math:`\\theta` is the log of the hyperparameter, and
-        the input to :math:`p(\\theta)` function becomes
-
-          .. math::
-
-            \\theta \\gets 10^{\\theta}.
-        
-        **Multiple hyperparameters:**
-
-        When an array of hyperparameters :math:`\\boldsymbol{\\theta} =
-        (\\theta_, \\dots, \\theta_n)` are given, it is assumed that prior
-        for each hyperparameter is independent of others. The output of this
-        function is then the matrix :math:`\\mathbf{J}` with the components
-        :math:`J_i` as
+        input argument :math:`\\theta` is the log of the hyperparameter, so to
+        convert back to the original hyperparameter, the transformation below
+        is performed
 
         .. math::
 
-            \\sum_{i=1}^n
-            \\frac{\\mathrm{d}}{\\mathrm{d} \\theta_i} 
-            \\log p(\\theta_i).
+            \\theta \\gets 10^{\\theta}.
+
+        As a result, the Hessian is transformed by
+
+        .. math::
+
+            H_{ij} \\gets
+            \\begin{cases}
+                H_{ij} \\theta_i^2 (\\log_e(10))^2 + J_i \\log_e(10), & i=j,
+                \\\\
+                H_{ij} \\theta_i \\theta_j (\\log_e(10))^2, & i \\neq j.
+            \\end{cases}
 
         Examples
         --------
@@ -458,9 +462,11 @@ class Prior(object):
             >>> from glearn import priors
             >>> prior = priors.InverseGamma(4, 2)
 
-            >>> # Evaluate the Jacobian of the log-PDF
-            >>> prior.log_pdf_jacobian(t)
-            array([ -6.90775528, -10.05664278, -11.05240845])
+            >>> # Evaluate the Hessian of the log-PDF
+            >>> prior.log_pdf_hessian(t)
+            array([[-10.60379622,   0.        ,   0.        ],
+                   [  0.        ,  -3.35321479,   0.        ],
+                   [  0.        ,   0.        ,  -1.06037962]])
         """
 
         # Convert hyperparam from log to non-log (if needed)
@@ -506,9 +512,75 @@ class Prior(object):
     # plot
     # ====
 
-    def plot(self, interval=[0, 2], log_scale=False, compare_numerical=False):
+    def plot(
+            self,
+            interval=[0, 2],
+            log_scale=False,
+            compare_numerical=False,
+            test=False):
         """
-        Plots the distribution.
+        Plot the kernel function and its first and second derivative.
+
+        Parameters
+        ----------
+
+        interval : float, default=[0, 2]
+            The abscissa interval of the plot.
+
+        log_scale : bool, default=False
+            If `True`, the hyperparameter (abscissa) is assumed to be in the
+            logarithmic scale.
+
+        compare_numerical : bool, default=False
+            It `True`, it computes the derivatives of the prior distribution
+            and plots the numerical derivatives together with the exact values
+            of the derivatives from analytical formula. This is used to
+            validate the analytical formulas.
+
+
+        test : bool, default=False
+            If `True`, this function is used for test purposes.
+
+        Notes
+        -----
+
+        * If no graphical backend exists (such as running the code on a remote
+          server or manually disabling the X11 backend), the plot will not be
+          shown, rather, it will be saved as an ``svg`` file in the current
+          directory.
+        * If the executable ``latex`` is available on ``PATH``, the plot is
+          rendered using :math:`\\rm\\LaTeX` and it may take slightly longer to
+          produce the plot.
+        * If :math:`\\rm\\LaTeX` is not installed, it uses any available
+          San-Serif font to render the plot.
+
+        To manually disable interactive plot display and save the plot as
+        ``svg`` instead, add the following at the very beginning of your code
+        before importing :mod:`imate`:
+
+        .. code-block:: python
+
+            >>> import os
+            >>> os.environ['GLEARN_NO_DISPLAY'] = 'True'
+
+        Examples
+        --------
+
+        Create the inverse Gamma distribution with the shape parameter
+        :math:`\\alpha=4` and rate parameter :math:`\\beta=2`.
+
+        .. code-block:: python
+
+            >>> from glearn import priors
+            >>> prior = priors.InverseGamma(4, 2)
+
+            >>> # Plot the distribution and its first and second derivative
+            >>> prior.plot()
+
+        .. image:: ../_static/images/plots/prior_inverse_gamma.png
+            :align: center
+            :width: 100%
+            :class: custom-dark
         """
 
         load_plot_settings()
@@ -620,4 +692,8 @@ class Prior(object):
             ax[2].set_xscale('log', base=10)
 
         plt.tight_layout()
-        show_or_save_plot(plt, 'prior', transparent_background=True)
+
+        if test:
+            save_plot(plt, 'prior', pdf=False, verbose=False)
+        else:
+            show_or_save_plot(plt, 'prior', transparent_background=True)

@@ -226,7 +226,7 @@ def estimate_kernel_threshold(
     kernel_radius = grid_size * adjacency_radius
 
     # Threshold of kernel to perform tapering
-    kernel_threshold = kernel.kernel(kernel_radius)
+    kernel_threshold = kernel(kernel_radius)
 
     return kernel_threshold
 

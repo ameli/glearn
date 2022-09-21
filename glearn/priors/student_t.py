@@ -353,9 +353,9 @@ class StudentT(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf`
-        :func:`glearn.priors.StudentT.pdf_jacobian`
-        :func:`glearn.priors.StudentT.pdf_hessian`
+        :meth:`glearn.priors.Prior.log_pdf`
+        :meth:`glearn.priors.StudentT.pdf_jacobian`
+        :meth:`glearn.priors.StudentT.pdf_hessian`
 
         Notes
         -----
@@ -436,9 +436,9 @@ class StudentT(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf_jacobian`
-        :func:`glearn.priors.StudentT.pdf`
-        :func:`glearn.priors.StudentT.pdf_hessian`
+        :meth:`glearn.priors.Prior.log_pdf_jacobian`
+        :meth:`glearn.priors.StudentT.pdf`
+        :meth:`glearn.priors.StudentT.pdf_hessian`
 
         Notes
         -----
@@ -522,9 +522,9 @@ class StudentT(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf_hessian`
-        :func:`glearn.priors.StudentT.pdf`
-        :func:`glearn.priors.StudentT.pdf_jacobian`
+        :meth:`glearn.priors.Prior.log_pdf_hessian`
+        :meth:`glearn.priors.StudentT.pdf`
+        :meth:`glearn.priors.StudentT.pdf_jacobian`
 
         Notes
         -----

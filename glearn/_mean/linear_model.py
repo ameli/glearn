@@ -22,6 +22,460 @@ __all__ = ['LinearModel']
 
 class LinearModel(object):
     """
+    Create linear model for the mean function of regression.
+
+    For the regression problem
+    :math:`y=\\mu(\\boldsymbol{x})+\\delta(\\boldsymbol{x})` where
+    :math:`\\mu` and :math:`\\delta` are the mean and miss-fit of the
+    regression model respectively, this class implements the linear model
+    :math:`\\mu(\\boldsymbol{x})=
+    \\boldsymbol{\\phi}(\\boldsymbol{x})^{\\intercal} \\boldsymbol{\\beta}`,
+    where the basis functions :math:`\\boldsymbol{\\phi}` can be specified
+    by polynomial, trigonometric, hyperbolic, or user-defined arbitrary
+    functions. Also, this class can assign the uniform or multi-dimensional
+    normal prior distribution to the vector of regression coefficients
+    :math:`\\boldsymbol{\\beta} \\sim \\mathcal{N}(\\boldsymbol{b}, \\sigma^2
+    \\mathbf{B})`.
+
+    Parameters
+    ----------
+
+    x : numpy.ndarray
+        A 2D array of data points where each row of the array is the coordinate
+        of a point :math:`\\boldsymbol{x} = (x_1, \\dots, x_d)`. The
+        array size is :math:`n \\times d` where :math:`n` is the number of the
+        points and :math:`d` is the dimension of the space of points.
+
+    polynomial_degree : int, default=0
+        Degree :math:`p` of polynomial basis functions
+        :math:`\\boldsymbol{\\phi}_p(\\boldsymbol{x})`, which defines the
+        monomial functions of order less than or equal to :math:`p` on the
+        variables :math:`\\boldsymbol{x} = (x_1, \\dots, x_d)`. The total
+        number of monomials is denoted by :math:`m_p`.
+
+    trigonometric_coeff : float or array_like[float], default=None
+        The coefficients :math:`t_i, i=1,\\dots, m_t`, of the trigonometric
+        basis functions :math:`\\boldsymbol{\\phi}_t(\\boldsymbol{x})` (see
+        Notes below). If `None`, no trigonometric basis function is generated.
+        The total number of trigonometric basis functions is :math:`2 m_t`.
+
+    hyperbolic_coeff : float or array_like[float], default=None
+        The coefficients :math:`h_i, i=1, \\dots, m_h`, of the hyperbolic
+        basis functions :math:`\\boldsymbol{\\phi}_h(\\boldsymbol{x})` (see
+        Notes below). If `None`, no hyperbolic basis function is generated. The
+        total number of hyperbolic basis functions is :math:`2 m_h`.
+
+    func : callable, default=None
+        A callable function to define arbitrary basis functions
+        :math:`\\boldsymbol{\\phi}(\\boldsymbol{x})` where it accepts an input
+        point :math:`\\boldsymbol{x}=(x_1, \\dots, m_d)` and returns the
+        array of :math:`m_f` basis functions :math:`\\boldsymbol{\\phi} = (
+        \\phi_1, \\dots, \\phi_{m_f})`. If `None`, no arbitrary basis function
+        is generated. The total number of user-defined basis functions is
+        denoted by :math:`m_f`.
+
+    orthonormalize : bool, default=False
+        If `True`, the design matrix :math:`\\mathbf{X}` of the basis functions
+        will be orthonormalized. The orthonormalization is applied on all
+        :math:`m` basis functions, including polynomial, trigonometric,
+        hyperbolic, and user-defined basis functions.
+
+    b : numpy.array, default=None,
+        The variable :math:`\\boldsymbol{b}` which is the mean of the prior
+        distribution for the variable :math:`\\boldsymbol{\\beta} \\sim
+        \\mathcal{N}(\\boldsymbol{b}, \\sigma^2 \\mathbf{B})`. The variable
+        ``b`` should be given as a 1D array of the size :math:`m = m_p+2m_t+
+        2m_h+m_f`. If `None`, uniform prior is assumed for the variable
+        :math:`\\boldsymbol{\\beta}`.
+
+    B : numpy.array, default=None,
+        The matrix :math:`\\mathbf{B}` which makes the covariance of the prior
+        distribution for the variable :math:`\\boldsymbol{\\beta} \\sim
+        \\mathcal{N}(\\boldsymbol{b}, \\sigma^2 \\mathbf{B})`. The matrix
+        ``B`` should be symmetric and positive semi-definite with the size
+        :math:`m \\times m` where :math:`m = m_p+2m_t+2m_h+m_f`.
+
+        * If ``B`` is not `None`, the vector ``b`` also cannot be `None`.
+        * If ``B`` is `None`, it is assumed that
+          :math:`\\mathbf{B}^{-1} \\to \\mathbf{0}`, which implies the prior on
+          :math:`\\boldsymbol{\\beta}` is the uniform distribution. In this
+          case, the argument ``b`` (if given) is ignored.
+
+    Attributes
+    ----------
+
+    points : numpy.ndarray
+        The same as input variable ``x``.
+
+    X : numpy.ndarray
+        The generated design matrix.
+
+    Binv : numpy.ndarray, default=None
+        Inverse of the matrix ``B`` (if not `None`).
+
+    beta : numpy.array
+        The mean of the coefficient :math:`\\boldsymbol{\\beta}`. This
+        coefficient is computed for a given data.
+
+    C : numpy.ndarray
+        The posterior covariance of coefficient :math:`\\boldsymbol{\\beta}`.
+        This matrix computed for a given data.
+
+    Methods
+    -------
+
+    generate_design_matrix
+    update_hyperparam
+
+    See Also
+    --------
+
+    glearn.Covariance
+    glearn.GaussianProcess
+
+    Notes
+    -----
+
+    **Regression Model:**
+
+    A regression model to fit the data :math:`y = f(\\boldsymbol{x})`
+    for the points :math:`\\boldsymbol{x} \\in \\mathcal{D} \\in \\mathbb{R}^d`
+    and data :math:`y \\in \\mathbb{R}` is
+
+    .. math::
+
+        f(\\boldsymbol{x}) = \\mu(\\boldsymbol{x}) + \\delta(\\boldsymbol{x}),
+
+    where :math:`\\mu` is a deterministic function representing the features
+    of the data and :math:`\\delta` is a stochastic function representing both
+    the uncertainty of the data and miss-fit of the regression model.
+
+    **Linear Regression Model:**
+
+    This class represents a linear regression model, where it is assumed that
+
+    .. math::
+
+        \\mu(\\boldsymbol{x}) =
+        \\boldsymbol{\\phi}(\\boldsymbol{x})^{\\intercal} \\boldsymbol{\\beta},
+
+    where :math:`\\boldsymbol{\\phi} = (\\phi_1, \\dots, \\phi_m):
+    \\mathcal{D} \\to \\mathbb{R}^m` is a vector basis function and
+    :math:`\\boldsymbol{\\beta} = (\\beta_1, \\dots, \\beta_m)` is a vector of
+    the unknown coefficients of the linear model. The basis functions can be a
+    combination of the following functions:
+
+    .. math::
+
+        \\boldsymbol{\\phi}(\\boldsymbol{x}) = \\left(
+        \\boldsymbol{\\phi}_p(\\boldsymbol{x}),
+        \\boldsymbol{\\phi}_t(\\boldsymbol{x}),
+        \\boldsymbol{\\phi}_h(\\boldsymbol{x}),
+        \\boldsymbol{\\phi}_f(\\boldsymbol{x}) \\right),
+
+    consisting of
+
+    * Polynomial basis functions :math:`\\boldsymbol{\\phi}_p: \\mathcal{D}
+      \\to \\mathbb{R}^{m_p}`.
+    * Trigonometric basis functions :math:`\\boldsymbol{\\phi}_t: \\mathcal{D}
+      \\to \\mathbb{R}^{2m_t}`.
+    * Hyperbolic basis functions :math:`\\boldsymbol{\\phi}_h: \\mathcal{D}
+      \\to \\mathbb{R}^{2m_h}`.
+    * User-defined basis functions :math:`\\boldsymbol{\\phi}_f: \\mathcal{D}
+      \\to \\mathbb{R}^{m_f}`.
+
+    The total number of the basis functions, :math:`m`, is
+
+    .. math::
+
+        m = m_p + 2m_t + 2m_h + m_f.
+
+    Each of the above functions are described below.
+
+    * **Polynomial Basis Functions:** A polynomial basis function of order
+      :math:`p` (set by ``polynomial_order``) is a tuple of all monomials up to
+      the order less than or equal to :math:`p` from the combination of the
+      components of the variable :math:`\\boldsymbol{x} = (x_1, \\dots, x_d)`.
+      For instance, if :math:`d = 2` where
+      :math:`\\boldsymbol{x} = (x_1, x_2)`, a polynomial basis of order 3 is
+
+      .. math::
+
+        \\boldsymbol{\\phi}_p(x_1, x_2) = ( \\
+            1, \\
+            x_1, x_2, \\
+            x_1^2, x_1 x_2, x_2^2, \\
+            x_1^3, x_1^2 x_2, x_1 x_2^2, x_2^3).
+
+      The size of the tuple :math:`\\boldsymbol{\\phi}_p` is denoted by
+      :math:`m_p`, for instance, in the above, :math:`m_p = 10`.
+
+    * **Trigonometric Basis Function:** Given the coefficients
+      :math:`(t_1, \\dots, t_{m_t})` which can be set by
+      ``trigonometric_coeff`` as a list or numpy array, the trigonometric basis
+      functions :math:`\\boldsymbol{\\phi}_t` is defined by
+
+      .. math::
+
+        \\boldsymbol{\\phi}_t(\\boldsymbol{x}) =
+        (\\boldsymbol{\\phi}_s(\\boldsymbol{x}),
+        \\boldsymbol{\\phi}_c(\\boldsymbol{x})),
+
+      where
+
+      .. math::
+
+        \\begin{align}
+            \\boldsymbol{\\phi}_s(\\boldsymbol{x}) = (
+            & \\sin(t_1 x_1), \\dots, \\sin(t_1 x_d), \\\\
+            & \\dots, \\\\
+            & \\sin(t_i x_1), \\dots, \\sin(t_i x_d), \\\\
+            & \\dots, \\\\
+            & \\sin(t_{m_t} x_1), \\dots, \\sin(t_{m_t} x_d)).
+        \\end{align}
+
+      and
+
+      .. math::
+
+        \\begin{align}
+            \\boldsymbol{\\phi}_c(\\boldsymbol{x}) = (
+            & \\cos(t_1 x_1), \\dots, \\cos(t_1 x_d), \\\\
+            & \\dots, \\\\
+            & \\cos(t_i x_1), \\dots, \\cos(t_i x_d), \\\\
+            & \\dots, \\\\
+            & \\cos(t_{m_t} x_1), \\dots, \\cos(t_{m_t} x_d)).
+        \\end{align}
+
+    * **Hyperbolic Basis Function:** Given the coefficients
+      :math:`(h_1, \\dots, h_{m_h})` which can be set by
+      ``hyperbolic_coeff`` as a list or numpy array, the hyperbolic basis
+      functions :math:`\\boldsymbol{\\phi}_h` is defined by
+
+      .. math::
+
+        \\boldsymbol{\\phi}_h(\\boldsymbol{x}) =
+        (\\boldsymbol{\\phi}_{sh}(\\boldsymbol{x}),
+        \\boldsymbol{\\phi}_{ch}(\\boldsymbol{x})),
+
+      where
+
+      .. math::
+
+        \\begin{align}
+            \\boldsymbol{\\phi}_{sh}(\\boldsymbol{x}) = (
+            & \\sinh(h_1 x_1), \\dots, \\sinh(h_1 x_d), \\\\
+            & \\dots, \\\\
+            & \\sinh(h_i x_1), \\dots, \\sinh(h_i x_d), \\\\
+            & \\dots, \\\\
+            & \\sinh(h_{m_h} x_1), \\dots, \\sinh(h_{m_h} x_d)).
+        \\end{align}
+
+      and
+
+      .. math::
+
+        \\begin{align}
+            \\boldsymbol{\\phi}_{ch}(\\boldsymbol{x}) = (
+            & \\cosh(h_1 x_1), \\dots, \\cosh(h_1 x_d), \\\\
+            & \\dots, \\\\
+            & \\cosh(h_i x_1), \\dots, \\cosh(h_i x_d), \\\\
+            & \\dots, \\\\
+            & \\cosh(h_{m_h} x_1), \\dots, \\cosh(h_{m_h} x_d)).
+        \\end{align}
+
+    * **User-Defined Basis Functions:** Given the function
+      :math:`\\boldsymbol{\\phi}_f(\\boldsymbol{x})` which can be set by the
+      argument ``func``, the custom basis function are generated by
+
+      .. math::
+
+        \\boldsymbol{\\phi}_f(\\boldsymbol{x}) =
+        \\left( \\boldsymbol{\\phi}_{f, 1}(\\boldsymbol{x}),
+        \\dots,
+        \\boldsymbol{\\phi}_{f, m_f}(\\boldsymbol{x}) \\right).
+
+    **Design Matrix:**
+
+    The design matrix :math:`\\mathbf{X}` of the size :math:`n \\times m` is
+    generated  from :math:`n` points :math:`\\boldsymbol{x}` and :math:`m`
+    basis functions with the components :math:`X_{ij}` as
+
+    .. math::
+
+        X_{ij} = \\phi_j(\\boldsymbol{x}_i), \\quad i = 1, \\dots, n, \\quad
+        j = 1, \\dots, m.
+
+    If ``orthonormalize`` is `True`, the matrix :math:`\\mathbf{X}` is
+    orthonormalized such that
+    :math:`\\mathbf{X}^{\\intercal} \\mathbf{X} = \\mathbf{I}` where
+    :math:`\\mathbf{I}` is the identity matrix.
+
+    .. note::
+
+        The design matrix is automatically generated during the internal
+        training process, so the user may not need to generate the design
+        matrix. However, to manually generate the design matrix manually, call
+        :meth:`glearn.LinearModel.generate_design_matrix` function.
+
+    **Prior of Unknown Coefficients:**
+
+    The coefficients :math:`\\boldsymbol{\\beta}` of the size :math:`m` is
+    unknown at the time of instantiation of :class:`glearn.LinearModel` class.
+    However, its prior distribution can be specified as
+
+    .. math::
+
+        \\boldsymbol{\\beta} \\sim \\mathcal{N}(\\boldsymbol{b}, \\sigma^2
+        \\mathbf{B}),
+
+    where the hyperparameter :math:`\\sigma` is to be found during the training
+    process, and the hyperparameters :math:`\\boldsymbol{b}` and
+    :math:`\\mathbf{B}` can be specified by the arguments ``b`` and ``B``
+    respectively.
+
+    **Posterior of Estimated Coefficients:**
+
+    Once the model has been trained by :class:`glearn.GaussianProcess`, the
+    hyperparameters of the posterior distribution
+
+    .. math::
+
+        \\boldsymbol{\\beta} \\sim \\mathcal{N}(\\bar{\\boldsymbol{\\beta}},
+        \\mathbf{C}),
+
+    can be accessed by these attributes:
+
+    * :math:`\\bar{\\boldsymbol{\\beta}}` can be accessed by
+      ``LinearModel.beta``.
+    * :math:`\\mathbf{C}` can be accessed by ``LinearModel.C``.
+
+    .. note::
+
+        The hyperparameters of the posterior distribution of
+        :math:`\\boldsymbol{\\beta}` is automatically computed **after**
+        the training process. However, to manually update the hyperparameters
+        of the posterior distribution after the training process, call
+        :meth:`glearn.LinearModel.update_hyperparam` function.
+
+    Examples
+    --------
+
+    **Create Polynomial, Trigonometric, and Hyperbolic Basis Functions:**
+
+    First, create a set of 50 random points in the interval :math:`[0, 1]` and
+    define a
+
+    .. code-block:: python
+
+        >>> # Generate a set of points
+        >>> from glearn.sample_data import generate_points
+        >>> x = generate_points(num_points=30, dimension=1)
+
+    Define the prior for :math:`\\boldsymbol{\\beta} \\vert \\sigma^2 \\sim
+    \\mathcal{N}(\\boldsymbol{b}, \\sigma^2 \\mathbf{B})` by the mean vector
+    :math:`\\boldsymbol{b}` and covariance matrix :math:`\\mathbf{B}`.
+
+    .. code-block:: python
+
+        >>> import numpy
+        >>> m = 10
+        >>> b = numpy.zeros((m, ))
+
+        >>> # Generate a random matrix B for covariance of beta.
+        >>> numpy.random.seed(0)
+        >>> B = numpy.random.rand(m, m)
+
+        >>> # Making sure the covariance matrix B positive-semidefinite
+        >>> B = B.T @ B
+
+
+    **Create User-Defined Basis Functions:**
+
+    Define the function :math:`\\boldsymbol{\\phi}` as follows:
+
+    .. code-block:: python
+
+        >>> # Create a function returning the Legendre Polynomials
+        >>> import numpy
+        >>> def func(x):
+        ...     phi_1 = 0.5 * (3.0*x**2 - 1)
+        ...     phi_2 = 0.5 * (5.0*x**3 - 3.0*x)
+        ...     phi = numpy.array([phi_1, phi_2])
+        ...     return phi
+
+    **Create Linear Model:**
+
+    Create a linear model with third order polynomial basis functions, both
+    trigonometric and hyperbolic functions, and the user-defined functions
+    defined in the above.
+
+    .. code-block:: python
+        :emphasize-lines: 3, 4, 5
+
+        >>> # Create basis functions
+        >>> from glearn import LinearModel
+        >>> f = LinearModel(x, polynomial_degree=1,
+        ...                 trigonometric_coeff=[1.0, 2.0],
+        ...                 hyperbolic_coeff=[3.0], func=func, b=b, B=B)
+
+    Note that we set :math:`m = 10` since we have
+
+    * :math:`m_p=2` polynomial basis functions :math:`\\boldsymbol{\\phi}(x) =
+      (1, x)` of order 0 and 1.
+    * :math:`2m_t` trigonometric basis functions with :math:`m_t=2` as
+      :math:`\\boldsymbol{\\phi} = (\\sin(x), \\sin(2x), \\cos(x), \\cos(2x))`.
+    * :math:`2m_h` hyperbolic basis functions with :math:`m_h=1` as
+      :math:`\\boldsymbol{\\phi}=(\\sinh(3x),\\cosh(3x))`.
+    * :math:`m_f=2` user-defined basis functions :math:`\\boldsymbol{\\phi}(x)
+      = (\\frac{1}{2}(3x^3-1), \\frac{1}{2}(5x^3-3x))`.
+
+    Recall, the total number of basis functions is
+    :math:`m = m_p + 2m_t + 2m_h + m_f`, so in total there are 10 basis
+    functions. Because of this, the vector ``b`` and matrix ``B`` were defined
+    with the size :math:`m=10`.
+
+    **Generate Design Matrix:**
+
+    The design matrix :math:`\\mathbf{X}` can be generated on a set of data
+    points :math:`\\boldsymbol{x}` or on arbitrary test points
+    :math:`\\boldsymbol{x}^{\\ast}` as follows:
+
+    .. code-block:: python
+
+        >>> # Generate 100 test points
+        >>> x_test = generate_points(num_points=100, dimension=1)
+
+        >>> # Generate design matrix on test points
+        >>> X_test = f.generate_design_matrix(x_test)
+        >>> X_test.shape
+        (100, 10)
+
+        >>> # Generate design matrix on data points
+        >>> X = f.generate_design_matrix(x)
+        >>> X.shape
+        (30, 10)
+    
+    **Orthonormalized basis Functions:**
+
+    Repeat the above example but set ``orthonormalize`` to `True`:
+
+    .. code-block:: python
+        :emphasize-lines: 5
+
+        >>> # Create basis functions
+        >>> f = LinearModel(x, polynomial_degree=1,
+        ...                 trigonometric_coeff=[1.0, 2.0],
+        ...                 hyperbolic_coeff=[3.0], func=func,
+        ...                 orthonormalize=True)
+
+        >>> # Generate design matrix on data points
+        >>> X = f.generate_design_matrix(x)
+
+        >>> # Check the orthonormality of X
+        >>> I = numpy.eye(m)
+        >>> numpy.allclose(X.T @ X, I)
+        
     """
 
     # ====
@@ -30,30 +484,32 @@ class LinearModel(object):
 
     def __init__(
             self,
-            points,
+            x,
             polynomial_degree=0,
             trigonometric_coeff=None,
             hyperbolic_coeff=None,
-            fun=None,
+            func=None,
+            orthonormalize=False,
             b=None,
             B=None):
         """
         """
 
         trigonometric_coeff, hyperbolic_coeff = self._check_arguments(
-                points, polynomial_degree, trigonometric_coeff,
-                hyperbolic_coeff, fun)
+                x, polynomial_degree, trigonometric_coeff, hyperbolic_coeff,
+                func)
 
         # If points are 1d array, wrap them to a 2d array
-        if points.ndim == 1:
-            points = numpy.array([points], dtype=float).T
+        if x.ndim == 1:
+            x = numpy.array([x], dtype=float).T
 
         # Store function info
-        self.points = points
+        self.points = x
         self.polynomial_degree = polynomial_degree
         self.trigonometric_coeff = trigonometric_coeff
         self.hyperbolic_coeff = hyperbolic_coeff
-        self.fun = fun
+        self.func = func
+        self.orthonormalize = orthonormalize
 
         # Generate design matrix
         self.X = self.generate_design_matrix(self.points)
@@ -81,28 +537,28 @@ class LinearModel(object):
 
     def _check_arguments(
             self,
-            points,
+            x,
             polynomial_degree,
             trigonometric_coeff,
             hyperbolic_coeff,
-            fun):
+            func):
         """
         """
 
-        # Check points
-        if points is None:
-            raise ValueError('"points" cannot be "None".')
+        # Check x
+        if x is None:
+            raise ValueError('"x" cannot be "None".')
 
-        elif not isinstance(points, numpy.ndarray):
-            raise TypeError('"points" should be a "numpy.ndarray" type.')
+        elif not isinstance(x, numpy.ndarray):
+            raise TypeError('"x" should be a "numpy.ndarray" type.')
 
-        # Check at least one of polynomial, trigonometric, hyperbolic, or fun
+        # Check at least one of polynomial, trigonometric, hyperbolic, or func
         # is given.
         if (polynomial_degree is None) and (trigonometric_coeff is None) and \
-           (hyperbolic_coeff is None) and (fun is None):
+           (hyperbolic_coeff is None) and (func is None):
             raise ValueError('At least, one of "polynomial_degree", ' +
                              '"trigonometric_coeff", "hyperbolic_coeff", ' +
-                             'or "fun" must be set.')
+                             'or "func" must be set.')
 
         # Check polynomial degree
         if polynomial_degree is not None:
@@ -157,9 +613,9 @@ class LinearModel(object):
             elif hyperbolic_coeff.ndim > 1:
                 raise ValueError('"hyperbolic_coeff" should be a 1d array.')
 
-        # Check fun
-        if fun is not None and not callable(fun):
-            raise TypeError('"fun" should be a callable function or None.')
+        # Check func
+        if func is not None and not callable(func):
+            raise TypeError('"func" should be a callable function or None.')
 
         return trigonometric_coeff, hyperbolic_coeff
 
@@ -225,37 +681,37 @@ class LinearModel(object):
     # generate design matrix
     # ======================
 
-    def generate_design_matrix(self, points):
+    def generate_design_matrix(self, x):
         """
         Generates design matrix (basis functions) for the mean function of the
         linear model.
         """
 
         # Convert a vector to matrix if dimension is one
-        if points.ndim == 1:
-            points = numpy.array([points]).T
+        if x.ndim == 1:
+            x = numpy.array([x]).T
 
         # Initialize output
         X_list = []
 
         # Polynomial basis functions
         if self.polynomial_degree is not None:
-            X_polynomial = self._generate_polynomial_basis(points)
+            X_polynomial = self._generate_polynomial_basis(x)
             X_list.append(X_polynomial)
 
         # Trigonometric basis functions
         if self.trigonometric_coeff is not None:
-            X_trigonometric = self._generate_trigonometric_basis(points)
+            X_trigonometric = self._generate_trigonometric_basis(x)
             X_list.append(X_trigonometric)
 
         # Hyperbolic basis functions
         if self.hyperbolic_coeff is not None:
-            X_hyperbolic = self._generate_hyperbolic_basis(points)
+            X_hyperbolic = self._generate_hyperbolic_basis(x)
             X_list.append(X_hyperbolic)
 
         # Custom function basis functions
-        if self.fun is not None:
-            X_fun = self._generate_custom_basis(points)
+        if self.func is not None:
+            X_fun = self._generate_custom_basis(x)
             X_list.append(X_fun)
 
         # Concatenate those bases that are not None
@@ -272,13 +728,13 @@ class LinearModel(object):
     # generate polynomial basis
     # =========================
 
-    def _generate_polynomial_basis(self, points):
+    def _generate_polynomial_basis(self, x):
         """
         Generates polynomial basis functions.
         """
 
-        n = points.shape[0]
-        dimension = points.shape[1]
+        n = x.shape[0]
+        dimension = x.shape[1]
 
         # Adding polynomial functions
         powers_array = numpy.arange(self.polynomial_degree + 1)
@@ -306,7 +762,7 @@ class LinearModel(object):
         X_polynomial = numpy.ones((n, num_basis), dtype=float)
         for j in range(num_basis):
             for i in range(num_degrees):
-                X_polynomial[:, j] *= points[:, i]**powers[i, j]
+                X_polynomial[:, j] *= x[:, i]**powers[i, j]
 
         return X_polynomial
 
@@ -314,13 +770,13 @@ class LinearModel(object):
     # generate trigonometric basis
     # ============================
 
-    def _generate_trigonometric_basis(self, points):
+    def _generate_trigonometric_basis(self, x):
         """
         Generates trigonometric basis functions.
         """
 
-        n = points.shape[0]
-        dimension = points.shape[1]
+        n = x.shape[0]
+        dimension = x.shape[1]
 
         tri_size = self.trigonometric_coeff.size
         X_trigonometric = numpy.empty((n, 2*dimension*tri_size))
@@ -328,9 +784,9 @@ class LinearModel(object):
         for i in range(tri_size):
             for j in range(dimension):
                 X_trigonometric[:, 2*dimension*i + 2*j+0] = numpy.sin(
-                        points[:, j] * self.trigonometric_coeff[i])
+                        x[:, j] * self.trigonometric_coeff[i])
                 X_trigonometric[:, 2*dimension*i + 2*j+1] = numpy.cos(
-                        points[:, j] * self.trigonometric_coeff[i])
+                        x[:, j] * self.trigonometric_coeff[i])
 
         return X_trigonometric
 
@@ -338,13 +794,13 @@ class LinearModel(object):
     # generate hyperbolic basis
     # =========================
 
-    def _generate_hyperbolic_basis(self, points):
+    def _generate_hyperbolic_basis(self, x):
         """
         Generate hyperbolic basis functions.
         """
 
-        n = points.shape[0]
-        dimension = points.shape[1]
+        n = x.shape[0]
+        dimension = x.shape[1]
 
         hyp_size = self.hyperbolic_coeff.size
         X_hyperbolic = numpy.empty((n, 2*dimension*hyp_size))
@@ -352,9 +808,9 @@ class LinearModel(object):
         for i in range(hyp_size):
             for j in range(dimension):
                 X_hyperbolic[:, 2*dimension*i + 2*j+0] = numpy.sinh(
-                        points[:, j] * self.hyperbolic_coeff[i])
+                        x[:, j] * self.hyperbolic_coeff[i])
                 X_hyperbolic[:, 2*dimension*i + 2*j+1] = numpy.cosh(
-                        points[:, j] * self.hyperbolic_coeff[i])
+                        x[:, j] * self.hyperbolic_coeff[i])
 
         return X_hyperbolic
 
@@ -362,25 +818,25 @@ class LinearModel(object):
     # generate custom basis
     # =====================
 
-    def _generate_custom_basis(self, points):
+    def _generate_custom_basis(self, x):
         """
         Generate custom basis functions.
         """
 
-        n = points.shape[0]
+        n = x.shape[0]
 
         # Generate on the first point to see what is the size of the output
-        X_fun_init = self.fun(points[0, :])
+        X_fun_init = numpy.squeeze(self.func(x[0, :]))
 
         if X_fun_init.ndim != 1:
-            raise ValueError('"fun" should output 1d array.')
+            raise ValueError('"func" should output 1d array.')
 
         # Initialize output 2D array for all points
         X_fun = numpy.empty((n, X_fun_init.size), dtype=float)
         X_fun[0, :] = X_fun_init
 
         for i in range(1, n):
-            X_fun[i, :] = self.fun(points[i, :])
+            X_fun[i, :] = numpy.squeeze(self.func(x[i, :]))
 
         return X_fun
 

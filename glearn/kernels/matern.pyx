@@ -150,11 +150,11 @@ cdef class Matern(Kernel):
         0.7848876539574506
 
         >>> # Evaluate first derivative of kernel at the point x=0.5
-        >>> kernel(x, derivarive=1)
+        >>> kernel(x, derivative=1)
         0.6309300390811722
 
         >>> # Evaluate second derivative of kernel at the point x=0.5
-        >>> kernel(x, derivarive=2)
+        >>> kernel(x, derivative=2)
         0.16905719445233686
 
         >>> # Plot kernel and its first and second derivative

@@ -87,11 +87,11 @@ cdef class RationalQuadratic(Kernel):
         0.8858131487889274
 
         >>> # Evaluate first derivative of kernel at the point x=0.5
-        >>> kernel(x, derivarive=1)
+        >>> kernel(x, derivative=1)
         0.416853246488907
 
         >>> # Evaluate second derivative of kernel at the point x=0.5
-        >>> kernel(x, derivarive=2)
+        >>> kernel(x, derivative=2)
         0.416853246488907
 
         >>> # Plot kernel and its first and second derivative

@@ -54,6 +54,7 @@ include docker/Dockerfile
 exclude TODO.rst
 exclude .coverage
 exclude .gitattributes
+exclude .tokeignore
 
 prune docs/build
 prune .git

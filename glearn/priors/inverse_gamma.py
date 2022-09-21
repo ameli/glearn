@@ -358,9 +358,9 @@ class InverseGamma(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf`
-        :func:`glearn.priors.InverseGamma.pdf_jacobian`
-        :func:`glearn.priors.InverseGamma.pdf_hessian`
+        :meth:`glearn.priors.Prior.log_pdf`
+        :meth:`glearn.priors.InverseGamma.pdf_jacobian`
+        :meth:`glearn.priors.InverseGamma.pdf_hessian`
 
         Notes
         -----
@@ -433,9 +433,9 @@ class InverseGamma(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf_jacobian`
-        :func:`glearn.priors.InverseGamma.pdf`
-        :func:`glearn.priors.InverseGamma.pdf_hessian`
+        :meth:`glearn.priors.Prior.log_pdf_jacobian`
+        :meth:`glearn.priors.InverseGamma.pdf`
+        :meth:`glearn.priors.InverseGamma.pdf_hessian`
 
         Notes
         -----
@@ -513,9 +513,9 @@ class InverseGamma(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf_hessian`
-        :func:`glearn.priors.InverseGamma.pdf`
-        :func:`glearn.priors.InverseGamma.pdf_jacobian`
+        :meth:`glearn.priors.Prior.log_pdf_hessian`
+        :meth:`glearn.priors.InverseGamma.pdf`
+        :meth:`glearn.priors.InverseGamma.pdf_jacobian`
 
         Notes
         -----

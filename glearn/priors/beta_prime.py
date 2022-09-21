@@ -367,9 +367,9 @@ class BetaPrime(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf`
-        :func:`glearn.priors.BetaPrime.pdf_jacobian`
-        :func:`glearn.priors.BetaPrime.pdf_hessian`
+        :meth:`glearn.priors.Prior.log_pdf`
+        :meth:`glearn.priors.BetaPrime.pdf_jacobian`
+        :meth:`glearn.priors.BetaPrime.pdf_hessian`
 
         Notes
         -----
@@ -442,9 +442,9 @@ class BetaPrime(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf_jacobian`
-        :func:`glearn.priors.BetaPrime.pdf`
-        :func:`glearn.priors.BetaPrime.pdf_hessian`
+        :meth:`glearn.priors.Prior.log_pdf_jacobian`
+        :meth:`glearn.priors.BetaPrime.pdf`
+        :meth:`glearn.priors.BetaPrime.pdf_hessian`
 
         Notes
         -----
@@ -521,9 +521,9 @@ class BetaPrime(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf_hessian`
-        :func:`glearn.priors.BetaPrime.pdf`
-        :func:`glearn.priors.BetaPrime.pdf_jacobian`
+        :meth:`glearn.priors.Prior.log_pdf_hessian`
+        :meth:`glearn.priors.BetaPrime.pdf`
+        :meth:`glearn.priors.BetaPrime.pdf_jacobian`
 
         Notes
         -----

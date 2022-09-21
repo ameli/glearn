@@ -18,7 +18,7 @@ from libc.math cimport NAN
 try:
     from .._utilities.plot_utilities import matplotlib, plt
     from .._utilities.plot_utilities import load_plot_settings, \
-        show_or_save_plot
+        save_plot, show_or_save_plot
     plot_modules_exist = True
 except ImportError:
     plot_modules_exist = False
@@ -190,7 +190,7 @@ cdef class Kernel(object):
     # plot
     # ====
 
-    def plot(self, compare_numerical=False, x_max=4.0):
+    def plot(self, compare_numerical=False, x_max=4.0, test=False):
         """
         Plot the kernel function and its first and second derivative.
 
@@ -205,6 +205,9 @@ cdef class Kernel(object):
 
         x_max : float, default=4.0
             Maximum range in the abscissa in the plot.
+
+        test : bool, default=False
+            If `True`, this function is used for test purposes.
 
         Notes
         -----
@@ -275,7 +278,7 @@ cdef class Kernel(object):
         # Compare analytic derivative with numerical derivative
         if compare_numerical:
             d1y_num = (d0y[2:] - d0y[:n-2]) / (x[2:] - x[:n-2])
-            d2y_num = (d1y_num[2:] - d1y_num[:n-2]) / (x[3:n-1] - x[1:n-3])
+            d2y_num = (d1y_num[2:] - d1y_num[:n-4]) / (x[3:n-1] - x[1:n-3])
             ax[1].plot(x[1:n-1], d1y_num, '--', color='black',
                        label='Numerical')
             ax[2].plot(x[2:n-2], d2y_num, '--', color='black',
@@ -305,4 +308,8 @@ cdef class Kernel(object):
         ax[2].grid(True)
 
         plt.tight_layout()
-        show_or_save_plot(plt, 'kernel', transparent_background=True)
+
+        if test:
+            save_plot(plt, 'kernel', pdf=False, verbose=False)
+        else:
+            show_or_save_plot(plt, 'kernel', transparent_background=True)

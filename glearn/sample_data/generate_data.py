@@ -14,7 +14,7 @@
 import numpy
 from .._utilities.plot_utilities import *                    # noqa: F401, F403
 from .._utilities.plot_utilities import load_plot_settings, plt, \
-    show_or_save_plot
+    save_plot, show_or_save_plot
 
 __all__ = ['generate_data']
 
@@ -24,7 +24,7 @@ __all__ = ['generate_data']
 # =============
 
 def generate_data(
-        points,
+        x,
         noise_magnitude,
         seed=0,
         plot=False):
@@ -34,7 +34,7 @@ def generate_data(
     Parameters
     ----------
 
-    points : numpy.ndarray
+    x : numpy.ndarray
         2D array of size :math:`(n, d)` representing :math:`n` points where
         each row represents an :math:`d`-dimensional coordinate of a point.
 
@@ -45,15 +45,16 @@ def generate_data(
         Seed of the random generator which can be a non-negative integer. If
         set to `None`, the result of the random generator is not repeatable.
 
-    plot : bool, default=False
+    plot : bool or str, default=False
         If `True`, the data will be plotted (only if the data is 1D or 2D).
         If no display is available (such as executing on remote machines) the
-        plot is saved in the current directory in `SVG` format.
+        plot is saved in the current directory in `SVG` format. If ``plot`` is
+        set to ``save``, it saves the plot instead of showing the plot.
 
     Returns
     -------
 
-    data : numpy.array
+    y : numpy.array
         1D array of data of the size :math:`n`.
 
     See Also
@@ -92,7 +93,7 @@ def generate_data(
 
     To manually disable interactive plot display and save the plot as
     ``svg`` instead, add the following at the very beginning of your code
-    before importing :mod:`imate`:
+    before importing :mod:`glearn`:
 
     .. code-block:: python
 
@@ -112,12 +113,10 @@ def generate_data(
     .. code-block:: python
 
         >>> from glearn.sample_data import generate_points, generate_data
-        >>> points = generate_points(100, grid=False, a=0.2, b=0.4,
-        ...                          contrast=0.8)
+        >>> x = generate_points(100, grid=False, a=0.2, b=0.4, contrast=0.8)
 
         >>> # Generate sample data
-        >>> data = generate_data(points, noise_magnitude=0.1, seed=0,
-        ...                      plot=True)
+        >>> y = generate_data(x, noise_magnitude=0.1, seed=0, plot=True)
 
     .. image:: ../_static/images/plots/generate_data_1d.png
         :align: center
@@ -134,12 +133,11 @@ def generate_data(
     .. code-block:: python
 
         >>> from glearn.sample_data import generate_points, generate_data
-        >>> points = generate_points(100, dimension=2, grid=False,
-        ...                          a=(0.2, 0.3), b=(0.4, 0.5), contrast=0.7)
+        >>> x = generate_points(100, dimension=2, grid=False, a=(0.2, 0.3),
+        ...                     b=(0.4, 0.5), contrast=0.7)
 
         >>> # Generate sample data
-        >>> data = generate_data(points, noise_magnitude=0.1, seed=0,
-        ...                      plot=True)
+        >>> y = generate_data(x, noise_magnitude=0.1, seed=0, plot=True)
 
     .. image:: ../_static/images/plots/generate_data_2d.png
         :align: center
@@ -148,51 +146,50 @@ def generate_data(
     """
 
     # If points are 1d array, wrap them to a 2d array
-    if points.ndim == 1:
-        points = numpy.array([points], dtype=float).T
+    if x.ndim == 1:
+        x = numpy.array([x], dtype=float).T
 
-    num_points = points.shape[0]
-    dimension = points.shape[1]
-    z = numpy.zeros((num_points, ), dtype=float)
+    num_points = x.shape[0]
+    dimension = x.shape[1]
+    y = numpy.zeros((num_points, ), dtype=float)
 
     for i in range(dimension):
-        z += numpy.sin(points[:, i]*numpy.pi)
+        y += numpy.sin(x[:, i]*numpy.pi)
 
     # Add noise
     if seed is None:
         rng = numpy.random.RandomState()
     else:
         rng = numpy.random.RandomState(seed)
-    z += noise_magnitude*rng.randn(num_points)
+    y += noise_magnitude*rng.randn(num_points)
 
     # Plot data
-    if plot:
-        _plot_data(points, z)
+    if plot is True or plot == 'save':
+        _plot_data(x, y, plot)
 
-    return z
+    return y
 
 
 # =========
 # plot data
 # =========
 
-def _plot_data(points, z):
+def _plot_data(x, y, plot):
     """
     Plots 1D or 2D data.
     """
 
     load_plot_settings()
 
-    dimension = points.shape[1]
+    dimension = x.shape[1]
 
     if dimension == 1:
 
-        x = points
         xi = numpy.linspace(0, 1)
         zi = generate_data(xi, 0.0, False)
 
         fig, ax = plt.subplots()
-        ax.plot(x, z, 'o', color='black', markersize=4, label='noisy data')
+        ax.plot(x, y, 'o', color='black', markersize=4, label='noisy data')
         ax.plot(xi, zi, color='black', label='noise-free data')
         ax.set_xlim([0, 1])
         ax.set_xlabel(r'$x$')
@@ -201,7 +198,12 @@ def _plot_data(points, z):
         ax.legend(fontsize='small')
 
         plt.tight_layout()
-        show_or_save_plot(plt, 'data', transparent_background=True)
+
+        if plot == 'save':
+            save_plot(plt, 'data', transparent_background=True, pdf=False,
+                      verbose=False)
+        else:
+            show_or_save_plot(plt, 'data', transparent_background=True)
 
     elif dimension == 2:
 
@@ -216,7 +218,7 @@ def _plot_data(points, z):
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1, projection='3d')
 
-        ax.scatter(points[:, 0], points[:, 1], z, marker='.', s=7, c='black',
+        ax.scatter(x[:, 0], x[:, 1], y, marker='.', s=7, c='black',
                    label='noisy data')
 
         surf = ax.plot_surface(Xi, Yi, Zi, linewidth=0, antialiased=False,
@@ -226,10 +228,10 @@ def _plot_data(points, z):
         surf._facecolors2d = surf._facecolor3d
         surf._edgecolors2d = surf._edgecolor3d
 
-        x_min = numpy.min(points[:, 0])
-        x_max = numpy.max(points[:, 0])
-        y_min = numpy.min(points[:, 1])
-        y_max = numpy.max(points[:, 1])
+        x_min = numpy.min(x[:, 0])
+        x_max = numpy.max(x[:, 0])
+        y_min = numpy.min(x[:, 1])
+        y_max = numpy.max(x[:, 1])
 
         ax.set_xlim([x_min, x_max])
         ax.set_ylim([y_min, y_max])
@@ -241,7 +243,12 @@ def _plot_data(points, z):
         ax.view_init(elev=40, azim=120)
 
         plt.tight_layout()
-        show_or_save_plot(plt, 'data', transparent_background=True)
+
+        if plot == 'save':
+            save_plot(plt, 'data', transparent_background=True,
+                      pdf=False, verbose=False)
+        else:
+            show_or_save_plot(plt, 'data', transparent_background=True)
 
     else:
         raise ValueError('Dimension should be "1" or "2" to plot data.')

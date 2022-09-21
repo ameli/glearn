@@ -378,9 +378,9 @@ class Uniform(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf`
-        :func:`glearn.priors.Uniform.pdf_jacobian`
-        :func:`glearn.priors.Uniform.pdf_hessian`
+        :meth:`glearn.priors.Prior.log_pdf`
+        :meth:`glearn.priors.Uniform.pdf_jacobian`
+        :meth:`glearn.priors.Uniform.pdf_hessian`
 
         Notes
         -----
@@ -447,9 +447,9 @@ class Uniform(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf_jacobian`
-        :func:`glearn.priors.Uniform.pdf`
-        :func:`glearn.priors.Uniform.pdf_hessian`
+        :meth:`glearn.priors.Prior.log_pdf_jacobian`
+        :meth:`glearn.priors.Uniform.pdf`
+        :meth:`glearn.priors.Uniform.pdf_hessian`
 
         Notes
         -----
@@ -510,9 +510,9 @@ class Uniform(Prior):
         See Also
         --------
 
-        :func:`glearn.priors.Prior.log_pdf_hessian`
-        :func:`glearn.priors.Uniform.pdf`
-        :func:`glearn.priors.Uniform.pdf_jacobian`
+        :meth:`glearn.priors.Prior.log_pdf_hessian`
+        :meth:`glearn.priors.Uniform.pdf`
+        :meth:`glearn.priors.Uniform.pdf_jacobian`
 
         Notes
         -----
