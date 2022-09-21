@@ -47,6 +47,8 @@
     <script src="../_static/js/custom-pydata.js"></script>
     <script src="../_static/design-tabs.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
     <link rel="shortcut icon" href="../_static/logo-glearn.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -461,8 +463,56 @@
 <h1>glearn.priors.Prior.plot<a class="headerlink" href="#glearn-priors-prior-plot" title="Permalink to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="glearn.priors.Prior.plot">
-<span class="sig-prename descclassname"><span class="pre">Prior.</span></span><span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compare_numerical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.priors.Prior.plot" title="Permalink to this definition">#</a></dt>
-<dd><p>Plots the distribution.</p>
+<span class="sig-prename descclassname"><span class="pre">Prior.</span></span><span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compare_numerical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.priors.Prior.plot" title="Permalink to this definition">#</a></dt>
+<dd><p>Plot the kernel function and its first and second derivative.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>interval</strong><span class="classifier">float, default=[0, 2]</span></dt><dd><p>The abscissa interval of the plot.</p>
+</dd>
+<dt><strong>log_scale</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, the hyperparameter (abscissa) is assumed to be in the
+logarithmic scale.</p>
+</dd>
+<dt><strong>compare_numerical</strong><span class="classifier">bool, default=False</span></dt><dd><p>It <cite>True</cite>, it computes the derivatives of the prior distribution
+and plots the numerical derivatives together with the exact values
+of the derivatives from analytical formula. This is used to
+validate the analytical formulas.</p>
+</dd>
+<dt><strong>test</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, this function is used for test purposes.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>If no graphical backend exists (such as running the code on a remote
+server or manually disabling the X11 backend), the plot will not be
+shown, rather, it will be saved as an <code class="docutils literal notranslate"><span class="pre">svg</span></code> file in the current
+directory.</p></li>
+<li><p>If the executable <code class="docutils literal notranslate"><span class="pre">latex</span></code> is available on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>, the plot is
+rendered using <span class="math notranslate nohighlight">\(\rm\LaTeX\)</span> and it may take slightly longer to
+produce the plot.</p></li>
+<li><p>If <span class="math notranslate nohighlight">\(\rm\LaTeX\)</span> is not installed, it uses any available
+San-Serif font to render the plot.</p></li>
+</ul>
+<p>To manually disable interactive plot display and save the plot as
+<code class="docutils literal notranslate"><span class="pre">svg</span></code> instead, add the following at the very beginning of your code
+before importing <code class="xref py py-mod docutils literal notranslate"><span class="pre">imate</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;GLEARN_NO_DISPLAY&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;True&#39;</span>
+</pre></div>
+</div>
+<p class="rubric">Examples</p>
+<p>Create the inverse Gamma distribution with the shape parameter
+<span class="math notranslate nohighlight">\(\alpha=4\)</span> and rate parameter <span class="math notranslate nohighlight">\(\beta=2\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">priors</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prior</span> <span class="o">=</span> <span class="n">priors</span><span class="o">.</span><span class="n">InverseGamma</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Plot the distribution and its first and second derivative</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prior</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+<a class="custom-dark reference internal image-reference" href="../_images/prior_inverse_gamma.png"><img alt="../_images/prior_inverse_gamma.png" class="custom-dark align-center" src="../_images/prior_inverse_gamma.png" style="width: 100%;" /></a>
 </dd></dl>
 
 </section>

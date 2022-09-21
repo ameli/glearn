@@ -494,7 +494,7 @@ repeatable.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>points</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>A 2D array where each row is the coordinate of a point. The size of the
+<dt><strong>x</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>A 2D array where each row is the coordinate of a point. The size of the
 array is <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">m)</span></code> where <code class="docutils literal notranslate"><span class="pre">m</span></code> is the <code class="docutils literal notranslate"><span class="pre">dimension</span></code> of the space, and
 <code class="docutils literal notranslate"><span class="pre">n</span></code> is the number of generated points inside a unit hypercube. The
 number <code class="docutils literal notranslate"><span class="pre">n</span></code> is determined as follow:</p>
@@ -541,8 +541,8 @@ points inside and outside <span class="math notranslate nohighlight">\(\mathcal{
 <ul>
 <li><p>Generate 100 random points in the 1-dimensional interval <span class="math notranslate nohighlight">\([0, 1]\)</span>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn.sample_data</span> <span class="kn">import</span> <span class="n">generate_points</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="o">.</span><span class="n">shape</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">shape</span>
 <span class="go">(100, 1)</span>
 </pre></div>
 </div>
@@ -551,8 +551,8 @@ points inside and outside <span class="math notranslate nohighlight">\(\mathcal{
 where <span class="math notranslate nohighlight">\(70 \%\)</span> more points are inside <span class="math notranslate nohighlight">\([0.2, 0.5]\)</span> and
 <span class="math notranslate nohighlight">\(30 \%\)</span> of the points are outside of the latter interval:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn.sample_data</span> <span class="kn">import</span> <span class="n">generate_points</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-<span class="gp">... </span>                         <span class="n">b</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="n">b</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>
@@ -560,17 +560,16 @@ where <span class="math notranslate nohighlight">\(70 \%\)</span> more points ar
 where <span class="math notranslate nohighlight">\(70 \%\)</span> more points are inside a rectangle of the points
 <span class="math notranslate nohighlight">\(a=(0.2, 0.3)\)</span> and <span class="math notranslate nohighlight">\(b=(0.4, 0.5)\)</span></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn.sample_data</span> <span class="kn">import</span> <span class="n">generate_points</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<span class="gp">... </span>                         <span class="n">a</span><span class="o">=</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">),</span> <span class="n">b</span><span class="o">=</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
-<span class="gp">... </span>                         <span class="n">contrast</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">),</span>
+<span class="gp">... </span>                    <span class="n">b</span><span class="o">=</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">contrast</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>
 <li><p>Generate a two-dimensional grid of <span class="math notranslate nohighlight">\(30 \times 30\)</span> points in the
 square <span class="math notranslate nohighlight">\([0, 1]^2\)</span>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn.sample_data</span> <span class="kn">import</span> <span class="n">generate_points</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="o">.</span><span class="n">shape</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">shape</span>
 <span class="go">(900, 2)</span>
 </pre></div>
 </div>

@@ -47,11 +47,13 @@
     <script src="../_static/js/custom-pydata.js"></script>
     <script src="../_static/design-tabs.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
     <link rel="shortcut icon" href="../_static/logo-glearn.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="glearn.Covariance" href="glearn.Covariance.html" />
+    <link rel="next" title="glearn.LinearModel.generate_design_matrix" href="glearn.LinearModel.generate_design_matrix.html" />
     <link rel="prev" title="API Reference" href="../api.html" />
     <script defer data-domain="docs.scipy.org" src="https://views.scientific-python.org/js/script.js"></script>
 
@@ -204,10 +206,27 @@
  </span>
 </p>
 <ul class="current nav bd-sidenav">
- <li class="toctree-l1 current active">
+ <li class="toctree-l1 current active has-children">
   <a class="current reference internal" href="#">
    glearn.LinearModel
   </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="glearn.LinearModel.generate_design_matrix.html">
+     glearn.LinearModel.generate_design_matrix
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="glearn.LinearModel.update_hyperparam.html">
+     glearn.LinearModel.update_hyperparam
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toctree-l1">
   <a class="reference internal" href="glearn.Covariance.html">
@@ -434,8 +453,386 @@
 <h1>glearn.LinearModel<a class="headerlink" href="#glearn-linearmodel" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="glearn.LinearModel">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">glearn.</span></span><span class="sig-name descname"><span class="pre">LinearModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polynomial_degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigonometric_coeff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hyperbolic_coeff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.LinearModel" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">glearn.</span></span><span class="sig-name descname"><span class="pre">LinearModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polynomial_degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigonometric_coeff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hyperbolic_coeff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orthonormalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.LinearModel" title="Permalink to this definition">#</a></dt>
+<dd><p>Create linear model for the mean function of regression.</p>
+<p>For the regression problem
+<span class="math notranslate nohighlight">\(y=\mu(\boldsymbol{x})+\delta(\boldsymbol{x})\)</span> where
+<span class="math notranslate nohighlight">\(\mu\)</span> and <span class="math notranslate nohighlight">\(\delta\)</span> are the mean and miss-fit of the
+regression model respectively, this class implements the linear model
+<span class="math notranslate nohighlight">\(\mu(\boldsymbol{x})=
+\boldsymbol{\phi}(\boldsymbol{x})^{\intercal} \boldsymbol{\beta}\)</span>,
+where the basis functions <span class="math notranslate nohighlight">\(\boldsymbol{\phi}\)</span> can be specified
+by polynomial, trigonometric, hyperbolic, or user-defined arbitrary
+functions. Also, this class can assign the uniform or multi-dimensional
+normal prior distribution to the vector of regression coefficients
+<span class="math notranslate nohighlight">\(\boldsymbol{\beta} \sim \mathcal{N}(\boldsymbol{b}, \sigma^2
+\mathbf{B})\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>A 2D array of data points where each row of the array is the coordinate
+of a point <span class="math notranslate nohighlight">\(\boldsymbol{x} = (x_1, \dots, x_d)\)</span>. The
+array size is <span class="math notranslate nohighlight">\(n \times d\)</span> where <span class="math notranslate nohighlight">\(n\)</span> is the number of the
+points and <span class="math notranslate nohighlight">\(d\)</span> is the dimension of the space of points.</p>
+</dd>
+<dt><strong>polynomial_degree</strong><span class="classifier">int, default=0</span></dt><dd><p>Degree <span class="math notranslate nohighlight">\(p\)</span> of polynomial basis functions
+<span class="math notranslate nohighlight">\(\boldsymbol{\phi}_p(\boldsymbol{x})\)</span>, which defines the
+monomial functions of order less than or equal to <span class="math notranslate nohighlight">\(p\)</span> on the
+variables <span class="math notranslate nohighlight">\(\boldsymbol{x} = (x_1, \dots, x_d)\)</span>. The total
+number of monomials is denoted by <span class="math notranslate nohighlight">\(m_p\)</span>.</p>
+</dd>
+<dt><strong>trigonometric_coeff</strong><span class="classifier">float or array_like[float], default=None</span></dt><dd><p>The coefficients <span class="math notranslate nohighlight">\(t_i, i=1,\dots, m_t\)</span>, of the trigonometric
+basis functions <span class="math notranslate nohighlight">\(\boldsymbol{\phi}_t(\boldsymbol{x})\)</span> (see
+Notes below). If <cite>None</cite>, no trigonometric basis function is generated.
+The total number of trigonometric basis functions is <span class="math notranslate nohighlight">\(2 m_t\)</span>.</p>
+</dd>
+<dt><strong>hyperbolic_coeff</strong><span class="classifier">float or array_like[float], default=None</span></dt><dd><p>The coefficients <span class="math notranslate nohighlight">\(h_i, i=1, \dots, m_h\)</span>, of the hyperbolic
+basis functions <span class="math notranslate nohighlight">\(\boldsymbol{\phi}_h(\boldsymbol{x})\)</span> (see
+Notes below). If <cite>None</cite>, no hyperbolic basis function is generated. The
+total number of hyperbolic basis functions is <span class="math notranslate nohighlight">\(2 m_h\)</span>.</p>
+</dd>
+<dt><strong>func</strong><span class="classifier">callable, default=None</span></dt><dd><p>A callable function to define arbitrary basis functions
+<span class="math notranslate nohighlight">\(\boldsymbol{\phi}(\boldsymbol{x})\)</span> where it accepts an input
+point <span class="math notranslate nohighlight">\(\boldsymbol{x}=(x_1, \dots, m_d)\)</span> and returns the
+array of <span class="math notranslate nohighlight">\(m_f\)</span> basis functions <span class="math notranslate nohighlight">\(\boldsymbol{\phi} = (
+\phi_1, \dots, \phi_{m_f})\)</span>. If <cite>None</cite>, no arbitrary basis function
+is generated. The total number of user-defined basis functions is
+denoted by <span class="math notranslate nohighlight">\(m_f\)</span>.</p>
+</dd>
+<dt><strong>orthonormalize</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, the design matrix <span class="math notranslate nohighlight">\(\mathbf{X}\)</span> of the basis functions
+will be orthonormalized. The orthonormalization is applied on all
+<span class="math notranslate nohighlight">\(m\)</span> basis functions, including polynomial, trigonometric,
+hyperbolic, and user-defined basis functions.</p>
+</dd>
+<dt><strong>b</strong><span class="classifier">numpy.array, default=None,</span></dt><dd><p>The variable <span class="math notranslate nohighlight">\(\boldsymbol{b}\)</span> which is the mean of the prior
+distribution for the variable <span class="math notranslate nohighlight">\(\boldsymbol{\beta} \sim
+\mathcal{N}(\boldsymbol{b}, \sigma^2 \mathbf{B})\)</span>. The variable
+<code class="docutils literal notranslate"><span class="pre">b</span></code> should be given as a 1D array of the size <span class="math notranslate nohighlight">\(m = m_p+2m_t+
+2m_h+m_f\)</span>. If <cite>None</cite>, uniform prior is assumed for the variable
+<span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span>.</p>
+</dd>
+<dt><strong>B</strong><span class="classifier">numpy.array, default=None,</span></dt><dd><p>The matrix <span class="math notranslate nohighlight">\(\mathbf{B}\)</span> which makes the covariance of the prior
+distribution for the variable <span class="math notranslate nohighlight">\(\boldsymbol{\beta} \sim
+\mathcal{N}(\boldsymbol{b}, \sigma^2 \mathbf{B})\)</span>. The matrix
+<code class="docutils literal notranslate"><span class="pre">B</span></code> should be symmetric and positive semi-definite with the size
+<span class="math notranslate nohighlight">\(m \times m\)</span> where <span class="math notranslate nohighlight">\(m = m_p+2m_t+2m_h+m_f\)</span>.</p>
+<ul class="simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">B</span></code> is not <cite>None</cite>, the vector <code class="docutils literal notranslate"><span class="pre">b</span></code> also cannot be <cite>None</cite>.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">B</span></code> is <cite>None</cite>, it is assumed that
+<span class="math notranslate nohighlight">\(\mathbf{B}^{-1} \to \mathbf{0}\)</span>, which implies the prior on
+<span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> is the uniform distribution. In this
+case, the argument <code class="docutils literal notranslate"><span class="pre">b</span></code> (if given) is ignored.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="glearn.Covariance.html#glearn.Covariance" title="glearn.Covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance</span></code></a></dt><dd></dd>
+<dt><a class="reference internal" href="glearn.GaussianProcess.html#glearn.GaussianProcess" title="glearn.GaussianProcess"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.GaussianProcess</span></code></a></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p><strong>Regression Model:</strong></p>
+<p>A regression model to fit the data <span class="math notranslate nohighlight">\(y = f(\boldsymbol{x})\)</span>
+for the points <span class="math notranslate nohighlight">\(\boldsymbol{x} \in \mathcal{D} \in \mathbb{R}^d\)</span>
+and data <span class="math notranslate nohighlight">\(y \in \mathbb{R}\)</span> is</p>
+<div class="math notranslate nohighlight">
+\[f(\boldsymbol{x}) = \mu(\boldsymbol{x}) + \delta(\boldsymbol{x}),\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mu\)</span> is a deterministic function representing the features
+of the data and <span class="math notranslate nohighlight">\(\delta\)</span> is a stochastic function representing both
+the uncertainty of the data and miss-fit of the regression model.</p>
+<p><strong>Linear Regression Model:</strong></p>
+<p>This class represents a linear regression model, where it is assumed that</p>
+<div class="math notranslate nohighlight">
+\[\mu(\boldsymbol{x}) =
+\boldsymbol{\phi}(\boldsymbol{x})^{\intercal} \boldsymbol{\beta},\]</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{\phi} = (\phi_1, \dots, \phi_m):
+\mathcal{D} \to \mathbb{R}^m\)</span> is a vector basis function and
+<span class="math notranslate nohighlight">\(\boldsymbol{\beta} = (\beta_1, \dots, \beta_m)\)</span> is a vector of
+the unknown coefficients of the linear model. The basis functions can be a
+combination of the following functions:</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\phi}(\boldsymbol{x}) = \left(
+\boldsymbol{\phi}_p(\boldsymbol{x}),
+\boldsymbol{\phi}_t(\boldsymbol{x}),
+\boldsymbol{\phi}_h(\boldsymbol{x}),
+\boldsymbol{\phi}_f(\boldsymbol{x}) \right),\]</div>
+<p>consisting of</p>
+<ul class="simple">
+<li><p>Polynomial basis functions <span class="math notranslate nohighlight">\(\boldsymbol{\phi}_p: \mathcal{D}
+\to \mathbb{R}^{m_p}\)</span>.</p></li>
+<li><p>Trigonometric basis functions <span class="math notranslate nohighlight">\(\boldsymbol{\phi}_t: \mathcal{D}
+\to \mathbb{R}^{2m_t}\)</span>.</p></li>
+<li><p>Hyperbolic basis functions <span class="math notranslate nohighlight">\(\boldsymbol{\phi}_h: \mathcal{D}
+\to \mathbb{R}^{2m_h}\)</span>.</p></li>
+<li><p>User-defined basis functions <span class="math notranslate nohighlight">\(\boldsymbol{\phi}_f: \mathcal{D}
+\to \mathbb{R}^{m_f}\)</span>.</p></li>
+</ul>
+<p>The total number of the basis functions, <span class="math notranslate nohighlight">\(m\)</span>, is</p>
+<div class="math notranslate nohighlight">
+\[m = m_p + 2m_t + 2m_h + m_f.\]</div>
+<p>Each of the above functions are described below.</p>
+<ul>
+<li><p><strong>Polynomial Basis Functions:</strong> A polynomial basis function of order
+<span class="math notranslate nohighlight">\(p\)</span> (set by <code class="docutils literal notranslate"><span class="pre">polynomial_order</span></code>) is a tuple of all monomials up to
+the order less than or equal to <span class="math notranslate nohighlight">\(p\)</span> from the combination of the
+components of the variable <span class="math notranslate nohighlight">\(\boldsymbol{x} = (x_1, \dots, x_d)\)</span>.
+For instance, if <span class="math notranslate nohighlight">\(d = 2\)</span> where
+<span class="math notranslate nohighlight">\(\boldsymbol{x} = (x_1, x_2)\)</span>, a polynomial basis of order 3 is</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\phi}_p(x_1, x_2) = ( \
+    1, \
+    x_1, x_2, \
+    x_1^2, x_1 x_2, x_2^2, \
+    x_1^3, x_1^2 x_2, x_1 x_2^2, x_2^3).\]</div>
+<p>The size of the tuple <span class="math notranslate nohighlight">\(\boldsymbol{\phi}_p\)</span> is denoted by
+<span class="math notranslate nohighlight">\(m_p\)</span>, for instance, in the above, <span class="math notranslate nohighlight">\(m_p = 10\)</span>.</p>
+</li>
+<li><p><strong>Trigonometric Basis Function:</strong> Given the coefficients
+<span class="math notranslate nohighlight">\((t_1, \dots, t_{m_t})\)</span> which can be set by
+<code class="docutils literal notranslate"><span class="pre">trigonometric_coeff</span></code> as a list or numpy array, the trigonometric basis
+functions <span class="math notranslate nohighlight">\(\boldsymbol{\phi}_t\)</span> is defined by</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\phi}_t(\boldsymbol{x}) =
+(\boldsymbol{\phi}_s(\boldsymbol{x}),
+\boldsymbol{\phi}_c(\boldsymbol{x})),\]</div>
+<p>where</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+    \boldsymbol{\phi}_s(\boldsymbol{x}) = (
+    &amp; \sin(t_1 x_1), \dots, \sin(t_1 x_d), \\
+    &amp; \dots, \\
+    &amp; \sin(t_i x_1), \dots, \sin(t_i x_d), \\
+    &amp; \dots, \\
+    &amp; \sin(t_{m_t} x_1), \dots, \sin(t_{m_t} x_d)).
+\end{align}\end{split}\]</div>
+<p>and</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+    \boldsymbol{\phi}_c(\boldsymbol{x}) = (
+    &amp; \cos(t_1 x_1), \dots, \cos(t_1 x_d), \\
+    &amp; \dots, \\
+    &amp; \cos(t_i x_1), \dots, \cos(t_i x_d), \\
+    &amp; \dots, \\
+    &amp; \cos(t_{m_t} x_1), \dots, \cos(t_{m_t} x_d)).
+\end{align}\end{split}\]</div>
+</li>
+<li><p><strong>Hyperbolic Basis Function:</strong> Given the coefficients
+<span class="math notranslate nohighlight">\((h_1, \dots, h_{m_h})\)</span> which can be set by
+<code class="docutils literal notranslate"><span class="pre">hyperbolic_coeff</span></code> as a list or numpy array, the hyperbolic basis
+functions <span class="math notranslate nohighlight">\(\boldsymbol{\phi}_h\)</span> is defined by</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\phi}_h(\boldsymbol{x}) =
+(\boldsymbol{\phi}_{sh}(\boldsymbol{x}),
+\boldsymbol{\phi}_{ch}(\boldsymbol{x})),\]</div>
+<p>where</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+    \boldsymbol{\phi}_{sh}(\boldsymbol{x}) = (
+    &amp; \sinh(h_1 x_1), \dots, \sinh(h_1 x_d), \\
+    &amp; \dots, \\
+    &amp; \sinh(h_i x_1), \dots, \sinh(h_i x_d), \\
+    &amp; \dots, \\
+    &amp; \sinh(h_{m_h} x_1), \dots, \sinh(h_{m_h} x_d)).
+\end{align}\end{split}\]</div>
+<p>and</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+    \boldsymbol{\phi}_{ch}(\boldsymbol{x}) = (
+    &amp; \cosh(h_1 x_1), \dots, \cosh(h_1 x_d), \\
+    &amp; \dots, \\
+    &amp; \cosh(h_i x_1), \dots, \cosh(h_i x_d), \\
+    &amp; \dots, \\
+    &amp; \cosh(h_{m_h} x_1), \dots, \cosh(h_{m_h} x_d)).
+\end{align}\end{split}\]</div>
+</li>
+<li><p><strong>User-Defined Basis Functions:</strong> Given the function
+<span class="math notranslate nohighlight">\(\boldsymbol{\phi}_f(\boldsymbol{x})\)</span> which can be set by the
+argument <code class="docutils literal notranslate"><span class="pre">func</span></code>, the custom basis function are generated by</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\phi}_f(\boldsymbol{x}) =
+\left( \boldsymbol{\phi}_{f, 1}(\boldsymbol{x}),
+\dots,
+\boldsymbol{\phi}_{f, m_f}(\boldsymbol{x}) \right).\]</div>
+</li>
+</ul>
+<p><strong>Design Matrix:</strong></p>
+<p>The design matrix <span class="math notranslate nohighlight">\(\mathbf{X}\)</span> of the size <span class="math notranslate nohighlight">\(n \times m\)</span> is
+generated  from <span class="math notranslate nohighlight">\(n\)</span> points <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> and <span class="math notranslate nohighlight">\(m\)</span>
+basis functions with the components <span class="math notranslate nohighlight">\(X_{ij}\)</span> as</p>
+<div class="math notranslate nohighlight">
+\[X_{ij} = \phi_j(\boldsymbol{x}_i), \quad i = 1, \dots, n, \quad
+j = 1, \dots, m.\]</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">orthonormalize</span></code> is <cite>True</cite>, the matrix <span class="math notranslate nohighlight">\(\mathbf{X}\)</span> is
+orthonormalized such that
+<span class="math notranslate nohighlight">\(\mathbf{X}^{\intercal} \mathbf{X} = \mathbf{I}\)</span> where
+<span class="math notranslate nohighlight">\(\mathbf{I}\)</span> is the identity matrix.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The design matrix is automatically generated during the internal
+training process, so the user may not need to generate the design
+matrix. However, to manually generate the design matrix manually, call
+<a class="reference internal" href="glearn.LinearModel.generate_design_matrix.html#glearn.LinearModel.generate_design_matrix" title="glearn.LinearModel.generate_design_matrix"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.LinearModel.generate_design_matrix()</span></code></a> function.</p>
+</div>
+<p><strong>Prior of Unknown Coefficients:</strong></p>
+<p>The coefficients <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> of the size <span class="math notranslate nohighlight">\(m\)</span> is
+unknown at the time of instantiation of <a class="reference internal" href="#glearn.LinearModel" title="glearn.LinearModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.LinearModel</span></code></a> class.
+However, its prior distribution can be specified as</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\beta} \sim \mathcal{N}(\boldsymbol{b}, \sigma^2
+\mathbf{B}),\]</div>
+<p>where the hyperparameter <span class="math notranslate nohighlight">\(\sigma\)</span> is to be found during the training
+process, and the hyperparameters <span class="math notranslate nohighlight">\(\boldsymbol{b}\)</span> and
+<span class="math notranslate nohighlight">\(\mathbf{B}\)</span> can be specified by the arguments <code class="docutils literal notranslate"><span class="pre">b</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code>
+respectively.</p>
+<p><strong>Posterior of Estimated Coefficients:</strong></p>
+<p>Once the model has been trained by <a class="reference internal" href="glearn.GaussianProcess.html#glearn.GaussianProcess" title="glearn.GaussianProcess"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.GaussianProcess</span></code></a>, the
+hyperparameters of the posterior distribution</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\beta} \sim \mathcal{N}(\bar{\boldsymbol{\beta}},
+\mathbf{C}),\]</div>
+<p>can be accessed by these attributes:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\bar{\boldsymbol{\beta}}\)</span> can be accessed by
+<code class="docutils literal notranslate"><span class="pre">LinearModel.beta</span></code>.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{C}\)</span> can be accessed by <code class="docutils literal notranslate"><span class="pre">LinearModel.C</span></code>.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The hyperparameters of the posterior distribution of
+<span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> is automatically computed <strong>after</strong>
+the training process. However, to manually update the hyperparameters
+of the posterior distribution after the training process, call
+<a class="reference internal" href="glearn.LinearModel.update_hyperparam.html#glearn.LinearModel.update_hyperparam" title="glearn.LinearModel.update_hyperparam"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.LinearModel.update_hyperparam()</span></code></a> function.</p>
+</div>
+<p class="rubric">Examples</p>
+<p><strong>Create Polynomial, Trigonometric, and Hyperbolic Basis Functions:</strong></p>
+<p>First, create a set of 50 random points in the interval <span class="math notranslate nohighlight">\([0, 1]\)</span> and
+define a</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a set of points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn.sample_data</span> <span class="kn">import</span> <span class="n">generate_points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Define the prior for <span class="math notranslate nohighlight">\(\boldsymbol{\beta} \vert \sigma^2 \sim
+\mathcal{N}(\boldsymbol{b}, \sigma^2 \mathbf{B})\)</span> by the mean vector
+<span class="math notranslate nohighlight">\(\boldsymbol{b}\)</span> and covariance matrix <span class="math notranslate nohighlight">\(\mathbf{B}\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">m</span><span class="p">,</span> <span class="p">))</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a random matrix B for covariance of beta.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">B</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Making sure the covariance matrix B positive-semidefinite</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">B</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">B</span>
+</pre></div>
+</div>
+<p><strong>Create User-Defined Basis Functions:</strong></p>
+<p>Define the function <span class="math notranslate nohighlight">\(\boldsymbol{\phi}\)</span> as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a function returning the Legendre Polynomials</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">phi_1</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mf">3.0</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">phi_2</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mf">5.0</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="mi">3</span> <span class="o">-</span> <span class="mf">3.0</span><span class="o">*</span><span class="n">x</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">phi</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">phi_1</span><span class="p">,</span> <span class="n">phi_2</span><span class="p">])</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">phi</span>
+</pre></div>
+</div>
+<p><strong>Create Linear Model:</strong></p>
+<p>Create a linear model with third order polynomial basis functions, both
+trigonometric and hyperbolic functions, and the user-defined functions
+defined in the above.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create basis functions</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">LinearModel</span>
+<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">LinearModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">polynomial_degree</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span class="hll"><span class="gp">... </span>                <span class="n">trigonometric_coeff</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+</span><span class="hll"><span class="gp">... </span>                <span class="n">hyperbolic_coeff</span><span class="o">=</span><span class="p">[</span><span class="mf">3.0</span><span class="p">],</span> <span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="n">b</span><span class="p">,</span> <span class="n">B</span><span class="o">=</span><span class="n">B</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<p>Note that we set <span class="math notranslate nohighlight">\(m = 10\)</span> since we have</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(m_p=2\)</span> polynomial basis functions <span class="math notranslate nohighlight">\(\boldsymbol{\phi}(x) =
+(1, x)\)</span> of order 0 and 1.</p></li>
+<li><p><span class="math notranslate nohighlight">\(2m_t\)</span> trigonometric basis functions with <span class="math notranslate nohighlight">\(m_t=2\)</span> as
+<span class="math notranslate nohighlight">\(\boldsymbol{\phi} = (\sin(x), \sin(2x), \cos(x), \cos(2x))\)</span>.</p></li>
+<li><p><span class="math notranslate nohighlight">\(2m_h\)</span> hyperbolic basis functions with <span class="math notranslate nohighlight">\(m_h=1\)</span> as
+<span class="math notranslate nohighlight">\(\boldsymbol{\phi}=(\sinh(3x),\cosh(3x))\)</span>.</p></li>
+<li><p><span class="math notranslate nohighlight">\(m_f=2\)</span> user-defined basis functions <span class="math notranslate nohighlight">\(\boldsymbol{\phi}(x)
+= (\frac{1}{2}(3x^3-1), \frac{1}{2}(5x^3-3x))\)</span>.</p></li>
+</ul>
+<p>Recall, the total number of basis functions is
+<span class="math notranslate nohighlight">\(m = m_p + 2m_t + 2m_h + m_f\)</span>, so in total there are 10 basis
+functions. Because of this, the vector <code class="docutils literal notranslate"><span class="pre">b</span></code> and matrix <code class="docutils literal notranslate"><span class="pre">B</span></code> were defined
+with the size <span class="math notranslate nohighlight">\(m=10\)</span>.</p>
+<p><strong>Generate Design Matrix:</strong></p>
+<p>The design matrix <span class="math notranslate nohighlight">\(\mathbf{X}\)</span> can be generated on a set of data
+points <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> or on arbitrary test points
+<span class="math notranslate nohighlight">\(\boldsymbol{x}^{\ast}\)</span> as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate 100 test points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x_test</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate design matrix on test points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_test</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">generate_design_matrix</span><span class="p">(</span><span class="n">x_test</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_test</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(100, 10)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate design matrix on data points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">generate_design_matrix</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(30, 10)</span>
+</pre></div>
+</div>
+<p><strong>Orthonormalized basis Functions:</strong></p>
+<p>Repeat the above example but set <code class="docutils literal notranslate"><span class="pre">orthonormalize</span></code> to <cite>True</cite>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create basis functions</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">LinearModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">polynomial_degree</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">trigonometric_coeff</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="n">hyperbolic_coeff</span><span class="o">=</span><span class="p">[</span><span class="mf">3.0</span><span class="p">],</span> <span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span>
+<span class="hll"><span class="gp">... </span>                <span class="n">orthonormalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate design matrix on data points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">generate_design_matrix</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Check the orthonormality of X</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">X</span><span class="p">,</span> <span class="n">I</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>points</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>The same as input variable <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+</dd>
+<dt><strong>X</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>The generated design matrix.</p>
+</dd>
+<dt><strong>Binv</strong><span class="classifier">numpy.ndarray, default=None</span></dt><dd><p>Inverse of the matrix <code class="docutils literal notranslate"><span class="pre">B</span></code> (if not <cite>None</cite>).</p>
+</dd>
+<dt><strong>beta</strong><span class="classifier">numpy.array</span></dt><dd><p>The mean of the coefficient <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span>. This
+coefficient is computed for a given data.</p>
+</dd>
+<dt><strong>C</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>The posterior covariance of coefficient <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span>.
+This matrix computed for a given data.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.LinearModel.generate_design_matrix.html#glearn.LinearModel.generate_design_matrix" title="glearn.LinearModel.generate_design_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_design_matrix</span></code></a>(x)</p></td>
+<td><p>Generates design matrix (basis functions) for the mean function of the linear model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.LinearModel.update_hyperparam.html#glearn.LinearModel.update_hyperparam" title="glearn.LinearModel.update_hyperparam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_hyperparam</span></code></a>(cov, z)</p></td>
+<td><p>Updates (or computes, if has not been done so) the mean and covariance of the posterior of the parameter beta.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </section>
 
@@ -454,10 +851,10 @@
           <p class="prev-next-title">API Reference</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="glearn.Covariance.html" title="next page">
+  <a class='right-next' id="next-link" href="glearn.LinearModel.generate_design_matrix.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">glearn.Covariance</p>
+      <p class="prev-next-title">glearn.LinearModel.generate_design_matrix</p>
   </div>
   <i class="fas fa-angle-right"></i>
   </a>

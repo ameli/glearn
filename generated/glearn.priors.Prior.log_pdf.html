@@ -484,29 +484,26 @@ hyperparameter(s).</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><a class="reference internal" href="glearn.priors.Prior.log_pdf_jacobian.html#glearn.priors.Prior.log_pdf_jacobian" title="glearn.priors.Prior.log_pdf_jacobian"><code class="xref py py-func docutils literal notranslate"><span class="pre">glearn.priors.Prior.log_pdf_jacobian()</span></code></a></dt><dd></dd>
-<dt><a class="reference internal" href="glearn.priors.Prior.log_pdf_hessian.html#glearn.priors.Prior.log_pdf_hessian" title="glearn.priors.Prior.log_pdf_hessian"><code class="xref py py-func docutils literal notranslate"><span class="pre">glearn.priors.Prior.log_pdf_hessian()</span></code></a></dt><dd></dd>
+<dt><a class="reference internal" href="glearn.priors.Prior.log_pdf_jacobian.html#glearn.priors.Prior.log_pdf_jacobian" title="glearn.priors.Prior.log_pdf_jacobian"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.priors.Prior.log_pdf_jacobian()</span></code></a></dt><dd></dd>
+<dt><a class="reference internal" href="glearn.priors.Prior.log_pdf_hessian.html#glearn.priors.Prior.log_pdf_hessian" title="glearn.priors.Prior.log_pdf_hessian"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.priors.Prior.log_pdf_hessian()</span></code></a></dt><dd></dd>
 </dl>
 </div>
 <p class="rubric">Notes</p>
 <p>This function returns <span class="math notranslate nohighlight">\(\log p(\theta)\)</span>.</p>
-<p><strong>Using Log Scale:</strong></p>
-<p>If the attribute <code class="docutils literal notranslate"><span class="pre">use_log_scale</span></code> is <cite>True</cite>, it is assumed that the
-input argument <span class="math notranslate nohighlight">\(\theta\)</span> is the log of the hyperparameter, and
-the input to <span class="math notranslate nohighlight">\(p(\theta)\)</span> function becomes</p>
-<blockquote>
-<div><div class="math notranslate nohighlight">
-\[\theta \gets 10^{\theta}.\]</div>
-</div></blockquote>
 <p><strong>Multiple hyperparameters:</strong></p>
 <p>When an array of hyperparameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta} =
 (\theta_, \dots, \theta_n)\)</span> are given, it is assumed that prior
-for each hyperparameter is independent of others.</p>
-<div class="math notranslate nohighlight">
-\[p(\boldsymbol{\theta}) = \prod_{i=1}^n p(\theta_i)\]</div>
-<p>The output of this function is then the sum of all log-probabilities</p>
+for each hyperparameter is independent of others. The output of this
+function is then the sum of all log-probabilities</p>
 <div class="math notranslate nohighlight">
 \[\sum_{i=1}^n \log p(\theta_i).\]</div>
+<p><strong>Using Log Scale:</strong></p>
+<p>If the attribute <code class="docutils literal notranslate"><span class="pre">use_log_scale</span></code> is <cite>True</cite>, it is assumed that the
+input argument <span class="math notranslate nohighlight">\(\theta\)</span> is the log of the hyperparameter, so to
+convert back to the original hyperparameter, the transformation below
+is performed</p>
+<div class="math notranslate nohighlight">
+\[\theta \gets 10^{\theta}.\]</div>
 <p class="rubric">Examples</p>
 <p>Create the inverse Gamma distribution with the shape parameter
 <span class="math notranslate nohighlight">\(\alpha=4\)</span> and rate parameter <span class="math notranslate nohighlight">\(\beta=2\)</span>.</p>

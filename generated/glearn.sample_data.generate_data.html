@@ -436,12 +436,12 @@
 <h1>glearn.sample_data.generate_data<a class="headerlink" href="#glearn-sample-data-generate-data" title="Permalink to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="glearn.sample_data.generate_data">
-<span class="sig-prename descclassname"><span class="pre">glearn.sample_data.</span></span><span class="sig-name descname"><span class="pre">generate_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_magnitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.sample_data.generate_data" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">glearn.sample_data.</span></span><span class="sig-name descname"><span class="pre">generate_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_magnitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.sample_data.generate_data" title="Permalink to this definition">#</a></dt>
 <dd><p>Generate noisy sinusoidal data on a set of points.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>points</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>2D array of size <span class="math notranslate nohighlight">\((n, d)\)</span> representing <span class="math notranslate nohighlight">\(n\)</span> points where
+<dt><strong>x</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>2D array of size <span class="math notranslate nohighlight">\((n, d)\)</span> representing <span class="math notranslate nohighlight">\(n\)</span> points where
 each row represents an <span class="math notranslate nohighlight">\(d\)</span>-dimensional coordinate of a point.</p>
 </dd>
 <dt><strong>noise_magnitude</strong><span class="classifier">float</span></dt><dd><p>The magnitude of additive noise to the data.</p>
@@ -449,15 +449,16 @@ each row represents an <span class="math notranslate nohighlight">\(d\)</span>-d
 <dt><strong>seed</strong><span class="classifier">int, default=0</span></dt><dd><p>Seed of the random generator which can be a non-negative integer. If
 set to <cite>None</cite>, the result of the random generator is not repeatable.</p>
 </dd>
-<dt><strong>plot</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, the data will be plotted (only if the data is 1D or 2D).
+<dt><strong>plot</strong><span class="classifier">bool or str, default=False</span></dt><dd><p>If <cite>True</cite>, the data will be plotted (only if the data is 1D or 2D).
 If no display is available (such as executing on remote machines) the
-plot is saved in the current directory in <cite>SVG</cite> format.</p>
+plot is saved in the current directory in <cite>SVG</cite> format. If <code class="docutils literal notranslate"><span class="pre">plot</span></code> is
+set to <code class="docutils literal notranslate"><span class="pre">save</span></code>, it saves the plot instead of showing the plot.</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>data</strong><span class="classifier">numpy.array</span></dt><dd><p>1D array of data of the size <span class="math notranslate nohighlight">\(n\)</span>.</p>
+<dt><strong>y</strong><span class="classifier">numpy.array</span></dt><dd><p>1D array of data of the size <span class="math notranslate nohighlight">\(n\)</span>.</p>
 </dd>
 </dl>
 </dd>
@@ -492,7 +493,7 @@ font to render the plot.</p></li>
 </ul>
 <p>To manually disable interactive plot display and save the plot as
 <code class="docutils literal notranslate"><span class="pre">svg</span></code> instead, add the following at the very beginning of your code
-before importing <code class="xref py py-mod docutils literal notranslate"><span class="pre">imate</span></code>:</p>
+before importing <a class="reference internal" href="../index.html#module-glearn" title="glearn"><code class="xref py py-mod docutils literal notranslate"><span class="pre">glearn</span></code></a>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;GLEARN_NO_DISPLAY&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;True&#39;</span>
 </pre></div>
@@ -504,12 +505,10 @@ where <span class="math notranslate nohighlight">\(80 \%\)</span> more points ar
 the outside of the latter interval. Then, generate a sinusoidal function
 with noise magnitude <span class="math notranslate nohighlight">\(0.1\)</span> on the points.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn.sample_data</span> <span class="kn">import</span> <span class="n">generate_points</span><span class="p">,</span> <span class="n">generate_data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
-<span class="gp">... </span>                         <span class="n">contrast</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate sample data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">generate_data</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">noise_magnitude</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-<span class="gp">... </span>                     <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">generate_data</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">noise_magnitude</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 <a class="custom-dark reference internal image-reference" href="../_images/generate_data_1d.png"><img alt="../_images/generate_data_1d.png" class="custom-dark align-center" src="../_images/generate_data_1d.png" style="width: 65%;" /></a>
@@ -519,12 +518,11 @@ where <span class="math notranslate nohighlight">\(70 \%\)</span> more points ar
 points <span class="math notranslate nohighlight">\(a=(0.2, 0.3)\)</span> and <span class="math notranslate nohighlight">\(b=(0.4, 0.5)\)</span>. Then, generate a
 noisy sinusoidal function on the set of points.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn.sample_data</span> <span class="kn">import</span> <span class="n">generate_points</span><span class="p">,</span> <span class="n">generate_data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<span class="gp">... </span>                         <span class="n">a</span><span class="o">=</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">),</span> <span class="n">b</span><span class="o">=</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">contrast</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">),</span>
+<span class="gp">... </span>                    <span class="n">b</span><span class="o">=</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">contrast</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate sample data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">generate_data</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">noise_magnitude</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-<span class="gp">... </span>                     <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">generate_data</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">noise_magnitude</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 <a class="custom-dark reference internal image-reference" href="../_images/generate_data_2d.png"><img alt="../_images/generate_data_2d.png" class="custom-dark align-center" src="../_images/generate_data_2d.png" style="width: 85%;" /></a>

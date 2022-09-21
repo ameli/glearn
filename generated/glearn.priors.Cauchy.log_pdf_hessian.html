@@ -268,44 +268,51 @@ the input hyperparameter(s).</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><a class="reference internal" href="glearn.priors.Prior.log_pdf.html#glearn.priors.Prior.log_pdf" title="glearn.priors.Prior.log_pdf"><code class="xref py py-func docutils literal notranslate"><span class="pre">glearn.priors.Prior.log_pdf()</span></code></a></dt><dd></dd>
-<dt><a class="reference internal" href="glearn.priors.Prior.log_pdf_jacobian.html#glearn.priors.Prior.log_pdf_jacobian" title="glearn.priors.Prior.log_pdf_jacobian"><code class="xref py py-func docutils literal notranslate"><span class="pre">glearn.priors.Prior.log_pdf_jacobian()</span></code></a></dt><dd></dd>
+<dt><a class="reference internal" href="glearn.priors.Prior.log_pdf.html#glearn.priors.Prior.log_pdf" title="glearn.priors.Prior.log_pdf"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.priors.Prior.log_pdf()</span></code></a></dt><dd></dd>
+<dt><a class="reference internal" href="glearn.priors.Prior.log_pdf_jacobian.html#glearn.priors.Prior.log_pdf_jacobian" title="glearn.priors.Prior.log_pdf_jacobian"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.priors.Prior.log_pdf_jacobian()</span></code></a></dt><dd></dd>
 </dl>
 </div>
 <p class="rubric">Notes</p>
-<p>The output of this function is</p>
+<p><strong>Multiple hyperparameters:</strong></p>
+<p>Given an array of hyperparameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta} =
+(\theta_, \dots, \theta_n)\)</span>, this function returns the Jacobian
+vector <span class="math notranslate nohighlight">\(\mathbf{H}\)</span> with the components <span class="math notranslate nohighlight">\(H_{ij} = 0\)</span> if
+<span class="math notranslate nohighlight">\(i \neq j\)</span> and</p>
 <div class="math notranslate nohighlight">
-\[\frac{\mathrm{d}^2}{\mathrm{d} \theta^2} 
-\log p(\theta) =
-\frac{1}{(\theta)} 
-\frac{\mathrm{d}p(\theta)}{\mathrm{d} \theta}.\]</div>
+\[H_{ii} = \frac{\partial^2}{\partial \theta_i^2}
+\log p(\theta_i) =
+\frac{1}{p(\theta_i)}
+\frac{\partial^2 p(\theta_i)}{\partial \theta_i^2}
+- \left( \frac{J_i}{p(\theta_i)} \right)^2,\]</div>
+<p>where <span class="math notranslate nohighlight">\(J_i\)</span> is the Jacobian</p>
+<div class="math notranslate nohighlight">
+\[J_i = \frac{\partial}{\partial \theta_i} \log p(\theta_i).\]</div>
 <p><strong>Using Log Scale:</strong></p>
 <p>If the attribute <code class="docutils literal notranslate"><span class="pre">use_log_scale</span></code> is <cite>True</cite>, it is assumed that the
-input argument <span class="math notranslate nohighlight">\(\theta\)</span> is the log of the hyperparameter, and
-the input to <span class="math notranslate nohighlight">\(p(\theta)\)</span> function becomes</p>
-<blockquote>
-<div><div class="math notranslate nohighlight">
-\[\theta \gets 10^{\theta}.\]</div>
-</div></blockquote>
-<p><strong>Multiple hyperparameters:</strong></p>
-<p>When an array of hyperparameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta} =
-(\theta_, \dots, \theta_n)\)</span> are given, it is assumed that prior
-for each hyperparameter is independent of others. The output of this
-function is then the matrix <span class="math notranslate nohighlight">\(\mathbf{J}\)</span> with the components
-<span class="math notranslate nohighlight">\(J_i\)</span> as</p>
+input argument <span class="math notranslate nohighlight">\(\theta\)</span> is the log of the hyperparameter, so to
+convert back to the original hyperparameter, the transformation below
+is performed</p>
 <div class="math notranslate nohighlight">
-\[\sum_{i=1}^n
-\frac{\mathrm{d}}{\mathrm{d} \theta_i} 
-\log p(\theta_i).\]</div>
+\[\theta \gets 10^{\theta}.\]</div>
+<p>As a result, the Hessian is transformed by</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}H_{ij} \gets
+\begin{cases}
+    H_{ij} \theta_i^2 (\log_e(10))^2 + J_i \log_e(10), &amp; i=j,
+    \\
+    H_{ij} \theta_i \theta_j (\log_e(10))^2, &amp; i \neq j.
+\end{cases}\end{split}\]</div>
 <p class="rubric">Examples</p>
 <p>Create the inverse Gamma distribution with the shape parameter
 <span class="math notranslate nohighlight">\(\alpha=4\)</span> and rate parameter <span class="math notranslate nohighlight">\(\beta=2\)</span>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">priors</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">prior</span> <span class="o">=</span> <span class="n">priors</span><span class="o">.</span><span class="n">InverseGamma</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Evaluate the Jacobian of the log-PDF</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">prior</span><span class="o">.</span><span class="n">log_pdf_jacobian</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
-<span class="go">array([ -6.90775528, -10.05664278, -11.05240845])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Evaluate the Hessian of the log-PDF</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prior</span><span class="o">.</span><span class="n">log_pdf_hessian</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="go">array([[-10.60379622,   0.        ,   0.        ],</span>
+<span class="go">       [  0.        ,  -3.35321479,   0.        ],</span>
+<span class="go">       [  0.        ,   0.        ,  -1.06037962]])</span>
 </pre></div>
 </div>
 </dd></dl>
