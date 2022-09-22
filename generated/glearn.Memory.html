@@ -353,6 +353,11 @@
     </a>
    </li>
    <li class="toctree-l2">
+    <a class="reference internal" href="glearn.Memory.stop.html">
+     glearn.Memory.stop
+    </a>
+   </li>
+   <li class="toctree-l2">
     <a class="reference internal" href="glearn.Memory.get_mem.html">
      glearn.Memory.get_mem
     </a>
@@ -475,13 +480,14 @@ RAM is measured by RSS.</p>
 <ul class="simple">
 <li><p>To measure the resident memory in the current Python process, call
 <a class="reference internal" href="glearn.Memory.get_resident_memory.html#glearn.Memory.get_resident_memory" title="glearn.Memory.get_resident_memory"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.get_resident_memory()</span></code></a> function. For this, the class
-<a class="reference internal" href="#glearn.Memory" title="glearn.Memory"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory()</span></code></a> does not needed to be instantiated.</p></li>
+<a class="reference internal" href="#glearn.Memory" title="glearn.Memory"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.Memory</span></code></a> does not needed to be instantiated.</p></li>
 <li><p>To measure the <em>acquired</em> memory between two points of the code (that is,
 finding the <em>difference</em> of the resident memory), first instantiate the
 <a class="reference internal" href="#glearn.Memory" title="glearn.Memory"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.Memory</span></code></a> class. Then call the two functions
-<a class="reference internal" href="glearn.Memory.start.html#glearn.Memory.start" title="glearn.Memory.start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.start()</span></code></a> and <a class="reference internal" href="glearn.Memory.get_mem.html#glearn.Memory.get_mem" title="glearn.Memory.get_mem"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.get_mem()</span></code></a> of the
+<a class="reference internal" href="glearn.Memory.start.html#glearn.Memory.start" title="glearn.Memory.start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.start()</span></code></a> and <a class="reference internal" href="glearn.Memory.stop.html#glearn.Memory.stop" title="glearn.Memory.stop"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.stop()</span></code></a> of the
 instantiated object on the two points where the memory difference should
-be measured.</p></li>
+be measured. The increase of resident memory between these two points
+can be read by <a class="reference internal" href="glearn.Memory.get_mem.html#glearn.Memory.get_mem" title="glearn.Memory.get_mem"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.get_mem()</span></code></a> function.</p></li>
 </ul>
 <p class="rubric">Examples</p>
 <p>The following example tracks the resident memory <em>acquired</em> during the
@@ -502,9 +508,12 @@ between the resident memory of the two lines highlighted below.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Compute the log-determinant of the matrix</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ld</span> <span class="o">=</span> <span class="n">logdet</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
 
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Stop tracking memory change from here</span>
+<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">mem</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Read acquired memory is acquired from start to this point</span>
-<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">mem</span><span class="o">.</span><span class="n">get_mem</span><span class="p">()</span>
-</span><span class="go">(679936, &#39;b&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mem</span><span class="o">.</span><span class="n">get_mem</span><span class="p">()</span>
+<span class="go">(679936, &#39;b&#39;)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Or, read acquired memory in human-readable format</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mem</span><span class="o">.</span><span class="n">get_mem</span><span class="p">(</span><span class="n">human_readable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -531,7 +540,7 @@ as is at the current reading on the hardware.</p>
 <dt><strong>ini_mem_used</strong><span class="classifier">default=0</span></dt><dd><p>The initial resident memory when <a class="reference internal" href="glearn.Memory.start.html#glearn.Memory.start" title="glearn.Memory.start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.start()</span></code></a> is called.</p>
 </dd>
 <dt><strong>mem</strong><span class="classifier">int default=0</span></dt><dd><p>The difference between the current resident memory when
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.read()</span></code> is called and the initial resident memory.</p>
+<a class="reference internal" href="glearn.Memory.stop.html#glearn.Memory.stop" title="glearn.Memory.stop"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.stop()</span></code></a> is called and the initial resident memory.</p>
 </dd>
 </dl>
 </dd>
@@ -542,10 +551,13 @@ as is at the current reading on the hardware.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="glearn.Memory.start.html#glearn.Memory.start" title="glearn.Memory.start"><code class="xref py py-obj docutils literal notranslate"><span class="pre">start</span></code></a>()</p></td>
 <td><p>Sets the start points to track the memory change.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="glearn.Memory.get_mem.html#glearn.Memory.get_mem" title="glearn.Memory.get_mem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_mem</span></code></a>([human_readable])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Memory.stop.html#glearn.Memory.stop" title="glearn.Memory.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stop</span></code></a>()</p></td>
+<td><p>Stops recording memory change in the current process.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Memory.get_mem.html#glearn.Memory.get_mem" title="glearn.Memory.get_mem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_mem</span></code></a>([human_readable])</p></td>
 <td><p>Reads recorded memory change of the current process.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Memory.get_resident_memory.html#glearn.Memory.get_resident_memory" title="glearn.Memory.get_resident_memory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_resident_memory</span></code></a>([human_readable])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Memory.get_resident_memory.html#glearn.Memory.get_resident_memory" title="glearn.Memory.get_resident_memory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_resident_memory</span></code></a>([human_readable])</p></td>
 <td><p>Returns the resident memory of the current process.</p></td>
 </tr>
 </tbody>

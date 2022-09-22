@@ -47,6 +47,8 @@
     <script src="../_static/js/custom-pydata.js"></script>
     <script src="../_static/design-tabs.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
     <link rel="shortcut icon" href="../_static/logo-glearn.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -451,11 +453,94 @@
 <h1>glearn.LinearModel.update_hyperparam<a class="headerlink" href="#glearn-linearmodel-update-hyperparam" title="Permalink to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="glearn.LinearModel.update_hyperparam">
-<span class="sig-prename descclassname"><span class="pre">LinearModel.</span></span><span class="sig-name descname"><span class="pre">update_hyperparam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cov</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.LinearModel.update_hyperparam" title="Permalink to this definition">#</a></dt>
-<dd><p>Updates (or computes, if has not been done so) the mean and covariance
-of the posterior of the parameter beta. This function should be called
-after training, and after cov itself is updated from the training, and
-before prediction.</p>
+<span class="sig-prename descclassname"><span class="pre">LinearModel.</span></span><span class="sig-name descname"><span class="pre">update_hyperparam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cov</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.LinearModel.update_hyperparam" title="Permalink to this definition">#</a></dt>
+<dd><p>Manually update the posterior mean and covariance of linear model
+coefficient.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function is automatically called once the Gaussian process is
+trained after calling <a class="reference internal" href="glearn.GaussianProcess.train.html#glearn.GaussianProcess.train" title="glearn.GaussianProcess.train"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.GaussianProcess.train()</span></code></a>. Hence,
+there is no need to call this function unless the user wants to
+manually update the hyperparameters.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>cov</strong><span class="classifier">glearn.Covariance</span></dt><dd><p>Covariance object of the Gaussian process regression.</p>
+</dd>
+<dt><strong>y</strong><span class="classifier">numpy.array</span></dt><dd><p>Array of training data.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="glearn.GaussianProcess.train.html#glearn.GaussianProcess.train" title="glearn.GaussianProcess.train"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.GaussianProcess.train()</span></code></a></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p><strong>Before Training:</strong></p>
+<p>Before training the Gaussian process, the coefficient of the linear
+model, <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span>, is unknown, however, it is
+specified by a prior distribution</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\beta} \sim \mathcal{N}(\boldsymbol{b},
+\sigma^2 \mathbf{B}),\]</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{b}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{B}\)</span> are given by the
+user and <span class="math notranslate nohighlight">\(\sigma\)</span> is unknown.</p>
+<p><strong>After Training:</strong></p>
+<p>Once the function <a class="reference internal" href="glearn.GaussianProcess.train.html#glearn.GaussianProcess.train" title="glearn.GaussianProcess.train"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.GaussianProcess.train()</span></code></a> is called to
+train the model, a posterior distribution for the coefficient
+<span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> is readily available as</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\beta} \sim \mathcal{N}(
+\hat{\boldsymbol{\beta}}, \mathbf{C}),\]</div>
+<p>where</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\hat{\boldsymbol{\beta}}\)</span> is the posterior mean and can be
+accessed by <code class="docutils literal notranslate"><span class="pre">LinearModel.beta</span></code> attribute.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{C}\)</span> is the posterior covariance and can be accessed
+by <code class="docutils literal notranslate"><span class="pre">LinearModel.C</span></code> attribute.</p></li>
+</ul>
+<p>The user can, however, manually update the above posterior parameters
+by calling this function.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Import modules</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">glearn</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">sample_data</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate sample points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">sample_data</span><span class="o">.</span><span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate noisy data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">sample_data</span><span class="o">.</span><span class="n">generate_data</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">noise_magnitude</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a linear model</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mean</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">LinearModel</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a covariance model</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">Covariance</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a Gaussian process model</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">GaussianProcess</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">cov</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Train model with data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Update hyperparameter of the linear model</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Note that this is done automatically.</span>
+<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">mean</span><span class="o">.</span><span class="n">update_hyperparam</span><span class="p">(</span><span class="n">cov</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get the updated posterior mean of beta</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mean</span><span class="o">.</span><span class="n">beta</span>
+<span class="go">[0.0832212]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get the updated posterior covariance of beta</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mean</span><span class="o">.</span><span class="n">C</span>
+<span class="go">[[0.79492599]]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>

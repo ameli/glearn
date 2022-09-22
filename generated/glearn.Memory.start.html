@@ -51,7 +51,7 @@
     <link rel="shortcut icon" href="../_static/logo-glearn.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="glearn.Memory.get_mem" href="glearn.Memory.get_mem.html" />
+    <link rel="next" title="glearn.Memory.stop" href="glearn.Memory.stop.html" />
     <link rel="prev" title="glearn.Memory" href="glearn.Memory.html" />
     <script defer data-domain="docs.scipy.org" src="https://views.scientific-python.org/js/script.js"></script>
 
@@ -353,6 +353,11 @@
     </a>
    </li>
    <li class="toctree-l2">
+    <a class="reference internal" href="glearn.Memory.stop.html">
+     glearn.Memory.stop
+    </a>
+   </li>
+   <li class="toctree-l2">
     <a class="reference internal" href="glearn.Memory.get_mem.html">
      glearn.Memory.get_mem
     </a>
@@ -461,11 +466,12 @@
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This method should be called before calling
-<a class="reference internal" href="glearn.Memory.get_mem.html#glearn.Memory.get_mem" title="glearn.Memory.get_mem"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.get_mem()</span></code></a>.</p>
+<a class="reference internal" href="glearn.Memory.stop.html#glearn.Memory.stop" title="glearn.Memory.stop"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.stop()</span></code></a>.</p>
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
+<dt><a class="reference internal" href="glearn.Memory.stop.html#glearn.Memory.stop" title="glearn.Memory.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Memory.stop</span></code></a></dt><dd></dd>
 <dt><a class="reference internal" href="glearn.Memory.get_mem.html#glearn.Memory.get_mem" title="glearn.Memory.get_mem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Memory.get_mem</span></code></a></dt><dd></dd>
 </dl>
 </div>
@@ -483,6 +489,9 @@
 </span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Compute the log-determinant of the matrix</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ld</span> <span class="o">=</span> <span class="n">logdet</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Stop tracking memory change from here</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mem</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Read acquired memory is acquired from start to this point</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mem</span><span class="o">.</span><span class="n">get_mem</span><span class="p">()</span>
@@ -512,10 +521,10 @@
           <p class="prev-next-title">glearn.Memory</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="glearn.Memory.get_mem.html" title="next page">
+  <a class='right-next' id="next-link" href="glearn.Memory.stop.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">glearn.Memory.get_mem</p>
+      <p class="prev-next-title">glearn.Memory.stop</p>
   </div>
   <i class="fas fa-angle-right"></i>
   </a>

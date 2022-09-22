@@ -52,7 +52,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="glearn.Memory.get_resident_memory" href="glearn.Memory.get_resident_memory.html" />
-    <link rel="prev" title="glearn.Memory.start" href="glearn.Memory.start.html" />
+    <link rel="prev" title="glearn.Memory.stop" href="glearn.Memory.stop.html" />
     <script defer data-domain="docs.scipy.org" src="https://views.scientific-python.org/js/script.js"></script>
 
     <!-- Adobe Embed API -->
@@ -352,6 +352,11 @@
      glearn.Memory.start
     </a>
    </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="glearn.Memory.stop.html">
+     glearn.Memory.stop
+    </a>
+   </li>
    <li class="toctree-l2 current active">
     <a class="current reference internal" href="#">
      glearn.Memory.get_mem
@@ -504,9 +509,9 @@ follows:</p>
 </div>
 <p class="rubric">Notes</p>
 <p>This method reads the <em>difference</em> between the resident memory from
-when <a class="reference internal" href="glearn.Memory.start.html#glearn.Memory.start" title="glearn.Memory.start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.start()</span></code></a> is called to the point where this
-method is called. Hence, this method measures the <em>acquired</em> memory
-in between two points.</p>
+when <a class="reference internal" href="glearn.Memory.start.html#glearn.Memory.start" title="glearn.Memory.start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.start()</span></code></a> is called to the point where
+<a class="reference internal" href="glearn.Memory.stop.html#glearn.Memory.stop" title="glearn.Memory.stop"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.stop()</span></code></a> is called. Hence, this method measures the
+<em>acquired</em> memory in between these two events in the process.</p>
 <p>In contrast, the function <a class="reference internal" href="glearn.Memory.get_resident_memory.html#glearn.Memory.get_resident_memory" title="glearn.Memory.get_resident_memory"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.get_resident_memory()</span></code></a>
 returns the current memory that resides in the hardware.</p>
 <p class="rubric">Examples</p>
@@ -524,13 +529,16 @@ returns the current memory that resides in the hardware.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Compute the log-determinant of the matrix</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ld</span> <span class="o">=</span> <span class="n">logdet</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
 
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Stop tracking memory change from here</span>
+<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">mem</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Read acquired memory is acquired from start to this point</span>
-<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">mem</span><span class="o">.</span><span class="n">get_mem</span><span class="p">()</span>
-</span><span class="go">(679936, &#39;b&#39;)</span>
-
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mem</span><span class="o">.</span><span class="n">get_mem</span><span class="p">()</span>
+<span class="hll"><span class="go">(679936, &#39;b&#39;)</span>
+</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Or, read acquired memory in human-readable format</span>
-<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">mem</span><span class="o">.</span><span class="n">get_mem</span><span class="p">(</span><span class="n">human_readable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span class="go">(664.0, &#39;Kb&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mem</span><span class="o">.</span><span class="n">get_mem</span><span class="p">(</span><span class="n">human_readable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="go">(664.0, &#39;Kb&#39;)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -545,11 +553,11 @@ returns the current memory that resides in the hardware.</p>
               <footer class="bd-footer-article">
                   <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="glearn.Memory.start.html" title="previous page">
+  <a class='left-prev' id="prev-link" href="glearn.Memory.stop.html" title="previous page">
       <i class="fas fa-angle-left"></i>
       <div class="prev-next-info">
           <p class="prev-next-subtitle">previous</p>
-          <p class="prev-next-title">glearn.Memory.start</p>
+          <p class="prev-next-title">glearn.Memory.stop</p>
       </div>
   </a>
   <a class='right-next' id="next-link" href="glearn.Memory.get_resident_memory.html" title="next page">

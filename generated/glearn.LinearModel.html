@@ -461,12 +461,16 @@
 regression model respectively, this class implements the linear model
 <span class="math notranslate nohighlight">\(\mu(\boldsymbol{x})=
 \boldsymbol{\phi}(\boldsymbol{x})^{\intercal} \boldsymbol{\beta}\)</span>,
-where the basis functions <span class="math notranslate nohighlight">\(\boldsymbol{\phi}\)</span> can be specified
+where:</p>
+<ul class="simple">
+<li><p>The basis functions <span class="math notranslate nohighlight">\(\boldsymbol{\phi}\)</span> can be specified
 by polynomial, trigonometric, hyperbolic, or user-defined arbitrary
-functions. Also, this class can assign the uniform or multi-dimensional
-normal prior distribution to the vector of regression coefficients
-<span class="math notranslate nohighlight">\(\boldsymbol{\beta} \sim \mathcal{N}(\boldsymbol{b}, \sigma^2
-\mathbf{B})\)</span>.</p>
+functions.</p></li>
+<li><p>The uniform or multi-dimensional normal prior distribution can be
+assigned to the vector of regression coefficients
+<span class="math notranslate nohighlight">\(\boldsymbol{\beta}\sim \mathcal{N}(\boldsymbol{b},\sigma^2
+\mathbf{B})\)</span>.</p></li>
+</ul>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -672,9 +676,9 @@ orthonormalized such that
 <span class="math notranslate nohighlight">\(\mathbf{I}\)</span> is the identity matrix.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The design matrix is automatically generated during the internal
-training process, so the user may not need to generate the design
-matrix. However, to manually generate the design matrix manually, call
+<p>The design matrix on <em>data points</em> is automatically generated during
+the internal training process and can be accessed by <code class="docutils literal notranslate"><span class="pre">X</span></code> attribute.
+To generate the design matrix on arbitrary <em>test points</em>, call
 <a class="reference internal" href="glearn.LinearModel.generate_design_matrix.html#glearn.LinearModel.generate_design_matrix" title="glearn.LinearModel.generate_design_matrix"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.LinearModel.generate_design_matrix()</span></code></a> function.</p>
 </div>
 <p><strong>Prior of Unknown Coefficients:</strong></p>
@@ -710,14 +714,13 @@ of the posterior distribution after the training process, call
 </div>
 <p class="rubric">Examples</p>
 <p><strong>Create Polynomial, Trigonometric, and Hyperbolic Basis Functions:</strong></p>
-<p>First, create a set of 50 random points in the interval <span class="math notranslate nohighlight">\([0, 1]\)</span> and
-define a</p>
+<p>First, create a set of 50 random points in the interval <span class="math notranslate nohighlight">\([0, 1]\)</span>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a set of points</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn.sample_data</span> <span class="kn">import</span> <span class="n">generate_points</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Define the prior for <span class="math notranslate nohighlight">\(\boldsymbol{\beta} \vert \sigma^2 \sim
+<p>Define a prior for <span class="math notranslate nohighlight">\(\boldsymbol{\beta} \vert \sigma^2 \sim
 \mathcal{N}(\boldsymbol{b}, \sigma^2 \mathbf{B})\)</span> by the mean vector
 <span class="math notranslate nohighlight">\(\boldsymbol{b}\)</span> and covariance matrix <span class="math notranslate nohighlight">\(\mathbf{B}\)</span>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
@@ -744,9 +747,9 @@ define a</p>
 </pre></div>
 </div>
 <p><strong>Create Linear Model:</strong></p>
-<p>Create a linear model with third order polynomial basis functions, both
+<p>Create a linear model with first order polynomial basis functions, both
 trigonometric and hyperbolic functions, and the user-defined functions
-defined in the above.</p>
+created in the above.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create basis functions</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">LinearModel</span>
 <span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">LinearModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">polynomial_degree</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -770,9 +773,16 @@ defined in the above.</p>
 functions. Because of this, the vector <code class="docutils literal notranslate"><span class="pre">b</span></code> and matrix <code class="docutils literal notranslate"><span class="pre">B</span></code> were defined
 with the size <span class="math notranslate nohighlight">\(m=10\)</span>.</p>
 <p><strong>Generate Design Matrix:</strong></p>
-<p>The design matrix <span class="math notranslate nohighlight">\(\mathbf{X}\)</span> can be generated on a set of data
-points <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> or on arbitrary test points
-<span class="math notranslate nohighlight">\(\boldsymbol{x}^{\ast}\)</span> as follows:</p>
+<p>The design matrix <span class="math notranslate nohighlight">\(\mathbf{X}\)</span> can be accessed by <code class="docutils literal notranslate"><span class="pre">X</span></code> attribute:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get design matrix on data points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">X</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(30, 10)</span>
+</pre></div>
+</div>
+<p>Alternatively, the design matrix <span class="math notranslate nohighlight">\(\mathbf{X}^{\ast}\)</span> can be
+generated on arbitrary test points <span class="math notranslate nohighlight">\(\boldsymbol{x}^{\ast}\)</span> as
+follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate 100 test points</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x_test</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
@@ -780,14 +790,9 @@ points <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> or o
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X_test</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">generate_design_matrix</span><span class="p">(</span><span class="n">x_test</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X_test</span><span class="o">.</span><span class="n">shape</span>
 <span class="go">(100, 10)</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate design matrix on data points</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">generate_design_matrix</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="o">.</span><span class="n">shape</span>
-<span class="go">(30, 10)</span>
 </pre></div>
 </div>
-<p><strong>Orthonormalized basis Functions:</strong></p>
+<p><strong>Orthonormalize Basis Functions:</strong></p>
 <p>Repeat the above example but set <code class="docutils literal notranslate"><span class="pre">orthonormalize</span></code> to <cite>True</cite>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create basis functions</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">LinearModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">polynomial_degree</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -795,12 +800,17 @@ points <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> or o
 <span class="gp">... </span>                <span class="n">hyperbolic_coeff</span><span class="o">=</span><span class="p">[</span><span class="mf">3.0</span><span class="p">],</span> <span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span>
 <span class="hll"><span class="gp">... </span>                <span class="n">orthonormalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate design matrix on data points</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">generate_design_matrix</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Check the orthonormality of X</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">I</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">X</span><span class="p">,</span> <span class="n">I</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">f</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate design matrix on test points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_test</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">generate_design_matrix</span><span class="p">(</span><span class="n">x_test</span><span class="p">,</span> <span class="n">orthonormalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Check the orthonormality of X</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">X_test</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+<span class="go">True</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -824,11 +834,11 @@ This matrix computed for a given data.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.LinearModel.generate_design_matrix.html#glearn.LinearModel.generate_design_matrix" title="glearn.LinearModel.generate_design_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_design_matrix</span></code></a>(x)</p></td>
-<td><p>Generates design matrix (basis functions) for the mean function of the linear model.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.LinearModel.generate_design_matrix.html#glearn.LinearModel.generate_design_matrix" title="glearn.LinearModel.generate_design_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_design_matrix</span></code></a>(x[, orthonormalize])</p></td>
+<td><p>Generates design matrix on test points.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="glearn.LinearModel.update_hyperparam.html#glearn.LinearModel.update_hyperparam" title="glearn.LinearModel.update_hyperparam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_hyperparam</span></code></a>(cov, z)</p></td>
-<td><p>Updates (or computes, if has not been done so) the mean and covariance of the posterior of the parameter beta.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.LinearModel.update_hyperparam.html#glearn.LinearModel.update_hyperparam" title="glearn.LinearModel.update_hyperparam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_hyperparam</span></code></a>(cov, y)</p></td>
+<td><p>Manually update the posterior mean and covariance of linear model coefficient.</p></td>
 </tr>
 </tbody>
 </table>

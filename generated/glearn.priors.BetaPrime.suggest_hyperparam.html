@@ -463,12 +463,20 @@
 <h1>glearn.priors.BetaPrime.suggest_hyperparam<a class="headerlink" href="#glearn-priors-betaprime-suggest-hyperparam" title="Permalink to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="glearn.priors.BetaPrime.suggest_hyperparam">
-<span class="sig-prename descclassname"><span class="pre">BetaPrime.</span></span><span class="sig-name descname"><span class="pre">suggest_hyperparam</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#glearn.priors.BetaPrime.suggest_hyperparam" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">BetaPrime.</span></span><span class="sig-name descname"><span class="pre">suggest_hyperparam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.priors.BetaPrime.suggest_hyperparam" title="Permalink to this definition">#</a></dt>
 <dd><p>Find an initial guess for the hyperparameters based on the peaks of the
 prior distribution.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
+<dt><strong>positive</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, it suggests a positive hyperparameter. This is used
+for instance if the suggested hyperparameter is used for the
+scale parameter which should always be positive.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
 <dt><strong>hyperparam</strong><span class="classifier">float or numpy.array[float]</span></dt><dd><p>A feasible guess for the hyperparameter. The output is either a
 scalar or an array of the same size as the input parameters of the
 distribution.</p>

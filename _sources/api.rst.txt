@@ -5,15 +5,11 @@ API Reference
 
 The API reference contains:
 
-* :ref:`Functions <Functions>`: compute log-determinant and trace of functions
-  of matrices.
-* :ref:`Interpolators <Interpolators>`: interpolate functions of one-parameter
-  family of affine matrix functions.
-* :ref:`Linear Operators <Linear Operators>`: classes that represent matrices
-  and affine matrix functions.
-* :ref:`Sample Matrices <Sample Matrices>`: generate matrices for test
-  purposes.
-* :ref:`Device Inquiry <Device Inquiry>`: inquiry information about CPU and GPU devices.
+* :ref:`Linear Model <linear_model>`: classes to create linear model, covariance, and Gaussian process objects.
+* :ref:`Kernels <kernels>`: classes to create kernel functions for the covariance model.
+* :ref:`Priors <priors>`: Classes to create prior distributions for hyperparameters of covariance model.
+* :ref:`Sample Data <sample_data>`: Functions to generate sample points and data for test purposes.
+* :ref:`Device Inquiry <device_inquiry>`: Functions and classes to inquiry hardware device information.
 
 .. _linear_model:
 
@@ -91,7 +87,7 @@ Generate sample data for test purposes, such as multi-dimensional points and sto
     glearn.sample_data.generate_points
     glearn.sample_data.generate_data
 
-.. _Device Inquiry:
+.. _device_inquiry:
 
 Device Inquiry
 ==============

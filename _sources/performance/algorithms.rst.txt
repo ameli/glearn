@@ -220,7 +220,7 @@ The error of computing log-determinant using the SLQ method is shown in the figu
 Varying Algorithm Parameters
 ============================
 
-A known issue of the Lanczos algorithm is that the eigenvectors computed during the recusance Lanczos iterations lose their orthogonality. A solution to this issue is the re-orthogonalization of the newly computed eigenvectors with either some or all previous eigenvectors, which is known as partial or full orthogonalization, respectively. |prpject| supports both types of orthogonalization techniques.
+A known issue of the Lanczos algorithm is that the eigenvectors computed during the recusance Lanczos iterations lose their orthogonality. A solution to this issue is the re-orthogonalization of the newly computed eigenvectors with either some or all previous eigenvectors, which is known as partial or full orthogonalization, respectively. |project| supports both types of orthogonalization techniques.
 
 In the following tests, the effect of re-orthogonalizations of the eigenvectors and the effect of varying the number of Lanczos iterations are examined.
 

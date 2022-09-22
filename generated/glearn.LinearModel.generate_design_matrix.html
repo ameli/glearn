@@ -47,6 +47,8 @@
     <script src="../_static/js/custom-pydata.js"></script>
     <script src="../_static/design-tabs.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
     <link rel="shortcut icon" href="../_static/logo-glearn.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -451,9 +453,119 @@
 <h1>glearn.LinearModel.generate_design_matrix<a class="headerlink" href="#glearn-linearmodel-generate-design-matrix" title="Permalink to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="glearn.LinearModel.generate_design_matrix">
-<span class="sig-prename descclassname"><span class="pre">LinearModel.</span></span><span class="sig-name descname"><span class="pre">generate_design_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.LinearModel.generate_design_matrix" title="Permalink to this definition">#</a></dt>
-<dd><p>Generates design matrix (basis functions) for the mean function of the
-linear model.</p>
+<span class="sig-prename descclassname"><span class="pre">LinearModel.</span></span><span class="sig-name descname"><span class="pre">generate_design_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orthonormalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.LinearModel.generate_design_matrix" title="Permalink to this definition">#</a></dt>
+<dd><p>Generates design matrix on test points.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The design matrix on <em>data points</em> is automatically generated
+during the internal training process and can be accessed by <code class="docutils literal notranslate"><span class="pre">X</span></code>
+attribute. Use this function to generate the design matrix on
+arbitrary <em>test points</em>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>A 2D array of data points where each row of the array is the
+coordinate of a point <span class="math notranslate nohighlight">\(\boldsymbol{x}=(x_1, \dots, x_d)\)</span>.
+The array size is <span class="math notranslate nohighlight">\(n \times d\)</span> where <span class="math notranslate nohighlight">\(n\)</span> is the number
+of the points and <span class="math notranslate nohighlight">\(d\)</span> is the dimension of the space of
+points.</p>
+</dd>
+<dt><strong>orthonormalize</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, the design matrix <span class="math notranslate nohighlight">\(\mathbf{X}\)</span> of the basis
+functions will be orthonormalized.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>X</strong><span class="classifier">numpy.ndarray[float]</span></dt><dd><p>Design matrix of the size <span class="math notranslate nohighlight">\(n \times m\)</span> where <span class="math notranslate nohighlight">\(n\)</span> is
+the number of points and <span class="math notranslate nohighlight">\(m\)</span> is the number of basis
+functions.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This function generates the design matrix <span class="math notranslate nohighlight">\(\mathbf{X}^{\ast}\)</span>
+on a set of test points
+<span class="math notranslate nohighlight">\(\{ \boldsymbol{x}^{\ast}_i \}_{i=1}^n\)</span> with the components
+<span class="math notranslate nohighlight">\(X_{ij}^{\ast}\)</span> defined as</p>
+<div class="math notranslate nohighlight">
+\[X_{ij}^{\ast} = \phi_j(\boldsymbol{x}_i).\]</div>
+<p>The size of the matrix is <span class="math notranslate nohighlight">\(n \times m\)</span> where <span class="math notranslate nohighlight">\(n\)</span> is the
+number of test points and <span class="math notranslate nohighlight">\(m\)</span> is the total number of basis
+functions, which can be obtained by</p>
+<div class="math notranslate nohighlight">
+\[m = m_p + 2m_t + 2m_h + m_f,\]</div>
+<p>where</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(m_p\)</span> is the number of polynomial basis functions.</p></li>
+<li><p><span class="math notranslate nohighlight">\(m_t\)</span> is the number of coefficients of the trigonometric
+functions.</p></li>
+<li><p><span class="math notranslate nohighlight">\(m_h\)</span> is the number of coefficients of the hyperbolic
+functions.</p></li>
+<li><p><span class="math notranslate nohighlight">\(m_h\)</span> is the number of user-defined basis functions.</p></li>
+</ul>
+<p><strong>Orthonormalization:</strong></p>
+<p>If <code class="docutils literal notranslate"><span class="pre">orthonormalize</span></code> is set to <cite>True</cite>, the output matrix
+<span class="math notranslate nohighlight">\(\mathbf{X}^{\ast}\)</span> is orthonormalized so that</p>
+<div class="math notranslate nohighlight">
+\[(\mathbf{X}^{\ast})^{\intercal} \mathbf{X}^{\ast} =
+\mathbf{I},\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{I}\)</span> is the <span class="math notranslate nohighlight">\(m \times m\)</span> identity matrix.</p>
+<p>This function uses <a class="reference external" href="https://ameli.github.io/detkit">detkit</a> python
+package to orthonormalize the matrix <span class="math notranslate nohighlight">\(\mathbf{X}\)</span>.</p>
+<p class="rubric">Examples</p>
+<p>First, create a set of 50 random points in the interval <span class="math notranslate nohighlight">\([0, 1]\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a set of points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn.sample_data</span> <span class="kn">import</span> <span class="n">generate_points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Define the function <span class="math notranslate nohighlight">\(\boldsymbol{\phi}\)</span> as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a function returning the Legendre Polynomials</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">phi_1</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mf">3.0</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">phi_2</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mf">5.0</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="mi">3</span> <span class="o">-</span> <span class="mf">3.0</span><span class="o">*</span><span class="n">x</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">phi</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">phi_1</span><span class="p">,</span> <span class="n">phi_2</span><span class="p">])</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">phi</span>
+</pre></div>
+</div>
+<p><strong>Create Linear Model:</strong></p>
+<p>Create a linear model with first order polynomial basis functions, both
+trigonometric and hyperbolic functions, and the user-defined functions
+created in the above.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create basis functions</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">LinearModel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">LinearModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">polynomial_degree</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">trigonometric_coeff</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="n">hyperbolic_coeff</span><span class="o">=</span><span class="p">[</span><span class="mf">3.0</span><span class="p">],</span> <span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Generate Design Matrix:</strong></p>
+<p>Generate the design matrix <span class="math notranslate nohighlight">\(\mathbf{X}^{\ast}\)</span> on arbitrary
+test points <span class="math notranslate nohighlight">\(\boldsymbol{x}^{\ast}\)</span>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate 100 test points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x_test</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate design matrix on test points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_test</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">generate_design_matrix</span><span class="p">(</span><span class="n">x_test</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_test</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(100, 10)</span>
+</pre></div>
+</div>
+<p><strong>Orthonormalize Basis Functions:</strong></p>
+<p>Repeat the above example but set <code class="docutils literal notranslate"><span class="pre">orthonormalize</span></code> to <cite>True</cite>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate design matrix on data points</span>
+<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">X</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">generate_design_matrix</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">orthonormalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Check the orthonormality of X</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">X_test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">X_test</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>

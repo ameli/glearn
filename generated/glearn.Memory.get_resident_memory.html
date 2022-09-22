@@ -353,6 +353,11 @@
     </a>
    </li>
    <li class="toctree-l2">
+    <a class="reference internal" href="glearn.Memory.stop.html">
+     glearn.Memory.stop
+    </a>
+   </li>
+   <li class="toctree-l2">
     <a class="reference internal" href="glearn.Memory.get_mem.html">
      glearn.Memory.get_mem
     </a>
@@ -499,10 +504,11 @@ follows:</p>
 <p class="rubric">Notes</p>
 <p>This function returns the resident memory that currently resides in the
 hardware.</p>
-<p>Note that, in contrast, <code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.read()</span></code> reads the
+<p>Note that, in contrast, <a class="reference internal" href="glearn.Memory.get_mem.html#glearn.Memory.get_mem" title="glearn.Memory.get_mem"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.get_mem()</span></code></a> reads the
 <em>difference</em> between the resident memory from when
-<a class="reference internal" href="glearn.Memory.start.html#glearn.Memory.start" title="glearn.Memory.start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.start()</span></code></a> is called to the point where this method is
-called, hence measures the <em>acquired</em> memory in between two points.</p>
+<a class="reference internal" href="glearn.Memory.start.html#glearn.Memory.start" title="glearn.Memory.start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.start()</span></code></a> is called to the point where
+<a class="reference internal" href="glearn.Memory.stop.html#glearn.Memory.stop" title="glearn.Memory.stop"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Memory.stop()</span></code></a> is called, hence measures the <em>acquired</em>
+memory in between two points.</p>
 <p class="rubric">Examples</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Load Memory module</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">Memory</span>

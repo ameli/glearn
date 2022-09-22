@@ -507,7 +507,7 @@ log-determinant of a sample matrix:</p>
 <span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">timer</span><span class="o">.</span><span class="n">tic</span><span class="p">()</span>
 </span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># do something time-consuming</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">i</span> <span class="kn">import</span> <span class="n">toeplitz</span><span class="p">,</span> <span class="n">logdet</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">imate</span> <span class="kn">import</span> <span class="n">toeplitz</span><span class="p">,</span> <span class="n">logdet</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">toeplitz</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span> <span class="n">gram</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ld</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">logdet</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;slq&#39;</span><span class="p">,</span> <span class="n">return_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -526,20 +526,6 @@ log-determinant of a sample matrix:</p>
 <p>The <cite>toc</cite> calls can continue (multiple <cite>toc</cite> calls). In each of the <cite>toc</cite>
 calls, the measured time is updated from the time s <cite>toc</cite> is called
 with respect to the last <cite>tic</cite> call.</p>
-<p><strong>Alternative Way of Measuring Time Using Function Returns:</strong></p>
-<p>In the above example we also passed <code class="docutils literal notranslate"><span class="pre">return_info=True</span></code> argument to the
-<code class="xref py py-func docutils literal notranslate"><span class="pre">imate.logdet()</span></code> function, which returns the dictionary <code class="docutils literal notranslate"><span class="pre">info</span></code>.
-The key <code class="docutils literal notranslate"><span class="pre">info['time']</span></code> also keeps the track of computation time of this
-function, which can be compared with the wall and process times  measured
-by <code class="xref py py-class docutils literal notranslate"><span class="pre">imate.Timer</span></code> as follows:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span>
-<span class="go">{</span>
-<span class="go">    &#39;tot_wall_time&#39;: 2.617882580962032,</span>
-<span class="go">    &#39;alg_wall_time&#39;: 2.5974619388580322,</span>
-<span class="go">    &#39;cpu_proc_time&#39;: 17.642682527999998</span>
-<span class="go">}</span>
-</pre></div>
-</div>
 <p><strong>Resetting Timer:</strong></p>
 <p>The above timer can be reset as follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Reset timer</span>
@@ -562,7 +548,7 @@ second two calls to the pair of <cite>tic</cite> and <cite>toc</cite> on the hig
 which includes the time to process matrices <cite>A</cite> and <cite>C</cite>, but excludes the
 matrix <cite>B</cite>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Load Timer class</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">imate</span> <span class="kn">import</span> <span class="n">Timer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">Timer</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Instantiate a timer object</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">timer</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">(</span><span class="n">hold</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -638,7 +624,7 @@ multiple toc calls later, this is counted as only once.</p>
 <td><p>Initializes tracking time.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="glearn.Timer.toc.html#glearn.Timer.toc" title="glearn.Timer.toc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">toc</span></code></a>()</p></td>
-<td><p>Measures time from the last call to <code class="xref py py-meth docutils literal notranslate"><span class="pre">imate.Timer.tic()</span></code>.</p></td>
+<td><p>Measures time from the last call to <a class="reference internal" href="glearn.Timer.tic.html#glearn.Timer.tic" title="glearn.Timer.tic"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Timer.tic()</span></code></a>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="glearn.Timer.reset.html#glearn.Timer.reset" title="glearn.Timer.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>()</p></td>
 <td><p>Resets time counters.</p></td>

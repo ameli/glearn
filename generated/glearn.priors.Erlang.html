@@ -463,7 +463,7 @@
 <h1>glearn.priors.Erlang<a class="headerlink" href="#glearn-priors-erlang" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="glearn.priors.Erlang">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">glearn.priors.</span></span><span class="sig-name descname"><span class="pre">Erlang</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.priors.Erlang" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">glearn.priors.</span></span><span class="sig-name descname"><span class="pre">Erlang</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.priors.Erlang" title="Permalink to this definition">#</a></dt>
 <dd><p>Erlang distribution.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -473,7 +473,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>shape</strong><span class="classifier">float or array_like[float], default=1.0</span></dt><dd><p>The shape parameter <span class="math notranslate nohighlight">\(\alpha\)</span> of Erlang distribution. If an array
+<dt><strong>shape</strong><span class="classifier">float or array_like[float], default=1</span></dt><dd><p>The shape parameter <span class="math notranslate nohighlight">\(\alpha\)</span> of Erlang distribution. If an array
 <span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (\alpha_1, \dots, \alpha_p)\)</span> is
 given, the prior is assumed to be <span class="math notranslate nohighlight">\(p\)</span> independent Erlang
 distributions each with shape <span class="math notranslate nohighlight">\(\alpha_i\)</span>.</p>
@@ -586,7 +586,7 @@ parameter is a prior function.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.priors.Erlang.suggest_hyperparam.html#glearn.priors.Erlang.suggest_hyperparam" title="glearn.priors.Erlang.suggest_hyperparam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">suggest_hyperparam</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.priors.Erlang.suggest_hyperparam.html#glearn.priors.Erlang.suggest_hyperparam" title="glearn.priors.Erlang.suggest_hyperparam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">suggest_hyperparam</span></code></a>([positive])</p></td>
 <td><p>Find an initial guess for the hyperparameters based on the peaks of the prior distribution.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="glearn.priors.Erlang.pdf.html#glearn.priors.Erlang.pdf" title="glearn.priors.Erlang.pdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pdf</span></code></a>(x)</p></td>
