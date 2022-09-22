@@ -233,10 +233,18 @@ class BetaPrime(Prior):
     # suggest hyperparam
     # ==================
 
-    def suggest_hyperparam(self):
+    def suggest_hyperparam(self, positive=True):
         """
         Find an initial guess for the hyperparameters based on the peaks of the
         prior distribution.
+        
+        Parameters
+        ----------
+
+        positive : bool, default=False
+            If `True`, it suggests a positive hyperparameter. This is used
+            for instance if the suggested hyperparameter is used for the
+            scale parameter which should always be positive.
 
         Returns
         -------
@@ -303,8 +311,14 @@ class BetaPrime(Prior):
                 mean = self.alpha[i] / (self.beta[i] - 1.0)
                 hyperparam_guess[i] = mean
             elif self.alpha[i] >= 1.0:
-                mode = (self.alpha[i] - 1.0) / (self.beta[i] + 1.0)
-                hyperparam_guess[i] = mode
+
+                # Just choose any finite number to avoid infinity.
+                if positive and self.alpha[i] == 1.0:
+                    hyperparam_guess[i] = 1.0
+                else:
+                    mode = (self.alpha[i] - 1.0) / (self.beta[i] + 1.0)
+                    hyperparam_guess[i] = mode
+
             else:
                 # mean and mode are infinity. Just set any finite number
                 hyperparam_guess[i] = 1.0

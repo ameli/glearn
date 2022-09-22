@@ -33,7 +33,7 @@ class Cauchy(Prior):
     Parameters
     ----------
 
-    media : float or array_like[float], default=0.0
+    median : float or array_like[float], default=0.0
         The median :math:`\\theta_0` of Cauchy distribution. If an array
         :math:`\\boldsymbol{\\theta}_0 = (\\theta_{01}, \\dots, \\theta_{0p})`
         is given, the prior is assumed to be :math:`p` independent Cauchy
@@ -76,7 +76,7 @@ class Cauchy(Prior):
     **Single Hyperparameter:**
 
     The Cauchy distribution with median :math:`\\theta_0` and scale
-    :math:`gamma`is defined by the probability density function
+    :math:`\\gamma` is defined by the probability density function
 
     .. math::
 
@@ -236,10 +236,18 @@ class Cauchy(Prior):
     # suggest hyperparam
     # ==================
 
-    def suggest_hyperparam(self):
+    def suggest_hyperparam(self, positive=False):
         """
         Find an initial guess for the hyperparameters based on the peaks of the
         prior distribution.
+
+        Parameters
+        ----------
+
+        positive : bool, default=False
+            If `True`, it suggests a positive hyperparameter. This is used
+            for instance if the suggested hyperparameter is used for the
+            scale parameter which should always be positive.
 
         Returns
         -------
@@ -260,6 +268,10 @@ class Cauchy(Prior):
         For the Cauchy distribution, the suggested hyperparameter is the median
         :math:`\\theta_0`. For the half-Cauchy distribution, the suggested
         hyperparameter is the scale :math:`\\gamma`.
+
+        If ``positive`` is `True` and :math:`\\theta_0 \\leq 0`, the suggested
+        hyperparameter is the maximum of :math:`\\gamma` and
+        :math:`\\theta_0 + \\gamma`.
 
         The suggested hyperparameters can be used as initial guess for the
         optimization of the posterior functions when used with this prior.
@@ -286,7 +298,14 @@ class Cauchy(Prior):
         if self.half:
             hyperparam_guess = self.scale
         else:
-            hyperparam_guess = self.median
+            if positive:
+                if self.median > 0:
+                    hyperparam_guess = self.median
+                else:
+                    hyperparam_guess = numpy.max([
+                        self.scale, self.median + self.scale])
+            else:
+                hyperparam_guess = self.median
 
         return hyperparam_guess
 

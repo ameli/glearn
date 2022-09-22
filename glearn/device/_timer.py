@@ -127,7 +127,7 @@ class Timer(object):
         >>> timer.tic()
 
         >>> # do something time-consuming
-        >>> from i import toeplitz, logdet
+        >>> from imate import toeplitz, logdet
         >>> A = toeplitz(2, 1, size=1000000, gram=True)
         >>> ld, info = logdet(A, method='slq', return_info=True)
 
@@ -145,23 +145,6 @@ class Timer(object):
     The `toc` calls can continue (multiple `toc` calls). In each of the `toc`
     calls, the measured time is updated from the time s `toc` is called
     with respect to the last `tic` call.
-
-    **Alternative Way of Measuring Time Using Function Returns:**
-
-    In the above example we also passed ``return_info=True`` argument to the
-    :func:`imate.logdet` function, which returns the dictionary ``info``.
-    The key ``info['time']`` also keeps the track of computation time of this
-    function, which can be compared with the wall and process times  measured
-    by :class:`imate.Timer` as follows:
-
-    .. code-block:: python
-
-        >>> info['time']
-        {
-            'tot_wall_time': 2.617882580962032,
-            'alg_wall_time': 2.5974619388580322,
-            'cpu_proc_time': 17.642682527999998
-        }
 
     **Resetting Timer:**
 
@@ -193,7 +176,7 @@ class Timer(object):
         :emphasize-lines: 8, 16, 24, 32
 
         >>> # Load Timer class
-        >>> from imate import Timer
+        >>> from glearn import Timer
 
         >>> # Instantiate a timer object
         >>> timer = Timer(hold=True)
@@ -265,7 +248,7 @@ class Timer(object):
         .. note::
 
             This function should be called before calling
-            :meth:`imate.Timer.toc`.
+            :meth:`glearn.Timer.toc`.
 
         Examples
         --------
@@ -274,7 +257,7 @@ class Timer(object):
             :emphasize-lines: 8
 
             >>> # Load Timer class
-            >>> from imate import Timer
+            >>> from glearn import Timer
 
             >>> # Instantiate a timer object
             >>> timer = Timer()
@@ -315,12 +298,12 @@ class Timer(object):
 
     def toc(self):
         """
-        Measures time from the last call to :meth:`imate.Timer.tic`.
+        Measures time from the last call to :meth:`glearn.Timer.tic`.
 
         .. note::
 
             This function should be called after calling
-            :meth:`imate.Timer.tic`.
+            :meth:`glearn.Timer.tic`.
 
         Examples
         --------
@@ -394,7 +377,7 @@ class Timer(object):
             :emphasize-lines: 19
 
             >>> # Load Timer class
-            >>> from imate import Timer
+            >>> from glearn import Timer
 
             >>> # Instantiate a timer object
             >>> timer = Timer()

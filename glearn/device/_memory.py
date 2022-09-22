@@ -38,11 +38,12 @@ class Memory(object):
 
     mem : int default=0
         The difference between the current resident memory when
-        :meth:`glearn.Memory.read` is called and the initial resident memory.
+        :meth:`glearn.Memory.stop` is called and the initial resident memory.
 
     Methods
     -------
     start
+    stop
     get_mem
     get_resident_memory
 
@@ -66,14 +67,15 @@ class Memory(object):
 
     * To measure the resident memory in the current Python process, call
       :meth:`glearn.Memory.get_resident_memory` function. For this, the class
-      :meth:`glearn.Memory` does not needed to be instantiated.
+      :class:`glearn.Memory` does not needed to be instantiated.
 
     * To measure the *acquired* memory between two points of the code (that is,
       finding the *difference* of the resident memory), first instantiate the
       :class:`glearn.Memory` class. Then call the two functions
-      :meth:`glearn.Memory.start` and :meth:`glearn.Memory.get_mem` of the
+      :meth:`glearn.Memory.start` and :meth:`glearn.Memory.stop` of the
       instantiated object on the two points where the memory difference should
-      be measured.
+      be measured. The increase of resident memory between these two points
+      can be read by :meth:`glearn.Memory.get_mem` function.
 
     Examples
     --------
@@ -99,6 +101,9 @@ class Memory(object):
 
         >>> # Compute the log-determinant of the matrix
         >>> ld = logdet(A)
+
+        >>> # Stop tracking memory change from here
+        >>> mem.stop()
 
         >>> # Read acquired memory is acquired from start to this point
         >>> mem.get_mem()
@@ -163,11 +168,12 @@ class Memory(object):
         .. note::
 
             This method should be called before calling
-            :meth:`glearn.Memory.get_mem`.
+            :meth:`glearn.Memory.stop`.
 
         See Also
         --------
 
+        glearn.Memory.stop
         glearn.Memory.get_mem
 
         Examples
@@ -189,6 +195,9 @@ class Memory(object):
 
             >>> # Compute the log-determinant of the matrix
             >>> ld = logdet(A)
+
+            >>> # Stop tracking memory change from here
+            >>> mem.stop()
 
             >>> # Read acquired memory is acquired from start to this point
             >>> mem.get_mem()
@@ -220,18 +229,6 @@ class Memory(object):
 
         glearn.Memory.start
         glearn.Memory.get_mem
-        glearn.Memory.get_resident_memory
-
-        Notes
-        -----
-
-        This method reads the *difference* between the resident memory from
-        when :meth:`glearn.Memory.start` is called to the point where this
-        method is called. Hence, this method measures the *acquired* memory
-        in between two points.
-
-        In contrast, the function :meth:`glearn.Memory.get_resident_memory`
-        returns the current memory that resides in the hardware.
 
         Examples
         --------
@@ -252,6 +249,9 @@ class Memory(object):
 
             >>> # Compute the log-determinant of the matrix
             >>> ld = logdet(A)
+
+            >>> # Stop tracking memory change from here
+            >>> mem.stop()
 
             >>> # Read acquired memory is acquired from start to this point
             >>> mem.get_mem()
@@ -319,9 +319,9 @@ class Memory(object):
         -----
 
         This method reads the *difference* between the resident memory from
-        when :meth:`glearn.Memory.start` is called to the point where this
-        method is called. Hence, this method measures the *acquired* memory
-        in between two points.
+        when :meth:`glearn.Memory.start` is called to the point where
+        :meth:`glearn.Memory.stop` is called. Hence, this method measures the
+        *acquired* memory in between these two events in the process.
 
         In contrast, the function :meth:`glearn.Memory.get_resident_memory`
         returns the current memory that resides in the hardware.
@@ -345,6 +345,9 @@ class Memory(object):
 
             >>> # Compute the log-determinant of the matrix
             >>> ld = logdet(A)
+
+            >>> # Stop tracking memory change from here
+            >>> mem.stop()
 
             >>> # Read acquired memory is acquired from start to this point
             >>> mem.get_mem()
@@ -413,10 +416,11 @@ class Memory(object):
         This function returns the resident memory that currently resides in the
         hardware.
 
-        Note that, in contrast, :meth:`glearn.Memory.read` reads the
+        Note that, in contrast, :meth:`glearn.Memory.get_mem` reads the
         *difference* between the resident memory from when
-        :meth:`glearn.Memory.start` is called to the point where this method is
-        called, hence measures the *acquired* memory in between two points.
+        :meth:`glearn.Memory.start` is called to the point where
+        :meth:`glearn.Memory.stop` is called, hence measures the *acquired*
+        memory in between two points.
 
         Examples
         --------

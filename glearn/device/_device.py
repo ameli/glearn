@@ -38,9 +38,9 @@ def get_processor_name():
     See Also
     --------
 
-    imate.device.get_num_cpu_threads
-    imate.device.get_gpu_name
-    imate.info
+    glearn.device.get_num_cpu_threads
+    glearn.device.get_gpu_name
+    glearn.info
 
     Notes
     -----
@@ -67,7 +67,7 @@ def get_processor_name():
 
     .. code-block:: python
 
-        >>> from imate.device import get_processor_name
+        >>> from glearn.device import get_processor_name
         >>> get_processor_name()
         'Intel(R) Xeon(R) CPU E5-2623 v3 @ 3.00GHz'
     """
@@ -107,9 +107,9 @@ def get_num_cpu_threads():
     See Also
     --------
 
-    imate.device.get_processor_name
-    imate.device.get_num_gpu_devices
-    imate.info
+    glearn.device.get_processor_name
+    glearn.device.get_num_gpu_devices
+    glearn.info
 
     Notes
     -----
@@ -126,7 +126,7 @@ def get_num_cpu_threads():
 
     .. code-block:: python
 
-        >>> from imate.device import get_num_cpu_threads
+        >>> from glearn.device import get_num_cpu_threads
         >>> get_num_cpu_threads()
         2
 
@@ -171,9 +171,9 @@ def get_gpu_name():
     See Also
     --------
 
-    imate.device.get_num_gpu_devices
-    imate.device.get_processor_name
-    imate.info
+    glearn.device.get_num_gpu_devices
+    glearn.device.get_processor_name
+    glearn.info
 
     Notes
     -----
@@ -194,7 +194,7 @@ def get_gpu_name():
 
     .. code-block:: python
 
-        >>> from imate.device import get_gpu_name
+        >>> from glearn.device import get_gpu_name
         >>> get_gpu_name()
         'GeForce GTX 1080 Ti'
     """
@@ -247,9 +247,9 @@ def get_num_gpu_devices():
     See Also
     --------
 
-    imate.device.get_gpu_name
-    imate.device.get_num_cpu_threads
-    imate.info
+    glearn.device.get_gpu_name
+    glearn.device.get_num_cpu_threads
+    glearn.info
 
     Notes
     -----
@@ -273,7 +273,7 @@ def get_num_gpu_devices():
 
     .. code-block:: python
 
-        >>> from imate.device import get_num_gpu_devices
+        >>> from glearn.device import get_num_gpu_devices
         >>> get_num_gpu_devices()
         4
     """
@@ -322,8 +322,8 @@ def get_nvidia_driver_version():
     See Also
     --------
 
-    imate.device.locate_cuda
-    imate.info
+    glearn.device.locate_cuda
+    glearn.info
 
     Notes
     -----
@@ -344,7 +344,7 @@ def get_nvidia_driver_version():
 
     .. code-block:: python
 
-        >>> from imate.device import get_nvidia_driver_version
+        >>> from glearn.device import get_nvidia_driver_version
         >>> get_nvidia_driver_version()
         '460.84'
     """
@@ -434,8 +434,8 @@ def restrict_to_single_processor():
     See Also
     --------
 
-    imate.device.get_num_cpu_threads
-    imate.info
+    glearn.device.get_num_cpu_threads
+    glearn.info
 
     Notes
     -----
@@ -501,11 +501,11 @@ def restrict_to_single_processor():
     .. code-block:: python
 
         >>> # Call this function before importing any other module
-        >>> from imate.device import restrict_to_single_processor
+        >>> from glearn.device import restrict_to_single_processor
         >>> restrict_to_single_processor()
 
         >>> # Import packages
-        >>> import scipy, numpy, imate, time
+        >>> import scipy, numpy, glearn, time
     """
 
     # Uncomment lines below if measuring elapsed time. These will restrict

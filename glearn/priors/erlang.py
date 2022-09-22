@@ -34,7 +34,7 @@ class Erlang(Prior):
     Parameters
     ----------
 
-    shape : float or array_like[float], default=1.0
+    shape : float or array_like[float], default=1
         The shape parameter :math:`\\alpha` of Erlang distribution. If an array
         :math:`\\boldsymbol{\\alpha} = (\\alpha_1, \\dots, \\alpha_p)` is
         given, the prior is assumed to be :math:`p` independent Erlang
@@ -178,7 +178,7 @@ class Erlang(Prior):
     # init
     # ====
 
-    def __init__(self, shape=1.0, rate=1.0):
+    def __init__(self, shape=1, rate=1.0):
         """
         Initialization.
         """
@@ -236,10 +236,18 @@ class Erlang(Prior):
     # suggest hyperparam
     # ==================
 
-    def suggest_hyperparam(self):
+    def suggest_hyperparam(self, positive=False):
         """
         Find an initial guess for the hyperparameters based on the peaks of the
         prior distribution.
+        
+        Parameters
+        ----------
+
+        positive : bool, default=False
+            If `True`, it suggests a positive hyperparameter. This is used
+            for instance if the suggested hyperparameter is used for the
+            scale parameter which should always be positive.
 
         Returns
         -------

@@ -224,7 +224,7 @@ cdef class Kernel(object):
 
         To manually disable interactive plot display and save the plot as
         ``svg`` instead, add the following at the very beginning of your code
-        before importing :mod:`imate`:
+        before importing :mod:`glearn`:
 
         .. code-block:: python
 

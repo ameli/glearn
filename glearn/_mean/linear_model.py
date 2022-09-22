@@ -12,6 +12,7 @@
 # =======
 
 import numpy
+from detkit import orthogonalize
 
 __all__ = ['LinearModel']
 
@@ -30,12 +31,15 @@ class LinearModel(object):
     regression model respectively, this class implements the linear model
     :math:`\\mu(\\boldsymbol{x})=
     \\boldsymbol{\\phi}(\\boldsymbol{x})^{\\intercal} \\boldsymbol{\\beta}`,
-    where the basis functions :math:`\\boldsymbol{\\phi}` can be specified
-    by polynomial, trigonometric, hyperbolic, or user-defined arbitrary
-    functions. Also, this class can assign the uniform or multi-dimensional
-    normal prior distribution to the vector of regression coefficients
-    :math:`\\boldsymbol{\\beta} \\sim \\mathcal{N}(\\boldsymbol{b}, \\sigma^2
-    \\mathbf{B})`.
+    where:
+
+    * The basis functions :math:`\\boldsymbol{\\phi}` can be specified
+      by polynomial, trigonometric, hyperbolic, or user-defined arbitrary
+      functions.
+    * The uniform or multi-dimensional normal prior distribution can be
+      assigned to the vector of regression coefficients
+      :math:`\\boldsymbol{\\beta}\\sim \\mathcal{N}(\\boldsymbol{b},\\sigma^2
+      \\mathbf{B})`.
 
     Parameters
     ----------
@@ -313,9 +317,9 @@ class LinearModel(object):
 
     .. note::
 
-        The design matrix is automatically generated during the internal
-        training process, so the user may not need to generate the design
-        matrix. However, to manually generate the design matrix manually, call
+        The design matrix on *data points* is automatically generated during
+        the internal training process and can be accessed by ``X`` attribute.
+        To generate the design matrix on arbitrary *test points*, call
         :meth:`glearn.LinearModel.generate_design_matrix` function.
 
     **Prior of Unknown Coefficients:**
@@ -363,8 +367,7 @@ class LinearModel(object):
 
     **Create Polynomial, Trigonometric, and Hyperbolic Basis Functions:**
 
-    First, create a set of 50 random points in the interval :math:`[0, 1]` and
-    define a
+    First, create a set of 50 random points in the interval :math:`[0, 1]`.
 
     .. code-block:: python
 
@@ -372,7 +375,7 @@ class LinearModel(object):
         >>> from glearn.sample_data import generate_points
         >>> x = generate_points(num_points=30, dimension=1)
 
-    Define the prior for :math:`\\boldsymbol{\\beta} \\vert \\sigma^2 \\sim
+    Define a prior for :math:`\\boldsymbol{\\beta} \\vert \\sigma^2 \\sim
     \\mathcal{N}(\\boldsymbol{b}, \\sigma^2 \\mathbf{B})` by the mean vector
     :math:`\\boldsymbol{b}` and covariance matrix :math:`\\mathbf{B}`.
 
@@ -388,7 +391,6 @@ class LinearModel(object):
 
         >>> # Making sure the covariance matrix B positive-semidefinite
         >>> B = B.T @ B
-
 
     **Create User-Defined Basis Functions:**
 
@@ -406,9 +408,9 @@ class LinearModel(object):
 
     **Create Linear Model:**
 
-    Create a linear model with third order polynomial basis functions, both
+    Create a linear model with first order polynomial basis functions, both
     trigonometric and hyperbolic functions, and the user-defined functions
-    defined in the above.
+    created in the above.
 
     .. code-block:: python
         :emphasize-lines: 3, 4, 5
@@ -437,9 +439,18 @@ class LinearModel(object):
 
     **Generate Design Matrix:**
 
-    The design matrix :math:`\\mathbf{X}` can be generated on a set of data
-    points :math:`\\boldsymbol{x}` or on arbitrary test points
-    :math:`\\boldsymbol{x}^{\\ast}` as follows:
+    The design matrix :math:`\\mathbf{X}` can be accessed by ``X`` attribute:
+
+    .. code-block:: python
+
+        >>> # Get design matrix on data points
+        >>> X = f.X
+        >>> X.shape
+        (30, 10)
+
+    Alternatively, the design matrix :math:`\\mathbf{X}^{\\ast}` can be
+    generated on arbitrary test points :math:`\\boldsymbol{x}^{\\ast}` as
+    follows:
 
     .. code-block:: python
 
@@ -451,12 +462,7 @@ class LinearModel(object):
         >>> X_test.shape
         (100, 10)
 
-        >>> # Generate design matrix on data points
-        >>> X = f.generate_design_matrix(x)
-        >>> X.shape
-        (30, 10)
-    
-    **Orthonormalized basis Functions:**
+    **Orthonormalize Basis Functions:**
 
     Repeat the above example but set ``orthonormalize`` to `True`:
 
@@ -469,13 +475,17 @@ class LinearModel(object):
         ...                 hyperbolic_coeff=[3.0], func=func,
         ...                 orthonormalize=True)
 
-        >>> # Generate design matrix on data points
-        >>> X = f.generate_design_matrix(x)
-
         >>> # Check the orthonormality of X
         >>> I = numpy.eye(m)
-        >>> numpy.allclose(X.T @ X, I)
-        
+        >>> numpy.allclose(f.X.T @ f.X, I, atol=1e-6)
+        True
+
+        >>> # Generate design matrix on test points
+        >>> X_test = f.generate_design_matrix(x_test, orthonormalize=True)
+
+        >>> # Check the orthonormality of X
+        >>> numpy.allclose(X_test.T @ X_test, I, atol=1e-6)
+        True
     """
 
     # ====
@@ -512,7 +522,7 @@ class LinearModel(object):
         self.orthonormalize = orthonormalize
 
         # Generate design matrix
-        self.X = self.generate_design_matrix(self.points)
+        self.X = self.generate_design_matrix(self.points, self.orthonormalize)
 
         # Check b and B for their size consistency with X
         b, B = self._check_b_B(b, B)
@@ -681,10 +691,149 @@ class LinearModel(object):
     # generate design matrix
     # ======================
 
-    def generate_design_matrix(self, x):
+    def generate_design_matrix(self, x, orthonormalize=False):
         """
-        Generates design matrix (basis functions) for the mean function of the
-        linear model.
+        Generates design matrix on test points.
+
+        .. note::
+
+            The design matrix on *data points* is automatically generated
+            during the internal training process and can be accessed by ``X``
+            attribute. Use this function to generate the design matrix on
+            arbitrary *test points*.
+
+        Parameters
+        ----------
+
+        x : numpy.ndarray
+            A 2D array of data points where each row of the array is the
+            coordinate of a point :math:`\\boldsymbol{x}=(x_1, \\dots, x_d)`.
+            The array size is :math:`n \\times d` where :math:`n` is the number
+            of the points and :math:`d` is the dimension of the space of
+            points.
+
+        orthonormalize : bool, default=False
+            If `True`, the design matrix :math:`\\mathbf{X}` of the basis
+            functions will be orthonormalized.
+
+        Returns
+        -------
+
+        X : numpy.ndarray[float]
+            Design matrix of the size :math:`n \\times m` where :math:`n` is
+            the number of points and :math:`m` is the number of basis
+            functions.
+
+        Notes
+        -----
+
+        This function generates the design matrix :math:`\\mathbf{X}^{\\ast}`
+        on a set of test points
+        :math:`\\{ \\boldsymbol{x}^{\\ast}_i \\}_{i=1}^n` with the components
+        :math:`X_{ij}^{\\ast}` defined as
+
+        .. math::
+
+            X_{ij}^{\\ast} = \\phi_j(\\boldsymbol{x}_i).
+
+        The size of the matrix is :math:`n \\times m` where :math:`n` is the
+        number of test points and :math:`m` is the total number of basis
+        functions, which can be obtained by
+
+        .. math::
+
+            m = m_p + 2m_t + 2m_h + m_f,
+
+        where
+
+        * :math:`m_p` is the number of polynomial basis functions.
+        * :math:`m_t` is the number of coefficients of the trigonometric
+          functions.
+        * :math:`m_h` is the number of coefficients of the hyperbolic
+          functions.
+        * :math:`m_h` is the number of user-defined basis functions.
+
+        **Orthonormalization:**
+
+        If ``orthonormalize`` is set to `True`, the output matrix
+        :math:`\\mathbf{X}^{\\ast}` is orthonormalized so that
+
+        .. math::
+
+            (\\mathbf{X}^{\\ast})^{\\intercal} \\mathbf{X}^{\\ast} =
+            \\mathbf{I},
+
+        where :math:`\\mathbf{I}` is the :math:`m \\times m` identity matrix.
+
+        This function uses `detkit <https://ameli.github.io/detkit>`_ python
+        package to orthonormalize the matrix :math:`\\mathbf{X}`.
+
+        Examples
+        --------
+
+        First, create a set of 50 random points in the interval :math:`[0, 1]`.
+
+        .. code-block:: python
+
+            >>> # Generate a set of points
+            >>> from glearn.sample_data import generate_points
+            >>> x = generate_points(num_points=30, dimension=1)
+
+        Define the function :math:`\\boldsymbol{\\phi}` as follows:
+
+        .. code-block:: python
+
+            >>> # Create a function returning the Legendre Polynomials
+            >>> import numpy
+            >>> def func(x):
+            ...     phi_1 = 0.5 * (3.0*x**2 - 1)
+            ...     phi_2 = 0.5 * (5.0*x**3 - 3.0*x)
+            ...     phi = numpy.array([phi_1, phi_2])
+            ...     return phi
+
+        **Create Linear Model:**
+
+        Create a linear model with first order polynomial basis functions, both
+        trigonometric and hyperbolic functions, and the user-defined functions
+        created in the above.
+
+        .. code-block:: python
+
+            >>> # Create basis functions
+            >>> from glearn import LinearModel
+            >>> f = LinearModel(x, polynomial_degree=1,
+            ...                 trigonometric_coeff=[1.0, 2.0],
+            ...                 hyperbolic_coeff=[3.0], func=func)
+
+        **Generate Design Matrix:**
+
+        Generate the design matrix :math:`\\mathbf{X}^{\\ast}` on arbitrary
+        test points :math:`\\boldsymbol{x}^{\\ast}`:
+
+        .. code-block:: python
+
+            >>> # Generate 100 test points
+            >>> x_test = generate_points(num_points=100, dimension=1)
+
+            >>> # Generate design matrix on test points
+            >>> X_test = f.generate_design_matrix(x_test)
+            >>> X_test.shape
+            (100, 10)
+
+        **Orthonormalize Basis Functions:**
+
+        Repeat the above example but set ``orthonormalize`` to `True`:
+
+        .. code-block:: python
+            :emphasize-lines: 2
+
+            >>> # Generate design matrix on data points
+            >>> X = f.generate_design_matrix(x, orthonormalize=True)
+
+            >>> # Check the orthonormality of X
+            >>> I = numpy.eye(X_test.shape[1])
+            >>> numpy.allclose(X_test.T @ X_test, I, atol=1e-6)
+            True
         """
 
         # Convert a vector to matrix if dimension is one
@@ -721,6 +870,10 @@ class LinearModel(object):
             X = X_list[0]
         else:
             X = numpy.concatenate(X_list, axis=1)
+
+        # Orthonormalize
+        if orthonormalize:
+            orthogonalize(X)
 
         return X
 
@@ -844,12 +997,109 @@ class LinearModel(object):
     # update hyperparam
     # =================
 
-    def update_hyperparam(self, cov, z):
+    def update_hyperparam(self, cov, y):
         """
-        Updates (or computes, if has not been done so) the mean and covariance
-        of the posterior of the parameter beta. This function should be called
-        after training, and after cov itself is updated from the training, and
-        before prediction.
+        Manually update the posterior mean and covariance of linear model
+        coefficient.
+
+        .. note::
+
+            This function is automatically called once the Gaussian process is
+            trained after calling :meth:`glearn.GaussianProcess.train`. Hence,
+            there is no need to call this function unless the user wants to
+            manually update the hyperparameters.
+
+        Parameters
+        ----------
+
+        cov : glearn.Covariance
+            Covariance object of the Gaussian process regression.
+
+        y : numpy.array
+            Array of training data.
+
+        See Also
+        --------
+
+        :meth:`glearn.GaussianProcess.train`
+
+        Notes
+        -----
+
+        **Before Training:**
+
+        Before training the Gaussian process, the coefficient of the linear
+        model, :math:`\\boldsymbol{\\beta}`, is unknown, however, it is
+        specified by a prior distribution
+
+        .. math::
+
+            \\boldsymbol{\\beta} \\sim \\mathcal{N}(\\boldsymbol{b},
+            \\sigma^2 \\mathbf{B}),
+
+        where :math:`\\boldsymbol{b}` and :math:`\\mathbf{B}` are given by the
+        user and :math:`\\sigma` is unknown.
+
+        **After Training:**
+
+        Once the function :meth:`glearn.GaussianProcess.train` is called to
+        train the model, a posterior distribution for the coefficient
+        :math:`\\boldsymbol{\\beta}` is readily available as
+
+        .. math::
+
+            \\boldsymbol{\\beta} \\sim \\mathcal{N}(
+            \\hat{\\boldsymbol{\\beta}}, \\mathbf{C}),
+
+        where
+
+        * :math:`\\hat{\\boldsymbol{\\beta}}` is the posterior mean and can be
+          accessed by ``LinearModel.beta`` attribute.
+        * :math:`\\mathbf{C}` is the posterior covariance and can be accessed
+          by ``LinearModel.C`` attribute.
+
+        The user can, however, manually update the above posterior parameters
+        by calling this function.
+
+        Examples
+        --------
+
+        .. code-block:: python
+            :emphasize-lines: 25
+
+            >>> # Import modules
+            >>> import glearn
+            >>> from glearn import sample_data
+
+            >>> # Generate sample points
+            >>> x = sample_data.generate_points(num_points=50)
+
+            >>> # Generate noisy data
+            >>> y = sample_data.generate_data(x, noise_magnitude=0.05)
+
+            >>> # Create a linear model
+            >>> mean = glearn.LinearModel(x)
+
+            >>> # Create a covariance model
+            >>> cov = glearn.Covariance(x)
+
+            >>> # Create a Gaussian process model
+            >>> gp = glearn.GaussianProcess(mean, cov)
+
+            >>> # Train model with data
+            >>> gp.train(y)
+
+            >>> # Update hyperparameter of the linear model
+            >>> # Note that this is done automatically.
+            >>> mean.update_hyperparam(cov, y)
+
+            >>> # Get the updated posterior mean of beta
+            >>> mean.beta
+            [0.0832212]
+
+            >>> # Get the updated posterior covariance of beta
+            >>> mean.C
+            [[0.79492599]]
         """
 
         # Note: cov should has been updated already after training.
@@ -867,7 +1117,7 @@ class LinearModel(object):
         self.C = numpy.linalg.inv(Cinv)
 
         # Posterior mean of beta
-        v = numpy.dot(Y.T, z)
+        v = numpy.dot(Y.T, y)
         if self.B is not None:
             Binvb = numpy.dot(self.Binv, self.b) / (sigma**2)
             v += Binvb

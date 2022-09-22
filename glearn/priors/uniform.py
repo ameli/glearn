@@ -233,10 +233,18 @@ class Uniform(Prior):
     # suggest hyperparam
     # ==================
 
-    def suggest_hyperparam(self):
+    def suggest_hyperparam(self, positive=False):
         """
         Find an initial guess for the hyperparameters based on the peaks of the
         prior distribution.
+
+        Parameters
+        ----------
+
+        positive : bool, default=False
+            If `True`, it suggests a positive hyperparameter. This is used
+            for instance if the suggested hyperparameter is used for the
+            scale parameter which should always be positive.
 
         Returns
         -------
@@ -291,19 +299,38 @@ class Uniform(Prior):
             if not numpy.isinf(numpy.abs(self.a[i])) and \
                     not numpy.isinf(self.b[i]):
                 mean = 0.5 * (self.a[i] + self.b[i])
-                hyperparam_guess[i] = mean
+
+                if positive and mean <= 0.0:
+                    if self.b[i] > 0.0:
+                        hyperparam_guess[i] = self.b[i] / 2.0
+                    else:
+                        raise ValueError('Cannot select a positive ' +
+                                         'hyperparameter from the prior ' +
+                                         'distribution.')
+                else:
+                    hyperparam_guess[i] = mean
 
             elif numpy.isinf(numpy.abs(self.a[i])) and \
                     not numpy.isinf(self.b[i]):
-                hyperparam_guess[i] = self.b[i] - 1.0
+                if positive and self.b[i] <= 0.0:
+                    raise ValueError('Cannot select a positive ' +
+                                     'hyperparameter from the prior ' +
+                                     'distribution.')
+                else:
+                    hyperparam_guess[i] = self.b[i] / 2.0
 
             elif not numpy.isinf(numpy.abs(self.a[i])) and \
                     numpy.isinf(self.b[i]):
-                hyperparam_guess[i] = self.a[i] + 1.0
+                if positive and self.a[i] <= 0.0:
+                    raise ValueError('Cannot select a positive ' +
+                                     'hyperparameter from the prior ' +
+                                     'distribution.')
+                else:
+                    hyperparam_guess[i] = 2.0 * self.a[i]
 
             else:
                 # a and b are infinity. Just pick any finite number.
-                hyperparam_guess[i]
+                hyperparam_guess[i] = 1.0
 
         return hyperparam_guess
 
@@ -350,7 +377,7 @@ class Uniform(Prior):
         """
 
         if numpy.isinf(numpy.abs(self.a)).any() or numpy.isinf(self.b).any():
-            self.mean = numpy.zero_like(self.a)
+            self.mean = numpy.zeros_like(self.a)
             self.mean[:] = numpy.nan
         else:
             self.mean = 0.5 * (self.b - self.a)

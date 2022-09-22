@@ -65,7 +65,8 @@ class ProfileLikelihood(BaseLikelihood):
         # Determine to compute traceinv (only for some of inner computations of
         # derivatives w.r.t scale) using direct inversion of matrices or with
         # Hutchinson method (a stochastic method).
-        if self.mixed_cor.imate_options['method'] in ['hutchinson', 'slq']:
+        if ('method' in self.mixed_cor.imate_options.keys()) and \
+           (self.mixed_cor.imate_options['method'] in ['hutchinson', 'slq']):
             # Use Hutchinson method (note: SLQ method cannot be used).
             self.stochastic_traceinv = True
         else:

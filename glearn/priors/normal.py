@@ -239,10 +239,18 @@ class Normal(Prior):
     # suggest hyperparam
     # ==================
 
-    def suggest_hyperparam(self):
+    def suggest_hyperparam(self, positive=False):
         """
         Find an initial guess for the hyperparameters based on the peaks of the
         prior distribution.
+        
+        Parameters
+        ----------
+
+        positive : bool, default=False
+            If `True`, it suggests a positive hyperparameter. This is used
+            for instance if the suggested hyperparameter is used for the
+            scale parameter which should always be positive.
 
         Returns
         -------

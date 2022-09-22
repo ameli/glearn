@@ -150,13 +150,18 @@ class GaussianProcess(object):
                                 'or as a prior distribution.')
 
             # Get the guess from the prior
-            scale_guess = scale_prior.suggest_hyperparam()
+            scale_guess = scale_prior.suggest_hyperparam(positive=True)
+
+            if scale_guess <= 0.0:
+                raise ValueError('The mean, median, or mode of the prior ' +
+                                  'distribution for the scale' +
+                                  'hyperparameter should be positive.')
 
             # Check type of scale guess
             if numpy.isscalar(scale_guess):
-                scale_guess = numpy.array([scale_guess], ftype=float)
+                scale_guess = numpy.array([scale_guess], dtype=float)
             elif isinstance(scale_guess, list):
-                scale_guess = numpy.array(scale_guess, ftype=float)
+                scale_guess = numpy.array(scale_guess, dtype=float)
             elif not isinstance(scale_guess, numpy.ndarray):
                 raise TypeError('"scale_guess" should be a numpy array.')
 
