@@ -47,6 +47,8 @@
     <script src="_static/js/custom-pydata.js"></script>
     <script src="_static/design-tabs.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/custom-pydata.css"></script>
     <link rel="shortcut icon" href="_static/logo-glearn.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
@@ -256,11 +258,6 @@
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#performance">
-   Performance
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#features">
    Features
   </a>
@@ -388,7 +385,7 @@ API reference</div>
 <div class="sd-card-title sd-font-weight-bold docutils">
 Performance</div>
 </div>
-<a class="sd-stretched-link reference internal" href="#index-performance"><span class="std std-ref"></span></a></div>
+<span class="sd-stretched-link"></span></div>
 </div>
 </div>
 </div>
@@ -622,8 +619,13 @@ span.prompt1:before {
 </section>
 <section id="tutorials">
 <span id="index-tutorials"></span><h2>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this heading">#</a></h2>
-<p><a class="reference external" href="https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2FInterpolateTraceOfInverse.ipynb"><img alt="binder" src="https://mybinder.org/badge_logo.svg" /></a></p>
-<p>Launch online interactive demonstration of examples with</p>
+<p><a class="reference external" href="https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2Fquick_start.ipynb"><img alt="binder" src="https://mybinder.org/badge_logo.svg" /></a></p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/quick_start.html">Jupyter Notebook</a></li>
+</ul>
+</div>
+<p>Launch <a class="reference external" href="https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2Fquick_start.ipynb">online interactive notebook</a> with Binder.</p>
 </section>
 <section id="api-reference">
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this heading">#</a></h2>
@@ -641,81 +643,25 @@ span.prompt1:before {
 </ul>
 </div>
 </section>
-<section id="performance">
-<span id="index-performance"></span><h2>Performance<a class="headerlink" href="#performance" title="Permalink to this heading">#</a></h2>
-<p><span class="synco">g-learn</span> is scalable to <strong>very large matrices</strong>. Its core library for basic linear algebraic operations is <strong>faster than OpenBLAS</strong>, and its <strong>pseudo-random generator</strong> is a hundred-fold faster than the implementation in the standard C++ library.</p>
-<p>Read about the performance of <span class="synco">g-learn</span> in practical applications:</p>
-<div class="toctree-wrapper compound">
-</div>
-<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
-<div class="sd-row sd-row-cols-2 sd-row-cols-xs-2 sd-row-cols-sm-2 sd-row-cols-md-2 sd-row-cols-lg-2 docutils">
-<div class="sd-col sd-d-flex-row docutils">
-<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover sd-text-center custom-card-link-2 docutils">
-<div class="sd-card-body docutils">
-<div class="sd-card-title sd-font-weight-bold docutils">
-<a class="reference internal" href="performance/gpu.html#perf-gpu"><span class="std std-ref">Performance on GPU Farm</span></a></div>
-<a class="custom-dark reference internal image-reference" href="_static/images/performance/benchmark_speed_time.png"><img alt="_static/images/performance/benchmark_speed_time.png" class="custom-dark align-center" src="_static/images/performance/benchmark_speed_time.png" style="width: 320px; height: 200px;" /></a>
-</div>
-<a class="sd-stretched-link reference internal" href="performance/gpu.html#perf-gpu"><span class="std std-ref"></span></a></div>
-</div>
-<div class="sd-col sd-d-flex-row docutils">
-<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover sd-text-center custom-card-link-2 docutils">
-<div class="sd-card-body docutils">
-<div class="sd-card-title sd-font-weight-bold docutils">
-<a class="reference internal" href="performance/algorithms.html#perf-algorithms"><span class="std std-ref">Comparison of Randomized Algorithms</span></a></div>
-<a class="custom-dark reference internal image-reference" href="_static/images/performance/compare_methods_practical_matrix_logdet_time.png"><img alt="_static/images/performance/compare_methods_practical_matrix_logdet_time.png" class="custom-dark align-center" src="_static/images/performance/compare_methods_practical_matrix_logdet_time.png" style="width: 320px; height: 200px;" /></a>
-</div>
-<a class="sd-stretched-link reference internal" href="performance/algorithms.html#perf-algorithms"><span class="std std-ref"></span></a></div>
-</div>
-</div>
-</div>
-<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
-<div class="sd-row sd-row-cols-2 sd-row-cols-xs-2 sd-row-cols-sm-2 sd-row-cols-md-2 sd-row-cols-lg-2 docutils">
-<div class="sd-col sd-d-flex-row docutils">
-<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover sd-text-center custom-card-link-2 docutils">
-<div class="sd-card-body docutils">
-<div class="sd-card-title sd-font-weight-bold docutils">
-<a class="reference internal" href="performance/openblas.html#perf-openblas"><span class="std std-ref">Comparison With and Without OpenBLAS</span></a></div>
-<a class="custom-dark reference internal image-reference" href="_static/images/performance/benchmark_openblas_sparse_time.png"><img alt="_static/images/performance/benchmark_openblas_sparse_time.png" class="custom-dark align-center" src="_static/images/performance/benchmark_openblas_sparse_time.png" style="width: 320px; height: 200px;" /></a>
-</div>
-<a class="sd-stretched-link reference internal" href="performance/openblas.html#perf-openblas"><span class="std std-ref"></span></a></div>
-</div>
-<div class="sd-col sd-d-flex-row docutils">
-<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover sd-text-center custom-card-link-2 docutils">
-<div class="sd-card-body docutils">
-<div class="sd-card-title sd-font-weight-bold docutils">
-<a class="reference internal" href="performance/interpolation.html#interpolation"><span class="std std-ref">Interpolation of Affine Matrix Functions</span></a></div>
-<a class="custom-dark reference internal image-reference" href="_static/images/performance/affine_matrix_function_logdet.png"><img alt="_static/images/performance/affine_matrix_function_logdet.png" class="custom-dark align-center" src="_static/images/performance/affine_matrix_function_logdet.png" style="width: 320px; height: 200px;" /></a>
-</div>
-<a class="sd-stretched-link reference internal" href="performance/interpolation.html#interpolation"><span class="std std-ref"></span></a></div>
-</div>
-</div>
-</div>
-</section>
 <section id="features">
 <h2>Features<a class="headerlink" href="#features" title="Permalink to this heading">#</a></h2>
 <ul class="simple">
-<li><p>Matrices can be dense or sparse (<cite>CSR</cite> or <cite>CSC</cite> format), with 32-bit, 64-bit, or 128-bit data types, and stored either by row-ordering (<cite>C</cite> style) or column-ordering (<cite>Fortran</cite> style).</p></li>
-<li><p>Matrices can be <strong>linear operators</strong> with parameters (see <code class="xref py py-class docutils literal notranslate"><span class="pre">imate.Matrix</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">imate.AffineMatrixFunction</span></code> classes).</p></li>
 <li><p><strong>Randomized algorithms</strong> using Hutchinson and stochastic Lanczos quadrature algorithms (see <a class="reference internal" href="overview.html#overview"><span class="std std-ref">Overview</span></a>)</p></li>
 <li><p>Novel method to <strong>interpolate</strong> matrix functions. See <a class="reference internal" href="performance/interpolation.html#interpolation"><span class="std std-ref">Interpolation of Affine Matrix Functions</span></a>.</p></li>
 <li><p>Parallel processing both on <strong>shared memory</strong> and CUDA Capable <strong>multi-GPU</strong> devices.</p></li>
-<li><p>GPU, parallel</p></li>
 <li><p>Sparse covariance</p></li>
 <li><p>Mixed covariance model, object</p></li>
+<li><p>Automatic Relevance Determination (ARD)</p></li>
 <li><p>Jacobian and Hessian based optimization</p></li>
 <li><p>Learn hyperparameters in reduced space (profile likelihood)</p></li>
-<li><p>Prediction in Dual, O(n)</p></li>
+<li><p>Prediction in dual space with with <span class="math notranslate nohighlight">\(\\mathcal{O}(n)\)</span> complexity.</p></li>
 </ul>
 </section>
 <section id="technical-notes">
 <h2>Technical Notes<a class="headerlink" href="#technical-notes" title="Permalink to this heading">#</a></h2>
-<p><a class="reference external" href="https://github.com/ameli/glearn"><img alt="tokei-2" src="https://img.shields.io/badge/code%20lines-26.4k-blue" /></a> <a class="reference external" href="https://github.com/ameli/glearn"><img alt="languages" src="https://img.shields.io/github/languages/count/ameli/glearn" /></a></p>
-<p>The core of <span class="synco">g-learn</span>, which is implemented in C++ and NVIDIA CUDA framework, is a standalone modular library for high-performance low-level algebraic operations on linear operators (including matrices and affine matrix functions). This library provides a unified interface for computations on both CPU and GPU, a unified interface for dense and sparse matrices, a unified container for various data types, and fully automatic memory management and data transfer between CPU and GPU devices on demand. This library can be employed independently for projects other than <span class="synco">g-learn</span>. The Doxygen generated reference of <a class="reference external" href="doxygen/html/annotated.html">C++/CUDA Classes and Namespaces</a> of <span class="synco">g-learn</span> is available for developers.</p>
-<p>The front-end interface of <span class="synco">g-learn</span> is implemented in Cython and Python (see Python <a class="reference internal" href="api.html#api"><span class="std std-ref">API Reference</span></a> for end-users).</p>
+<p><a class="reference external" href="https://github.com/ameli/glearn"><img alt="tokei-2" src="https://img.shields.io/badge/code%20lines-31.9k-blue" /></a> <a class="reference external" href="https://github.com/ameli/glearn"><img alt="languages" src="https://img.shields.io/github/languages/count/ameli/glearn" /></a></p>
 <p>Some notable implementation techniques used to develop <span class="synco">g-learn</span> are:</p>
 <ul class="simple">
-<li><p>Polymorphic and curiously recurring template pattern programming (CRTP) technique.</p></li>
 <li><p>OS-independent customized <cite>dynamic loading</cite> of CUDA libraries.</p></li>
 <li><p>Static dispatching enables executing <span class="synco">g-learn</span> with and without CUDA on the user’s machine with the same pre-compiled <span class="synco">g-learn</span> installation.</p></li>
 <li><p>Completely <a class="reference external" href="https://en.wikipedia.org/wiki/Global_interpreter_lock">GIL</a>-<em>free</em> Cython implementation.</p></li>
@@ -753,7 +699,7 @@ span.prompt1:before {
 <div class="sd-card-body docutils">
 <div class="sd-card-title sd-font-weight-bold docutils">
 <a class="only-light reference internal" href="_images/logo-imate-light.svg"><img alt="imate-light" class="only-light" height="23" src="_images/logo-imate-light.svg" /></a> <a class="only-dark reference internal" href="_images/logo-imate-dark.svg"><img alt="imate-dark" class="only-dark" height="23" src="_images/logo-imate-dark.svg" /></a></div>
-<p class="sd-card-text">A high-performance python package for machine learning using Gaussian process regression.</p>
+<p class="sd-card-text">A high-performance python package for scalable randomized algorithms for matrix functions in machine learning.</p>
 </div>
 <a class="sd-stretched-link reference external" href="https://ameli.github.io/imate/index.html"></a></div>
 </div>

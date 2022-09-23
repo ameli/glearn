@@ -466,12 +466,18 @@
 <span class="sig-prename descclassname"><span class="pre">Gamma.</span></span><span class="sig-name descname"><span class="pre">suggest_hyperparam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.priors.Gamma.suggest_hyperparam" title="Permalink to this definition">#</a></dt>
 <dd><p>Find an initial guess for the hyperparameters based on the peaks of the
 prior distribution.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
+<dd class="field-odd"><dl>
 <dt><strong>positive</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, it suggests a positive hyperparameter. This is used
 for instance if the suggested hyperparameter is used for the
 scale parameter which should always be positive.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This parameter is not used, rather, ignored in this function.
+This parameter is included for consistency this function with
+the other prior classes.</p>
+</div>
 </dd>
 </dl>
 </dd>

@@ -1,0 +1,1062 @@
+
+
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Quick Start &#8212; glearn Manual</title>
+<script>
+  document.documentElement.dataset.mode = localStorage.getItem("mode") || "auto";
+  document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
+</script>
+
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+
+
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom-pydata.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/toggleprompt.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/js/custom-pydata.js"></script>
+    <script src="../_static/design-tabs.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/custom-pydata.css"></script>
+    <link rel="shortcut icon" href="../_static/logo-glearn.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <script defer data-domain="docs.scipy.org" src="https://views.scientific-python.org/js/script.js"></script>
+
+    <!-- Adobe Embed API -->
+    <script src="https://documentcloud.adobe.com/view-sdk/viewer.js"></script>
+
+    <!-- My custom JS -->
+    <script type="text/javascript" src="../_static/js/custom-pydata.js"></script>
+
+    <!-- Syntax highlighting for BibTex code blocks -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/themes/prism-solarizedlight.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs-bibtex@2.0.1/prism-bibtex.min.js"></script>
+
+    
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="docsearch:language" content="en">
+
+  </head>
+  
+  
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="auto">
+    <div class="bd-header-announcement container-fluid" id="banner">
+      
+
+    </div>
+
+    
+    <nav class="bd-header navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="bd-header__inner container-xl">
+
+  <div id="navbar-start">
+    
+    
+  
+
+
+<a class="navbar-brand logo" href="../contents.html">
+  
+  
+  
+  
+    <img src="../_static/images/icons/logo-glearn-light.png" class="logo__image only-light" alt="Logo image">
+    <img src="../_static/images/icons/logo-glearn-dark.png" class="logo__image only-dark" alt="Logo image">
+  
+  
+</a>
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="fas fa-bars"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tutorials/install.html">
+  1. Install
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tutorials/docker.html">
+  2. Docker
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tutorials/gpu.html">
+  3. GPU
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../api.html">
+  API Reference
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <span id="theme-switch" class="btn btn-sm btn-outline-primary navbar-btn rounded-circle">
+    <a class="theme-switch" data-mode="light"><i class="fas fa-sun"></i></a>
+    <a class="theme-switch" data-mode="dark"><i class="far fa-moon"></i></a>
+    <a class="theme-switch" data-mode="auto"><i class="fas fa-adjust"></i></a>
+</span>
+      </div>
+      
+      <div class="navbar-end-item">
+        <form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/ameli/glearn" rel="noopener" target="_blank" title="GitHub"><span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://pypi.org/project/glearn/" rel="noopener" target="_blank" title="PyPI"><span><i class="fab fa-python"></i></span>
+            <label class="sr-only">PyPI</label></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://anaconda.org/s-ameli/glearn" rel="noopener" target="_blank" title="Anaconda Cloud"><span><i class="fa fa-circle-notch"></i></span>
+            <label class="sr-only">Anaconda Cloud</label></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://hub.docker.com/r/sameli/glearn" rel="noopener" target="_blank" title="Docker Hub"><span><i class="fab fa-docker"></i></span>
+            <label class="sr-only">Docker Hub</label></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2FInterpolateTraceOfInverse.ipynb" rel="noopener" target="_blank" title="Lanuch Jupyter on Binder"><span><i class="fa fa-chart-line"></i></span>
+            <label class="sr-only">Lanuch Jupyter on Binder</label></a>
+        </li>
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="bd-container container-xl">
+      <div class="bd-container__inner row">
+          
+
+<!-- Only show if we have sidebars configured, else just a small margin  -->
+<div class="bd-sidebar-primary col-12 col-md-3 bd-sidebar">
+  <div class="sidebar-start-items"><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+    
+    
+  </div>
+</nav>
+  </div>
+  <div class="sidebar-end-items">
+  </div>
+</div>
+
+
+          
+
+
+<div class="bd-sidebar-secondary d-none d-xl-block col-xl-2 bd-toc">
+  
+    
+    <div class="toc-item">
+      
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Features">
+   Features
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Import">
+   Import
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Generate-Points">
+   Generate Points
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Generate-Noisy-Data">
+   Generate Noisy Data
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Stochastic-Model-for-Noisy-Data">
+   Stochastic Model for Noisy Data
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Design-Matrix">
+   Design Matrix
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Prior-for-Parameter-\boldsymbol{\beta}">
+   Prior for Parameter
+   <span class="math notranslate nohighlight">
+    \(\boldsymbol{\beta}\)
+   </span>
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Linear-Model">
+   Linear Model
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Kernels">
+   Kernels
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Scale-Hyperparameter">
+   Scale Hyperparameter
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Covariance">
+   Covariance
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Gaussian-Proces">
+   Gaussian Proces
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Training-Hyperparameters">
+   Training Hyperparameters
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Prediction">
+   Prediction
+  </a>
+ </li>
+</ul>
+
+</nav>
+    </div>
+    
+    <div class="toc-item">
+      
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/https://github.com/ameli/glearn/edit/main/docs/source/notebooks/quick_start.ipynb">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+    </div>
+    
+  
+</div>
+
+
+          
+          
+          <div class="bd-content col-12 col-md-9 col-xl-7">
+              
+              <article class="bd-article" role="main">
+                
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt .copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+.jp-RenderedHTMLCommon table,
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+.jp-RenderedHTMLCommon thead,
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+.jp-RenderedHTMLCommon tr,
+.jp-RenderedHTMLCommon th,
+.jp-RenderedHTMLCommon td,
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+.jp-RenderedHTMLCommon th,
+div.rendered_html th {
+  font-weight: bold;
+}
+.jp-RenderedHTMLCommon tbody tr:nth-child(odd),
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+.jp-RenderedHTMLCommon tbody tr:hover,
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+</style>
+<section id="Quick-Start">
+<h1>Quick Start<a class="headerlink" href="#Quick-Start" title="Permalink to this heading">#</a></h1>
+<p>G-Learn is a python package that utilizes <strong>G</strong>aussian process for machine <strong>learn</strong>ing.</p>
+<section id="Features">
+<h2>Features<a class="headerlink" href="#Features" title="Permalink to this heading">#</a></h2>
+<p>G-Learn is fast, since: * It can take advantage of parallelization on both CPU and CUDA-capable multi-GPU devices. * It trains model using novel method that is shown to be up to a thousand times faster than the conventional training methods.</p>
+<p>This interactive tutorial demonstrates a simplistic usage of <a class="reference external" href="https://ameli.github.io/glearn/index.html">glearn</a> package.</p>
+<p>### Installation</p>
+<p>Install <code class="docutils literal notranslate"><span class="pre">glearn</span></code> either from <a class="reference external" href="https://pypi.org/project/glearn/">PyPI</a> by:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>pip install glearn
+</pre></div>
+</div>
+<p>or from <a class="reference external" href="https://anaconda.org/s-ameli/glearn">Anaconda</a> by:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>conda install -c s-ameli glearn
+</pre></div>
+</div>
+</section>
+<section id="Import">
+<h2>Import<a class="headerlink" href="#Import" title="Permalink to this heading">#</a></h2>
+<p>Import the package using:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import glearn
+</pre></div>
+</div>
+</div>
+<p>Before starting, you may check the version of G-Learn, avaialble number of CPU processors, GPU devices, and memory usage of the current python process via:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>glearn.info()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+glearn version  : 0.20.0
+imate version   : 0.18.0
+processor       : Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz
+num threads     : 8
+gpu device      : not found
+num gpu devices : 0
+cuda version    : 11.7.0
+nvidia driver   : not found
+process memory  : 125.4 (Mb)
+
+</pre></div></div>
+</div>
+</section>
+<section id="Generate-Points">
+<h2>Generate Points<a class="headerlink" href="#Generate-Points" title="Permalink to this heading">#</a></h2>
+<p>We generate a set of 50 points randomly distributed in the interval $ <span class="math">\mathcal{D}</span> = [0, 1]$, where <span class="math notranslate nohighlight">\(80\%\)</span> more points are concentrated in the sub-interval <span class="math notranslate nohighlight">\([a=0.4, b=0.6]\)</span> with uniform distrubution, and the rest of the points spread elsewhere uniformly.</p>
+<p>For simplicity,such set of points can be screated using <code class="docutils literal notranslate"><span class="pre">glearn.sample_data</span></code> module.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from glearn import sample_data
+x = sample_data.generate_points(num_points=50, dimension=1,
+                                grid=False,a=0.4, b=0.6,
+                                contrast=0.8, seed=42)
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Generate-Noisy-Data">
+<h2>Generate Noisy Data<a class="headerlink" href="#Generate-Noisy-Data" title="Permalink to this heading">#</a></h2>
+<p>On the set of points <span class="math notranslate nohighlight">\(\boldsymbol{x} = (x_1, \dots, x_d) \in \mathcal{D} \in \mathbb{R}^d\)</span> (here <span class="math notranslate nohighlight">\(d=1\)</span>) defined in the above, we define a stochastic function:</p>
+<div class="math notranslate nohighlight">
+\[y(\boldsymbol{x}) = \sum_{i=1}^d \sin\left(\pi x_i \right) + \epsilon,\]</div>
+<p>where <span class="math notranslate nohighlight">\(\epsilon\)</span> is a random variable <span class="math notranslate nohighlight">\(\epsilon(x) \sim \mathcal{N}(0, \sigma_0^2)\)</span> with the noise standard deviation <span class="math notranslate nohighlight">\(\sigma_0 = 0.05\)</span>.</p>
+<p>The above random data can be generated by <code class="docutils literal notranslate"><span class="pre">glearn.sample_data</span></code> module.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>y_noisy = sample_data.generate_data(x, noise_magnitude=0.05, plot=True)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_quick_start_7_0.png" src="../_images/notebooks_quick_start_7_0.png" />
+</div>
+</div>
+<p>The above figure shows the noisy data (dots) and the original function without noise (solid curve). We remind that most of the data points are concentrated in the sub-interval <span class="math notranslate nohighlight">\([0.4, 0.6]\)</span>, whereas outside this interval, we have sparse data. We wil later demonstrate a good prediction in the concentrated sub-interval and less accurate prediction outside.</p>
+</section>
+<section id="Stochastic-Model-for-Noisy-Data">
+<h2>Stochastic Model for Noisy Data<a class="headerlink" href="#Stochastic-Model-for-Noisy-Data" title="Permalink to this heading">#</a></h2>
+<p>We model the random data <span class="math notranslate nohighlight">\(z\)</span> by</p>
+<div class="math notranslate nohighlight">
+\[y(x) = \mu(x) + \delta(x) + \epsilon(x),\]</div>
+<p>where</p>
+<ul>
+<li><p><span class="math notranslate nohighlight">\(\mu(x)\)</span> is a deterministic mean function.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\delta(x)\)</span> is a zero-mean stochastic function and will be determined later.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\epsilon(x)\)</span> is a zero-mean stochastic function representing the input noise and characterized by the discrete covariance:</p>
+<div class="math notranslate nohighlight">
+\[\mathbb{E}[\epsilon(x), \epsilon(x')] = \sigma_0^2 \mathbf{I}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{I}\)</span> is the identity matrix, and the hyperparameter <span class="math notranslate nohighlight">\(\sigma_0^2\)</span> is the variance of the noise. We assume the noise variance is not known.</p>
+</li>
+</ul>
+</section>
+<section id="Design-Matrix">
+<h2>Design Matrix<a class="headerlink" href="#Design-Matrix" title="Permalink to this heading">#</a></h2>
+<p>We represent the deterministic mean function <span class="math notranslate nohighlight">\(\mu\)</span> by the linear model <span class="math notranslate nohighlight">\(\mu(\boldsymbol{x}) = \boldsymbol{\phi}(x)^{\intercal} \boldsymbol{\beta}\)</span> as a linear combination of basis functions:</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\phi}(x): \mathcal{D} \to \mathbb{R}^m,\]</div>
+<p>and <span class="math notranslate nohighlight">\(\beta \in \mathbb{R}^{m}\)</span> are the parameters. On discrete points <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span>, the set of basis functions are disretized to the design matrix <span class="math notranslate nohighlight">\(\mathbf{X} \in \mathbf{R}^{n \times m}\)</span></p>
+<div class="math notranslate nohighlight">
+\[X_{ij} = \phi_{j}(\boldsymbol{x}_i)\]</div>
+<p>Other ways to contrust the design matrix are by trogonometric functions, hyperbolic functions, user-defined custom functions, or a combination of all. Here we only use a fifth order monomial as follows:</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\phi}(\boldsymbol{x}) = (1, x, \cdots, x^4)^{\intercal}.\]</div>
+<p>Hence, <span class="math notranslate nohighlight">\(m = 5\)</span>.</p>
+</section>
+<section id="Prior-for-Parameter-\boldsymbol{\beta}">
+<h2>Prior for Parameter <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span><a class="headerlink" href="#Prior-for-Parameter-\boldsymbol{\beta}" title="Permalink to this heading">#</a></h2>
+<p>We also prescibe a normal prior to the unknown parameter <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[p(\boldsymbol{\beta} | \sigma^2) \sim \mathcal{N}(\boldsymbol{b}, \sigma^2 \mathbf{B}),\]</div>
+<p>where <span class="math notranslate nohighlight">\(\sigma^2 \mathbf{B} \in \mathbb{R}^{m \times m}\)</span> is the covariance of <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span>. The hyperparameter <span class="math notranslate nohighlight">\(\sigma^2\)</span> is the variance of the regression and is not known.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Mean of hyperparameter beta.
+# The size of b should be m, the number of columns of design matrix X.
+import numpy
+b = numpy.zeros((6, ))
+
+# Generate a random matrix B for covariance of beta.
+# The shape of matrix B should be (m, m)
+numpy.random.seed(0)
+B = numpy.random.rand(b.size, b.size)
+
+# Making sure the covariance matrix B positive-semidefinite
+B = 1e+5 * B.T @ B
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Linear-Model">
+<h2>Linear Model<a class="headerlink" href="#Linear-Model" title="Permalink to this heading">#</a></h2>
+<p>The linear model of mean <span class="math notranslate nohighlight">\(\mu = \mathbf{X} \boldsymbol{\beta}\)</span> can be created by <code class="docutils literal notranslate"><span class="pre">glearn.mean.LinearModel</span></code> class:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Create mean object using glearn.
+mean = glearn.LinearModel(x, polynomial_degree=5, b=b, B=B)
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Kernels">
+<h2>Kernels<a class="headerlink" href="#Kernels" title="Permalink to this heading">#</a></h2>
+<p>The zero-mean stochastic function <span class="math notranslate nohighlight">\(\delta(x): \mathcal{D} \to \mathbb{R}\)</span> is characterized by its covariance,</p>
+<div class="math notranslate nohighlight">
+\[\mathbb{E}[\delta(x), \delta(x')] = k(x, x'|\boldsymbol{\theta}).\]</div>
+<p>The function <span class="math notranslate nohighlight">\(k: \mathcal{D} \times \mathcal{D} \times \mathbb{R}^d \to \mathbb{R}\)</span> is the correlation kernel and can be created by <code class="docutils literal notranslate"><span class="pre">glearn.kernel</span></code> module. Various kernels of this module are</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Matern()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Exponential()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SquareExponential()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RationalQuadratic()</span></code></p></li>
+</ul>
+<p>Here we use the exponential kernel.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from glearn import kernels
+kernel = kernels.Exponential()
+kernel.plot()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_quick_start_15_0.png" src="../_images/notebooks_quick_start_15_0.png" />
+</div>
+</div>
+</section>
+<section id="Scale-Hyperparameter">
+<h2>Scale Hyperparameter<a class="headerlink" href="#Scale-Hyperparameter" title="Permalink to this heading">#</a></h2>
+<p>The hyperparameters <span class="math notranslate nohighlight">\(\boldsymbol{\theta} = (\theta_1, \dots, \theta_d) \in \mathbb{R}^d\)</span> determines the scale of each spatial dimension. In our example, <span class="math notranslate nohighlight">\(d=1\)</span>. Scale can be either explicity given if known, or can be charactewrized by a prior distribution <span class="math notranslate nohighlight">\(p(\boldsymbol{\theta})\)</span> using <code class="docutils literal notranslate"><span class="pre">glearn.priors</span></code> class. A list of available priors are</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Uniform</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Cauchy</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">StudentT</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">InverseGamma</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Normal</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Erlang</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BetaPrime</span></code></p></li>
+</ul>
+<p>Here, we use Cauchy prior. We also plot the prior and its frist and second derivative.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from glearn import priors
+scale = priors.Cauchy()
+scale.plot()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_quick_start_17_0.png" src="../_images/notebooks_quick_start_17_0.png" />
+</div>
+</div>
+</section>
+<section id="Covariance">
+<h2>Covariance<a class="headerlink" href="#Covariance" title="Permalink to this heading">#</a></h2>
+<p>The covariance of the model is</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\Sigma}(\sigma^2, \sigma_0^2, \boldsymbol{\theta}) = \sigma^2 \mathbf{K}(\boldsymbol{\theta}) + \sigma_0^2 \mathbf{I},\]</div>
+<p>where</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{K}(\boldsymbol{\theta}): \mathbb{R}^{d} \to \mathbb{R}^{n \times n},\]</div>
+<p>and <span class="math notranslate nohighlight">\(\mathbf{I}\)</span> is the identity matrix.</p>
+<p>An object of the above covariance model can be created by <code class="docutils literal notranslate"><span class="pre">glearn.Covariance</span></code> class.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>cov = glearn.Covariance(x, kernel=kernel, scale=scale)
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Gaussian-Proces">
+<h2>Gaussian Proces<a class="headerlink" href="#Gaussian-Proces" title="Permalink to this heading">#</a></h2>
+<p>The Gaussian process</p>
+<div class="math notranslate nohighlight">
+\[z \sim \mathcal{GP}(\mu, \boldsymbol{\Sigma})\]</div>
+<p>is then created by <code class="docutils literal notranslate"><span class="pre">glearn.GaussianProcess</span></code> class using the mean and covariance objects.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>gp = glearn.GaussianProcess(mean, cov)
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Training-Hyperparameters">
+<h2>Training Hyperparameters<a class="headerlink" href="#Training-Hyperparameters" title="Permalink to this heading">#</a></h2>
+<p>The hyperparameters <span class="math notranslate nohighlight">\((\sigma, \sigma_0, \boldsymbol{\theta})\)</span> and the parameter <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> can be trained via <code class="docutils literal notranslate"><span class="pre">gp.train()</span></code> function.</p>
+<p>The type of profiling for the likelihood function can be set by <code class="docutils literal notranslate"><span class="pre">profile_hyperparam</span></code> argument, which can take one of the following values:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'none</span></code>: no profiling</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'var'</span></code>: profiling on variance hyperparameter.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'var_noise'</span></code>: profiling on both variance and noise hypeprarameter.</p></li>
+</ul>
+<p>The optimization method can be set by <code class="docutils literal notranslate"><span class="pre">optimization_method</span></code> and can be one of:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'chandrupatla'</span></code>: requires jacobian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'brentq'</span></code>: requires jacobian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'Nelder-Mead'</span></code>: requires func</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'BFGS'</span></code>: requires func, jacobian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'CG'</span></code>: requires func, jacobian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'Newton-CG'</span></code>: requires func, jacobian, hessian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'dogleg'</span></code>: requires func, jacobian, hessian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'trust-exact'</span></code>: requires func, jacobian, hessian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'trust-ncg'</span></code>: requires func, jacobian, hessian</p></li>
+</ul>
+<p>The internal matrix algebra of this object can be set via <code class="docutils literal notranslate"><span class="pre">imate_method</span></code> argument, which can take value from one of the followings:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">eigenvalue</span></code>: using eigenvalue method.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cholesky</span></code>: using Cholesky method.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hutchinson</span></code>: using stochastic Hotchinson method.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">slq</span></code>: using stochastic Lanczos quadrature method.</p></li>
+</ul>
+<p>Here we use the Cholesky method.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>profile_hyperparam = &#39;var&#39;
+optimization_method = &#39;Newton-CG&#39;
+imate_options = {&#39;method&#39;: &#39;cholesky&#39;}
+hyperparam_guess = None
+result = gp.train(y_noisy, profile_hyperparam=profile_hyperparam,
+                  log_hyperparam=True, hyperparam_guess=hyperparam_guess,
+                  optimization_method=optimization_method, tol=1e-6,
+                  max_iter=1000, use_rel_error=True, imate_options=imate_options,
+                  verbose=True, plot=False)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+KKKKKKKKKKKKK
+[[nan  0.  0. ...  0.  0.  0.]
+ [ 0. nan  0. ...  0.  0.  0.]
+ [ 0.  0. nan ...  0.  0.  0.]
+ ...
+ [ 0.  0.  0. ... nan  0.  0.]
+ [ 0.  0.  0. ...  0. nan  0.]
+ [ 0.  0.  0. ...  0.  0. nan]]
+KKKKKKKKKKKKK
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">LinAlgError</span>                               Traceback (most recent call last)
+<span class="ansi-green-fg">/tmp/ipykernel_530101/3276198091.py</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
+<span class="ansi-green-intense-fg ansi-bold">      3</span> imate_options <span class="ansi-blue-fg">=</span> <span class="ansi-blue-fg">{</span><span class="ansi-blue-fg">&#39;method&#39;</span><span class="ansi-blue-fg">:</span> <span class="ansi-blue-fg">&#39;cholesky&#39;</span><span class="ansi-blue-fg">}</span>
+<span class="ansi-green-intense-fg ansi-bold">      4</span> hyperparam_guess <span class="ansi-blue-fg">=</span> <span class="ansi-green-fg">None</span>
+<span class="ansi-green-fg">----&gt; 5</span><span class="ansi-red-fg"> result = gp.train(y_noisy, profile_hyperparam=profile_hyperparam,
+</span><span class="ansi-green-intense-fg ansi-bold">      6</span>                   log_hyperparam<span class="ansi-blue-fg">=</span><span class="ansi-green-fg">True</span><span class="ansi-blue-fg">,</span> hyperparam_guess<span class="ansi-blue-fg">=</span>hyperparam_guess<span class="ansi-blue-fg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">      7</span>                   optimization_method<span class="ansi-blue-fg">=</span>optimization_method<span class="ansi-blue-fg">,</span> tol<span class="ansi-blue-fg">=</span><span class="ansi-cyan-fg">1e-6</span><span class="ansi-blue-fg">,</span>
+
+<span class="ansi-green-fg">/opt/miniconda3/lib/python3.9/site-packages/glearn-0.20.0-py3.9-linux-x86_64.egg/glearn/_gaussian_process/gaussian_process.py</span> in <span class="ansi-cyan-fg">train</span><span class="ansi-blue-fg">(self, z, hyperparam_guess, profile_hyperparam, log_hyperparam, optimization_method, tol, max_iter, use_rel_error, imate_options, gpu, verbose, plot)</span>
+<span class="ansi-green-intense-fg ansi-bold">    256</span>
+<span class="ansi-green-intense-fg ansi-bold">    257</span>         <span class="ansi-green-fg">else</span><span class="ansi-blue-fg">:</span>
+<span class="ansi-green-fg">--&gt; 258</span><span class="ansi-red-fg">             hyperparam_guess = self._suggest_hyperparam(
+</span><span class="ansi-green-intense-fg ansi-bold">    259</span>                     profile_hyperparam)
+<span class="ansi-green-intense-fg ansi-bold">    260</span>
+
+<span class="ansi-green-fg">/opt/miniconda3/lib/python3.9/site-packages/glearn-0.20.0-py3.9-linux-x86_64.egg/glearn/_gaussian_process/gaussian_process.py</span> in <span class="ansi-cyan-fg">_suggest_hyperparam</span><span class="ansi-blue-fg">(self, profile_hyperparam)</span>
+<span class="ansi-green-intense-fg ansi-bold">    187</span>             asym_degree <span class="ansi-blue-fg">=</span> <span class="ansi-cyan-fg">2</span>
+<span class="ansi-green-intense-fg ansi-bold">    188</span>             asym_maxima <span class="ansi-blue-fg">=</span><span class="ansi-red-fg"> </span><span class="ansi-red-fg">\</span>
+<span class="ansi-green-fg">--&gt; 189</span><span class="ansi-red-fg">                 self.posterior.likelihood.approx.maximaize_likelihood(
+</span><span class="ansi-green-intense-fg ansi-bold">    190</span>                         degree=asym_degree)
+<span class="ansi-green-intense-fg ansi-bold">    191</span>
+
+<span class="ansi-green-fg">/opt/miniconda3/lib/python3.9/site-packages/glearn-0.20.0-py3.9-linux-x86_64.egg/glearn/_likelihood/_profile_likelihood_approx.py</span> in <span class="ansi-cyan-fg">maximaize_likelihood</span><span class="ansi-blue-fg">(self, degree)</span>
+<span class="ansi-green-intense-fg ansi-bold">    382</span>
+<span class="ansi-green-intense-fg ansi-bold">    383</span>         <span class="ansi-red-fg"># All roots</span>
+<span class="ansi-green-fg">--&gt; 384</span><span class="ansi-red-fg">         </span>poly_roots <span class="ansi-blue-fg">=</span> numpy<span class="ansi-blue-fg">.</span>roots<span class="ansi-blue-fg">(</span>self<span class="ansi-blue-fg">.</span>poly_coeffs<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    385</span>
+<span class="ansi-green-intense-fg ansi-bold">    386</span>         <span class="ansi-red-fg"># Remove complex roots</span>
+
+<span class="ansi-green-fg">/opt/miniconda3/lib/python3.9/site-packages/numpy/core/overrides.py</span> in <span class="ansi-cyan-fg">roots</span><span class="ansi-blue-fg">(*args, **kwargs)</span>
+
+<span class="ansi-green-fg">/opt/miniconda3/lib/python3.9/site-packages/numpy/lib/polynomial.py</span> in <span class="ansi-cyan-fg">roots</span><span class="ansi-blue-fg">(p)</span>
+<span class="ansi-green-intense-fg ansi-bold">    252</span>         A <span class="ansi-blue-fg">=</span> diag<span class="ansi-blue-fg">(</span>NX<span class="ansi-blue-fg">.</span>ones<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">(</span>N<span class="ansi-blue-fg">-</span><span class="ansi-cyan-fg">2</span><span class="ansi-blue-fg">,</span><span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">,</span> p<span class="ansi-blue-fg">.</span>dtype<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">,</span> <span class="ansi-blue-fg">-</span><span class="ansi-cyan-fg">1</span><span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    253</span>         A<span class="ansi-blue-fg">[</span><span class="ansi-cyan-fg">0</span><span class="ansi-blue-fg">,</span><span class="ansi-blue-fg">:</span><span class="ansi-blue-fg">]</span> <span class="ansi-blue-fg">=</span> <span class="ansi-blue-fg">-</span>p<span class="ansi-blue-fg">[</span><span class="ansi-cyan-fg">1</span><span class="ansi-blue-fg">:</span><span class="ansi-blue-fg">]</span> <span class="ansi-blue-fg">/</span> p<span class="ansi-blue-fg">[</span><span class="ansi-cyan-fg">0</span><span class="ansi-blue-fg">]</span>
+<span class="ansi-green-fg">--&gt; 254</span><span class="ansi-red-fg">         </span>roots <span class="ansi-blue-fg">=</span> eigvals<span class="ansi-blue-fg">(</span>A<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    255</span>     <span class="ansi-green-fg">else</span><span class="ansi-blue-fg">:</span>
+<span class="ansi-green-intense-fg ansi-bold">    256</span>         roots <span class="ansi-blue-fg">=</span> NX<span class="ansi-blue-fg">.</span>array<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">[</span><span class="ansi-blue-fg">]</span><span class="ansi-blue-fg">)</span>
+
+<span class="ansi-green-fg">/opt/miniconda3/lib/python3.9/site-packages/numpy/core/overrides.py</span> in <span class="ansi-cyan-fg">eigvals</span><span class="ansi-blue-fg">(*args, **kwargs)</span>
+
+<span class="ansi-green-fg">/opt/miniconda3/lib/python3.9/site-packages/numpy/linalg/linalg.py</span> in <span class="ansi-cyan-fg">eigvals</span><span class="ansi-blue-fg">(a)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1055</span>     _assert_stacked_2d<span class="ansi-blue-fg">(</span>a<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1056</span>     _assert_stacked_square<span class="ansi-blue-fg">(</span>a<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-fg">-&gt; 1057</span><span class="ansi-red-fg">     </span>_assert_finite<span class="ansi-blue-fg">(</span>a<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1058</span>     t<span class="ansi-blue-fg">,</span> result_t <span class="ansi-blue-fg">=</span> _commonType<span class="ansi-blue-fg">(</span>a<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1059</span>
+
+<span class="ansi-green-fg">/opt/miniconda3/lib/python3.9/site-packages/numpy/linalg/linalg.py</span> in <span class="ansi-cyan-fg">_assert_finite</span><span class="ansi-blue-fg">(*arrays)</span>
+<span class="ansi-green-intense-fg ansi-bold">    207</span>     <span class="ansi-green-fg">for</span> a <span class="ansi-green-fg">in</span> arrays<span class="ansi-blue-fg">:</span>
+<span class="ansi-green-intense-fg ansi-bold">    208</span>         <span class="ansi-green-fg">if</span> <span class="ansi-green-fg">not</span> isfinite<span class="ansi-blue-fg">(</span>a<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">.</span>all<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">:</span>
+<span class="ansi-green-fg">--&gt; 209</span><span class="ansi-red-fg">             </span><span class="ansi-green-fg">raise</span> LinAlgError<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">&#34;Array must not contain infs or NaNs&#34;</span><span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    210</span>
+<span class="ansi-green-intense-fg ansi-bold">    211</span> <span class="ansi-green-fg">def</span> _is_empty_2d<span class="ansi-blue-fg">(</span>arr<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">:</span>
+
+<span class="ansi-red-fg">LinAlgError</span>: Array must not contain infs or NaNs
+</pre></div></div>
+</div>
+</section>
+<section id="Prediction">
+<h2>Prediction<a class="headerlink" href="#Prediction" title="Permalink to this heading">#</a></h2>
+<p>After training the hyperparameters, the <code class="docutils literal notranslate"><span class="pre">gp</span></code> object is ready to predict the data on new points. First, we greate a set of <span class="math notranslate nohighlight">\(1000\)</span> test points <span class="math notranslate nohighlight">\(x^{\star}\)</span> equally distanced in the interval <span class="math notranslate nohighlight">\([0, 1]\)</span>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Generate test points
+test_points = sample_data.generate_points(num_points=1000, dimension=1, grid=True)
+</pre></div>
+</div>
+</div>
+<p>For sake of compaison, we also generate the noise-free data on the test points, <span class="math notranslate nohighlight">\(z(x^{\star})\)</span>, using zero noise <span class="math notranslate nohighlight">\(\sigma_0 = 0\)</span>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># True data (without noise)
+z_true = sample_data.generate_data(test_points, noise_magnitude=0.0)
+</pre></div>
+</div>
+</div>
+<p>Note that the above step is unneccessary and only used for the purpose of comparson with the prediction since we already know the exact function that generated the noisy data <span class="math notranslate nohighlight">\(z\)</span> ikn the first place.</p>
+<p>The posterior predictive distribution of the predicton <span class="math notranslate nohighlight">\(z^{\star}(x^{\star})\)</span> is of the form</p>
+<div class="math notranslate nohighlight">
+\[z^{\star}(x^{\star}) \sim \mathcal{N}\left(\mu^{\star}(x^{\star}), \mathbf{\Sigma}^{\star \star}(x^{\star}, x'^{\star})\right)\]</div>
+<p>where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mu^{\star}\)</span> is the posterior predictive mean, and</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{\Sigma}^{\star \star}\)</span> is the posterior predictive covariance between test points and themselves.</p></li>
+</ul>
+<p>Prediction can be made using <code class="docutils literal notranslate"><span class="pre">gp.predict()</span></code> function.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>z_star_mean, z_star_cov = gp.predict(test_points, cov=True, plot=True,
+                                     confidence_level=0.95,
+                                     true_data=z_true, verbose=True)
+</pre></div>
+</div>
+</div>
+<p>By seeting boolean argument <code class="docutils literal notranslate"><span class="pre">cov=False</span></code> the predictive covariance is not computed, which enhances the computaional speed.</p>
+<ul class="simple">
+<li><p>When <code class="docutils literal notranslate"><span class="pre">cov=True</span></code>, meaning that both <span class="math notranslate nohighlight">\(\mu^{\star}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{\Sigma}^{\star \star}\)</span> are computed, the prediction process is <span class="math notranslate nohighlight">\(\mathcal{O}\left((n^{\star})^3\right)\)</span> complex.</p></li>
+<li><p>In contrast, when <code class="docutils literal notranslate"><span class="pre">cov=False</span></code> to only compute <span class="math notranslate nohighlight">\(\mu^{\star}\)</span>, the prediction process is only <span class="math notranslate nohighlight">\(\mathcal{O}\left((n^{\star})^2\right)\)</span> complex.</p></li>
+</ul>
+<p>Furthermore, when <code class="docutils literal notranslate"><span class="pre">cov=False</span></code>, once the first prediciton on a set of test points <span class="math notranslate nohighlight">\(\left\{ x_i^{\star} \right\}_{n^{\star}}\)</span> is made, the future calls to the <code class="docutils literal notranslate"><span class="pre">predict()</span></code> function is of order <span class="math notranslate nohighlight">\(\mathcal{O}(n^{\star})\)</span>, <em>even when applied on a different set of test points</em>. This is becase the <code class="docutils literal notranslate"><span class="pre">gp</span></code> object stores all internal computations that are independent of the test points.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>z_star_mean = gp.predict(test_points, cov=False, verbose=True)
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+              </article>
+              
+
+              
+              <footer class="bd-footer-article">
+                  <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+</div>
+              </footer>
+              
+          </div>
+          
+      </div>
+    </div>
+
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695"></script>
+
+<footer class="bd-footer"><div class="bd-footer__inner container">
+  
+  <div class="footer-item">
+    <p class="copyright">
+    &copy; Copyright 2022, Siavash Ameli.<br>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br>
+</p>
+  </div>
+  
+</div>
+</footer>
+  </body>
+</html>
