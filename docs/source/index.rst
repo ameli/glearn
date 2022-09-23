@@ -196,7 +196,12 @@ Tutorials
 
 |binder|
 
-Launch online interactive demonstration of examples with
+.. toctree::
+    :maxdepth: 1
+
+    Jupyter Notebook <notebooks/quick_start.ipynb>
+
+Launch `online interactive notebook <https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2Fquick_start.ipynb>`_ with Binder.
 
 API Reference
 =============
@@ -208,108 +213,27 @@ Check the list of functions, classes, and modules of |project| with their usage,
    
    API Reference <api>
 
-.. _index_performance:
-
-Performance
-===========
-
-|project| is scalable to **very large matrices**. Its core library for basic linear algebraic operations is **faster than OpenBLAS**, and its **pseudo-random generator** is a hundred-fold faster than the implementation in the standard C++ library.
-
-Read about the performance of |project| in practical applications:
-
-.. toctree::
-    :maxdepth: 1
-    :hidden:
-
-    performance <performance/performance>
-
-.. Performance on GPU Farm <performance/gpu>
-.. Performance on CPU <performance/scalability>
-.. Comparison With and Without OpenBLAS <performance/openblas>
-.. Interpolation of Affine Matrix Functions <performance/interpolation>
-
-
-.. grid:: 2
-
-   .. grid-item-card:: :ref:`Performance on GPU Farm <perf-gpu>`
-        :link: perf-gpu
-        :link-type: ref
-        :text-align: center
-        :class-card: custom-card-link-2
-
-        .. image:: _static/images/performance/benchmark_speed_time.png
-           :align: center
-           :width: 320px
-           :height: 200px
-           :class: custom-dark
-
-   .. grid-item-card:: :ref:`Comparison of Randomized Algorithms <perf-algorithms>`
-        :link: perf-algorithms
-        :link-type: ref
-        :text-align: center
-        :class-card: custom-card-link-2
-
-        .. image:: _static/images/performance/compare_methods_practical_matrix_logdet_time.png
-           :align: center
-           :width: 320px
-           :height: 200px
-           :class: custom-dark
-
-.. grid:: 2
-
-   .. grid-item-card:: :ref:`Comparison With and Without OpenBLAS <perf-openblas>` 
-        :link: perf-openblas
-        :link-type: ref
-        :text-align: center
-        :class-card: custom-card-link-2
-
-        .. image:: _static/images/performance/benchmark_openblas_sparse_time.png
-           :align: center
-           :width: 320px
-           :height: 200px
-           :class: custom-dark
-
-
-   .. grid-item-card:: :ref:`Interpolation of Affine Matrix Functions <interpolation>` 
-        :link: interpolation
-        :link-type: ref
-        :text-align: center
-        :class-card: custom-card-link-2
-
-        .. image:: _static/images/performance/affine_matrix_function_logdet.png
-           :align: center
-           :width: 320px
-           :height: 200px
-           :class: custom-dark
-
 Features
 ========
 
-* Matrices can be dense or sparse (`CSR` or `CSC` format), with 32-bit, 64-bit, or 128-bit data types, and stored either by row-ordering (`C` style) or column-ordering (`Fortran` style).
-* Matrices can be **linear operators** with parameters (see :class:`imate.Matrix` and :class:`imate.AffineMatrixFunction` classes).
+
 * **Randomized algorithms** using Hutchinson and stochastic Lanczos quadrature algorithms (see :ref:`Overview <overview>`)
 * Novel method to **interpolate** matrix functions. See :ref:`Interpolation of Affine Matrix Functions <interpolation>`.
 * Parallel processing both on **shared memory** and CUDA Capable **multi-GPU** devices.
-
-* GPU, parallel
 * Sparse covariance
 * Mixed covariance model, object
+* Automatic Relevance Determination (ARD)
 * Jacobian and Hessian based optimization
 * Learn hyperparameters in reduced space (profile likelihood)
-* Prediction in Dual, O(n)
+* Prediction in dual space with with :math:`\\mathcal{O}(n)` complexity.
 
 Technical Notes
 ===============
 
 |tokei-2| |languages|
 
-The core of |project|, which is implemented in C++ and NVIDIA CUDA framework, is a standalone modular library for high-performance low-level algebraic operations on linear operators (including matrices and affine matrix functions). This library provides a unified interface for computations on both CPU and GPU, a unified interface for dense and sparse matrices, a unified container for various data types, and fully automatic memory management and data transfer between CPU and GPU devices on demand. This library can be employed independently for projects other than |project|. The Doxygen generated reference of `C++/CUDA Classes and Namespaces <doxygen/html/annotated.html>`_ of |project| is available for developers.
-
-The front-end interface of |project| is implemented in Cython and Python (see Python :ref:`API Reference <api>` for end-users).
-
 Some notable implementation techniques used to develop |project| are:
 
-* Polymorphic and curiously recurring template pattern programming (CRTP) technique.
 * OS-independent customized `dynamic loading` of CUDA libraries.
 * Static dispatching enables executing |project| with and without CUDA on the user's machine with the same pre-compiled |project| installation.
 * Completely `GIL <https://en.wikipedia.org/wiki/Global_interpreter_lock>`_-*free* Cython implementation.
@@ -347,7 +271,7 @@ Related Projects
        :text-align: center
        :class-card: custom-card-link
    
-       A high-performance python package for machine learning using Gaussian process regression.
+       A high-performance python package for scalable randomized algorithms for matrix functions in machine learning.
 
    .. grid-item-card:: |detkit-light| |detkit-dark|
        :link: https://ameli.github.io/detkit/index.html
@@ -382,12 +306,12 @@ Related Projects
 .. |conda-version| image:: https://img.shields.io/conda/v/s-ameli/traceinv
    :target: https://anaconda.org/s-ameli/traceinv
 .. |binder| image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2FInterpolateTraceOfInverse.ipynb
+   :target: https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2Fquick_start.ipynb
 .. |conda-downloads| image:: https://img.shields.io/conda/dn/s-ameli/glearn
    :target: https://anaconda.org/s-ameli/glearn
 .. |tokei| image:: https://tokei.rs/b1/github/ameli/glearn?category=lines
    :target: https://github.com/ameli/glearn
-.. |tokei-2| image:: https://img.shields.io/badge/code%20lines-26.4k-blue
+.. |tokei-2| image:: https://img.shields.io/badge/code%20lines-31.9k-blue
    :target: https://github.com/ameli/glearn
 .. |languages| image:: https://img.shields.io/github/languages/count/ameli/glearn
    :target: https://github.com/ameli/glearn

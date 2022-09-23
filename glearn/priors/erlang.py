@@ -240,7 +240,7 @@ class Erlang(Prior):
         """
         Find an initial guess for the hyperparameters based on the peaks of the
         prior distribution.
-        
+
         Parameters
         ----------
 
@@ -248,6 +248,11 @@ class Erlang(Prior):
             If `True`, it suggests a positive hyperparameter. This is used
             for instance if the suggested hyperparameter is used for the
             scale parameter which should always be positive.
+
+            .. note::
+                This parameter is not used, rather, ignored in this function.
+                This parameter is included for consistency this function with
+                the other prior classes.
 
         Returns
         -------
@@ -297,7 +302,7 @@ class Erlang(Prior):
         hyperparam_guess = numpy.zeros_like(self.shape)
 
         for i in range(hyperparam_guess.size):
-            # Mean of distribution (could be used for initial hyperparam guess)
+            # Mean of distribution
             mean = self.shape[i] / self.rate[i]
             hyperparam_guess[i] = mean
 

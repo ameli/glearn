@@ -237,7 +237,7 @@ class BetaPrime(Prior):
         """
         Find an initial guess for the hyperparameters based on the peaks of the
         prior distribution.
-        
+
         Parameters
         ----------
 

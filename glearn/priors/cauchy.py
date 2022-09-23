@@ -269,10 +269,6 @@ class Cauchy(Prior):
         :math:`\\theta_0`. For the half-Cauchy distribution, the suggested
         hyperparameter is the scale :math:`\\gamma`.
 
-        If ``positive`` is `True` and :math:`\\theta_0 \\leq 0`, the suggested
-        hyperparameter is the maximum of :math:`\\gamma` and
-        :math:`\\theta_0 + \\gamma`.
-
         The suggested hyperparameters can be used as initial guess for the
         optimization of the posterior functions when used with this prior.
 
@@ -298,12 +294,8 @@ class Cauchy(Prior):
         if self.half:
             hyperparam_guess = self.scale
         else:
-            if positive:
-                if self.median > 0:
-                    hyperparam_guess = self.median
-                else:
-                    hyperparam_guess = numpy.max([
-                        self.scale, self.median + self.scale])
+            if positive and self.median <= 0:
+                hyperparam_guess = self.scale
             else:
                 hyperparam_guess = self.median
 

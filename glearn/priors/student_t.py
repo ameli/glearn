@@ -223,7 +223,7 @@ class StudentT(Prior):
         """
         Find an initial guess for the hyperparameters based on the peaks of the
         prior distribution.
-        
+
         Parameters
         ----------
 
@@ -231,6 +231,11 @@ class StudentT(Prior):
             If `True`, it suggests a positive hyperparameter. This is used
             for instance if the suggested hyperparameter is used for the
             scale parameter which should always be positive.
+
+            .. note::
+                This parameter is not used, rather, ignored in this function.
+                This parameter is included for consistency this function with
+                the other prior classes.
 
         Returns
         -------

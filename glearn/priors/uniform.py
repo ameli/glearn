@@ -322,9 +322,7 @@ class Uniform(Prior):
             elif not numpy.isinf(numpy.abs(self.a[i])) and \
                     numpy.isinf(self.b[i]):
                 if positive and self.a[i] <= 0.0:
-                    raise ValueError('Cannot select a positive ' +
-                                     'hyperparameter from the prior ' +
-                                     'distribution.')
+                    hyperparam_guess[i] = 1.0
                 else:
                     hyperparam_guess[i] = 2.0 * self.a[i]
 

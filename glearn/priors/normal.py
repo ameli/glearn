@@ -243,7 +243,7 @@ class Normal(Prior):
         """
         Find an initial guess for the hyperparameters based on the peaks of the
         prior distribution.
-        
+
         Parameters
         ----------
 
@@ -299,8 +299,11 @@ class Normal(Prior):
             # For half-normal distribution, use std as initial hyperparam guess
             hyperparam_guess = self.std
         else:
-            # Otherwise, use its mean.
-            hyperparam_guess = self.mean
+            if positive and self.mean <= 0.0:
+                hyperparam_guess = self.std
+            else:
+                # Otherwise, use its mean.
+                hyperparam_guess = self.mean
 
         return hyperparam_guess
 

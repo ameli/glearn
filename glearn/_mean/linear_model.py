@@ -23,7 +23,7 @@ __all__ = ['LinearModel']
 
 class LinearModel(object):
     """
-    Create linear model for the mean function of regression.
+    Linear model for the mean function of regression.
 
     For the regression problem
     :math:`y=\\mu(\\boldsymbol{x})+\\delta(\\boldsymbol{x})` where

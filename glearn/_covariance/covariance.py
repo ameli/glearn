@@ -27,6 +27,200 @@ __all__ = ['Covariance']
 
 class Covariance(object):
     """
+    Mixed covariance model.
+
+    For the regression problem
+    :math:`y=\\mu(\\boldsymbol{x})+\\delta(\\boldsymbol{x}) + \\epsilon` where
+    :math:`\\mu` and :math:`\\delta` are the mean, miss-fit, and input noise of
+    of the regression model respectively, this class implements a covariance
+    model
+
+    Parameters
+    ----------
+
+    x : numpy.ndarray
+        A 2D array of data points where each row of the array is the coordinate
+        of a point :math:`\\boldsymbol{x} = (x_1, \\dots, x_d)`. The
+        array size is :math:`n \\times d` where :math:`n` is the number of the
+        points and :math:`d` is the dimension of the space of points.
+
+    sigma : float, default=None
+        The hyperparameter :math:`\\sigma` of the covariance model where
+        :math:`\\sigma^2` represents the variance of the correlated errors of
+        the model. :math:`\\sigma` should be positive. If `None` is given, an
+        optimal value for :math:`\\sigma` is found during the training process.
+
+    sigma0 : float, default=None
+        The hyperparameter :math:`\\varsigma` of the covariance model where
+        :math:`\\varsigma^2` represents the variance of the input noise to the
+        model. :math:`\\varsigma` should be positive. If `None` is given, an
+        optimal value for :math:`\\varsigma` is found during the training
+        process.
+
+    scale : float or array_like[float], default=None
+        The scale hyperparameters
+        :math:`\\boldsymbol{\\alpha} = (\\alpha_1, \\dots, \\alpha_d)` in
+        scales the distance between data points in :math:`\\mathbb{R}^d`. If an
+        array of the size :math:`d` is given, :math:`\\alpha_i` scales the
+        distance in the :math:`i`-th dimension. If a scalar value
+        :math:`\\alpha` is given, all dimensions are scaled isometrically.
+        If set to `None`, optimal values of the scale hyperparameters are found
+        during the training process by the automatic relevance determination
+        (ARD).
+
+    kernel : glearn.kernels.Kernel, default=glearn.kernels.Matern
+        The correlation kernel :math:`k` that generates the correlation matrix
+        :math:`\\mathbf{K}`. This argument should be an instance of one of the
+        derived classes of :class:`glearn.kernels.Kernel`. If `None`, the
+        Matern kernel :class:`glearn.kernels.Matern` is used.
+
+    kernel_threshold : float, default=None,
+        The threshold :math:`\\tau` to taper the kernel function. Namely,
+        the kernel values :math:`k < \\tau` are set to zero. This is used to
+        decorrelate data points that are away from each other by a distance,
+        yielding a *sparse* correlation matrix of the data points. This option
+        is relevant if ``sparse`` is set to `True`.
+
+    sparse : bool, default=False
+        It `True`, it sparsifies the correlation matrix :math:`\\mathbf{K}` and
+        hence, the covariance matrix :math:`\\boldsymbol{\\Sigma}` using
+        kernel tapering (see ``kernel_threshold`` and ``density``).
+
+    density : float, default=1e-3,
+        Sets an approximate density of sparse matrices. This argument is
+        another way (along with ``kernel_threshold``) to specify the sparsity
+        of the covariance matrix. The matrix density is the  This option is
+        relevant if ``sparse`` is set to `True`.
+
+        .. note::
+
+            This option only sets an *approximate* density of the covariance
+            matrix. The actual matrix density may be slightly different than
+            the specified value.
+
+    imate_options : dict, default={'method': 'cholesky'}
+        The internal computations of the functions
+        :meth:`glearn.Covariance.logdet`, :meth:`glearn.Covariance.trace`, and 
+        :meth:`glearn.Covariance.traceinv` are performed by
+        `imate <https://ameli.github.io/imate/index.html>`_ package. This
+        argument can pass a dictionary of options to pass to the corresponding
+        functions of the `imate` package. See
+        `API Reference <https://ameli.github.io/imate>`_ of `imate` package
+        for details.
+
+    interpolate : bool, default=False
+        If `True`, the matrix functions
+        :meth:`glearn.Covariance.logdet`, :meth:`glearn.Covariance.trace`, and 
+        :meth:`glearn.Covariance.traceinv` for the mixed covariance function
+        are interpolated with respect to the
+        hyperparameters :math:`\\sigma` and :math:`\\varsigma`. See [1]_ for
+        details. This approach can yield a significant speed up during the
+        training process but with the loss of accuracy.
+
+    tol : float, default=1e-8
+        The tolerance of error of solving the linear systems using conjugate
+        gradient method used in :meth:`glearn.Covariance.solve` function.
+
+    verbose : bool, default=False
+        It `True`, verbose output is printed during the computation.
+
+    Attributes
+    ----------
+
+    cor : glearn._correlation.Correlation
+        An object representing the correlation matrix :math:`\\mathbf{K}`.
+
+    cor : glearn._covariance.MixedCorrelation
+        An object representing the mixed correlation matrix
+        :math:`\\mathbf{K} + \\eta \\mathbf{I}`.
+
+    Methods
+    -------
+
+    set_imate_options
+    set_scale
+    get_scale
+    set_sigmas
+    get_sigmas
+    get_matrix
+    trace
+    traceinv
+    logdet
+    solve
+    dot
+    auto_covariance
+    cross_covariance
+
+    See Also
+    --------
+
+    glearn.GaussianProcess
+
+    Notes
+    -----
+
+    **Regression Model:**
+
+    A regression model to fit the data :math:`y = f(\\boldsymbol{x})`
+    for the points :math:`\\boldsymbol{x} \\in \\mathcal{D} \\in \\mathbb{R}^d`
+    and data :math:`y \\in \\mathbb{R}` is
+
+    .. math::
+
+        f(\\boldsymbol{x}) = \\mu(\\boldsymbol{x}) + \\delta(\\boldsymbol{x})
+        + \\epsilon,
+
+    where
+
+    * :math:``\\mu` is a deterministic mean function.
+    * :math:`\\delta` is a zero-mean stochastic function representing the
+      missfit of the regression model.
+    * :math:`\\epsilon` is a zero-mean stochastic function representing the
+      input noise.
+
+    **Covariance of Regression:**
+
+    The covariance of the stochastic function :math:`\\delta` on discrete
+    data points :math:`\\{ \\boldsymbol{x}_i \\}_{i=1}^n` is the
+    :math:`n \\times n` covariance matrix
+
+    .. math::
+
+        \\sigma^2 \\mathbf{K} =
+        \\mathbb{E}[\\delta(\\boldsymbol{x}_i), \\delta(\\boldsymbol{x}_j)],
+
+    where :math:`\\sigma^2` is the variance and :math:`\\mathbf{K}` is
+    considered as the correlation matrix.
+
+    Similarly, the covariance of the stochastic function :math:`\\epsilon`is
+    the :math:`n \\times n` covariance matrix
+
+    .. math::
+
+        \\varsigma^2 \\mathbf{I} = \\mathbb{E}[\\epsilon, \\epsilon],
+
+    where :math:`\\varsigma^2` is the variance of noise and
+    :math:`\\mathbf{I}` is the identity matrix.
+
+    The overall mixed-covariance model for the linear model :math:`f` is
+    
+    .. math::
+
+        \\boldsymbol{\\Sigma}(\\sigma^2, \\varsigma^2, \\boldsymbol{\\alpha}) =
+        \\sigma^2 \\mathbf{K} + \\varsigma^2 \\mathbf{I}.
+
+    References
+    ----------
+
+    .. [1] Ameli, S., and Shadden. S. C. (2022). *Interpolating Log-Determinant
+           and Trace of the Powers of Matrix*
+           :math:`\\mathbf{A} + t\\mathbf{B}`. `arXiv: 2009.07385
+           <https://arxiv.org/abs/2207.08038>`_ [math.NA].
+
+    Examples
+    --------
+
+
     """
 
     # ====
@@ -35,13 +229,13 @@ class Covariance(object):
 
     def __init__(
             self,
-            points,
+            x,
             sigma=None,
             sigma0=None,
-            kernel=None,
             scale=None,
-            sparse=False,
+            kernel=None,
             kernel_threshold=None,
+            sparse=False,
             density=1e-3,
             imate_options={'method': 'cholesky'},
             interpolate=False,
@@ -59,8 +253,7 @@ class Covariance(object):
         self.tol = tol
 
         # Correlation (matrix K)
-        self.cor = Correlation(points, kernel=kernel, scale=scale,
-                               sparse=sparse,
+        self.cor = Correlation(x, kernel=kernel, scale=scale, sparse=sparse,
                                kernel_threshold=kernel_threshold,
                                density=density, verbose=verbose)
 
@@ -102,8 +295,32 @@ class Covariance(object):
 
     def set_imate_options(self, imate_options):
         """
-        Updates the imate options for self.mixed_cor object.
+        Updates the ``imate_options`` attribute.
+
+        .. note::
+
+            This function is intended to be used internally.
+
+        Parameters
+        ----------
+
+        imate_options : dict
+            A dictionary of options to be passed to the functions in
+            `imate <https://ameli.github.io/imate/index.html>`_ package.
+
+        Notes
+        -----
+
+        This function updates the attribute ``imate_options`` for the
+        instance of the class :class:`glearn._covariance.MixedCorrelation`
+        object. The existing options in the dictionary ``imate_option`` are
+        overwritten, and new options will be added (if they do not already
+        exist in the current dictionary).
         """
+
+        # If method key does not exists, set a default with Cholesky method.
+        if 'method' not in imate_options:
+            imate_options['method'] = 'cholesky'
 
         self.mixed_cor.imate_options = imate_options
 

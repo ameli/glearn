@@ -154,8 +154,8 @@ class GaussianProcess(object):
 
             if scale_guess <= 0.0:
                 raise ValueError('The mean, median, or mode of the prior ' +
-                                  'distribution for the scale' +
-                                  'hyperparameter should be positive.')
+                                 'distribution for the scale' +
+                                 'hyperparameter should be positive.')
 
             # Check type of scale guess
             if numpy.isscalar(scale_guess):
