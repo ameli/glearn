@@ -265,7 +265,7 @@ class MixedCorrelation(object):
             self,
             eta=None,
             scale=None,
-            exponent=1,
+            p=1,
             derivative=[],
             imate_options={}):
         """
@@ -285,16 +285,16 @@ class MixedCorrelation(object):
         # Updating self.imate_options using the input imate_options argument
         imate_options = self._update_imate_options(imate_options)
 
-        if (exponent > 1) and (len(derivative) > 0):
-            raise NotImplementedError('If "exponent" is larger than one, ' +
+        if (p > 1) and (len(derivative) > 0):
+            raise NotImplementedError('If "p" is larger than one, ' +
                                       '"derivative" should be zero (using ' +
                                       'an empty list).')
 
-        elif len(derivative) > 0 and exponent == 0:
+        elif len(derivative) > 0 and p == 0:
             # Matrix is zero.
             trace_ = 0.0
 
-        elif exponent == 0:
+        elif p == 0:
             # Matrix is identity.
             n = self.cor.get_matrix_size()
             trace_ = n
@@ -307,23 +307,23 @@ class MixedCorrelation(object):
             # Get matrix
             K = self.cor.get_matrix(scale, derivative)
 
-            if isinstance(exponent, (int, numpy.integer)) or \
-                    exponent.is_integer() or \
+            if isinstance(p, (int, numpy.integer)) or \
+                    p.is_integer() or \
                     imate_options['method'] == 'exact':
 
                 # Convert float to int
-                if isinstance(exponent, float) and exponent.is_integer():
-                    exponent = int(exponent)
+                if isinstance(p, float) and p.is_integer():
+                    p = int(p)
 
-                # Using Newton binomial for (K + eta*I)*exponent
+                # Using Newton binomial for (K + eta*I)*p
                 trace_ = 0.0
-                for q in range(int(exponent)+1):
+                for q in range(int(p)+1):
                     Kq_trace, info = imate.trace(K, method='exact', gram=False,
-                                                 p=(exponent-q),
+                                                 p=(p-q),
                                                  return_info=True)
                     self._update_imate_info(info)
 
-                    trace_ += binom(exponent, q) * Kq_trace * (eta**q)
+                    trace_ += binom(p, q) * Kq_trace * (eta**q)
 
             elif imate_options['method'] == 'eigenvalue':
 
@@ -331,9 +331,8 @@ class MixedCorrelation(object):
                 Kn_eigenvalues = self.get_eigenvalues(eta, scale, derivative)
 
                 # Using eigenvalues only. Here, K will not be used.
-                trace_, info = imate.trace(K, eigenvalues=Kn_eigenvalues,
-                                           p=exponent, gram=False,
-                                           return_info=True,
+                trace_, info = imate.trace(K, eigenvalues=Kn_eigenvalues, p=p,
+                                           gram=False, return_info=True,
                                            assume_matrix='sym',
                                            **imate_options)
                 self._update_imate_info(info)
@@ -344,9 +343,9 @@ class MixedCorrelation(object):
                 K_amf = self.cor.get_affine_matrix_function(scale, derivative)
 
                 # Passing the affine matrix function
-                trace_, info = imate.trace(K_amf, parameters=eta,
-                                           p=exponent, gram=False,
-                                           return_info=True, **imate_options)
+                trace_, info = imate.trace(K_amf, parameters=eta, p=p,
+                                           gram=False, return_info=True,
+                                           **imate_options)
                 self._update_imate_info(info)
 
             else:
@@ -365,7 +364,7 @@ class MixedCorrelation(object):
             B=None,
             C=None,
             scale=None,
-            exponent=1,
+            p=1,
             derivative=[],
             imate_options={}):
         """
@@ -405,16 +404,16 @@ class MixedCorrelation(object):
         if (B is None) and (C is not None):
             raise ValueError('When "C" is given, "B" should also be given.')
 
-        if (exponent > 1) and (len(derivative) > 0):
-            raise NotImplementedError('If "exponent" is larger than one, ' +
+        if (p > 1) and (len(derivative) > 0):
+            raise NotImplementedError('If "p" is larger than one, ' +
                                       '"derivative" should be zero (using ' +
                                       'an empty list).')
 
-        elif len(derivative) > 0 and exponent == 0:
+        elif len(derivative) > 0 and p == 0:
             # Matrix is zero.
             traceinv_ = numpy.nan
 
-        elif exponent == 0:
+        elif p == 0:
             # Matrix is identity, derivative is zero.
             if B is None:
                 # B is identity
@@ -436,25 +435,25 @@ class MixedCorrelation(object):
         elif numpy.abs(eta) >= self.max_eta:
             if B is None:
                 # B is identity
-                traceinv_ = self.get_matrix_size() / (eta**exponent)
+                traceinv_ = self.get_matrix_size() / (eta**p)
             else:
                 # B is not identity
                 if C is None:
                     traceinv_, info = imate.trace(
                             B, method='exact', return_info=True) / \
-                            (eta**exponent)
+                            (eta**p)
                     self._update_imate_info(info)
                 else:
                     # C is not identity. Compute trace of C*B divided by
-                    # eta**(2.0*exponent) since when C is given, there are two
+                    # eta**(2.0*p) since when C is given, there are two
                     # matrix A.
                     if isspmatrix(C):
                         traceinv_ = numpy.sum(C.multiply(B.T).data) / \
-                                (eta**(2.0*exponent))
+                                (eta**(2.0*p))
 
                     else:
                         traceinv_ = numpy.sum(numpy.multiply(C, B.T)) / \
-                                (eta**(2.0*exponent))
+                                (eta**(2.0*p))
 
         else:
 
@@ -480,7 +479,7 @@ class MixedCorrelation(object):
 
                 # Using eigenvalues only. Here, K will not be used.
                 traceinv_, info = imate.traceinv(K, eigenvalues=Kn_eigenvalues,
-                                                 p=exponent, gram=False,
+                                                 p=p, gram=False,
                                                  return_info=True,
                                                  assume_matrix='sym',
                                                  **imate_options)
@@ -492,8 +491,8 @@ class MixedCorrelation(object):
                 Kn = self.get_matrix(eta, scale, derivative)
 
                 # Calling cholesky method
-                traceinv_, info = imate.traceinv(Kn, B=B, p=exponent,
-                                                 gram=False, return_info=True,
+                traceinv_, info = imate.traceinv(Kn, B=B, p=p, gram=False,
+                                                 return_info=True,
                                                  **imate_options)
                 self._update_imate_info(info)
 
@@ -508,8 +507,8 @@ class MixedCorrelation(object):
                     assume_matrix = 'sym_pos'
 
                 # Calling cholesky method
-                traceinv_, info = imate.traceinv(Kn, B=B, C=C, p=exponent,
-                                                 gram=False, return_info=True,
+                traceinv_, info = imate.traceinv(Kn, B=B, C=C, p=p, gram=False,
+                                                 return_info=True,
                                                  assume_matrix=assume_matrix,
                                                  **imate_options)
                 self._update_imate_info(info)
@@ -520,9 +519,8 @@ class MixedCorrelation(object):
                 K_amf = self.cor.get_affine_matrix_function(scale, derivative)
 
                 # Passing the affine matrix function
-                traceinv_, info = imate.traceinv(K_amf, parameters=eta,
-                                                 p=exponent, gram=False,
-                                                 return_info=True,
+                traceinv_, info = imate.traceinv(K_amf, parameters=eta, p=p,
+                                                 gram=False, return_info=True,
                                                  **imate_options)
                 self._update_imate_info(info)
 
@@ -542,7 +540,7 @@ class MixedCorrelation(object):
             self,
             eta=None,
             scale=None,
-            exponent=1,
+            p=1,
             derivative=[],
             imate_options={}):
         """
@@ -574,16 +572,16 @@ class MixedCorrelation(object):
         if imate_options['method'] == 'hutchinson':
             imate_options['method'] = 'cholesky'
 
-        if (exponent > 1) and (len(derivative) > 0):
-            raise NotImplementedError('If "exponent" is larger than one, ' +
+        if (p > 1) and (len(derivative) > 0):
+            raise NotImplementedError('If "p" is larger than one, ' +
                                       '"derivative" should be zero (using ' +
                                       'an empty list).')
 
-        elif len(derivative) > 0 and exponent == 0:
+        elif len(derivative) > 0 and p == 0:
             # Matrix is zero.
             logdet_ = -numpy.inf
 
-        elif exponent == 0:
+        elif p == 0:
             # Matrix is identity.
             logdet_ = 0.0
 
@@ -602,8 +600,7 @@ class MixedCorrelation(object):
 
                 # Using eigenvalues only. Here, K will not be used.
                 logdet_, info = imate.logdet(K, eigenvalues=Kn_eigenvalues,
-                                             p=exponent, gram=False,
-                                             return_info=True,
+                                             p=p, gram=False, return_info=True,
                                              assume_matrix='sym',
                                              **imate_options)
                 self._update_imate_info(info)
@@ -617,7 +614,7 @@ class MixedCorrelation(object):
                 Kn = self.get_matrix(eta, scale, derivative)
 
                 # Calling cholesky method
-                logdet_, info = imate.logdet(Kn, gram=False, p=exponent,
+                logdet_, info = imate.logdet(Kn, gram=False, p=p,
                                              return_info=True, **imate_options)
                 self._update_imate_info(info)
 
@@ -627,9 +624,9 @@ class MixedCorrelation(object):
                 K_amf = self.cor.get_affine_matrix_function(scale, derivative)
 
                 # Passing the affine matrix function
-                logdet_, info = imate.logdet(K_amf, parameters=eta,
-                                             p=exponent, gram=False,
-                                             return_info=True, **imate_options)
+                logdet_, info = imate.logdet(K_amf, parameters=eta, p=p,
+                                             gram=False, return_info=True,
+                                             **imate_options)
                 self._update_imate_info(info)
 
             else:
@@ -649,7 +646,7 @@ class MixedCorrelation(object):
             Y,
             eta=None,
             scale=None,
-            exponent=1,
+            p=1,
             derivative=[]):
         """
         Solves the linear system
@@ -671,17 +668,17 @@ class MixedCorrelation(object):
         # Get eta (if None, uses class attribute)
         eta = self.get_eta(eta)
 
-        if (exponent > 1) and (len(derivative) > 0):
-            raise NotImplementedError('If "exponent" is larger than one, ' +
+        if (p > 1) and (len(derivative) > 0):
+            raise NotImplementedError('If "p" is larger than one, ' +
                                       '"derivative" should be zero (using ' +
                                       'an empty list).')
 
-        elif len(derivative) > 0 and exponent == 0:
+        elif len(derivative) > 0 and p == 0:
             # Matrix is zero, hence has no inverse.
             X = numpy.zeros_like(Y)
             X[:] = numpy.nan
 
-        elif exponent == 0:
+        elif p == 0:
             # Matrix is identity.
             X = Y.copy()
 
@@ -698,7 +695,7 @@ class MixedCorrelation(object):
                 assume_matrix = 'sym_pos'
 
             X = Y.copy()
-            for i in range(exponent):
+            for i in range(p):
                 X = linear_solver(Kn, X, assume_matrix=assume_matrix)
 
         self.solve_timer.toc()
@@ -714,7 +711,7 @@ class MixedCorrelation(object):
             x,
             eta=None,
             scale=None,
-            exponent=1,
+            p=1,
             derivative=[]):
         """
         Matrix-vector multiplication:
@@ -736,22 +733,22 @@ class MixedCorrelation(object):
         # Get eta (if None, uses class attribute)
         eta = self.get_eta(eta)
 
-        # Check exponent
-        if not isinstance(exponent, (int, numpy.integer)):
-            raise ValueError('"exponent" should be an integer.')
-        elif exponent < 0:
-            raise ValueError('"exponent" should be a non-negative integer.')
+        # Check p
+        if not isinstance(p, (int, numpy.integer)):
+            raise ValueError('"p" should be an integer.')
+        elif p < 0:
+            raise ValueError('"p" should be a non-negative integer.')
 
-        if (exponent > 1) and (len(derivative) > 0):
-            raise NotImplementedError('If "exponent" is larger than one, ' +
+        if (p > 1) and (len(derivative) > 0):
+            raise NotImplementedError('If "p" is larger than one, ' +
                                       '"derivative" should be zero (using ' +
                                       'an empty list).')
 
-        elif exponent == 0 and len(derivative) > 0:
+        elif p == 0 and len(derivative) > 0:
             # Matrix is zero.
             y = numpy.zeros_like(x)
 
-        elif exponent == 0:
+        elif p == 0:
             # Matrix is identity.
             y = x.copy()
 
@@ -764,14 +761,14 @@ class MixedCorrelation(object):
             # Get matrix (K only, not K + eta * I)
             K = self.get_matrix(0.0, scale, derivative)
 
-            for i in range(exponent):
+            for i in range(p):
                 y = K.dot(x_copy)
 
                 if (len(derivative) == 0) and (eta != 0):
                     y += eta * x_copy
 
                 # Update x_copy for next iteration
-                if i < exponent - 1:
+                if i < - 1:
                     x_copy = y.copy()
 
         return y

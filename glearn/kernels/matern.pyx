@@ -65,8 +65,8 @@ cdef class Matern(Kernel):
     where :math:`K_{\\nu}` is the modified Bessel function of the
     second kind and :math:`\\Gamma` is the Gamma function. Both
     :math:`K_{\\nu}` and :math:`\\Gamma` are computed efficiently using the
-    python package `special_functions
-    <https://ameli.github.io/special_functions/index.html>`_.
+    :func:`special_functions.besselk` and :func:`special_functions.lngamma`
+    functions.
 
     The Matern kernel for specific values of :math:`\\nu` has simplified
     representation:

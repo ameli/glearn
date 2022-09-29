@@ -16,6 +16,7 @@
          Covariance.auto_covariance
          Covariance.cross_covariance
          Covariance.dot
+         Covariance.get_imate_options
          Covariance.get_matrix
          Covariance.get_scale
          Covariance.get_sigmas

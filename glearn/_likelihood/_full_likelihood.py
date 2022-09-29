@@ -696,7 +696,7 @@ class FullLikelihood(BaseLikelihood):
         self._update_trace_M(hyperparam)
 
         # Trace of Sinv**2
-        trace_S2inv = self.cov.traceinv(sigma, sigma0, exponent=2)
+        trace_S2inv = self.cov.traceinv(sigma, sigma0, p=2)
 
         # Trace of M**2
         YtV = numpy.matmul(self.Y.T, V)
@@ -708,10 +708,10 @@ class FullLikelihood(BaseLikelihood):
 
         # Trace of (KM)**2
         if numpy.abs(sigma) < self.cov.tol:
-            trace_K2 = self.cov.trace(1.0, 0.0, exponent=2)
+            trace_K2 = self.cov.trace(1.0, 0.0, p=2)
             D = numpy.matmul(self.X.T, self.X)
             Dinv = numpy.linalg.inv(D)
-            KX = self.cov.dot(self.X, sigma=1.0, sigma0=0.0, exponent=1)
+            KX = self.cov.dot(self.X, sigma=1.0, sigma0=0.0, p=1)
             XKX = numpy.matmul(self.X.T, KX)
             XK2X = numpy.matmul(KX.T, KX)
             E = numpy.matmul(Dinv, XKX)
@@ -892,7 +892,7 @@ class FullLikelihood(BaseLikelihood):
                 # Cholesky method in imate. The only viable option is
                 # Hutchinson's method.
                 trace_SpSinv = self.cov.traceinv(
-                        sigma, sigma0, B=Sp, exponent=1,
+                        sigma, sigma0, B=Sp, p=1,
                         imate_options={'method': 'hutchinson'})
             else:
                 SinvSpSinv = numpy.matmul(self.Sinv, self.SpSinv[p])
@@ -913,7 +913,7 @@ class FullLikelihood(BaseLikelihood):
                 # Cholesky method in imate. The only viable option is
                 # Hutchinson's method.
                 trace_MSpM_1 = self.cov.traceinv(
-                        sigma, sigma0, B=Sp, exponent=2,
+                        sigma, sigma0, B=Sp, p=2,
                         imate_options={'method': 'hutchinson'})
             else:
                 SinvSpSinv = numpy.matmul(self.Sinv, self.SpSinv[p])

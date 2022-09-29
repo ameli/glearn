@@ -61,7 +61,7 @@ class Covariance(object):
         The scale hyperparameters
         :math:`\\boldsymbol{\\alpha} = (\\alpha_1, \\dots, \\alpha_d)` in
         scales the distance between data points in :math:`\\mathbb{R}^d`. If an
-        array of the size :math:`d` is given, :math:`\\alpha_i` scales the
+        array of the size :math:`d` is given, each :math:`\\alpha_i` scales the
         distance in the :math:`i`-th dimension. If a scalar value
         :math:`\\alpha` is given, all dimensions are scaled isometrically.
         If set to `None`, optimal values of the scale hyperparameters are found
@@ -100,7 +100,7 @@ class Covariance(object):
 
     imate_options : dict, default={'method': 'cholesky'}
         The internal computations of the functions
-        :meth:`glearn.Covariance.logdet`, :meth:`glearn.Covariance.trace`, and 
+        :meth:`glearn.Covariance.logdet`, :meth:`glearn.Covariance.trace`, and
         :meth:`glearn.Covariance.traceinv` are performed by
         `imate <https://ameli.github.io/imate/index.html>`_ package. This
         argument can pass a dictionary of options to pass to the corresponding
@@ -110,7 +110,7 @@ class Covariance(object):
 
     interpolate : bool, default=False
         If `True`, the matrix functions
-        :meth:`glearn.Covariance.logdet`, :meth:`glearn.Covariance.trace`, and 
+        :meth:`glearn.Covariance.logdet`, :meth:`glearn.Covariance.trace`, and
         :meth:`glearn.Covariance.traceinv` for the mixed covariance function
         are interpolated with respect to the
         hyperparameters :math:`\\sigma` and :math:`\\varsigma`. See [1]_ for
@@ -137,6 +137,7 @@ class Covariance(object):
     Methods
     -------
 
+    get_imate_options
     set_imate_options
     set_scale
     get_scale
@@ -203,7 +204,7 @@ class Covariance(object):
     :math:`\\mathbf{I}` is the identity matrix.
 
     The overall mixed-covariance model for the linear model :math:`f` is
-    
+
     .. math::
 
         \\boldsymbol{\\Sigma}(\\sigma^2, \\varsigma^2, \\boldsymbol{\\alpha}) =
@@ -277,17 +278,83 @@ class Covariance(object):
 
         # Check sigma
         if sigma is not None:
-            if not isinstance(sigma, int) and isinstance(sigma, float):
+            if not isinstance(sigma, int) and not isinstance(sigma, float):
                 raise TypeError('"sigma" should be a float type.')
             elif sigma < 0.0:
                 raise ValueError('"sigma" cannot be negative.')
 
         # Check sigma0
         if sigma0 is not None:
-            if not isinstance(sigma0, int) and isinstance(sigma0, float):
+            if not isinstance(sigma0, int) and not isinstance(sigma0, float):
                 raise TypeError('"sigma0" should be a float type.')
             elif sigma0 < 0.0:
                 raise ValueError('"sigma0" cannot be negative.')
+
+    # =================
+    # get imate options
+    # =================
+
+    def get_imate_options(self):
+        """
+        Returns the dictionary of options that is passed to the imate package.
+
+        Returns
+        -------
+
+        imate_options : dict
+            A dictionary of options to be passed to the functions in
+            `imate <https://ameli.github.io/imate/index.html>`_ package.
+
+        Examples
+        --------
+
+        Create a covariance object and set ``imate_options``:
+
+        .. code-block:: python
+            :emphasize-lines: 15
+
+            >>> # Generate a set of points
+            >>> from glearn.sample_data import generate_points
+            >>> x = generate_points(num_points=30, dimension=1)
+
+            >>> # Define imate options
+            >>> options = {
+            ...     'method': 'cholesky',
+            ... }
+
+            >>> # Create a covariance object
+            >>> from glearn import Covariance
+            >>> cov = Covariance(x, imate_options=options)
+
+            >>> # Get default imate options
+            >>> cov.get_imate_options()
+            {
+                'method': 'cholesky'
+            }
+
+        Now, change the ``imate_options`` of the above covariance object:
+
+        .. code-block:: python
+            :emphasize-lines: 10
+
+            >>> # Define new imate options
+            >>> options = {
+            ...     'method': 'slq',
+            ...     'min_num_samples': 30,
+            ...     'max_num_samples': 100
+            ... }
+            >>> cov.set_imate_options(options)
+
+            >>> # Check again the updated options
+            >>> cov.get_imate_options()
+            {
+                'method': 'slq',
+                'min_num_samples': 30,
+                'max_num_samples': 100
+            }
+        """
+
+        return self.mixed_cor.imate_options
 
     # =================
     # set imate options
@@ -295,7 +362,7 @@ class Covariance(object):
 
     def set_imate_options(self, imate_options):
         """
-        Updates the ``imate_options`` attribute.
+        Updates the dictionary of options that is passed to the imate package.
 
         .. note::
 
@@ -308,14 +375,66 @@ class Covariance(object):
             A dictionary of options to be passed to the functions in
             `imate <https://ameli.github.io/imate/index.html>`_ package.
 
+        See Also
+        --------
+
+        glearn.Covariance.set_imate_options
+
         Notes
         -----
 
-        This function updates the attribute ``imate_options`` for the
-        instance of the class :class:`glearn._covariance.MixedCorrelation`
-        object. The existing options in the dictionary ``imate_option`` are
+        This function updates the attribute ``imate_options`` which is a
+        dictionary of options configuring the functions of the imate package.
+        The existing options in the dictionary ``imate_option`` are
         overwritten, and new options will be added (if they do not already
         exist in the current dictionary).
+
+        Examples
+        --------
+
+        Create a covariance object and set ``imate_options``:
+
+        .. code-block:: python
+
+            >>> # Generate a set of points
+            >>> from glearn.sample_data import generate_points
+            >>> x = generate_points(num_points=30, dimension=1)
+
+            >>> # Define imate options
+            >>> options = {
+            ...     'method': 'cholesky',
+            ... }
+
+            >>> # Create a covariance object
+            >>> from glearn import Covariance
+            >>> cov = Covariance(x, imate_options=options)
+
+            >>> # Check default imate options
+            >>> cov.get_imate_options()
+            {
+                'method': 'cholesky'
+            }
+
+        Now, change the ``imate_options`` of the above covariance object:
+
+        .. code-block:: python
+            :emphasize-lines: 7
+
+            >>> # Define new imate options
+            >>> options = {
+            ...     'method': 'slq',
+            ...     'min_num_samples': 30,
+            ...     'max_num_samples': 100
+            ... }
+            >>> cov.set_imate_options(options)
+
+            >>> # Check again the updated options
+            >>> cov.get_imate_options()
+            {
+                'method': 'slq',
+                'min_num_samples': 30,
+                'max_num_samples': 100
+            }
         """
 
         # If method key does not exists, set a default with Cholesky method.
@@ -330,7 +449,50 @@ class Covariance(object):
 
     def set_scale(self, scale):
         """
-        Sets the scale attribute of correlation matrix.
+        Sets the array of scale hyperparameters of the correlation matrix.
+
+        Parameters
+        ----------
+
+        scale : float or array_like[float], default=None
+            The scale hyperparameters
+            :math:`\\boldsymbol{\\alpha} = (\\alpha_1, \\dots, \\alpha_d)` in
+            scales the distance between data points in :math:`\\mathbb{R}^d`.
+            If an array of the size :math:`d` is given, each :math:`\\alpha_i`
+            scales the distance in the :math:`i`-th dimension. If a scalar
+            value :math:`\\alpha` is given, all dimensions are scaled
+            isometrically. If set to `None`, optimal values of the scale
+            hyperparameters are found during the training process by the
+            automatic relevance determination (ARD).
+
+        See Also
+        --------
+
+        glearn.Covariance.get_imate_options
+
+        Examples
+        --------
+
+        Set scales :math:`\\boldsymbol{\\alpha} = [2, 3]` for a two-dimensional
+        data:
+
+        .. code-block:: python
+            :emphasize-lines: 12
+
+            >>> # Generate a set of points
+            >>> from glearn.sample_data import generate_points
+            >>> x = generate_points(num_points=20, dimension=2)
+
+            >>> # Create a covariance object
+            >>> from glearn import Covariance
+            >>> cov = Covariance(x)
+            >>> cov.get_scale()
+            None
+
+            >>> # Change scale
+            >>> cov.set_scale([2.0, 3.0])
+            >>> cov.get_scale()
+            array([2., 3.])
         """
 
         self.mixed_cor.set_scale(scale)
@@ -341,7 +503,44 @@ class Covariance(object):
 
     def get_scale(self):
         """
-        Returns distance scale of self.mixed_cor.cor object.
+        Returns the array of scale hyperparameters of the correlation matrix.
+
+        Returns
+        -------
+
+        scale : float or array_like[float]
+            The scale hyperparameters
+            :math:`\\boldsymbol{\\alpha} = (\\alpha_1, \\dots, \\alpha_d)`.
+
+        See Also
+        --------
+
+        glearn.Covariance.set_scale
+        glearn.Covariance.get_sigmas
+
+        Examples
+        --------
+
+        Set scales :math:`\\boldsymbol{\\alpha} = [2, 3]` for a two-dimensional
+        data:
+
+        .. code-block:: python
+            :emphasize-lines: 8, 13
+
+            >>> # Generate a set of points
+            >>> from glearn.sample_data import generate_points
+            >>> x = generate_points(num_points=20, dimension=2)
+
+            >>> # Create a covariance object
+            >>> from glearn import Covariance
+            >>> cov = Covariance(x)
+            >>> cov.get_scale()
+            None
+
+            >>> # Change scale
+            >>> cov.set_scale([2.0, 3.0])
+            >>> cov.get_scale()
+            array([2., 3.])
         """
 
         return self.mixed_cor.get_scale()
@@ -352,8 +551,64 @@ class Covariance(object):
 
     def set_sigmas(self, sigma, sigma0):
         """
-        After training, when optimal sigma and sigma0 is obtained, this
-        function stores sigma and sigma0 as attributes of the class.
+        Sets :math:`\\sigma` and :math:`\\varsigma` hyperparameters of the
+        covariance model.
+
+        Parameters
+        ----------
+
+        sigma : float, default=None
+            The hyperparameter :math:`\\sigma` of the covariance model where
+            :math:`\\sigma^2` represents the variance of the correlated errors
+            of the model. :math:`\\sigma` should be positive. If `None` is
+            given, an optimal value for :math:`\\sigma` is found during the
+            training process.
+
+        sigma0 : float, default=None
+            The hyperparameter :math:`\\varsigma` of the covariance model where
+            :math:`\\varsigma^2` represents the variance of the input noise to
+            the model. :math:`\\varsigma` should be positive. If `None` is
+            given, an optimal value for :math:`\\varsigma` is found during the
+            training process.
+
+        See Also
+        --------
+
+        glearn.Covariance.get_sigmas
+        glearn.Covariance.set_scale
+
+        Notes
+        -----
+
+        .. note::
+
+            After training process when optimal values of the hyperparameters
+            :math:`\\sigma` and :math:`\\varsigma` is obtained, this function
+            is automatically called to update these hyperparameters as the
+            attributes of the covariance class.
+
+        Examples
+        --------
+
+        Set hyperparameters :math:`\\sigma = 2` and :math:`\\varsigma = 3`.
+
+        .. code-block:: python
+            :emphasize-lines: 12
+
+            >>> # Generate a set of points
+            >>> from glearn.sample_data import generate_points
+            >>> x = generate_points(num_points=20, dimension=2)
+
+            >>> # Create a covariance object
+            >>> from glearn import Covariance
+            >>> cov = Covariance(x, sigma=0.0, sigma0=1.0)
+            >>> cov.get_sigmas()
+            (0.0, 1.0)
+
+            >>> # Change sigmas
+            >>> cov.set_sigmas(2.0, 3.0)
+            >>> cov.get_sigmas()
+            (2.0, 3.0)
         """
 
         if sigma is None:
@@ -373,15 +628,61 @@ class Covariance(object):
 
     def get_sigmas(self, sigma=None, sigma0=None):
         """
-        Returns sigma and sigma0. If the inputs are None, the object attributes
-        are used.
+        Returns :math:`\\sigma` and :math:`\\varsigma` hyperparameters of the
+        covariance model.
 
-        After training, when optimal sigma and sigma0 are obtained and set as
-        the attributes of this class, the next calls to other functions like
-        solve, trace, traceinv, etc, should use the optimal sigma and sigma0.
-        Thus, we will call these functions without specifying sigma, and sigma0
-        and this function returns the sigma and sigma0 that are stored as
-        attributes.
+        Parameters
+        ----------
+
+        sigma : float, default=None
+            The hyperparameter :math:`\\sigma` of the covariance model where
+            :math:`\\sigma^2` represents the variance of the correlated errors
+            of the model. :math:`\\sigma` should be positive. If `None` is
+            given, an optimal value for :math:`\\sigma` is found during the
+            training process.
+
+        sigma0 : float, default=None
+            The hyperparameter :math:`\\varsigma` of the covariance model where
+            :math:`\\varsigma^2` represents the variance of the input noise to
+            the model. :math:`\\varsigma` should be positive. If `None` is
+            given, an optimal value for :math:`\\varsigma` is found during the
+            training process.
+
+        See Also
+        --------
+
+        glearn.Covariance.get_sigmas
+        glearn.Covariance.set_scale
+
+        Notes
+        -----
+
+        After training process when optimal values of the hyperparameters
+        :math:`\\sigma` and :math:`\\varsigma` is obtained, this function can
+        be used to return these hyperparameters.
+
+        Examples
+        --------
+
+        Set hyperparameters :math:`\\sigma = 2` and :math:`\\varsigma = 3`.
+
+        .. code-block:: python
+            :emphasize-lines: 8, 13
+
+            >>> # Generate a set of points
+            >>> from glearn.sample_data import generate_points
+            >>> x = generate_points(num_points=20, dimension=2)
+
+            >>> # Create a covariance object
+            >>> from glearn import Covariance
+            >>> cov = Covariance(x, sigma=0.0, sigma0=1.0)
+            >>> cov.get_sigmas()
+            (0.0, 1.0)
+
+            >>> # Change sigmas
+            >>> cov.set_sigmas(2.0, 3.0)
+            >>> cov.get_sigmas()
+            (2.0, 3.0)
         """
 
         # Get sigma
@@ -411,7 +712,177 @@ class Covariance(object):
             scale=None,
             derivative=[]):
         """
-        Get the matrix as a numpy array of scipy sparse array.
+        Compute the covariance matrix or its derivatives for a given set of
+        hyperparameters.
+
+        Parameters
+        ----------
+
+        sigma : float, default=None
+            The hyperparameter :math:`\\sigma` of the covariance model where
+            :math:`\\sigma^2` represents the variance of the correlated errors
+            of the model. :math:`\\sigma` should be positive and cannot be
+            `None`.
+
+        sigma0 : float, default=None
+            The hyperparameter :math:`\\varsigma` of the covariance model where
+            :math:`\\varsigma^2` represents the variance of the input noise to
+            of the model. :math:`\\sigma` should be positive and cannot be
+            `None`.
+
+        scale : float or array_like[float], default=None
+            The scale hyperparameters
+            :math:`\\boldsymbol{\\alpha} = (\\alpha_1, \\dots, \\alpha_d)` in
+            scales the distance between data points in :math:`\\mathbb{R}^d`.
+            If an array of the size :math:`d` is given, each :math:`\\alpha_i`
+            scales the distance in the :math:`i`-th dimension. If a scalar
+            value :math:`\\alpha` is given, all dimensions are scaled
+            isometrically. :math:`\\boldsymbol{\\alpha}` cannot be `None`.
+
+        derivative : list, default=[]
+            Specifies a list of derivatives of covariance matrix with respect
+            to the hyperparameters :math:`\\boldsymbol{\\alpha} = (\\alpha_1,
+            \\dots, \\alpha_d)`. A list of the size :math:`q` with the
+            components ``[i, j, ..., k]`` corresponds to take the derivative
+
+            .. math::
+
+                \\left. \\frac{\\partial^q}{\\partial \\alpha_{i+1} \\partial
+                \\alpha_{j+1} \\dots \\partial \\alpha_{k+1}}
+                \\boldsymbol{\\Sigma}(\\boldsymbol{\\alpha} \\vert
+                \\sigma^2, \\varsigma^2) \\right|_{\\boldsymbol{\\alpha}}.
+
+            .. note::
+
+                The derivative with respect to each hyperparameter
+                :math:`\\alpha_i` can be at most of the order two,
+                :math:`\\partial^2 / \\partial \\alpha_i^2`. That is, each
+                index in the ``derivative`` list can appear at most twice.
+                For instance ``derivative=[1, 1]`` (second order derivative
+                with respect to :math:`\\alpha_{2}`) is a valid input argument,
+                how ever ``derivative=[1, 1, 1]`` (third order derivative) is
+                an invalid input.
+
+        Returns
+        -------
+
+        S : numpy.ndarray
+            An array of the size :math:`n \\times \\times n` where :math:`n` is
+            the size of the matrix.
+
+        See Also
+        --------
+
+        glearn.Covariance.trace
+        glearn.Covariance.traceinv
+        glearn.Covariance.logdet
+        glearn.Covariance.solve
+        glearn.Covariance.dot
+
+        Notes
+        -----
+
+        This function returns
+
+        .. math::
+
+            \\left. \\frac{\\partial^q}{\\partial \\alpha_{i+1} \\partial
+            \\alpha_{j+1} \\dots \\partial \\alpha_{k+1}}
+            \\boldsymbol{\\Sigma}(\\boldsymbol{\\alpha} \\vert
+            \\sigma, \\varsigma) \\right|_{\\boldsymbol{\\alpha}},
+
+        where the covariance matrix :math:`\\boldsymbol{\\Sigma}` is defined by
+
+        .. math::
+
+            \\boldsymbol{\\Sigma}(\\boldsymbol{\\alpha}, \\sigma, \\varsigma) =
+            \\sigma^2 \\mathbf{K}(\\boldsymbol{\\alpha}) + \\varsigma^2
+            \\mathbf{I}.
+
+        In the above, :math:`\\mathbf{I}` is the identity matrix and
+        :math:`\\mathbf{K}` is the correlation matrix that depends on a set of
+        scale hyperparameters :math:`\\boldsymbol{\\alpha}=(\\alpha_1, \\dots,
+        \\alpha_d)`.
+
+        **Derivatives:**
+
+        Note that the indices in list ``derivative=[i, j, ..., k]`` are
+        zero-indexed, meaning that the index ``i`` corresponds to take
+        derivative with respect to the hyperparameter :math:`\\alpha_{i+1}`.
+        For instance:
+
+        * ``[]`` corresponds to no derivative.
+        * ``[0]`` corresponds to :math:`\\partial / \\partial \\alpha_1` and
+          ``[1]`` corresponds to :math:`\\partial / \\partial
+          \\alpha_2`.
+        * ``[0, 2]`` corresponds to :math:`\\partial^2 /
+          \\partial \\alpha_1 \\partial \\alpha_3`.
+        * ``[0, 0]`` corresponds to :math:`\\partial^2 /
+          \\partial \\alpha_1^2`.
+        * ``[0, 2, 2, 4]`` corresponds to :math:`\\partial^4 /
+          \\partial \\alpha_1 \\partial \\alpha_{3}^2 \\partial \\alpha_5`.
+
+        **Output Matrix:**
+
+        The covariance matrix :math:`\\boldsymbol{\\Sigma}` or its derivatives
+        is symmetric, i.e., :math:`\\partial \\Sigma_{ij} = \\partial
+        \\Sigma_{ji}`. Also, the covariance matrix is positive-definite,
+        however, its derivatives are not necessarily positive-definite. In
+        addition, the diagonal elements of the derivatives of the covariance
+        matrix are zero, i.e., :math:`\\partial \\Sigma_{ii} = 0`.
+
+        Examples
+        --------
+
+        **Basic Usage:**
+
+        Create a sample dataset with four points in :math:`d=2` dimensional
+        space. Then, compute the covariance matrix
+        :math:`\\boldsymbol{\\Sigma} (\\boldsymbol{\\alpha}, \\sigma,
+        \\varsigma)` for :math:`\\boldsymbol{\\alpha} = (1, 2)`,
+        :math:`\\sigma=2`, and :math:`\\varsigma=3`.
+
+        .. code-block:: python
+            :emphasize-lines: 10
+
+            >>> # Generate a set of points
+            >>> from glearn.sample_data import generate_points
+            >>> x = generate_points(num_points=4, dimension=2)
+
+            >>> # Create a covariance object
+            >>> from glearn import Covariance
+            >>> cov = Covariance(x)
+
+            >>> # Compute covariance matrix
+            >>> C = cov.get_matrix(sigma=2.0, sigma0=3.0, scale=[1.0, 2.0])
+            array([[13.        ,  3.61643745,  3.51285267,  3.47045163],
+                   [ 3.61643745, 13.        ,  3.32078482,  3.14804532],
+                   [ 3.51285267,  3.32078482, 13.        ,  3.53448631],
+                   [ 3.47045163,  3.14804532,  3.53448631, 13.        ]])
+
+        **Taking Derivatives:**
+
+        Compute the second mixed derivative
+
+        .. math::
+
+            \\frac{\\partial^2}{\\partial \\alpha_1 \\partial \\alpha_2}
+            \\boldsymbol{\\Sigma}(\\alpha_1, \\alpha_2 \\vert \\sigma,
+            \\varsigma).
+
+        .. code-block:: python
+            :emphasize-lines: 2
+
+            >>> # Compute second mixed derivative
+            >>> C = cov.get_matrix(sigma=2.0, sigma0=3.0, scale=[1.0, 2.0],
+            ...    derivative=[0, 1])
+            array([[0.         0.04101073 0.01703885 0.0667311 ]
+                   [0.04101073 0.         0.02500619 0.11654524]
+                   [0.01703885 0.02500619 0.         0.00307613]
+                   [0.0667311  0.11654524 0.00307613 0.        ]])
+
+        Note that as mentioned in the above notes, its diagonal elements are
+        zero.
         """
 
         # Get sigma and sigma0 (if None, uses class attribute)
@@ -447,39 +918,241 @@ class Covariance(object):
             sigma=None,
             sigma0=None,
             scale=None,
-            exponent=1,
+            p=1,
             derivative=[],
             imate_options={}):
         """
-        Computes
+        Compute the trace of the positive powers of the covariance matrix or
+        its derivatives.
+
+        Parameters
+        ----------
+
+        sigma : float, default=None
+            The hyperparameter :math:`\\sigma` of the covariance model where
+            :math:`\\sigma^2` represents the variance of the correlated errors
+            of the model. :math:`\\sigma` should be positive and cannot be
+            `None`.
+
+        sigma0 : float, default=None
+            The hyperparameter :math:`\\varsigma` of the covariance model where
+            :math:`\\varsigma^2` represents the variance of the input noise to
+            of the model. :math:`\\sigma` should be positive and cannot be
+            `None`.
+
+        scale : float or array_like[float], default=None
+            The scale hyperparameters
+            :math:`\\boldsymbol{\\alpha} = (\\alpha_1, \\dots, \\alpha_d)` in
+            scales the distance between data points in :math:`\\mathbb{R}^d`.
+            If an array of the size :math:`d` is given, each :math:`\\alpha_i`
+            scales the distance in the :math:`i`-th dimension. If a scalar
+            value :math:`\\alpha` is given, all dimensions are scaled
+            isometrically. :math:`\\boldsymbol{\\alpha}` cannot be `None`.
+
+        p : float, default=1
+            The exponent :math:`p` of the covariance matrix
+            :math:`\\boldsymbol{\\Sigma}^p` (see Notes below). The exponent
+            should be non-negative real number. Note that if :math:`p \\neq 1`,
+            the derivative order should be zero, meaning that no derivative
+            should be taken by setting ``derivative=[]``.
+
+            .. note::
+
+                For :math:`\\boldsymbol{\\Sigma}^{-p}` with :math:`p > 0` see
+                :func:`glearn.Covariance.trace`.
+
+        derivative : list, default=[]
+            Specifies a list of derivatives of covariance matrix with respect
+            to the hyperparameters :math:`\\boldsymbol{\\alpha} = (\\alpha_1,
+            \\dots, \\alpha_d)`. A list of the size :math:`q` with the
+            components ``[i, j, ..., k]`` corresponds to take the derivative
+
+            .. math::
+
+                \\left. \\frac{\\partial^q}{\\partial \\alpha_{i+1} \\partial
+                \\alpha_{j+1} \\dots \\partial \\alpha_{k+1}}
+                \\boldsymbol{\\Sigma}^p(\\boldsymbol{\\alpha} \\vert
+                \\sigma^2, \\varsigma^2) \\right|_{\\boldsymbol{\\alpha}}.
+
+            .. note::
+
+                The derivative with respect to each hyperparameter
+                :math:`\\alpha_i` can be at most of the order two,
+                :math:`\\partial^2 / \\partial \\alpha_i^2`. That is, each
+                index in the ``derivative`` list can appear at most twice.
+                For instance ``derivative=[1, 1]`` (second order derivative
+                with respect to :math:`\\alpha_{2}`) is a valid input argument,
+                how ever ``derivative=[1, 1, 1]`` (third order derivative) is
+                an invalid input.
+
+            .. note::
+                When the derivative order is non-zero (meaning that
+                ``derivative`` is not ``[]``), the exponent :math:`p` should
+                be `1`.
+
+        Returns
+        -------
+
+        S : numpy.ndarray
+            An array of the size :math:`n \\times n` where :math:`n` is the
+            size of the matrix.
+
+        See Also
+        --------
+
+        glearn.Covariance.get_matrix
+        glearn.Covariance.traceinv
+        glearn.Covariance.logdet
+        glearn.Covariance.solve
+        glearn.Covariance.dot
+
+        Notes
+        -----
+
+        This function computes
 
         .. math::
 
-            \\mathrm{trace} \\frac{\\partial^q}{\\partial \\theta^q}
-            (\\sigma^2 \\mathbf{K} + \\sigma_0^2 \\mathbf{I})^{p},
+            \\mathrm{trace} \\left(
+            \\frac{\\partial^q}{\\partial \\alpha_{i+1} \\partial
+            \\alpha_{j+1} \\dots \\partial \\alpha_{k+1}}
+            \\boldsymbol{\\Sigma}^p(\\boldsymbol{\\alpha} \\vert
+            \\sigma, \\varsigma) \\right),
 
-        where
+        where the covariance matrix :math:`\\boldsymbol{\\Sigma}` is defined by
 
-        * :math:`\\mathbf{I}` is the identity matrix,
-        * :math:`p`is a non-negative integer.
-        * :math:`\\sigma` and :math:`\\sigma_0` are real numbers.
-        * :math:`\\theta` is correlation scale parameter.
-        * :math:`q` is the order of the derivative.
+        .. math::
+
+            \\boldsymbol{\\Sigma}(\\boldsymbol{\\alpha}, \\sigma, \\varsigma) =
+            \\sigma^2 \\mathbf{K}(\\boldsymbol{\\alpha}) + \\varsigma^2
+            \\mathbf{I}.
+
+        In the above, :math:`\\mathbf{I}` is the identity matrix and
+        :math:`\\mathbf{K}` is the correlation matrix that depends on a set of
+        scale hyperparameters :math:`\\boldsymbol{\\alpha}=(\\alpha_1, \\dots,
+        \\alpha_d)`.
+
+        **Derivatives:**
+
+        Note that the indices in list ``derivative=[i, j, ..., k]`` are
+        zero-indexed, meaning that the index ``i`` corresponds to take
+        derivative with respect to the hyperparameter :math:`\\alpha_{i+1}`.
+        For instance:
+
+        * ``[]`` corresponds to no derivative.
+        * ``[0]`` corresponds to :math:`\\partial / \\partial \\alpha_1` and
+          ``[1]`` corresponds to :math:`\\partial / \\partial
+          \\alpha_2`.
+        * ``[0, 2]`` corresponds to :math:`\\partial^2 /
+          \\partial \\alpha_1 \\partial \\alpha_3`.
+        * ``[0, 0]`` corresponds to :math:`\\partial^2 /
+          \\partial \\alpha_1^2`.
+        * ``[0, 2, 2, 4]`` corresponds to :math:`\\partial^4 /
+          \\partial \\alpha_1 \\partial \\alpha_{3}^2 \\partial \\alpha_5`.
+
+        **Configuring Computation Settings:**
+
+        This function passes the computation of trace to the function
+        :func:`imate.trace`. To configure the latter function, create a
+        dictionary of input arguments to this function and pass the dictionary
+        with :func:`glearn.Covariance.set_imate_options`. See examples below
+        for details.
+
+        Examples
+        --------
+
+        **Basic Usage:**
+
+        Create a sample dataset with four points in :math:`d=2` dimensional
+        space. Then, compute the trace of
+        :math:`\\boldsymbol{\\Sigma}^{2}(\\boldsymbol{\\alpha}, \\sigma,
+        \\varsigma)` for :math:`\\boldsymbol{\\alpha} = (1, 2)`,
+        :math:`\\sigma=2`, and :math:`\\varsigma=3`.
+
+        .. code-block:: python
+            :emphasize-lines: 10
+
+            >>> # Generate a set of points
+            >>> from glearn.sample_data import generate_points
+            >>> x = generate_points(num_points=4, dimension=2)
+
+            >>> # Create a covariance object
+            >>> from glearn import Covariance
+            >>> cov = Covariance(x)
+
+            >>> # Compute trace
+            >>> cov.trace(sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=2)
+            817.7863657241508
+
+        **Configure Computation:**
+
+        The following example shows how to compute the trace of
+        :math:`\\boldsymbol{\\Sigma}^{\\frac{3}{2}}(\\boldsymbol{\\alpha},
+        \\sigma, \\varsigma)`.  Note that the exponent :math:`p` is not an
+        integer. To compute the trace of non-integer exponents, the backend
+        function :func:`imate.trace` should be configured to use either
+        ``eigenvalue`` or ``slq`` methods. In the following example, the
+        `eigenvalue` method is used.
+
+        .. code-block:: python
+
+            >>> # Check the default imate option
+            >>> cov.get_imate_options()
+            {
+                'method': 'cholesky'
+            }
+
+        The above method (Cholesky) cannot compute the trace of non-integer
+        exponents. In the following we change the method to eigenvalue method.
+
+        .. code-block:: python
+            :emphasize-lines: 8
+
+            >>> # Change the default imate option
+            >>> options = {
+            ...    'method' : 'eigenvalue'
+            ... }
+            >>> cov.set_imate_options(options)
+
+            >>> # Compute trace with non-integer exponent
+            >>> cov.trace(sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=1.5)
+            201.2755406790841
+
+        **Taking Derivatives:**
+
+        Compute the trace of the second mixed derivative
+
+        .. math::
+
+            \\frac{\\partial^2}{\\partial \\alpha_1 \\partial \\alpha_2}
+            \\boldsymbol{\\Sigma}(\\alpha_1, \\alpha_2 \\vert \\sigma,
+            \\varsigma).
+
+        .. note::
+
+            When taking the derivative, the exponent :math:`p` should be `1`.
+
+        .. code-block:: python
+
+            >>> # Compute second mixed derivative
+            >>> cov.trace(sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=1,
+            ...           derivative=[0, 1])
+            0.0
         """
 
         # Get sigma and sigma0 (if None, uses class attribute)
         sigma, sigma0 = self.get_sigmas(sigma, sigma0)
 
-        if (exponent > 1) and (len(derivative) > 0):
-            raise NotImplementedError('If "exponent" is larger than one, ' +
+        if (p > 1) and (len(derivative) > 0):
+            raise NotImplementedError('If "p" is larger than one, ' +
                                       '"derivative" should be zero (using ' +
                                       'an empty list).')
 
-        elif len(derivative) > 0 and exponent == 0:
+        elif len(derivative) > 0 and p == 0:
             # Matrix is zero.
             trace_ = 0.0
 
-        elif exponent == 0:
+        elif p == 0:
             # Matrix is identity.
             n = self.mixed_cor.get_matrix_size()
             trace_ = n
@@ -492,7 +1165,7 @@ class Covariance(object):
             else:
                 # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
                 n = self.mixed_cor.get_matrix_size()
-                trace_ = (sigma0**(2.0*exponent)) * n
+                trace_ = (sigma0**(2.0*p)) * n
 
         else:
             # Derivative eliminates sigma0^2 I term.
@@ -500,8 +1173,8 @@ class Covariance(object):
                 sigma0 = 0.0
 
             eta = (sigma0 / sigma)**2
-            trace_ = sigma**(2.0*exponent) * self.mixed_cor.trace(
-                    eta, scale, exponent, derivative, imate_options)
+            trace_ = sigma**(2.0*p) * self.mixed_cor.trace(
+                    eta, scale, p, derivative, imate_options)
 
         return trace_
 
@@ -516,27 +1189,226 @@ class Covariance(object):
             B=None,
             C=None,
             scale=None,
-            exponent=1,
+            p=1,
             derivative=[],
             imate_options={}):
         """
-        Computes
+        Compute the trace of the negative powers of the covariance matrix or
+        its derivatives.
+
+        Parameters
+        ----------
+
+        sigma : float, default=None
+            The hyperparameter :math:`\\sigma` of the covariance model where
+            :math:`\\sigma^2` represents the variance of the correlated errors
+            of the model. :math:`\\sigma` should be positive and cannot be
+            `None`.
+
+        sigma0 : float, default=None
+            The hyperparameter :math:`\\varsigma` of the covariance model where
+            :math:`\\varsigma^2` represents the variance of the input noise to
+            of the model. :math:`\\sigma` should be positive and cannot be
+            `None`.
+
+        scale : float or array_like[float], default=None
+            The scale hyperparameters
+            :math:`\\boldsymbol{\\alpha} = (\\alpha_1, \\dots, \\alpha_d)` in
+            scales the distance between data points in :math:`\\mathbb{R}^d`.
+            If an array of the size :math:`d` is given, each :math:`\\alpha_i`
+            scales the distance in the :math:`i`-th dimension. If a scalar
+            value :math:`\\alpha` is given, all dimensions are scaled
+            isometrically. :math:`\\boldsymbol{\\alpha}` cannot be `None`.
+
+        p : float, default=1
+            The exponent :math:`p` of the covariance matrix
+            :math:`\\boldsymbol{\\Sigma}^{-p}` (see Notes below). The exponent
+            should be non-negative real number. Note that if :math:`p \\neq 1`,
+            the derivative order should be zero, meaning that no derivative
+            should be taken by setting ``derivative=[]``.
+
+            .. note::
+
+                For :math:`\\boldsymbol{\\Sigma}^p` with :math:`p > 0` see
+                :func:`glearn.Covariance.trace`.
+
+        derivative : list, default=[]
+            Specifies a list of derivatives of covariance matrix with respect
+            to the hyperparameters :math:`\\boldsymbol{\\alpha} = (\\alpha_1,
+            \\dots, \\alpha_d)`. A list of the size :math:`q` with the
+            components ``[i, j, ..., k]`` corresponds to take the derivative
+
+            .. math::
+
+                \\left. \\frac{\\partial^q}{\\partial \\alpha_{i+1} \\partial
+                \\alpha_{j+1} \\dots \\partial \\alpha_{k+1}}
+                \\boldsymbol{\\Sigma}^{-p}(\\boldsymbol{\\alpha} \\vert
+                \\sigma^2, \\varsigma^2) \\right|_{\\boldsymbol{\\alpha}}.
+
+            .. note::
+
+                The derivative with respect to each hyperparameter
+                :math:`\\alpha_i` can be at most of the order two,
+                :math:`\\partial^2 / \\partial \\alpha_i^2`. That is, each
+                index in the ``derivative`` list can appear at most twice.
+                For instance ``derivative=[1, 1]`` (second order derivative
+                with respect to :math:`\\alpha_{2}`) is a valid input argument,
+                how ever ``derivative=[1, 1, 1]`` (third order derivative) is
+                an invalid input.
+
+            .. note::
+                When the derivative order is non-zero (meaning that
+                ``derivative`` is not ``[]``), the exponent :math:`p` should
+                be `1`.
+
+        Returns
+        -------
+
+        S : numpy.ndarray
+            An array of the size :math:`n \\times n` where :math:`n` is the
+            size of the matrix.
+
+        See Also
+        --------
+
+        glearn.Covariance.get_matrix
+        glearn.Covariance.trace
+        glearn.Covariance.logdet
+        glearn.Covariance.solve
+        glearn.Covariance.dot
+
+        Notes
+        -----
+
+        This function computes
 
         .. math::
 
-            \\mathrm{trace} \\left( \\frac{\\partial^q}{\\partial \\theta^q}
-            (\\sigma^2 \\mathbf{K} + \\sigma_0^2 \\mathbf{I})^{-p} \\mathbf{B}
-            \\right)
+            \\mathrm{trace} \\left(
+            \\frac{\\partial^q}{\\partial \\alpha_{i+1} \\partial
+            \\alpha_{j+1} \\dots \\partial \\alpha_{k+1}}
+            \\boldsymbol{\\Sigma}^{-p}(\\boldsymbol{\\alpha} \\vert
+            \\sigma, \\varsigma) \\right),
 
-        where
+        where the covariance matrix :math:`\\boldsymbol{\\Sigma}` is defined by
 
-        * :math:`\\mathbf{I}` is the identity matrix,
-        * :math:`p`is a non-negative integer.
-        * :math:`\\sigma` and :math:`\\sigma_0` are real numbers.
-        * :math:`\\theta` is correlation scale parameter.
-        * :math:`q` is the order of the derivative.
-        * :math:`\\mathbf{B}` is a matrix. If set to None, identity matrix is
-          assumed.
+        .. math::
+
+            \\boldsymbol{\\Sigma}(\\boldsymbol{\\alpha}, \\sigma, \\varsigma) =
+            \\sigma^2 \\mathbf{K}(\\boldsymbol{\\alpha}) + \\varsigma^2
+            \\mathbf{I}.
+
+        In the above, :math:`\\mathbf{I}` is the identity matrix and
+        :math:`\\mathbf{K}` is the correlation matrix that depends on a set of
+        scale hyperparameters :math:`\\boldsymbol{\\alpha}=(\\alpha_1, \\dots,
+        \\alpha_d)`.
+
+        **Derivatives:**
+
+        Note that the indices in list ``derivative=[i, j, ..., k]`` are
+        zero-indexed, meaning that the index ``i`` corresponds to take
+        derivative with respect to the hyperparameter :math:`\\alpha_{i+1}`.
+        For instance:
+
+        * ``[]`` corresponds to no derivative.
+        * ``[0]`` corresponds to :math:`\\partial / \\partial \\alpha_1` and
+          ``[1]`` corresponds to :math:`\\partial / \\partial
+          \\alpha_2`.
+        * ``[0, 2]`` corresponds to :math:`\\partial^2 /
+          \\partial \\alpha_1 \\partial \\alpha_3`.
+        * ``[0, 0]`` corresponds to :math:`\\partial^2 /
+          \\partial \\alpha_1^2`.
+        * ``[0, 2, 2, 4]`` corresponds to :math:`\\partial^4 /
+          \\partial \\alpha_1 \\partial \\alpha_{3}^2 \\partial \\alpha_5`.
+
+        **Configuring Computation Settings:**
+
+        This function passes the computation of trace to the function
+        :func:`imate.traceinv`. To configure the latter function, create a
+        dictionary of input arguments to this function and pass the dictionary
+        with :func:`glearn.Covariance.set_imate_options`. See examples below
+        for details.
+
+        Examples
+        --------
+
+        **Basic Usage:**
+
+        Create a sample dataset with four points in :math:`d=2` dimensional
+        space. Then, compute the trace of
+        :math:`\\boldsymbol{\\Sigma}^{-2}(\\boldsymbol{\\alpha}, \\sigma,
+        \\varsigma)` for :math:`\\boldsymbol{\\alpha} = (1, 2)`,
+        :math:`\\sigma=2`, and :math:`\\varsigma=3`.
+
+        .. code-block:: python
+            :emphasize-lines: 10
+
+            >>> # Generate a set of points
+            >>> from glearn.sample_data import generate_points
+            >>> x = generate_points(num_points=4, dimension=2)
+
+            >>> # Create a covariance object
+            >>> from glearn import Covariance
+            >>> cov = Covariance(x)
+
+            >>> # Compute trace
+            >>> cov.traceinv(sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=2)
+            0.03470510350035956
+
+        **Configure Computation:**
+
+        The following example shows how to compute the trace of
+        :math:`\\boldsymbol{\\Sigma}^{-\\frac{3}{2}}(\\boldsymbol{\\alpha},
+        \\sigma, \\varsigma)`.  Note that the exponent :math:`p` is not an
+        integer. To compute the trace of non-integer exponents, the backend
+        function :func:`imate.traceinv` should be configured to use either
+        ``eigenvalue`` or ``slq`` methods. In the following example, the
+        `eigenvalue` method is used.
+
+        .. code-block:: python
+
+            >>> # Check the default imate option
+            >>> cov.get_imate_options()
+            {
+                'method': 'cholesky'
+            }
+
+        The above method (Cholesky) cannot compute the trace of non-integer
+        exponents. In the following we change the method to eigenvalue method.
+
+        .. code-block:: python
+            :emphasize-lines: 8
+
+            >>> # Change the default imate option
+            >>> options = {
+            ...    'method' : 'eigenvalue'
+            ... }
+            >>> cov.set_imate_options(options)
+
+            >>> # Compute trace with non-integer exponent
+            >>> cov.traceinv(sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=1.5)
+            0.11044285706736107
+
+        **Taking Derivatives:**
+
+        Compute the trace of the second mixed derivative
+
+        .. math::
+
+            \\frac{\\partial^2}{\\partial \\alpha_1 \\partial \\alpha_2}
+            \\boldsymbol{\\Sigma}^{-1}(\\alpha_1, \\alpha_2 \\vert \\sigma,
+            \\varsigma).
+
+        .. note::
+
+            When taking the derivative, the exponent :math:`p` should be `1`.
+
+        .. code-block:: python
+
+            >>> # Compute second mixed derivative
+            >>> cov.traceinv(sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=1,
+            ...              derivative=[0, 1])
+            -866.1613714419709
         """
 
         # Get sigma and sigma0 (if None, uses class attribute)
@@ -545,16 +1417,16 @@ class Covariance(object):
         if (B is None) and (C is not None):
             raise ValueError('When "C" is given, "B" should also be given.')
 
-        if (exponent > 1) and (len(derivative) > 0):
-            raise NotImplementedError('If "exponent" is larger than one, ' +
+        if (p > 1) and (len(derivative) > 0):
+            raise NotImplementedError('If "p" is larger than one, ' +
                                       '"derivative" should be zero (using ' +
                                       'an empty list).')
 
-        elif len(derivative) > 0 and exponent == 0:
+        elif len(derivative) > 0 and p == 0:
             # Matrix is zero.
             traceinv_ = numpy.nan
 
-        elif exponent == 0:
+        elif p == 0:
             # Matrix is identity, derivative is zero.
             if B is None:
                 # B is identity
@@ -581,22 +1453,22 @@ class Covariance(object):
                 if B is None:
                     # B is identity
                     n = self.mixed_cor.get_matrix_size()
-                    traceinv_ = n / (sigma0**(2.0*exponent))
+                    traceinv_ = n / (sigma0**(2.0*p))
                 else:
                     # B is not identity
                     if C is None:
                         traceinv_ = imate.trace(B, method='exact') / \
-                                (sigma0**(2.0*exponent))
+                                (sigma0**(2.0*p))
                     else:
                         # C is not indentity. Compute trace of C*B devided by
                         # sigma0**4 (becase when we have C, there are to
                         # matrix A).
                         if isspmatrix(C):
                             traceinv_ = numpy.sum(C.multiply(B.T).data) / \
-                                    (sigma0**(4.0*exponent))
+                                    (sigma0**(4.0*p))
                         else:
                             traceinv_ = numpy.sum(numpy.multiply(C, B.T)) / \
-                                    (sigma0**(4.0*exponent))
+                                    (sigma0**(4.0*p))
 
         else:
             # Derivative eliminates sigma0^2*I term.
@@ -605,12 +1477,12 @@ class Covariance(object):
 
             eta = (sigma0 / sigma)**2
             traceinv_ = self.mixed_cor.traceinv(
-                    eta, B, C, scale, exponent, derivative, imate_options)
+                    eta, B, C, scale, p, derivative, imate_options)
             if C is None:
-                traceinv_ /= sigma**(2.0*exponent)
+                traceinv_ /= sigma**(2.0*p)
             else:
                 # When C is given, there are two A matrices (C*Ainv*B*Ainv)
-                traceinv_ /= sigma**(4.0*exponent)
+                traceinv_ /= sigma**(4.0*p)
 
         return traceinv_
 
@@ -623,39 +1495,224 @@ class Covariance(object):
             sigma=None,
             sigma0=None,
             scale=None,
-            exponent=1,
+            p=1,
             derivative=[],
             imate_options={}):
         """
-        Computes
+        Compute the log-determinant of the powers of the covariance matrix or
+        its derivatives.
+
+        Parameters
+        ----------
+
+        sigma : float, default=None
+            The hyperparameter :math:`\\sigma` of the covariance model where
+            :math:`\\sigma^2` represents the variance of the correlated errors
+            of the model. :math:`\\sigma` should be positive and cannot be
+            `None`.
+
+        sigma0 : float, default=None
+            The hyperparameter :math:`\\varsigma` of the covariance model where
+            :math:`\\varsigma^2` represents the variance of the input noise to
+            of the model. :math:`\\sigma` should be positive and cannot be
+            `None`.
+
+        scale : float or array_like[float], default=None
+            The scale hyperparameters
+            :math:`\\boldsymbol{\\alpha} = (\\alpha_1, \\dots, \\alpha_d)` in
+            scales the distance between data points in :math:`\\mathbb{R}^d`.
+            If an array of the size :math:`d` is given, each :math:`\\alpha_i`
+            scales the distance in the :math:`i`-th dimension. If a scalar
+            value :math:`\\alpha` is given, all dimensions are scaled
+            isometrically. :math:`\\boldsymbol{\\alpha}` cannot be `None`.
+
+        p : float, default=1
+            The real exponent :math:`p` (negative or positive) of the
+            covariance matrix :math:`\\boldsymbol{\\Sigma}^{p}` (see Notes
+            below).
+
+        derivative : list, default=[]
+            Specifies a list of derivatives of covariance matrix with respect
+            to the hyperparameters :math:`\\boldsymbol{\\alpha} = (\\alpha_1,
+            \\dots, \\alpha_d)`. A list of the size :math:`q` with the
+            components ``[i, j, ..., k]`` corresponds to take the derivative
+
+            .. math::
+
+                \\left. \\frac{\\partial^q}{\\partial \\alpha_{i+1} \\partial
+                \\alpha_{j+1} \\dots \\partial \\alpha_{k+1}}
+                \\boldsymbol{\\Sigma}^{p}(\\boldsymbol{\\alpha} \\vert
+                \\sigma^2, \\varsigma^2) \\right|_{\\boldsymbol{\\alpha}}.
+
+            .. note::
+
+                The derivative with respect to each hyperparameter
+                :math:`\\alpha_i` can be at most of the order two,
+                :math:`\\partial^2 / \\partial \\alpha_i^2`. That is, each
+                index in the ``derivative`` list can appear at most twice.
+                For instance ``derivative=[1, 1]`` (second order derivative
+                with respect to :math:`\\alpha_{2}`) is a valid input argument,
+                how ever ``derivative=[1, 1, 1]`` (third order derivative) is
+                an invalid input.
+
+            .. note::
+                When the derivative order is non-zero (meaning that
+                ``derivative`` is not ``[]``), the exponent :math:`p` should
+                be `1`.
+
+        Returns
+        -------
+
+        S : numpy.ndarray
+            An array of the size :math:`n \\times n` where :math:`n` is the
+            size of the matrix.
+
+        See Also
+        --------
+
+        glearn.Covariance.get_matrix
+        glearn.Covariance.trace
+        glearn.Covariance.traceinv
+        glearn.Covariance.solve
+        glearn.Covariance.dot
+
+        Notes
+        -----
+
+        This function computes
 
         .. math::
 
-            \\mathrm{det} \\frac{\\partial^q}{\\partial \\theta^q}
-            (\\sigma^2 \\mathbf{K} + \\sigma_0^2 \\mathbf{I})^{p},
+            \\log \\det \\left(
+            \\frac{\\partial^q}{\\partial \\alpha_{i+1} \\partial
+            \\alpha_{j+1} \\dots \\partial \\alpha_{k+1}}
+            \\boldsymbol{\\Sigma}^{p}(\\boldsymbol{\\alpha} \\vert
+            \\sigma, \\varsigma) \\right),
 
-        where
+        where the covariance matrix :math:`\\boldsymbol{\\Sigma}` is defined by
 
-        * :math:`\\mathbf{I}` is the identity matrix,
-        * :math:`p`is a non-negative integer.
-        * :math:`\\sigma` and :math:`\\sigma_0` are real numbers.
-        * :math:`\\theta` is correlation scale parameter.
-        * :math:`q` is the order of the derivative.
+        .. math::
+
+            \\boldsymbol{\\Sigma}(\\boldsymbol{\\alpha}, \\sigma, \\varsigma) =
+            \\sigma^2 \\mathbf{K}(\\boldsymbol{\\alpha}) + \\varsigma^2
+            \\mathbf{I}.
+
+        In the above, :math:`\\mathbf{I}` is the identity matrix and
+        :math:`\\mathbf{K}` is the correlation matrix that depends on a set of
+        scale hyperparameters :math:`\\boldsymbol{\\alpha}=(\\alpha_1, \\dots,
+        \\alpha_d)`.
+
+        **Derivatives:**
+
+        Note that the indices in list ``derivative=[i, j, ..., k]`` are
+        zero-indexed, meaning that the index ``i`` corresponds to take
+        derivative with respect to the hyperparameter :math:`\\alpha_{i+1}`.
+        For instance:
+
+        * ``[]`` corresponds to no derivative.
+        * ``[0]`` corresponds to :math:`\\partial / \\partial \\alpha_1` and
+          ``[1]`` corresponds to :math:`\\partial / \\partial
+          \\alpha_2`.
+        * ``[0, 2]`` corresponds to :math:`\\partial^2 /
+          \\partial \\alpha_1 \\partial \\alpha_3`.
+        * ``[0, 0]`` corresponds to :math:`\\partial^2 /
+          \\partial \\alpha_1^2`.
+        * ``[0, 2, 2, 4]`` corresponds to :math:`\\partial^4 /
+          \\partial \\alpha_1 \\partial \\alpha_{3}^2 \\partial \\alpha_5`.
+
+        **Configuring Computation Settings:**
+
+        This function passes the computation of the log-determinant to the
+        function :func:`imate.logdet`. To configure the latter function, create
+        a dictionary of input arguments to this function and pass the
+        dictionary with :func:`glearn.Covariance.set_imate_options`. See
+        examples below for details.
+
+        Examples
+        --------
+
+        **Basic Usage:**
+
+        Create a sample dataset with four points in :math:`d=2` dimensional
+        space. Then, compute the log-determinant of
+        :math:`\\boldsymbol{\\Sigma}^{-p}(\\boldsymbol{\\alpha}, \\sigma,
+        \\varsigma)` for :math:`\\boldsymbol{\\alpha} = (1, 2)`,
+        :math:`\\sigma=2`, and :math:`\\varsigma=3`.
+
+        .. code-block:: python
+            :emphasize-lines: 10
+
+            >>> # Generate a set of points
+            >>> from glearn.sample_data import generate_points
+            >>> x = generate_points(num_points=4, dimension=2)
+
+            >>> # Create a covariance object
+            >>> from glearn import Covariance
+            >>> cov = Covariance(x)
+
+            >>> # Compute log-determinant
+            >>> cov.logdet(sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=2)
+            19.843781574740206
+
+        **Configure Computation:**
+
+        The following example shows how to compute the log-determinant of
+        :math:`\\boldsymbol{\\Sigma}^{-\\frac{3}{2}}(\\boldsymbol{\\alpha},
+        \\sigma, \\varsigma)`. First, we check the default method:
+
+        .. code-block:: python
+
+            >>> # Check the default imate option
+            >>> cov.get_imate_options()
+            {
+                'method': 'cholesky'
+            }
+
+        In the following, we change the method to eigenvalue method.
+
+        .. code-block:: python
+            :emphasize-lines: 8
+
+            >>> # Change the default imate option
+            >>> options = {
+            ...    'method' : 'eigenvalue'
+            ... }
+            >>> cov.set_imate_options(options)
+
+            >>> # Compute log-determinant with eigenvalue method
+            >>> cov.logdet(sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=1.5)
+            14.882836181055152
+
+        **Taking Derivatives:**
+
+        Compute the log-determinant of the second mixed derivative
+
+        .. math::
+
+            \\frac{\\partial^2}{\\partial \\alpha_2^2} \\boldsymbol{\\Sigma}
+            (\\alpha_1, \\alpha_2 \\vert \\sigma, \\varsigma).
+
+        .. code-block:: python
+
+            >>> # Compute second mixed derivative
+            >>> cov.logdet(sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=1,
+            ...              derivative=[1, 1])
+            8.095686613549319
         """
 
         # Get sigma and sigma0 (if None, uses class attribute)
         sigma, sigma0 = self.get_sigmas(sigma, sigma0)
 
-        if (exponent > 1) and (len(derivative) > 0):
-            raise NotImplementedError('If "exponent" is larger than one, ' +
+        if (p > 1) and (len(derivative) > 0):
+            raise NotImplementedError('If "p" is larger than one, ' +
                                       '"derivative" should be zero (using ' +
                                       'an empty list).')
 
-        elif len(derivative) > 0 and exponent == 0:
+        elif len(derivative) > 0 and p == 0:
             # Matrix is zero.
             logdet_ = -numpy.inf
 
-        elif exponent == 0:
+        elif p == 0:
             # Matrix is identity.
             logdet_ = 0.0
 
@@ -668,7 +1725,7 @@ class Covariance(object):
                 logdet_ = -numpy.inf
             else:
                 # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
-                logdet_ = (2.0*exponent*n) * numpy.log(sigma0)
+                logdet_ = (2.0*p*n) * numpy.log(sigma0)
 
         else:
             n = self.mixed_cor.get_matrix_size()
@@ -678,8 +1735,8 @@ class Covariance(object):
                 sigma0 = 0.0
 
             eta = (sigma0 / sigma)**2
-            logdet_ = (2.0*exponent*n) * numpy.log(sigma) + \
-                self.mixed_cor.logdet(eta, scale, exponent, derivative,
+            logdet_ = (2.0*p*n) * numpy.log(sigma) + \
+                self.mixed_cor.logdet(eta, scale, p, derivative,
                                       imate_options)
 
         return logdet_
@@ -694,7 +1751,7 @@ class Covariance(object):
             sigma=None,
             sigma0=None,
             scale=None,
-            exponent=1,
+            p=1,
             derivative=[]):
         """
         Solves the linear system
@@ -719,17 +1776,17 @@ class Covariance(object):
         # Get sigma and sigma0 (if None, uses class attribute)
         sigma, sigma0 = self.get_sigmas(sigma, sigma0)
 
-        if (exponent > 1) and (len(derivative) > 0):
-            raise NotImplementedError('If "exponent" is larger than one, ' +
+        if (p > 1) and (len(derivative) > 0):
+            raise NotImplementedError('If "p" is larger than one, ' +
                                       '"derivative" should be zero (using ' +
                                       'an empty list).')
 
-        elif len(derivative) > 0 and exponent == 0:
+        elif len(derivative) > 0 and p == 0:
             # Matrix is zero, hence has no inverse.
             X = numpy.zeros_like(Y)
             X[:] = numpy.nan
 
-        elif exponent == 0:
+        elif p == 0:
             # Matrix is identity.
             X = numpy.copy(Y)
 
@@ -740,7 +1797,7 @@ class Covariance(object):
                 X = numpy.zeros_like(Y)
             else:
                 # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
-                X = Y / (sigma0**(2*exponent))
+                X = Y / (sigma0**(2*p))
 
         else:
             # Derivative eliminates sigma0^2 I term.
@@ -749,8 +1806,8 @@ class Covariance(object):
 
             eta = (sigma0 / sigma)**2
             X = self.mixed_cor.solve(
-                    Y, eta, scale, exponent, derivative) / \
-                (sigma**(2*exponent))
+                    Y, eta, scale, p, derivative) / \
+                (sigma**(2*p))
 
         return X
 
@@ -764,7 +1821,7 @@ class Covariance(object):
             sigma=None,
             sigma0=None,
             scale=None,
-            exponent=1,
+            p=1,
             derivative=[]):
         """
         Matrix-vector multiplication:
@@ -789,16 +1846,16 @@ class Covariance(object):
         # Get sigma and sigma0 (if None, uses class attribute)
         sigma, sigma0 = self.get_sigmas(sigma, sigma0)
 
-        if (exponent > 1) and (len(derivative) > 0):
-            raise NotImplementedError('If "exponent" is larger than one, ' +
+        if (p > 1) and (len(derivative) > 0):
+            raise NotImplementedError('If "p" is larger than one, ' +
                                       '"derivative" should be zero (using ' +
                                       'an empty list).')
 
-        elif exponent == 0 and len(derivative) > 0:
+        elif p == 0 and len(derivative) > 0:
             # Matrix is zero.
             y = numpy.zeros_like(x)
 
-        elif exponent == 0:
+        elif p == 0:
             # Matrix is identity.
             y = x.copy()
 
@@ -809,7 +1866,7 @@ class Covariance(object):
                 y = numpy.zeros_like(x)
             else:
                 # Ignore (sigma**2 * K) compared to (sigma0**2 * I) term.
-                y = sigma0**(2.0*exponent) * x
+                y = sigma0**(2.0*p) * x
 
         else:
             # Derivative eliminates sigma0^2 I term.
@@ -817,8 +1874,8 @@ class Covariance(object):
                 sigma0 = 0.0
 
             eta = (sigma0 / sigma)**2
-            y = (sigma**(2.0*exponent)) * \
-                self.mixed_cor.dot(x, eta, scale, exponent, derivative)
+            y = (sigma**(2.0*p)) * \
+                self.mixed_cor.dot(x, eta, scale, p, derivative)
 
         return y
 

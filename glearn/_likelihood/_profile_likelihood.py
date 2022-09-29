@@ -795,7 +795,7 @@ class ProfileLikelihood(BaseLikelihood):
         V = self.mixed_cor.solve(self.Y, eta=eta)
 
         # Trace of M**2
-        trace_Kn2inv = self.mixed_cor.traceinv(eta, exponent=2)
+        trace_Kn2inv = self.mixed_cor.traceinv(eta, p=2)
         YtY = numpy.matmul(self.Y.T, self.Y)
         YtV = numpy.matmul(self.Y.T, V)
         CYtV = numpy.matmul(self.C, YtV)
@@ -1091,7 +1091,7 @@ class ProfileLikelihood(BaseLikelihood):
             Knp = self.mixed_cor.get_matrix(eta, derivative=[p])
             if self.stochastic_traceinv:
                 trace_KnpKninv2 = self.mixed_cor.traceinv(
-                        eta, B=Knp, exponent=2,
+                        eta, B=Knp, p=2,
                         imate_options={'method': 'hutchinson'})
             else:
                 KnpKninv2 = Knp @ Kninv2

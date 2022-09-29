@@ -129,6 +129,7 @@ extensions = [
     'sphinx.ext.graphviz', 'sphinx.ext.inheritance_diagram',
     # 'sphinx.ext.viewcode',
     'sphinx_toggleprompt',
+    'sphinx.ext.intersphinx',
     # 'sphinx.ext.autosectionlabel',
     'sphinx.ext.autosummary',
     # 'sphinx_automodapi.automodapi',
@@ -141,6 +142,13 @@ extensions = [
     'nbsphinx',
    'sphinx_gallery.load_style',
 ]
+
+# Inner-sphinx to cross-reference imate packahe
+intersphinx_mapping = {
+    'imate': ('https://ameli.github.io/imate', None),
+    'detkit': ('https://ameli.github.io/detkit', None),
+    'special_functions': ('https://ameli.github.io/special_functions', None),
+}
 
 # Copy button settings
 copybutton_prompt_is_regexp = True
@@ -247,7 +255,8 @@ html_theme_options = {
 
 html_context = {
     "default_mode": "auto",
-    "github_user": "https://github.com/ameli",
+    "github_url": "https://github.com",
+    "github_user": "ameli",
     "github_repo": "glearn",
     "github_version": "main",
     "doc_path": "docs/source",
@@ -300,7 +309,7 @@ html_static_path = ['_static']
 
 html_js_files = ["js/custom-pydata.css"]
 # html_logo = '_static/images/icons/logo-glearn-light.png'
-html_favicon = '_static/images/icons/logo-glearn.ico'
+html_favicon = '_static/images/icons/favicon.ico'
 
 # =====
 # setup

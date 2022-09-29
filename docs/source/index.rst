@@ -5,7 +5,7 @@
 
 |deploy-docs|
 
-|project| is a modular and high-performance Python package for machine learning using **G**\ aussian process regression with novel algorithms and is capable of petascale computation on multi-GPU devices.
+|project| is a modular and high-performance Python package for machine learning using **G**\ aussian process regression with novel algorithms capable of petascale computation on multi-GPU devices.
 
 .. .. toctree::
     :maxdepth: 1
@@ -216,7 +216,6 @@ Check the list of functions, classes, and modules of |project| with their usage,
 Features
 ========
 
-
 * **Randomized algorithms** using Hutchinson and stochastic Lanczos quadrature algorithms (see :ref:`Overview <overview>`)
 * Novel method to **interpolate** matrix functions. See :ref:`Interpolation of Affine Matrix Functions <interpolation>`.
 * Parallel processing both on **shared memory** and CUDA Capable **multi-GPU** devices.
@@ -225,7 +224,7 @@ Features
 * Automatic Relevance Determination (ARD)
 * Jacobian and Hessian based optimization
 * Learn hyperparameters in reduced space (profile likelihood)
-* Prediction in dual space with with :math:`\\mathcal{O}(n)` complexity.
+* Prediction in dual space with with :math:`\mathcal{O}(n)` complexity.
 
 Technical Notes
 ===============
@@ -280,8 +279,8 @@ Related Projects
 
        A python package for matrix determinant functions used in machine learning.
 
-   .. grid-item-card:: |special-light| |ortho-dark|
-      :link: https://ameli.github.io/ortho/index.html
+   .. grid-item-card:: |special-light| |special-dark|
+      :link: https://ameli.github.io/special_functions/index.html
       :text-align: center
       :class-card: custom-card-link
 
@@ -332,12 +331,6 @@ Related Projects
 .. |special-light| image:: _static/images/icons/logo-special-light.svg
    :height: 24
    :class: only-light
-.. |ortho-dark| image:: _static/images/icons/logo-ortho-dark.svg
+.. |special-dark| image:: _static/images/icons/logo-special-dark.svg
    :height: 24
-   :class: only-dark
-.. |special_functions-light| image:: _static/images/icons/logo-special-functions-light.svg
-   :height: 35
-   :class: only-light
-.. |special_functions-dark| image:: _static/images/icons/logo-special-functions-dark.svg
-   :height: 35
    :class: only-dark

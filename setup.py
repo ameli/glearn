@@ -1439,6 +1439,7 @@ def main(argv):
 
     extensions.append(create_extension(package_name, 'kernels'))
     extensions.append(create_extension(package_name, '_correlation'))
+    extensions.append(create_extension(package_name, '_load_omp'))
 
     # Cythonize
     if 'clean' in argv:

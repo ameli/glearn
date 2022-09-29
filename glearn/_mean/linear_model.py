@@ -765,8 +765,8 @@ class LinearModel(object):
 
         where :math:`\\mathbf{I}` is the :math:`m \\times m` identity matrix.
 
-        This function uses `detkit <https://ameli.github.io/detkit>`_ python
-        package to orthonormalize the matrix :math:`\\mathbf{X}`.
+        This function uses :func:`detkit.orthogonalize` function to
+        orthonormalize the matrix :math:`\\mathbf{X}`.
 
         Examples
         --------

@@ -68,7 +68,7 @@ def check_functions(
 
     for sigma in sigmas:
         for sigma0 in sigma0s:
-            for exponent in exponents:
+            for p in exponents:
                 for derivative in derivatives:
 
                     # If derivative is more than zero, the matrix is no longer
@@ -85,7 +85,7 @@ def check_functions(
                             continue
 
                     # This case is not implemented
-                    if exponent > 1 and len(derivative) > 0:
+                    if p > 1 and len(derivative) > 0:
                         continue
 
                     K = cov.cor.get_matrix(derivative=derivative)
@@ -102,32 +102,31 @@ def check_functions(
                         # Here, the input K is the derivative of some matrix
                         S1 = sigma**2 * K
 
-                    if exponent == 0 and len(derivative) > 0:
+                    if p == 0 and len(derivative) > 0:
                         S = numpy.zeros_like(I)
                     else:
                         S = I
 
                     # Perform exponentiation to form the matrix
-                    for i in range(1, exponent+1):
+                    for i in range(1, p+1):
                         S = S1 @ S
 
                     # check trace
                     if function == 'trace':
                         y0 = numpy.trace(S)
-                        y1 = cov.trace(sigma, sigma0, exponent=exponent,
+                        y1 = cov.trace(sigma, sigma0, p=p,
                                        derivative=derivative)
 
                     # check traceinv
                     elif function == 'traceinv':
                         if sigma != 0 or sigma0 != 0:
-                            if exponent == 0 and len(derivative) > 0:
+                            if p == 0 and len(derivative) > 0:
                                 y0 = numpy.nan
                             elif sigma == 0 and len(derivative) > 0:
                                 y0 = numpy.nan
                             else:
                                 y0 = numpy.trace(numpy.linalg.inv(S))
-                            y1 = cov.traceinv(sigma, sigma0,
-                                              exponent=exponent,
+                            y1 = cov.traceinv(sigma, sigma0, p=p,
                                               derivative=derivative)
                         else:
                             y0 = None
@@ -140,7 +139,7 @@ def check_functions(
                                 y0 = -numpy.inf
                             else:
                                 y0 = numpy.log(det_S)
-                            y1 = cov.logdet(sigma, sigma0, exponent=exponent,
+                            y1 = cov.logdet(sigma, sigma0, p=p,
                                             derivative=derivative)
                         else:
                             y0 = None
@@ -148,7 +147,7 @@ def check_functions(
                     # check solve
                     elif function == 'solve':
                         if sigma != 0 or sigma0 != 0:
-                            if exponent == 0 and len(derivative) > 0:
+                            if p == 0 and len(derivative) > 0:
                                 y0 = numpy.zeros_like(X)
                                 y0[:] = numpy.nan
                             elif sigma == 0 and len(derivative) > 0:
@@ -156,8 +155,7 @@ def check_functions(
                                 y0[:] = numpy.nan
                             else:
                                 y0 = numpy.linalg.solve(S, X)
-                            y1 = cov.solve(X, sigma=sigma, sigma0=sigma0,
-                                           exponent=exponent,
+                            y1 = cov.solve(X, sigma=sigma, sigma0=sigma0, p=p,
                                            derivative=derivative)
                         else:
                             y0 = None
@@ -165,8 +163,8 @@ def check_functions(
                     # check dot
                     elif function == 'dot':
                         y0 = S @ X
-                        y1 = cov.dot(X, sigma=sigma, sigma0=sigma0,
-                                     exponent=exponent, derivative=derivative)
+                        y1 = cov.dot(X, sigma=sigma, sigma0=sigma0, p=p,
+                                     derivative=derivative)
 
                     # Check error
                     if y0 is not None:
@@ -177,7 +175,7 @@ def check_functions(
                                 success = False
                             print('\t\tsigma: %0.2f, ' % sigma, end="")
                             print('sigma0: %0.2f, ' % sigma0, end="")
-                            print('exponent: %d, ' % exponent, end="")
+                            print('exponent: %d, ' % p, end="")
                             print('derivative: %s,' % derivative, end="")
                             print('\terror: %0.4f%%' % error)
 

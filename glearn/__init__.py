@@ -65,6 +65,14 @@ def _check_import():
 # Imports
 # =======
 
+# Load OpenMP before all other modules to avoid segmentation fault in MacOS
+# caused by duplicate loading of libomp by this package and the libomp lib that
+# is shipped with detkit package (detkit is imported in _mean/linear_model.py)
+import sys
+if sys.platform.lower() == "darwin":
+    from ._load_omp import load_omp
+    load_omp()
+
 try:
     from ._mean import LinearModel                                 # noqa: E402
     from ._covariance import Covariance                            # noqa: E402
