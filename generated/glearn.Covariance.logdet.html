@@ -41,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/toggleprompt.js"></script>
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
@@ -50,7 +51,7 @@
     <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
-    <link rel="shortcut icon" href="../_static/logo-glearn.ico"/>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="glearn.Covariance.solve" href="glearn.Covariance.solve.html" />
@@ -221,6 +222,11 @@
    </i>
   </label>
   <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="glearn.Covariance.get_imate_options.html">
+     glearn.Covariance.get_imate_options
+    </a>
+   </li>
    <li class="toctree-l2">
     <a class="reference internal" href="glearn.Covariance.set_imate_options.html">
      glearn.Covariance.set_imate_options
@@ -477,9 +483,23 @@
     
     <div class="toc-item">
       
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
 
 <nav id="bd-toc-nav">
-    
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#glearn.Covariance.logdet">
+   <code class="docutils literal notranslate">
+    <span class="pre">
+     Covariance.logdet()
+    </span>
+   </code>
+  </a>
+ </li>
+</ul>
+
 </nav>
     </div>
     
@@ -487,7 +507,7 @@
       
 
 <div class="tocsection editthispage">
-    <a href="https://github.com/https://github.com/ameli/glearn/edit/main/docs/source/generated/glearn.Covariance.logdet.rst">
+    <a href="https://github.com/ameli/glearn/edit/main/docs/source/generated/glearn.Covariance.logdet.rst">
         <i class="fas fa-pencil-alt"></i> Edit this page
     </a>
 </div>
@@ -508,19 +528,175 @@
 <h1>glearn.Covariance.logdet<a class="headerlink" href="#glearn-covariance-logdet" title="Permalink to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="glearn.Covariance.logdet">
-<span class="sig-prename descclassname"><span class="pre">Covariance.</span></span><span class="sig-name descname"><span class="pre">logdet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exponent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derivative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imate_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.Covariance.logdet" title="Permalink to this definition">#</a></dt>
-<dd><p>Computes</p>
+<span class="sig-prename descclassname"><span class="pre">Covariance.</span></span><span class="sig-name descname"><span class="pre">logdet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derivative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imate_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.Covariance.logdet" title="Permalink to this definition">#</a></dt>
+<dd><p>Compute the log-determinant of the powers of the covariance matrix or
+its derivatives.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>sigma</strong><span class="classifier">float, default=None</span></dt><dd><p>The hyperparameter <span class="math notranslate nohighlight">\(\sigma\)</span> of the covariance model where
+<span class="math notranslate nohighlight">\(\sigma^2\)</span> represents the variance of the correlated errors
+of the model. <span class="math notranslate nohighlight">\(\sigma\)</span> should be positive and cannot be
+<cite>None</cite>.</p>
+</dd>
+<dt><strong>sigma0</strong><span class="classifier">float, default=None</span></dt><dd><p>The hyperparameter <span class="math notranslate nohighlight">\(\varsigma\)</span> of the covariance model where
+<span class="math notranslate nohighlight">\(\varsigma^2\)</span> represents the variance of the input noise to
+of the model. <span class="math notranslate nohighlight">\(\sigma\)</span> should be positive and cannot be
+<cite>None</cite>.</p>
+</dd>
+<dt><strong>scale</strong><span class="classifier">float or array_like[float], default=None</span></dt><dd><p>The scale hyperparameters
+<span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (\alpha_1, \dots, \alpha_d)\)</span> in
+scales the distance between data points in <span class="math notranslate nohighlight">\(\mathbb{R}^d\)</span>.
+If an array of the size <span class="math notranslate nohighlight">\(d\)</span> is given, each <span class="math notranslate nohighlight">\(\alpha_i\)</span>
+scales the distance in the <span class="math notranslate nohighlight">\(i\)</span>-th dimension. If a scalar
+value <span class="math notranslate nohighlight">\(\alpha\)</span> is given, all dimensions are scaled
+isometrically. <span class="math notranslate nohighlight">\(\boldsymbol{\alpha}\)</span> cannot be <cite>None</cite>.</p>
+</dd>
+<dt><strong>p</strong><span class="classifier">float, default=1</span></dt><dd><p>The real exponent <span class="math notranslate nohighlight">\(p\)</span> (negative or positive) of the
+covariance matrix <span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}^{p}\)</span> (see Notes
+below).</p>
+</dd>
+<dt><strong>derivative</strong><span class="classifier">list, default=[]</span></dt><dd><p>Specifies a list of derivatives of covariance matrix with respect
+to the hyperparameters <span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (\alpha_1,
+\dots, \alpha_d)\)</span>. A list of the size <span class="math notranslate nohighlight">\(q\)</span> with the
+components <code class="docutils literal notranslate"><span class="pre">[i,</span> <span class="pre">j,</span> <span class="pre">...,</span> <span class="pre">k]</span></code> corresponds to take the derivative</p>
 <div class="math notranslate nohighlight">
-\[\mathrm{det} \frac{\partial^q}{\partial \theta^q}
-(\sigma^2 \mathbf{K} + \sigma_0^2 \mathbf{I})^{p},\]</div>
-<p>where</p>
+\[\left. \frac{\partial^q}{\partial \alpha_{i+1} \partial
+\alpha_{j+1} \dots \partial \alpha_{k+1}}
+\boldsymbol{\Sigma}^{p}(\boldsymbol{\alpha} \vert
+\sigma^2, \varsigma^2) \right|_{\boldsymbol{\alpha}}.\]</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The derivative with respect to each hyperparameter
+<span class="math notranslate nohighlight">\(\alpha_i\)</span> can be at most of the order two,
+<span class="math notranslate nohighlight">\(\partial^2 / \partial \alpha_i^2\)</span>. That is, each
+index in the <code class="docutils literal notranslate"><span class="pre">derivative</span></code> list can appear at most twice.
+For instance <code class="docutils literal notranslate"><span class="pre">derivative=[1,</span> <span class="pre">1]</span></code> (second order derivative
+with respect to <span class="math notranslate nohighlight">\(\alpha_{2}\)</span>) is a valid input argument,
+how ever <code class="docutils literal notranslate"><span class="pre">derivative=[1,</span> <span class="pre">1,</span> <span class="pre">1]</span></code> (third order derivative) is
+an invalid input.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When the derivative order is non-zero (meaning that
+<code class="docutils literal notranslate"><span class="pre">derivative</span></code> is not <code class="docutils literal notranslate"><span class="pre">[]</span></code>), the exponent <span class="math notranslate nohighlight">\(p\)</span> should
+be <cite>1</cite>.</p>
+</div>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>S</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>An array of the size <span class="math notranslate nohighlight">\(n \times n\)</span> where <span class="math notranslate nohighlight">\(n\)</span> is the
+size of the matrix.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="glearn.Covariance.get_matrix.html#glearn.Covariance.get_matrix" title="glearn.Covariance.get_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.get_matrix</span></code></a></dt><dd></dd>
+<dt><a class="reference internal" href="glearn.Covariance.trace.html#glearn.Covariance.trace" title="glearn.Covariance.trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.trace</span></code></a></dt><dd></dd>
+<dt><a class="reference internal" href="glearn.Covariance.traceinv.html#glearn.Covariance.traceinv" title="glearn.Covariance.traceinv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.traceinv</span></code></a></dt><dd></dd>
+<dt><a class="reference internal" href="glearn.Covariance.solve.html#glearn.Covariance.solve" title="glearn.Covariance.solve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.solve</span></code></a></dt><dd></dd>
+<dt><a class="reference internal" href="glearn.Covariance.dot.html#glearn.Covariance.dot" title="glearn.Covariance.dot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.dot</span></code></a></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>This function computes</p>
+<div class="math notranslate nohighlight">
+\[\log \det \left(
+\frac{\partial^q}{\partial \alpha_{i+1} \partial
+\alpha_{j+1} \dots \partial \alpha_{k+1}}
+\boldsymbol{\Sigma}^{p}(\boldsymbol{\alpha} \vert
+\sigma, \varsigma) \right),\]</div>
+<p>where the covariance matrix <span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}\)</span> is defined by</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\Sigma}(\boldsymbol{\alpha}, \sigma, \varsigma) =
+\sigma^2 \mathbf{K}(\boldsymbol{\alpha}) + \varsigma^2
+\mathbf{I}.\]</div>
+<p>In the above, <span class="math notranslate nohighlight">\(\mathbf{I}\)</span> is the identity matrix and
+<span class="math notranslate nohighlight">\(\mathbf{K}\)</span> is the correlation matrix that depends on a set of
+scale hyperparameters <span class="math notranslate nohighlight">\(\boldsymbol{\alpha}=(\alpha_1, \dots,
+\alpha_d)\)</span>.</p>
+<p><strong>Derivatives:</strong></p>
+<p>Note that the indices in list <code class="docutils literal notranslate"><span class="pre">derivative=[i,</span> <span class="pre">j,</span> <span class="pre">...,</span> <span class="pre">k]</span></code> are
+zero-indexed, meaning that the index <code class="docutils literal notranslate"><span class="pre">i</span></code> corresponds to take
+derivative with respect to the hyperparameter <span class="math notranslate nohighlight">\(\alpha_{i+1}\)</span>.
+For instance:</p>
 <ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(\mathbf{I}\)</span> is the identity matrix,</p></li>
-<li><p>:math:<a href="#id1"><span class="problematic" id="id2">`</span></a>p`is a non-negative integer.</p></li>
-<li><p><span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\sigma_0\)</span> are real numbers.</p></li>
-<li><p><span class="math notranslate nohighlight">\(\theta\)</span> is correlation scale parameter.</p></li>
-<li><p><span class="math notranslate nohighlight">\(q\)</span> is the order of the derivative.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[]</span></code> corresponds to no derivative.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[0]</span></code> corresponds to <span class="math notranslate nohighlight">\(\partial / \partial \alpha_1\)</span> and
+<code class="docutils literal notranslate"><span class="pre">[1]</span></code> corresponds to <span class="math notranslate nohighlight">\(\partial / \partial
+\alpha_2\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">2]</span></code> corresponds to <span class="math notranslate nohighlight">\(\partial^2 /
+\partial \alpha_1 \partial \alpha_3\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0]</span></code> corresponds to <span class="math notranslate nohighlight">\(\partial^2 /
+\partial \alpha_1^2\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">2,</span> <span class="pre">2,</span> <span class="pre">4]</span></code> corresponds to <span class="math notranslate nohighlight">\(\partial^4 /
+\partial \alpha_1 \partial \alpha_{3}^2 \partial \alpha_5\)</span>.</p></li>
 </ul>
+<p><strong>Configuring Computation Settings:</strong></p>
+<p>This function passes the computation of the log-determinant to the
+function <a class="reference external" href="https://ameli.github.io/imate/generated/imate.logdet.html#imate.logdet" title="(in imate)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imate.logdet()</span></code></a>. To configure the latter function, create
+a dictionary of input arguments to this function and pass the
+dictionary with <a class="reference internal" href="glearn.Covariance.set_imate_options.html#glearn.Covariance.set_imate_options" title="glearn.Covariance.set_imate_options"><code class="xref py py-func docutils literal notranslate"><span class="pre">glearn.Covariance.set_imate_options()</span></code></a>. See
+examples below for details.</p>
+<p class="rubric">Examples</p>
+<p><strong>Basic Usage:</strong></p>
+<p>Create a sample dataset with four points in <span class="math notranslate nohighlight">\(d=2\)</span> dimensional
+space. Then, compute the log-determinant of
+<span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}^{-p}(\boldsymbol{\alpha}, \sigma,
+\varsigma)\)</span> for <span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (1, 2)\)</span>,
+<span class="math notranslate nohighlight">\(\sigma=2\)</span>, and <span class="math notranslate nohighlight">\(\varsigma=3\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a set of points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn.sample_data</span> <span class="kn">import</span> <span class="n">generate_points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a covariance object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">Covariance</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">Covariance</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Compute log-determinant</span>
+<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">logdet</span><span class="p">(</span><span class="n">sigma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">sigma0</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span><span class="go">19.843781574740206</span>
+</pre></div>
+</div>
+<p><strong>Configure Computation:</strong></p>
+<p>The following example shows how to compute the log-determinant of
+<span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}^{-\frac{3}{2}}(\boldsymbol{\alpha},
+\sigma, \varsigma)\)</span>. First, we check the default method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Check the default imate option</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">get_imate_options</span><span class="p">()</span>
+<span class="go">{</span>
+<span class="go">    &#39;method&#39;: &#39;cholesky&#39;</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+<p>In the following, we change the method to eigenvalue method.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Change the default imate option</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>   <span class="s1">&#39;method&#39;</span> <span class="p">:</span> <span class="s1">&#39;eigenvalue&#39;</span>
+<span class="gp">... </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">set_imate_options</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Compute log-determinant with eigenvalue method</span>
+<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">logdet</span><span class="p">(</span><span class="n">sigma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">sigma0</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+</span><span class="go">14.882836181055152</span>
+</pre></div>
+</div>
+<p><strong>Taking Derivatives:</strong></p>
+<p>Compute the log-determinant of the second mixed derivative</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial^2}{\partial \alpha_2^2} \boldsymbol{\Sigma}
+(\alpha_1, \alpha_2 \vert \sigma, \varsigma).\]</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Compute second mixed derivative</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">logdet</span><span class="p">(</span><span class="n">sigma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">sigma0</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>             <span class="n">derivative</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="go">8.095686613549319</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -570,7 +746,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.2.<br>
 </p>
   </div>
   

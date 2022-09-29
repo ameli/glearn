@@ -41,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/toggleprompt.js"></script>
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
@@ -50,7 +51,7 @@
     <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
-    <link rel="shortcut icon" href="../_static/logo-glearn.ico"/>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="glearn.priors.Prior" href="glearn.priors.Prior.html" />
@@ -405,9 +406,23 @@
     
     <div class="toc-item">
       
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
 
 <nav id="bd-toc-nav">
-    
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#glearn.kernels.Matern">
+   <code class="docutils literal notranslate">
+    <span class="pre">
+     Matern
+    </span>
+   </code>
+  </a>
+ </li>
+</ul>
+
 </nav>
     </div>
     
@@ -415,7 +430,7 @@
       
 
 <div class="tocsection editthispage">
-    <a href="https://github.com/https://github.com/ameli/glearn/edit/main/docs/source/generated/glearn.kernels.Matern.rst">
+    <a href="https://github.com/ameli/glearn/edit/main/docs/source/generated/glearn.kernels.Matern.rst">
         <i class="fas fa-pencil-alt"></i> Edit this page
     </a>
 </div>
@@ -469,7 +484,8 @@ K_{\nu}\left( \sqrt{2 \nu} x \right),\]</div>
 <p>where <span class="math notranslate nohighlight">\(K_{\nu}\)</span> is the modified Bessel function of the
 second kind and <span class="math notranslate nohighlight">\(\Gamma\)</span> is the Gamma function. Both
 <span class="math notranslate nohighlight">\(K_{\nu}\)</span> and <span class="math notranslate nohighlight">\(\Gamma\)</span> are computed efficiently using the
-python package <a class="reference external" href="https://ameli.github.io/special_functions/index.html">special_functions</a>.</p>
+<a class="reference external" href="https://ameli.github.io/special_functions/_modules/special_functions.html#special_functions.besselk" title="(in special functions)"><code class="xref py py-func docutils literal notranslate"><span class="pre">special_functions.besselk()</span></code></a> and <a class="reference external" href="https://ameli.github.io/special_functions/_modules/special_functions.html#special_functions.lngamma" title="(in special functions)"><code class="xref py py-func docutils literal notranslate"><span class="pre">special_functions.lngamma()</span></code></a>
+functions.</p>
 <p>The Matern kernel for specific values of <span class="math notranslate nohighlight">\(\nu\)</span> has simplified
 representation:</p>
 <ul>
@@ -599,7 +615,7 @@ function of the second kind with respect to <span class="math notranslate nohigh
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.2.<br>
 </p>
   </div>
   

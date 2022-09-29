@@ -41,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/toggleprompt.js"></script>
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
@@ -50,7 +51,7 @@
     <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
-    <link rel="shortcut icon" href="../_static/logo-glearn.ico"/>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <script defer data-domain="docs.scipy.org" src="https://views.scientific-python.org/js/script.js"></script>
@@ -353,7 +354,7 @@
       
 
 <div class="tocsection editthispage">
-    <a href="https://github.com/https://github.com/ameli/glearn/edit/main/docs/source/performance/algorithms.rst">
+    <a href="https://github.com/ameli/glearn/edit/main/docs/source/performance/algorithms.rst">
         <i class="fas fa-pencil-alt"></i> Edit this page
     </a>
 </div>
@@ -388,20 +389,20 @@
 <dl class="glossary">
 <dt id="term-Cholesky-Decomposition">Cholesky Decomposition<a class="headerlink" href="#term-Cholesky-Decomposition" title="Permalink to this term">#</a></dt><dd><p>This method is implemented by the following functions:</p>
 <ul class="simple">
-<li><p><span class="xref std std-ref">imate.logdet.cholesky</span> to compute <a class="reference internal" href="#equation-logdet3">(1)</a>.</p></li>
-<li><p><span class="xref std std-ref">imate.traceinv.cholesky</span> to compute <a class="reference internal" href="#equation-traceinv3">(2)</a>.</p></li>
+<li><p><a class="reference external" href="https://ameli.github.io/imate/api/imate.logdet.cholesky.html#imate-logdet-cholesky" title="(in imate)"><span>imate.logdet(method=’cholesky’)</span></a> to compute <a class="reference internal" href="#equation-logdet3">(1)</a>.</p></li>
+<li><p><a class="reference external" href="https://ameli.github.io/imate/api/imate.traceinv.cholesky.html#imate-traceinv-cholesky" title="(in imate)"><span>imate.traceinv(method=’cholesky’)</span></a> to compute <a class="reference internal" href="#equation-traceinv3">(2)</a>.</p></li>
 </ul>
 <p>The complexity of computing <a class="reference internal" href="#equation-logdet3">(1)</a> for matrices obtained from 1D, 2D, and 3D grids are respectively <span class="math notranslate nohighlight">\(\mathcal{O}(n)\)</span>, <span class="math notranslate nohighlight">\(\mathcal{O}(n^{\frac{3}{2}})\)</span>, and <span class="math notranslate nohighlight">\(\mathcal{O}(n^2)\)</span> where <span class="math notranslate nohighlight">\(n\)</span> is the matrix size. The complexity of computing <a class="reference internal" href="#equation-traceinv3">(2)</a> for sparse matrices is <span class="math notranslate nohighlight">\(\mathcal{O}(\rho n^2)\)</span> where <span class="math notranslate nohighlight">\(\rho\)</span> is the sparse matrix density.</p>
 </dd>
-<dt id="term-Hutchinson-Algorithm">Hutchinson Algorithm<a class="headerlink" href="#term-Hutchinson-Algorithm" title="Permalink to this term">#</a></dt><dd><p>This method is only applied to <a class="reference internal" href="#equation-traceinv3">(2)</a> and implemented by <span class="xref std std-ref">imate.traceinv.hutchinson</span> function. The complexity of this method is:</p>
+<dt id="term-Hutchinson-Algorithm">Hutchinson Algorithm<a class="headerlink" href="#term-Hutchinson-Algorithm" title="Permalink to this term">#</a></dt><dd><p>This method is only applied to <a class="reference internal" href="#equation-traceinv3">(2)</a> and implemented by <a class="reference external" href="https://ameli.github.io/imate/api/imate.traceinv.hutchinson.html#imate-traceinv-hutchinson" title="(in imate)"><span>imate.traceinv(method=’hutchinson’)</span></a> function. The complexity of this method is:</p>
 <div class="math notranslate nohighlight" id="equation-comp-hutch">
 <span class="eqno">(3)<a class="headerlink" href="#equation-comp-hutch" title="Permalink to this equation">#</a></span>\[\mathcal{O}(\mathrm{nnz}(\mathbf{A})s),\]</div>
 <p>where <span class="math notranslate nohighlight">\(s\)</span> is the number of Monte-Carlo iterations in the algorithm and <span class="math notranslate nohighlight">\(\rho\)</span> is the sparse matrix density. In this experiment, <span class="math notranslate nohighlight">\(s = 80\)</span>.</p>
 </dd>
 <dt id="term-Stochastic-Lanczos-Quadrature-Algorithm">Stochastic Lanczos Quadrature Algorithm<a class="headerlink" href="#term-Stochastic-Lanczos-Quadrature-Algorithm" title="Permalink to this term">#</a></dt><dd><p>This method is implemented by:</p>
 <ul class="simple">
-<li><p><span class="xref std std-ref">imate.logdet.cholesky</span> to compute <a class="reference internal" href="#equation-logdet3">(1)</a>.</p></li>
-<li><p><span class="xref std std-ref">imate.traceinv.cholesky</span> to compute <a class="reference internal" href="#equation-traceinv3">(2)</a>.</p></li>
+<li><p><a class="reference external" href="https://ameli.github.io/imate/api/imate.logdet.cholesky.html#imate-logdet-cholesky" title="(in imate)"><span>imate.logdet(method=’cholesky’)</span></a> to compute <a class="reference internal" href="#equation-logdet3">(1)</a>.</p></li>
+<li><p><a class="reference external" href="https://ameli.github.io/imate/api/imate.traceinv.cholesky.html#imate-traceinv-cholesky" title="(in imate)"><span>imate.traceinv(method=’cholesky’)</span></a> to compute <a class="reference internal" href="#equation-traceinv3">(2)</a>.</p></li>
 </ul>
 <p>The complexity of this method is:</p>
 <div class="math notranslate nohighlight" id="equation-comp-slq">
@@ -428,14 +429,14 @@
     a, &amp; i = j, \\
     b, &amp; i+1 = j.
 \end{cases}\end{split}\]</div>
-<p>The above matrix can be generated by <code class="xref py py-func docutils literal notranslate"><span class="pre">imate.toeplitz()</span></code> function. In this experiment, <span class="math notranslate nohighlight">\(a = 2\)</span>, <span class="math notranslate nohighlight">\(b = 1\)</span>, and the matrix size is varied by powers of two, <span class="math notranslate nohighlight">\(n = 2^8, 2^9, \dots, 2^{14}\)</span>.</p>
+<p>The above matrix can be generated by <a class="reference external" href="https://ameli.github.io/imate/generated/imate.toeplitz.html#imate.toeplitz" title="(in imate)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imate.toeplitz()</span></code></a> function. In this experiment, <span class="math notranslate nohighlight">\(a = 2\)</span>, <span class="math notranslate nohighlight">\(b = 1\)</span>, and the matrix size is varied by powers of two, <span class="math notranslate nohighlight">\(n = 2^8, 2^9, \dots, 2^{14}\)</span>.</p>
 <p>The Cholesky factor of <span class="math notranslate nohighlight">\(\mathbf{A}\)</span> is <span class="math notranslate nohighlight">\(\mathbf{B}^{\intercal}\)</span>. Also, <span class="math notranslate nohighlight">\(\mathrm{nnz}(\mathbf{A}) = 3n\)</span>. An advantage of using the above matrix is that an analytic formula for <a class="reference internal" href="#equation-logdet3">(1)</a> and <a class="reference internal" href="#equation-traceinv3">(2)</a> is known. Namely,</p>
 <div class="math notranslate nohighlight" id="equation-formula-logdet3">
 <span class="eqno">(5)<a class="headerlink" href="#equation-formula-logdet3" title="Permalink to this equation">#</a></span>\[ \log \det \mathbf{A} = 2n \log_e a.\]</div>
-<p>See <code class="xref py py-func docutils literal notranslate"><span class="pre">imate.sample_matrices.toeplitz_logdet()</span></code> for details. Also, if <span class="math notranslate nohighlight">\(n \gg 1\)</span>, then</p>
+<p>See <a class="reference external" href="https://ameli.github.io/imate/generated/imate.sample_matrices.toeplitz_logdet.html#imate.sample_matrices.toeplitz_logdet" title="(in imate)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imate.sample_matrices.toeplitz_logdet()</span></code></a> for details. Also, if <span class="math notranslate nohighlight">\(n \gg 1\)</span>, then</p>
 <div class="math notranslate nohighlight" id="equation-formula-traceinv3">
 <span class="eqno">(6)<a class="headerlink" href="#equation-formula-traceinv3" title="Permalink to this equation">#</a></span>\[ \mathrm{trace}(\mathbf{A}^{-1}) \approx \frac{1}{a^2 - b^2} \left( n - \frac{q^{2}}{1 - q^2} \right),\]</div>
-<p>where <span class="math notranslate nohighlight">\(q = b/a\)</span>. See <code class="xref py py-func docutils literal notranslate"><span class="pre">imate.sample_matrices.toeplitz_traceinv()</span></code> for details. The above analytic formulas are used as the benchmark solution to test the accuracy of the results.</p>
+<p>where <span class="math notranslate nohighlight">\(q = b/a\)</span>. See <a class="reference external" href="https://ameli.github.io/imate/generated/imate.sample_matrices.toeplitz_traceinv.html#imate.sample_matrices.toeplitz_traceinv" title="(in imate)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imate.sample_matrices.toeplitz_traceinv()</span></code></a> for details. The above analytic formulas are used as the benchmark solution to test the accuracy of the results.</p>
 <section id="elapsed-time-of-computing-log-determinant">
 <h3>Elapsed Time of Computing Log-Determinant<a class="headerlink" href="#elapsed-time-of-computing-log-determinant" title="Permalink to this heading">#</a></h3>
 <p>The elapsed (wall) time of the computations is shown in the figure below. The Cholesky method is faster than the SLQ method by an order of magnitude, hence it could be considered the preferred algorithm to compute log-determinant.</p>
@@ -443,7 +444,7 @@
 <a class="custom-dark reference internal image-reference" href="_static/images/performance/compare_methods_analytic_matrix_logdet_time.png"><img alt="_static/images/performance/compare_methods_analytic_matrix_logdet_time.png" class="custom-dark align-center" src="_static/images/performance/compare_methods_analytic_matrix_logdet_time.png" style="height: 375px;" /></a>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The Cholesky method <span class="xref std std-ref">imate.logdet.cholesky</span> uses <a class="reference external" href="https://scikit-sparse.readthedocs.io/en/latest/cholmod.html#sksparse.cholmod.Factor.logdet">logdet</a> function from SuiteSparse’s Cholmod library, which only supports 64-bit data types. Because of this, the performance test for 32-bit and 128-bit is not available. In contrast, <span class="synco">g-learn</span>’s implementation of randomized algorithms supports all data types shown in the above figure.</p>
+<p>The Cholesky method <a class="reference external" href="https://ameli.github.io/imate/api/imate.logdet.cholesky.html#imate-logdet-cholesky" title="(in imate)"><span>imate.logdet(method=’cholesky’)</span></a> uses <a class="reference external" href="https://scikit-sparse.readthedocs.io/en/latest/cholmod.html#sksparse.cholmod.Factor.logdet">logdet</a> function from SuiteSparse’s Cholmod library, which only supports 64-bit data types. Because of this, the performance test for 32-bit and 128-bit is not available. In contrast, <span class="synco">g-learn</span>’s implementation of randomized algorithms supports all data types shown in the above figure.</p>
 </div>
 </section>
 <section id="accuracy-of-computing-log-determinant">
@@ -699,7 +700,7 @@ span.prompt1:before {
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.2.<br>
 </p>
   </div>
   

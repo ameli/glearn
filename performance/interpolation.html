@@ -41,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/toggleprompt.js"></script>
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
@@ -50,7 +51,7 @@
     <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
-    <link rel="shortcut icon" href="../_static/logo-glearn.ico"/>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <script defer data-domain="docs.scipy.org" src="https://views.scientific-python.org/js/script.js"></script>
@@ -275,7 +276,7 @@
       
 
 <div class="tocsection editthispage">
-    <a href="https://github.com/https://github.com/ameli/glearn/edit/main/docs/source/performance/interpolation.rst">
+    <a href="https://github.com/ameli/glearn/edit/main/docs/source/performance/interpolation.rst">
         <i class="fas fa-pencil-alt"></i> Edit this page
     </a>
 </div>
@@ -314,20 +315,20 @@
 <dl class="glossary">
 <dt id="term-Cholesky-Decomposition">Cholesky Decomposition<a class="headerlink" href="#term-Cholesky-Decomposition" title="Permalink to this term">#</a></dt><dd><p>This method is implemented by the following functions:</p>
 <ul class="simple">
-<li><p><span class="xref std std-ref">imate.logdet.cholesky</span> to compute <a class="reference internal" href="algorithms.html#equation-logdet3">(1)</a>.</p></li>
-<li><p><span class="xref std std-ref">imate.traceinv.cholesky</span> to compute <a class="reference internal" href="algorithms.html#equation-traceinv3">(2)</a>.</p></li>
+<li><p><a class="reference external" href="https://ameli.github.io/imate/api/imate.logdet.cholesky.html#imate-logdet-cholesky" title="(in imate)"><span>imate.logdet(method=’cholesky’)</span></a> to compute <a class="reference internal" href="algorithms.html#equation-logdet3">(1)</a>.</p></li>
+<li><p><a class="reference external" href="https://ameli.github.io/imate/api/imate.traceinv.cholesky.html#imate-traceinv-cholesky" title="(in imate)"><span>imate.traceinv(method=’cholesky’)</span></a> to compute <a class="reference internal" href="algorithms.html#equation-traceinv3">(2)</a>.</p></li>
 </ul>
 <p>The complexity of computing <a class="reference internal" href="algorithms.html#equation-logdet3">(1)</a> for matrices obtained from 1D, 2D, and 3D grids are respectively <span class="math notranslate nohighlight">\(\mathcal{O}(n)\)</span>, <span class="math notranslate nohighlight">\(\mathcal{O}(n^{\frac{3}{2}})\)</span>, and <span class="math notranslate nohighlight">\(\mathcal{O}(n^2)\)</span> where <span class="math notranslate nohighlight">\(n\)</span> is the matrix size. The complexity of computing <a class="reference internal" href="algorithms.html#equation-traceinv3">(2)</a> for sparse matrices is <span class="math notranslate nohighlight">\(\mathcal{O}(\rho n^2)\)</span> where <span class="math notranslate nohighlight">\(\rho\)</span> is the sparse matrix density.</p>
 </dd>
-<dt id="term-Hutchinson-Algorithm">Hutchinson Algorithm<a class="headerlink" href="#term-Hutchinson-Algorithm" title="Permalink to this term">#</a></dt><dd><p>This method is only applied to <a class="reference internal" href="algorithms.html#equation-traceinv3">(2)</a> and implemented by <span class="xref std std-ref">imate.traceinv.hutchinson</span> function. The complexity of this method is:</p>
+<dt id="term-Hutchinson-Algorithm">Hutchinson Algorithm<a class="headerlink" href="#term-Hutchinson-Algorithm" title="Permalink to this term">#</a></dt><dd><p>This method is only applied to <a class="reference internal" href="algorithms.html#equation-traceinv3">(2)</a> and implemented by <a class="reference external" href="https://ameli.github.io/imate/api/imate.traceinv.hutchinson.html#imate-traceinv-hutchinson" title="(in imate)"><span>imate.traceinv(method=’hutchinson’)</span></a> function. The complexity of this method is:</p>
 <div class="math notranslate nohighlight" id="equation-comp-hutch">
 <span class="eqno">(3)<a class="headerlink" href="#equation-comp-hutch" title="Permalink to this equation">#</a></span>\[\mathcal{O}(\mathrm{nnz}(\mathbf{A})s),\]</div>
 <p>where <span class="math notranslate nohighlight">\(s\)</span> is the number of Monte-Carlo iterations in the algorithm and <span class="math notranslate nohighlight">\(\rho\)</span> is the sparse matrix density. In this experiment, <span class="math notranslate nohighlight">\(s = 80\)</span>.</p>
 </dd>
 <dt id="term-Stochastic-Lanczos-Quadrature-Algorithm">Stochastic Lanczos Quadrature Algorithm<a class="headerlink" href="#term-Stochastic-Lanczos-Quadrature-Algorithm" title="Permalink to this term">#</a></dt><dd><p>This method is implemented by:</p>
 <ul class="simple">
-<li><p><span class="xref std std-ref">imate.logdet.cholesky</span> to compute <a class="reference internal" href="algorithms.html#equation-logdet3">(1)</a>.</p></li>
-<li><p><span class="xref std std-ref">imate.traceinv.cholesky</span> to compute <a class="reference internal" href="algorithms.html#equation-traceinv3">(2)</a>.</p></li>
+<li><p><a class="reference external" href="https://ameli.github.io/imate/api/imate.logdet.cholesky.html#imate-logdet-cholesky" title="(in imate)"><span>imate.logdet(method=’cholesky’)</span></a> to compute <a class="reference internal" href="algorithms.html#equation-logdet3">(1)</a>.</p></li>
+<li><p><a class="reference external" href="https://ameli.github.io/imate/api/imate.traceinv.cholesky.html#imate-traceinv-cholesky" title="(in imate)"><span>imate.traceinv(method=’cholesky’)</span></a> to compute <a class="reference internal" href="algorithms.html#equation-traceinv3">(2)</a>.</p></li>
 </ul>
 <p>The complexity of this method is:</p>
 <div class="math notranslate nohighlight" id="equation-comp-slq">
@@ -408,7 +409,7 @@ span.prompt1:before {
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.2.<br>
 </p>
   </div>
   

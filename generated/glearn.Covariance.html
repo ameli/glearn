@@ -41,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/toggleprompt.js"></script>
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
@@ -50,10 +51,10 @@
     <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
-    <link rel="shortcut icon" href="../_static/logo-glearn.ico"/>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="glearn.Covariance.set_imate_options" href="glearn.Covariance.set_imate_options.html" />
+    <link rel="next" title="glearn.Covariance.get_imate_options" href="glearn.Covariance.get_imate_options.html" />
     <link rel="prev" title="glearn.LinearModel.update_hyperparam" href="glearn.LinearModel.update_hyperparam.html" />
     <script defer data-domain="docs.scipy.org" src="https://views.scientific-python.org/js/script.js"></script>
 
@@ -221,6 +222,11 @@
    </i>
   </label>
   <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="glearn.Covariance.get_imate_options.html">
+     glearn.Covariance.get_imate_options
+    </a>
+   </li>
    <li class="toctree-l2">
     <a class="reference internal" href="glearn.Covariance.set_imate_options.html">
      glearn.Covariance.set_imate_options
@@ -477,9 +483,23 @@
     
     <div class="toc-item">
       
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
 
 <nav id="bd-toc-nav">
-    
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#glearn.Covariance">
+   <code class="docutils literal notranslate">
+    <span class="pre">
+     Covariance
+    </span>
+   </code>
+  </a>
+ </li>
+</ul>
+
 </nav>
     </div>
     
@@ -487,7 +507,7 @@
       
 
 <div class="tocsection editthispage">
-    <a href="https://github.com/https://github.com/ameli/glearn/edit/main/docs/source/generated/glearn.Covariance.rst">
+    <a href="https://github.com/ameli/glearn/edit/main/docs/source/generated/glearn.Covariance.rst">
         <i class="fas fa-pencil-alt"></i> Edit this page
     </a>
 </div>
@@ -537,7 +557,7 @@ process.</p>
 <dt><strong>scale</strong><span class="classifier">float or array_like[float], default=None</span></dt><dd><p>The scale hyperparameters
 <span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (\alpha_1, \dots, \alpha_d)\)</span> in
 scales the distance between data points in <span class="math notranslate nohighlight">\(\mathbb{R}^d\)</span>. If an
-array of the size <span class="math notranslate nohighlight">\(d\)</span> is given, <span class="math notranslate nohighlight">\(\alpha_i\)</span> scales the
+array of the size <span class="math notranslate nohighlight">\(d\)</span> is given, each <span class="math notranslate nohighlight">\(\alpha_i\)</span> scales the
 distance in the <span class="math notranslate nohighlight">\(i\)</span>-th dimension. If a scalar value
 <span class="math notranslate nohighlight">\(\alpha\)</span> is given, all dimensions are scaled isometrically.
 If set to <cite>None</cite>, optimal values of the scale hyperparameters are found
@@ -571,7 +591,7 @@ the specified value.</p>
 </div>
 </dd>
 <dt><strong>imate_options</strong><span class="classifier">dict, default={‘method’: ‘cholesky’}</span></dt><dd><p>The internal computations of the functions
-<a class="reference internal" href="glearn.Covariance.logdet.html#glearn.Covariance.logdet" title="glearn.Covariance.logdet"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Covariance.logdet()</span></code></a>, <a class="reference internal" href="glearn.Covariance.trace.html#glearn.Covariance.trace" title="glearn.Covariance.trace"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Covariance.trace()</span></code></a>, and 
+<a class="reference internal" href="glearn.Covariance.logdet.html#glearn.Covariance.logdet" title="glearn.Covariance.logdet"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Covariance.logdet()</span></code></a>, <a class="reference internal" href="glearn.Covariance.trace.html#glearn.Covariance.trace" title="glearn.Covariance.trace"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Covariance.trace()</span></code></a>, and
 <a class="reference internal" href="glearn.Covariance.traceinv.html#glearn.Covariance.traceinv" title="glearn.Covariance.traceinv"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Covariance.traceinv()</span></code></a> are performed by
 <a class="reference external" href="https://ameli.github.io/imate/index.html">imate</a> package. This
 argument can pass a dictionary of options to pass to the corresponding
@@ -580,7 +600,7 @@ functions of the <cite>imate</cite> package. See
 for details.</p>
 </dd>
 <dt><strong>interpolate</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, the matrix functions
-<a class="reference internal" href="glearn.Covariance.logdet.html#glearn.Covariance.logdet" title="glearn.Covariance.logdet"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Covariance.logdet()</span></code></a>, <a class="reference internal" href="glearn.Covariance.trace.html#glearn.Covariance.trace" title="glearn.Covariance.trace"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Covariance.trace()</span></code></a>, and 
+<a class="reference internal" href="glearn.Covariance.logdet.html#glearn.Covariance.logdet" title="glearn.Covariance.logdet"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Covariance.logdet()</span></code></a>, <a class="reference internal" href="glearn.Covariance.trace.html#glearn.Covariance.trace" title="glearn.Covariance.trace"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Covariance.trace()</span></code></a>, and
 <a class="reference internal" href="glearn.Covariance.traceinv.html#glearn.Covariance.traceinv" title="glearn.Covariance.traceinv"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Covariance.traceinv()</span></code></a> for the mixed covariance function
 are interpolated with respect to the
 hyperparameters <span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\varsigma\)</span>. See <a class="reference internal" href="#ra291872414c4-1" id="id1">[1]</a> for
@@ -659,43 +679,46 @@ and Trace of the Powers of Matrix</em>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.set_imate_options.html#glearn.Covariance.set_imate_options" title="glearn.Covariance.set_imate_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_imate_options</span></code></a>(imate_options)</p></td>
-<td><p>Updates the <code class="docutils literal notranslate"><span class="pre">imate_options</span></code> attribute.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.get_imate_options.html#glearn.Covariance.get_imate_options" title="glearn.Covariance.get_imate_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_imate_options</span></code></a>()</p></td>
+<td><p>Returns the dictionary of options that is passed to the imate package.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.set_scale.html#glearn.Covariance.set_scale" title="glearn.Covariance.set_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_scale</span></code></a>(scale)</p></td>
-<td><p>Sets the scale attribute of correlation matrix.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.set_imate_options.html#glearn.Covariance.set_imate_options" title="glearn.Covariance.set_imate_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_imate_options</span></code></a>(imate_options)</p></td>
+<td><p>Updates the dictionary of options that is passed to the imate package.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.get_scale.html#glearn.Covariance.get_scale" title="glearn.Covariance.get_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_scale</span></code></a>()</p></td>
-<td><p>Returns distance scale of self.mixed_cor.cor object.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.set_scale.html#glearn.Covariance.set_scale" title="glearn.Covariance.set_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_scale</span></code></a>(scale)</p></td>
+<td><p>Sets the array of scale hyperparameters of the correlation matrix.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.set_sigmas.html#glearn.Covariance.set_sigmas" title="glearn.Covariance.set_sigmas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_sigmas</span></code></a>(sigma, sigma0)</p></td>
-<td><p>After training, when optimal sigma and sigma0 is obtained, this function stores sigma and sigma0 as attributes of the class.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.get_scale.html#glearn.Covariance.get_scale" title="glearn.Covariance.get_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_scale</span></code></a>()</p></td>
+<td><p>Returns the array of scale hyperparameters of the correlation matrix.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.get_sigmas.html#glearn.Covariance.get_sigmas" title="glearn.Covariance.get_sigmas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sigmas</span></code></a>([sigma, sigma0])</p></td>
-<td><p>Returns sigma and sigma0.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.set_sigmas.html#glearn.Covariance.set_sigmas" title="glearn.Covariance.set_sigmas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_sigmas</span></code></a>(sigma, sigma0)</p></td>
+<td><p>Sets <span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\varsigma\)</span> hyperparameters of the covariance model.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.get_matrix.html#glearn.Covariance.get_matrix" title="glearn.Covariance.get_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_matrix</span></code></a>([sigma, sigma0, scale, derivative])</p></td>
-<td><p>Get the matrix as a numpy array of scipy sparse array.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.get_sigmas.html#glearn.Covariance.get_sigmas" title="glearn.Covariance.get_sigmas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sigmas</span></code></a>([sigma, sigma0])</p></td>
+<td><p>Returns <span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\varsigma\)</span> hyperparameters of the covariance model.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.trace.html#glearn.Covariance.trace" title="glearn.Covariance.trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace</span></code></a>([sigma, sigma0, scale, exponent, ...])</p></td>
-<td><p>Computes</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.get_matrix.html#glearn.Covariance.get_matrix" title="glearn.Covariance.get_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_matrix</span></code></a>([sigma, sigma0, scale, derivative])</p></td>
+<td><p>Compute the covariance matrix or its derivatives for a given set of hyperparameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.traceinv.html#glearn.Covariance.traceinv" title="glearn.Covariance.traceinv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">traceinv</span></code></a>([sigma, sigma0, B, C, scale, ...])</p></td>
-<td><p>Computes</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.trace.html#glearn.Covariance.trace" title="glearn.Covariance.trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace</span></code></a>([sigma, sigma0, scale, p, derivative, ...])</p></td>
+<td><p>Compute the trace of the positive powers of the covariance matrix or its derivatives.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.logdet.html#glearn.Covariance.logdet" title="glearn.Covariance.logdet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logdet</span></code></a>([sigma, sigma0, scale, exponent, ...])</p></td>
-<td><p>Computes</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.traceinv.html#glearn.Covariance.traceinv" title="glearn.Covariance.traceinv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">traceinv</span></code></a>([sigma, sigma0, B, C, scale, p, ...])</p></td>
+<td><p>Compute the trace of the negative powers of the covariance matrix or its derivatives.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.solve.html#glearn.Covariance.solve" title="glearn.Covariance.solve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve</span></code></a>(Y[, sigma, sigma0, scale, exponent, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.logdet.html#glearn.Covariance.logdet" title="glearn.Covariance.logdet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logdet</span></code></a>([sigma, sigma0, scale, p, ...])</p></td>
+<td><p>Compute the log-determinant of the powers of the covariance matrix or its derivatives.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.solve.html#glearn.Covariance.solve" title="glearn.Covariance.solve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve</span></code></a>(Y[, sigma, sigma0, scale, p, derivative])</p></td>
 <td><p>Solves the linear system</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.dot.html#glearn.Covariance.dot" title="glearn.Covariance.dot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dot</span></code></a>(x[, sigma, sigma0, scale, exponent, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.dot.html#glearn.Covariance.dot" title="glearn.Covariance.dot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dot</span></code></a>(x[, sigma, sigma0, scale, p, derivative])</p></td>
 <td><p>Matrix-vector multiplication:</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.auto_covariance.html#glearn.Covariance.auto_covariance" title="glearn.Covariance.auto_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">auto_covariance</span></code></a>(test_points)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.auto_covariance.html#glearn.Covariance.auto_covariance" title="glearn.Covariance.auto_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">auto_covariance</span></code></a>(test_points)</p></td>
 <td><p>Computes the auto-covariance between the training points and themselves.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.cross_covariance.html#glearn.Covariance.cross_covariance" title="glearn.Covariance.cross_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cross_covariance</span></code></a>(test_points)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.cross_covariance.html#glearn.Covariance.cross_covariance" title="glearn.Covariance.cross_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cross_covariance</span></code></a>(test_points)</p></td>
 <td><p>Computes the cross-covariance between the training points (points which this object is initialized with), and a given set of test points.</p></td>
 </tr>
 </tbody>
@@ -719,10 +742,10 @@ and Trace of the Powers of Matrix</em>
           <p class="prev-next-title">glearn.LinearModel.update_hyperparam</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="glearn.Covariance.set_imate_options.html" title="next page">
+  <a class='right-next' id="next-link" href="glearn.Covariance.get_imate_options.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">glearn.Covariance.set_imate_options</p>
+      <p class="prev-next-title">glearn.Covariance.get_imate_options</p>
   </div>
   <i class="fas fa-angle-right"></i>
   </a>
@@ -749,7 +772,7 @@ and Trace of the Powers of Matrix</em>
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.2.<br>
 </p>
   </div>
   
