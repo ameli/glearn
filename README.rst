@@ -217,61 +217,6 @@ and test the package with
 
     tox
 
-=======
-Modules
-=======
-
-========================  ===============================================================================================================
-Syntax                    User guide
-========================  ===============================================================================================================
-``todo(nu, z, n)``        Module name todo  <https://ameli.github.io/glearn/module_name.html>`_
-========================  ===============================================================================================================
-
-**Typed Arguments:**
-
-========  ==============================  ==============================================================
-Argument   Type                           Description
-========  ==============================  ==============================================================
-``nu``    ``double``                      Parameter
-========  ==============================  ==============================================================
-
-
-.. |image01| image:: https://raw.githubusercontent.com/ameli/glearn/main/docs/images/image01.svg
-.. |image02| image:: https://raw.githubusercontent.com/ameli/glearn/main/docs/images/image02.svg
-.. |image03| image:: https://raw.githubusercontent.com/ameli/glearn/main/docs/images/image03.svg
-.. |image04| image:: https://raw.githubusercontent.com/ameli/glearn/main/docs/images/image04.svg
-.. |image05| image:: https://raw.githubusercontent.com/ameli/glearn/main/docs/images/image05.svg
-.. |image06| image:: https://raw.githubusercontent.com/ameli/glearn/main/docs/images/image06.svg
-.. |image07| image:: https://raw.githubusercontent.com/ameli/glearn/main/docs/images/image07.svg
-.. |image08| image:: https://raw.githubusercontent.com/ameli/glearn/main/docs/images/image08.svg
-.. |image09| image:: https://raw.githubusercontent.com/ameli/glearn/main/docs/images/image09.svg
-.. |image10| image:: https://raw.githubusercontent.com/ameli/glearn/main/docs/images/image10.svg
-.. |image11| image:: https://raw.githubusercontent.com/ameli/glearn/main/docs/images/image11.svg
-
-========
-Examples
-========
- 
-
-================
-Related Packages
-================
-
-* TODO
-
-================
-Acknowledgements
-================
-
-* National Science Foundation #1520825
-* American Heart Association #18EIA33900046
-
-======
-Credit
-======
-
-* TODO.
-
 .. |codecov-devel| image:: https://img.shields.io/codecov/c/github/ameli/glearn
    :target: https://codecov.io/gh/ameli/glearn
 .. |docs| image:: https://github.com/ameli/glearn/workflows/docs/badge.svg
