@@ -1,248 +1,145 @@
-*******
-G-Learn
-*******
+******
+|logo|
+******
 
-|licence| |docs|
+``glearn`` is a modular and high-performance Python package for machine learning using **G**\ aussian process regression with novel algorithms capable of petascale computation on multi-GPU devices.
 
-Gaussian Process for Machine Learning.
-
-*This package is under development and has not been released.*
-
-========
-Features
-========
-
-* TODO
-
-====================
-Interactive Tutorial
-====================
-
-|binder|
-
-Launch an online interactive tutorial in `Jupyter notebook <https://mybinder.org/v2/gh/ameli/glearn/main?labpath=notebooks%2Fdemo.ipynb>`_.
-
-
-=====
 Links
 =====
 
-* `Documentation <https://ameli.github.io/glearn/index.html>`_
-* `Package on Anaconda Cloud <https://anaconda.org/s-ameli/glearn>`_
-* `Package on PyPi <https://pypi.org/project/glearn/>`_
+* `Documentation <https://ameli.github.io/glearn>`_
+* `PyPI <https://pypi.org/project/glearn/>`_
+* `Anaconda <https://anaconda.org/s-ameli/glearn>`_
+* `Docker Hub <https://hub.docker.com/r/sameli/glearn>`_
+* `Git Hub <https://github.com/ameli/glearn>`_
 
-=======
 Install
 =======
 
--------------------
-Supported Platforms
--------------------
+Install with ``pip``
+--------------------
 
-Successful installation and tests have been performed on the following platforms and Python/PyPy versions shown in the table below.
+|pypi|
+
+::
+
+    pip install glearn
+
+Install with ``conda``
+----------------------
+
+|conda-version|
+
+::
+
+    conda install -c s-ameli glearn
+
+Docker Image
+------------
+
+|docker-pull| |deploy-docker|
+
+::
+
+    docker pull sameli/glearn
+
+Supported Platforms
+===================
+
+Successful installation and tests performed on the following operating systems, architectures, and Python and `PyPy <https://www.pypy.org/>`_ versions:
 
 .. |y| unicode:: U+2714
 .. |n| unicode:: U+2716
 
-+----------+-----+-----+-----+-----+-----+-----+-----+-----+-----------------+
-| Platform | Python version              | PyPy version    | Status          |
-+          +-----+-----+-----+-----+-----+-----+-----+-----+                 +
-|          | 2.7 | 3.6 | 3.7 | 3.8 | 3.9 | 2.7 | 3.6 | 3.7 |                 |
-+==========+=====+=====+=====+=====+=====+=====+=====+=====+=================+
-| Linux    | |y| | |y| | |y| | |y| | |y| | |y| | |y| | |y| | |build-linux|   |
-+----------+-----+-----+-----+-----+-----+-----+-----+-----+-----------------+
-| macOS    | |y| | |y| | |y| | |y| | |y| | |n| | |n| | |n| | |build-macos|   |
-+----------+-----+-----+-----+-----+-----+-----+-----+-----+-----------------+
-| Windows  | |n| | |y| | |y| | |y| | |y| | |n| | |n| | |n| | |build-windows| |
-+----------+-----+-----+-----+-----+-----+-----+-----+-----+-----------------+
++----------+--------+--------+-------+-------+-------+-------+-------+-----------------+
+| Platform | Arch   | Device | Python Version                        | Continuous      |
++          |        +        +-------+-------+-------+-------+-------+ Integration     +
+|          |        |        |  3.6  |  3.7  |  3.8  |  3.9  |  3.10 |                 |
++==========+========+========+=======+=======+=======+=======+=======+=================+
+| Linux    | X86-64 | CPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  | |build-linux|   |
++          +        +--------+-------+-------+-------+-------+-------+                 +
+|          |        | GPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  |                 |
++----------+--------+--------+-------+-------+-------+-------+-------+-----------------+
+| macOS    | X86-64 | CPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  | |build-macos|   |
++          +        +--------+-------+-------+-------+-------+-------+                 +
+|          |        | GPU    |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |                 |
++----------+--------+--------+-------+-------+-------+-------+-------+-----------------+
+| Windows  | X86-64 | CPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  | |build-windows| |
++          +        +--------+-------+-------+-------+-------+-------+                 +
+|          |        | GPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  |                 |
++----------+--------+--------+-------+-------+-------+-------+-------+-----------------+
 
-.. |build-linux| image:: https://github.com/ameli/glearn/workflows/build-linux/badge.svg
+.. |build-linux| image:: https://img.shields.io/github/workflow/status/ameli/glearn/build-linux
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Abuild-linux 
-.. |build-macos| image:: https://github.com/ameli/glearn/workflows/build-macos/badge.svg
+.. |build-macos| image:: https://img.shields.io/github/workflow/status/ameli/glearn/build-macos
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Abuild-macos
-.. |build-windows| image:: https://github.com/ameli/glearn/workflows/build-windows/badge.svg
+.. |build-windows| image:: https://img.shields.io/github/workflow/status/ameli/glearn/build-windows
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Abuild-windows
 
+Python wheels for ``glearn`` for all supported platforms and versions in the above are available through `PyPI <https://pypi.org/project/glearn/>`_ and `Anaconda Cloud <https://anaconda.org/s-ameli/glearn>`_. If you need ``glearn`` on other platforms, architectures, and Python or PyPy versions, `raise an issue <https://github.com/ameli/glearn/issues>`_ on GitHub and we build its Python Wheel for you.
 
-* For the Python/PyPy versions indicated by |y| in the above, this package can be installed using either ``pip`` or ``conda`` (see `Install Package`_ below.)
-* This package cannot be installed via ``pip`` or ``conda`` on the Python/PyPy versions indicated by |n| in the above table.
-* To install on the older Python 3 versions that are not listed in the above (for example Python 3.5), you should *build* this package from the source code (see `Build and Install from Source Code`_).
+Supported GPU Architectures
+===========================
 
+``glearn`` can run on CUDA-capable **multi**-GPU devices. Using the **docker container** is the easiest way to run ``glearn`` on GPU devices. The supported GPU micro-architectures and CUDA version are as follows:
 
-------------
-Dependencies
-------------
++-----------------+---------+---------+---------+---------+---------+---------+---------+--------+
+| Version \\ Arch | Fermi   | Kepler  | Maxwell | Pascal  | Volta   | Turing  | Ampere  | Hopper |
++=================+=========+=========+=========+=========+=========+=========+=========+========+
+| CUDA 9          |   |n|   |   |n|   |   |n|   |   |n|   |   |n|   |   |n|   |   |n|   |   |n|  |
++-----------------+---------+---------+---------+---------+---------+---------+---------+--------+
+| CUDA 10         |   |n|   |   |y|   |   |y|   |   |y|   |   |y|   |   |y|   |   |y|   |   |y|  |
++-----------------+---------+---------+---------+---------+---------+---------+---------+--------+
+| CUDA 11         |   |n|   |   |n|   |   |n|   |   |y|   |   |y|   |   |y|   |   |y|   |   |y|  |
++-----------------+---------+---------+---------+---------+---------+---------+---------+--------+
 
-* **At runtime:** TODO
-* **For tests:** To run `Test`_, ``scipy`` package is required and can be installed by
+Documentation
+=============
 
-  ::
+|deploy-docs| |binder|
 
-      python -m pip install -r tests/requirements.txt
+See `documentation <https://ameli.github.io/glearn/index.html>`__, including:
 
----------------
-Install Package
----------------
+* `What This Packages Does? <https://ameli.github.io/glearn/overview.html>`_
+* `Comprehensive Installation Guide <https://ameli.github.io/glearn/tutorials/install.html>`_
+* `How to Work with Docker Container? <https://ameli.github.io/glearn/tutorials/docker.html>`_
+* `How to Deploy on GPU Devices? <https://ameli.github.io/glearn/tutorials/gpu.html>`_
+* `API Reference <https://ameli.github.io/glearn/api.html>`_
+* `Interactive Notebook Tutorials <https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2Fquick_start.ipynb>`_
+* `Publications <https://ameli.github.io/glearn/cite.html>`_
 
-Either `Install from PyPi`_, `Install from Anaconda Cloud`_, or `Build and Install from Source Code`_.
+How to Contribute
+=================
 
-.. _Install_PyPi:
+We welcome contributions via `GitHub's pull request <https://github.com/ameli/glearn/pulls>`_. If you do not feel comfortable modifying the code, we also welcome feature requests and bug reports as `GitHub issues <https://github.com/ameli/glearn/issues>`_.
 
-~~~~~~~~~~~~~~~~~
-Install from PyPi
-~~~~~~~~~~~~~~~~~
+How to Cite
+===========
 
-|pypi| |format| |implementation| |pyversions|
+If you publish work that uses ``glearn``, please consider citing the manuscripts available `here <https://ameli.github.io/glearn/cite.html>`_.
 
-The recommended installation method is through the package available at `PyPi <https://pypi.org/project/glearn>`_ using ``pip``.
+License
+=======
 
-1. Ensure ``pip`` is installed within Python and upgrade the existing ``pip`` by
+|license|
 
-   ::
+This project uses a `BSD 3-clause license <https://github.com/ameli/glearn/blob/main/LICENSE.txt>`_, in hopes that it will be accessible to most projects. If you require a different license, please raise an `issue <https://github.com/ameli/glearn/issues>`_ and we will consider a dual license.
 
-       python -m ensurepip
-       python -m pip install --upgrade pip
-
-   If you are using PyPy instead of Python, ensure ``pip`` is installed and upgrade the existing ``pip`` by
-
-   ::
-
-       pypy -m ensurepip
-       pypy -m pip install --upgrade pip
-
-2. Install this package in Python by
-   
-   ::
-       
-       python -m pip install glearn
-
-   or, in PyPy by
-
-   ::
-       
-       pypy -m pip install glearn
-
-.. _Install_Conda:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Install from Anaconda Cloud
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-|conda-version| |conda-platform|
-
-Alternatively, the package can be installed through `Anaconda could <https://anaconda.org/s-ameli/glearn>`_.
-
-* In **Linux** and **Windows**:
-  
-  ::
-      
-      conda install -c s-ameli glearn
-
-* In **macOS**:
-  
-  ::
-      
-      conda install -c s-ameli -c conda-forge glearn
-
-.. _Build_Locally:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Build and Install from Source Code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-|release|
-
-**Build dependencies:** To build the package from the source code, ``numpy`` and ``cython`` are required. These dependencies are installed automatically during the build process and no action is needed.
-
-1. Install both C and Fortran compilers as follows.
-
-   * **Linux:** Install ``gcc``, for instance, by ``apt`` (or any other package manager on your Linux distro)
-
-     ::
-
-         sudo apt install gcc
-
-   * **macOS:** Install ``gcc`` via Homebrew:
-
-     ::
-
-         sudo brew install gcc
-
-     *Note:* If ``gcc`` is already installed, but Fortran compiler is yet not available on macOS, you may resolve this issue by reinstalling:
-     
-     ::
-         
-         sudo brew reinstall gcc
-
-   * **Windows:** Install both `Microsoft Visual C++ compiler <https://visualstudio.microsoft.com/vs/features/cplusplus/>`_ and Intel Fortran compiler (`Intel oneAPI <https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/fortran-compiler.html>`_). Open the command prompt (where you will enter the installation commands in the next step) and load the Intel compiler variables by
-
-     ::
-
-         C:\Program Files (x86)\Intel\oneAPI\setvars.bat
-
-     Here, we assumed the Intel Fortran compiler is installed in ``C:\Program Files (x86)\Intel\oneAPI``. You may set this directory accordingly to the directory of your Intel compiler.
-
-
-2. Clone the source code and install this package by
-   
-   ::
-
-       git clone https://github.com/ameli/glearn.git
-       cd glearn
-       python -m pip install .
-
-**Warning:** After the package is built and installed from the source code, the package cannot be imported properly if the current working directory is the same as the source code directory. To properly import the package, change the current working directory to a directory anywhere else **outside** of the source code directory. For instance:
-    
-.. code-block:: python
-   
-   cd ..
-   python
-   >>> import glearn
-
-====
-Test
-====
-
-|codecov-devel|
-
-To test package, install ``tox``:
-
-::
-
-    python -m pip install tox
-
-and test the package with
-
-::
-
-    tox
-
+.. |logo| image:: https://raw.githubusercontent.com/ameli/glearn/main/docs/source/_static/images/icons/logo-glearn-light.svg
+   :width: 160
+.. |license| image:: https://img.shields.io/github/license/ameli/glearn
+   :target: https://opensource.org/licenses/BSD-3-Clause
+.. |deploy-docs| image:: https://img.shields.io/github/workflow/status/ameli/glearn/deploy-docs?label=docs
+   :target: https://github.com/ameli/glearn/actions?query=workflow%3Adeploy-docs
+.. |binder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2Fquick_start.ipynb
+.. |pypi| image:: https://img.shields.io/pypi/v/glearn
+   :target: https://pypi.org/project/glearn/
 .. |codecov-devel| image:: https://img.shields.io/codecov/c/github/ameli/glearn
    :target: https://codecov.io/gh/ameli/glearn
-.. |docs| image:: https://github.com/ameli/glearn/workflows/docs/badge.svg
-   :target: https://ameli.github.io/glearn/index.html
-.. |licence| image:: https://img.shields.io/github/license/ameli/glearn
-   :target: https://opensource.org/licenses/MIT
-.. |travis-devel-linux| image:: https://img.shields.io/travis/com/ameli/glearn?env=BADGE=linux&label=build&branch=main
-   :target: https://travis-ci.com/github/ameli/glearn
-.. |travis-devel-osx| image:: https://img.shields.io/travis/com/ameli/glearn?env=BADGE=osx&label=build&branch=main
-   :target: https://travis-ci.com/github/ameli/glearn
-.. |travis-devel-windows| image:: https://img.shields.io/travis/com/ameli/glearn?env=BADGE=windows&label=build&branch=main
-   :target: https://travis-ci.com/github/ameli/glearn
-.. |implementation| image:: https://img.shields.io/pypi/implementation/glearn
-.. |pyversions| image:: https://img.shields.io/pypi/pyversions/glearn
-.. |format| image:: https://img.shields.io/pypi/format/glearn
-.. |pypi| image:: https://img.shields.io/pypi/v/glearn
-   :target: https://pypi.org/project/special-functions/
-.. |conda| image:: https://anaconda.org/s-ameli/glearn/badges/installer/conda.svg
-   :target: https://anaconda.org/s-ameli/glearn
-.. |platforms| image:: https://img.shields.io/conda/pn/s-ameli/glearn?color=orange?label=platforms
-   :target: https://anaconda.org/s-ameli/glearn
+.. |deploy-docker| image:: https://img.shields.io/github/workflow/status/ameli/glearn/deploy-docker?label=build%20docker
+   :target: https://github.com/ameli/glearn/actions?query=workflow%3Adeploy-docker
+.. |docker-pull| image:: https://img.shields.io/docker/pulls/sameli/glearn?color=green&label=downloads
+   :target: https://hub.docker.com/r/sameli/glearn
 .. |conda-version| image:: https://img.shields.io/conda/v/s-ameli/glearn
    :target: https://anaconda.org/s-ameli/glearn
-.. |conda-platform| image:: https://anaconda.org/s-ameli/glearn/badges/platforms.svg
-   :target: https://anaconda.org/s-ameli/glearn
-.. |release| image:: https://img.shields.io/github/v/tag/ameli/glearn
-   :target: https://github.com/ameli/glearn/releases/
-.. |binder| image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/ameli/glearn/main?labpath=notebooks%2Fdemo.ipynb

@@ -773,11 +773,8 @@ class Covariance(object):
         See Also
         --------
 
-        glearn.Covariance.trace
-        glearn.Covariance.traceinv
-        glearn.Covariance.logdet
-        glearn.Covariance.solve
-        glearn.Covariance.dot
+        glearn.Covariance.auto_covariance
+        glearn.Covariance.cross_covariance
 
         Notes
         -----
@@ -786,8 +783,8 @@ class Covariance(object):
 
         .. math::
 
-            \\left. \\frac{\\partial^q}{\\partial \\alpha_{i+1} \\partial
-            \\alpha_{j+1} \\dots \\partial \\alpha_{k+1}}
+            \\left. \\frac{\\partial^q}{\\partial \\alpha_{i} \\partial
+            \\alpha_{j} \\dots \\partial \\alpha_{k}}
             \\boldsymbol{\\Sigma}(\\boldsymbol{\\alpha} \\vert
             \\sigma, \\varsigma) \\right|_{\\boldsymbol{\\alpha}},
 
@@ -1014,8 +1011,8 @@ class Covariance(object):
         .. math::
 
             \\mathrm{trace} \\left(
-            \\frac{\\partial^q}{\\partial \\alpha_{i+1} \\partial
-            \\alpha_{j+1} \\dots \\partial \\alpha_{k+1}}
+            \\frac{\\partial^q}{\\partial \\alpha_{i} \\partial
+            \\alpha_{j} \\dots \\partial \\alpha_{k}}
             \\boldsymbol{\\Sigma}^p(\\boldsymbol{\\alpha} \\vert
             \\sigma, \\varsigma) \\right),
 
@@ -1285,8 +1282,8 @@ class Covariance(object):
         .. math::
 
             \\mathrm{trace} \\left(
-            \\frac{\\partial^q}{\\partial \\alpha_{i+1} \\partial
-            \\alpha_{j+1} \\dots \\partial \\alpha_{k+1}}
+            \\frac{\\partial^q}{\\partial \\alpha_{i} \\partial
+            \\alpha_{j} \\dots \\partial \\alpha_{k}}
             \\boldsymbol{\\Sigma}^{-p}(\\boldsymbol{\\alpha} \\vert
             \\sigma, \\varsigma) \\right),
 
@@ -1584,8 +1581,8 @@ class Covariance(object):
         .. math::
 
             \\log \\det \\left(
-            \\frac{\\partial^q}{\\partial \\alpha_{i+1} \\partial
-            \\alpha_{j+1} \\dots \\partial \\alpha_{k+1}}
+            \\frac{\\partial^q}{\\partial \\alpha_{i} \\partial
+            \\alpha_{j} \\dots \\partial \\alpha_{k}}
             \\boldsymbol{\\Sigma}^{p}(\\boldsymbol{\\alpha} \\vert
             \\sigma, \\varsigma) \\right),
 
@@ -1619,14 +1616,6 @@ class Covariance(object):
           \\partial \\alpha_1^2`.
         * ``[0, 2, 2, 4]`` corresponds to :math:`\\partial^4 /
           \\partial \\alpha_1 \\partial \\alpha_{3}^2 \\partial \\alpha_5`.
-
-        **Configuring Computation Settings:**
-
-        This function passes the computation of the log-determinant to the
-        function :func:`imate.logdet`. To configure the latter function, create
-        a dictionary of input arguments to this function and pass the
-        dictionary with :func:`glearn.Covariance.set_imate_options`. See
-        examples below for details.
 
         Examples
         --------
@@ -1839,15 +1828,17 @@ class Covariance(object):
 
         .. math::
 
-            \\boldsymbol{\\Sigma}^{p, (q)} \\mathbf{X} = \\mathbf{Y},
+            \\boldsymbol{\\Sigma}^{p}_{(i, j, \\dots, k)} \\mathbf{X} =
+            \\mathbf{Y},
 
-        where :math:`\\boldsymbol{\\Sigma}^{p, (q)}` is defined as
+        where :math:`\\boldsymbol{\\Sigma}^{p}_{(i, j, \\dots, k)}` is defined
+        as
 
         .. math::
 
-            \\boldsymbol{\\Sigma}^{p, (q)} =
-            \\frac{\\partial^q}{\\partial \\alpha_{i+1} \\partial
-            \\alpha_{j+1} \\dots \\partial \\alpha_{k+1}}
+            \\boldsymbol{\\Sigma}^{p}_{(i, j, \\dots, k)} =
+            \\frac{\\partial^q}{\\partial \\alpha_{i} \\partial
+            \\alpha_{j} \\dots \\partial \\alpha_{k}}
             \\boldsymbol{\\Sigma}^{p}(\\boldsymbol{\\alpha} \\vert
             \\sigma, \\varsigma).
 
@@ -1930,7 +1921,10 @@ class Covariance(object):
 
             >>> # Solve linear system.
             >>> cov.solve(Y, sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=2)
-            19.843781574740206
+            array([[-6.41469264e-03, -6.63212215e-04],
+                   [ 3.76411547e-03,  8.27826466e-03],
+                   [ 9.02944475e-05,  6.40825511e-03],
+                   [-3.89733076e-03, -1.20076618e-02]])
 
         **Taking Derivatives:**
 
@@ -1938,22 +1932,26 @@ class Covariance(object):
 
         .. math::
 
-            \\boldsymbol{\\Sigma}^{(2)} \\mathbf{X} = \\mathbf{Y},
+            \\boldsymbol{\\Sigma}_{(1, 2)} \\mathbf{X} = \\mathbf{Y},
 
-        where here :math:`\\boldsymbol{\\Sigma}^{(2)}` is
+        where here :math:`\\boldsymbol{\\Sigma}_{(1, 2)}` is
 
         .. math::
 
-            \\boldsymbol{\\Sigma}^{(2)} =
-            \\frac{\\partial^2}{\\partial \\alpha_2^2} \\boldsymbol{\\Sigma}
-            (\\alpha_1, \\alpha_2 \\vert \\sigma, \\varsigma).
+            \\boldsymbol{\\Sigma}_{(1, 2)} =
+            \\frac{\\partial^2}{\\partial \\alpha_1 \\partial \\alpha_2}
+            \\boldsymbol{\\Sigma} (\\boldsymbol{\\alpha} \\vert \\sigma,
+            \\varsigma).
 
         .. code-block:: python
 
             >>> # Compute second mixed derivative
             >>> cov.solve(Y, sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=1,
-            ...           derivative=[1, 1])
-            8.095686613549319
+            ...           derivative=[0, 1])
+            array([[  29.66090701,  -24.32302349],
+                   [ -37.62438132,   25.74258571],
+                   [ 419.71827538, -742.15853881],
+                   [-103.81860112,  176.67720887]])
         """
 
         # Get sigma and sigma0 (if None, uses class attribute)
@@ -2007,23 +2005,209 @@ class Covariance(object):
             p=1,
             derivative=[]):
         """
-        Matrix-vector multiplication:
+        Matrix-vector or matrix-matrix multiplication involving the powers of
+        covariance matrix or its derivatives.
+
+        Parameters
+        ----------
+
+        X : numpy.ndarray
+            The right-hand side array (either 1D or 2D array). The size of this
+            array is :math:`n \\times m` where :math:`n` is the size of the
+            covariance matrix.
+
+        sigma : float, default=None
+            The hyperparameter :math:`\\sigma` of the covariance model where
+            :math:`\\sigma^2` represents the variance of the correlated errors
+            of the model. :math:`\\sigma` should be positive and cannot be
+            `None`.
+
+        sigma0 : float, default=None
+            The hyperparameter :math:`\\varsigma` of the covariance model where
+            :math:`\\varsigma^2` represents the variance of the input noise to
+            of the model. :math:`\\sigma` should be positive and cannot be
+            `None`.
+
+        scale : float or array_like[float], default=None
+            The scale hyperparameters
+            :math:`\\boldsymbol{\\alpha} = (\\alpha_1, \\dots, \\alpha_d)` in
+            scales the distance between data points in :math:`\\mathbb{R}^d`.
+            If an array of the size :math:`d` is given, each :math:`\\alpha_i`
+            scales the distance in the :math:`i`-th dimension. If a scalar
+            value :math:`\\alpha` is given, all dimensions are scaled
+            isometrically. :math:`\\boldsymbol{\\alpha}` cannot be `None`.
+
+        p : float, default=1
+            The integer exponent :math:`p` (negative or positive) of the
+            covariance matrix :math:`\\boldsymbol{\\Sigma}^{p}` (see Notes
+            below).
+
+        derivative : list, default=[]
+            Specifies a list of derivatives of covariance matrix with respect
+            to the hyperparameters :math:`\\boldsymbol{\\alpha} = (\\alpha_1,
+            \\dots, \\alpha_d)`. A list of the size :math:`q` with the
+            components ``[i, j, ..., k]`` corresponds to take the derivative
+
+            .. math::
+
+                \\left. \\frac{\\partial^q}{\\partial \\alpha_{i+1} \\partial
+                \\alpha_{j+1} \\dots \\partial \\alpha_{k+1}}
+                \\boldsymbol{\\Sigma}^{p}(\\boldsymbol{\\alpha} \\vert
+                \\sigma^2, \\varsigma^2) \\right|_{\\boldsymbol{\\alpha}}.
+
+            .. note::
+
+                The derivative with respect to each hyperparameter
+                :math:`\\alpha_i` can be at most of the order two,
+                :math:`\\partial^2 / \\partial \\alpha_i^2`. That is, each
+                index in the ``derivative`` list can appear at most twice.
+                For instance ``derivative=[1, 1]`` (second order derivative
+                with respect to :math:`\\alpha_{2}`) is a valid input argument,
+                how ever ``derivative=[1, 1, 1]`` (third order derivative) is
+                an invalid input.
+
+            .. note::
+                When the derivative order is non-zero (meaning that
+                ``derivative`` is not ``[]``), the exponent :math:`p` should
+                be `1`.
+
+        Returns
+        -------
+
+        Y : numpy.ndarray
+            An array with the same size as of `X`.
+
+        See Also
+        --------
+
+        glearn.Covariance.get_matrix
+        glearn.Covariance.solve
+
+        Notes
+        -----
+
+        This function performs the matrix multiplication
 
         .. math::
 
-            \\boldsymbol{y} = \\frac{\\partial^q}{\\partial \\theta^q}
-            (\\sigma^2 \\mathbf{K}(\\theta) + \\sigma_0^2 \\mathbf{I})^{p}
-            \\boldsymbol{x}
+            \\mathbf{Y} =
+            \\boldsymbol{\\Sigma}^{p}_{(i, j, \\dots, k)} \\mathbf{X},
 
-        where:
+        where :math:`\\boldsymbol{\\Sigma}^{p}_{(i, j, \\dots, k)}` is defined
+        as
 
-        * :math:`\\boldsymbol{x}` is the given vector,
-        * :math:`\\boldsymbol{y}` is the product vector,
-        * :math:`\\mathbf{I}` is the identity matrix,
-        * :math:`\\sigma` and :math:`\\sigma_0` are real numbers.
-        * :math:`p`is a non-negative integer.
-        * :math:`\\theta` is correlation scale parameter.
-        * :math:`q` is the order of the derivative.
+        .. math::
+
+            \\boldsymbol{\\Sigma}^{p}_{(i, j, \\dots, k)} =
+            \\frac{\\partial^q}{\\partial \\alpha_{i} \\partial
+            \\alpha_{j} \\dots \\partial \\alpha_{k}}
+            \\boldsymbol{\\Sigma}^{p}(\\boldsymbol{\\alpha} \\vert
+            \\sigma, \\varsigma).
+
+        In the above, :math:`p` is the matrix exponent and :math:`q` is the
+        order of derivation. Also, the covariance matrix
+        :math:`\\boldsymbol{\\Sigma}` is defined by
+
+        .. math::
+
+            \\boldsymbol{\\Sigma}(\\boldsymbol{\\alpha}, \\sigma, \\varsigma) =
+            \\sigma^2 \\mathbf{K}(\\boldsymbol{\\alpha}) + \\varsigma^2
+            \\mathbf{I}.
+
+        In the above, :math:`\\mathbf{I}` is the identity matrix and
+        :math:`\\mathbf{K}` is the correlation matrix that depends on a set of
+        scale hyperparameters :math:`\\boldsymbol{\\alpha}=(\\alpha_1, \\dots,
+        \\alpha_d)`.
+
+        **Derivatives:**
+
+        Note that the indices in list ``derivative=[i, j, ..., k]`` are
+        zero-indexed, meaning that the index ``i`` corresponds to take
+        derivative with respect to the hyperparameter :math:`\\alpha_{i+1}`.
+        For instance:
+
+        * ``[]`` corresponds to no derivative.
+        * ``[0]`` corresponds to :math:`\\partial / \\partial \\alpha_1` and
+          ``[1]`` corresponds to :math:`\\partial / \\partial
+          \\alpha_2`.
+        * ``[0, 2]`` corresponds to :math:`\\partial^2 /
+          \\partial \\alpha_1 \\partial \\alpha_3`.
+        * ``[0, 0]`` corresponds to :math:`\\partial^2 /
+          \\partial \\alpha_1^2`.
+        * ``[0, 2, 2, 4]`` corresponds to :math:`\\partial^4 /
+          \\partial \\alpha_1 \\partial \\alpha_{3}^2 \\partial \\alpha_5`.
+
+        Examples
+        --------
+
+        **Basic Usage:**
+
+        Create a covariance matrix based on a set of sample data with four
+        points in :math:`d=2` dimensional space.
+
+        .. code-block:: python
+
+            >>> # Generate a set of points
+            >>> from glearn.sample_data import generate_points
+            >>> x = generate_points(num_points=4, dimension=2)
+
+            >>> # Create a covariance object
+            >>> from glearn import Covariance
+            >>> cov = Covariance(x)
+
+        In the following, we create a sample right-hand side matrix
+        :math:`\\mathbf{Y}` of the size :math:`n \\times 2`. The size of the
+        covariance, :math:`n`, is also the same as the size of the number of
+        points generated in the above. We perform the matrix-matrix
+        multiplication:
+        
+        .. math::
+
+            \\mathbf{Y} = \\boldsymbol{\\Sigma}^{2} \\mathbf{X},
+
+        for the hyperparameters :math:`\\sigma=2`, :math:`\\varsigma = 3`,
+        and :math:`\\boldsymbol{\\alpha} = (1, 2)`.
+
+        .. code-block:: python
+
+            >>> import numpy
+            >>> n, m = x.shape[0], 2
+            >>> X = numpy.random.randn(n, m)
+
+            >>> # Solve linear system.
+            >>> cov.dot(X, sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=2)
+            array([[ -62.43487963,   -9.89158707],
+                   [   2.692417  ,   43.50383989],
+                   [   4.03370002,   47.7992843 ],
+                   [-100.43476314,  -71.39803646]])
+
+        **Taking Derivatives:**
+
+        Perform matrix-matrix multiplication involving the second mixed
+        derivative
+
+        .. math::
+
+            \\boldsymbol{\\Sigma}_{(1, 2)} \\mathbf{X} = \\mathbf{Y},
+
+        where here :math:`\\boldsymbol{\\Sigma}_{(1, 2)}` is
+
+        .. math::
+
+            \\boldsymbol{\\Sigma}_{(1, 2)} =
+            \\frac{\\partial^2}{\\partial \\alpha_1 \\partial \\alpha_2}
+            \\boldsymbol{\\Sigma} (\\boldsymbol{\\alpha} \\vert \\sigma,
+            \\varsigma).
+
+        .. code-block:: python
+
+            >>> # Compute second mixed derivative
+            >>> cov.dot(Y, sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=1,
+            ...         derivative=[0, 1])
+            array([[-0.09526064, -0.06087328],
+                   [-0.25840693, -0.20152662],
+                   [-0.00797171,  0.01534789],
+                   [ 0.00716338,  0.10643169]])
         """
 
         # Get sigma and sigma0 (if None, uses class attribute)
@@ -2066,17 +2250,153 @@ class Covariance(object):
     # auto covariance
     # ===============
 
-    def auto_covariance(self, test_points):
+    def auto_covariance(self, training_points):
         """
-        Computes the auto-covariance between the training points and
-        themselves.
+        Compute the auto-covariance between a set of test points.
+
+        Parameters
+        ----------
+
+        training_points : numpy.ndarray
+            An array of the size :math:`n^{\\ast} \\times d` representing the
+            coordinates of :math:`n^{\\asr}` test points. Each row of the array
+            is the coordinates of a point
+            :math:`\\boldsymbol{x} = (x_1, \\dots, x_d)`.
+
+        Returns
+        -------
+
+        S_star_star : numpy.ndarray
+            The covariance array :math:`\\boldsymbol{\\Sigma}^{\\ast \\ast}` of
+            the size :math:`n^{\\ast} \\times n^{\\ast}`.
+
+        See Also
+        --------
+
+        glearn.Covariance.get_matrix
+        glearn.Covariance.auto_covariance
+
+        Notes
+        -----
+
+        **Auto-Covariance:**
+
+        Given a set of test points :math:`\\{ \\boldsymbol{x}^{\\ast}_i
+        \\}_{i=1}^{n^{\\ast}}`, this function generates the :math:`n^{\\ast}
+        \\times n^{\\ast}` auto-covariance
+        :math:`\\boldsymbol{\\Sigma}^{\\ast \\ast}`  where each element
+        :math:`\\Sigma^{\\ast \\ast}_{ij}` of the matrix is the covariance
+        between the points in the :math:`i`-th and :math:`j`-th test point,
+        namely,
+
+        .. math::
+
+            \\Sigma^{\\ast \\ast}_{ij} = \\mathrm{cov}(
+            \\boldsymbol{x}^{\\ast}_i, \\boldsymbol{x}^{\\ast}_j).
+
+        **Specifying Hyperparameters:**
+
+        The auto-covariance matrix :math:`\\boldsymbol{\\Sigma}^{\\ast \\ast}`
+        depends on a set of hyperparameters as it is defined by
+
+        .. math::
+
+            \\boldsymbol{\\Sigma}^{\\ast \\ast}(\\boldsymbol{\\alpha},
+            \\sigma, \\varsigma) =
+            \\sigma^2 \\mathbf{K}^{\\ast \\ast}(\\boldsymbol{\\alpha}) +
+            \\varsigma^2 \\mathbf{I}.
+
+        In the above, :math:`\\mathbf{I}` is the identity matrix and
+        :math:`\\mathbf{K}^{\\ast \\ast}` is the auto-correlation matrix that
+        depends on a set of scale hyperparameters
+        :math:`\\boldsymbol{\\alpha}=(\\alpha_1, \\dots, \\alpha_d)`.
+
+        .. note::
+
+            Before using :func:`glearn.Covariance.auto_covariance`, the
+            hyperparameters :math:`\\sigma`, :math:`\\varsigma`, and
+            :math:`\\boldsymbol{\\alpha}` of the covariance object should be
+            defined. These hyperparameters can be either defined at the time of
+            instantiation of :class:`glearn.Covariance`, or to be set by
+
+            * :func:`glearn.Covariance.set_sigmas` to set :math:`\\sigma` and
+              :math:`\\varsigma`.
+            * :func:`glearn.Covariance.set_scale` to set
+              :math:`\\boldsymbol{\\alpha}`.
+
+        **Summary of Covariance Functions:**
+
+        Suppose :math:`\\{ \\boldsymbol{x}_i \\}_{i=1}^{n}` and
+        :math:`\\{ \\boldsymbol{x}^{\\ast}_i \\}_{i=1}^{n^{\\ast}}` are
+        respectively training and test points. Three covariance matrices
+        can be generated:
+
+        * :func:`glearn.Covariance.get_matrix` returns the auto-covariance
+          between training points by the :math:`n \\times n` matrix
+          :math:`\\boldsymbol{\\Sigma}` with the components
+
+          .. math::
+
+            \\Sigma_{ij} = \\mathrm{cov}(\\boldsymbol{x}_i,
+            \\boldsymbol{x}_j).
+
+        * :func:`glearn.Covariance.cross_covariance` returns the
+          cross-covariance between the training points and test points by the
+          :math:`n \\times n^{\\ast}` matrix
+          :math:`\\boldsymbol{\\Sigma}^{\\ast}` with the components
+
+          .. math::
+
+            \\Sigma_{ij}^{\\ast} = \\mathrm{cov}(\\boldsymbol{x}_i,
+            \\boldsymbol{x}^{\\ast}_j).
+
+        * :func:`glearn.Covariance.auto_covariance` returns the
+          cross-covariance between the test points by the
+          :math:`n^{\\ast} \\times n^{\\ast}` matrix
+          :math:`\\boldsymbol{\\Sigma}^{\\ast \\ast}` with the components
+
+          .. math::
+
+            \\Sigma_{ij}^{\\ast \\ast} = \\mathrm{cov}(
+            \\boldsymbol{x}^{\\ast}_i, \\boldsymbol{x}^{\\ast}_j).
+
+        Examples
+        --------
+
+        Create a covariance matrix based on a set of sample data with four
+        points in :math:`d=2` dimensional space.
+
+        .. code-block:: python
+
+            >>> # Generate a set of points
+            >>> from glearn.sample_data import generate_points
+            >>> x = generate_points(num_points=4, dimension=2)
+
+            >>> # Create a covariance object
+            >>> from glearn import Covariance
+            >>> cov = Covariance(x, sigma=2.0, sigma0=3.0, scale=[1.0, 2.0])
+
+        Now, create a set of test points :math:`\\boldsymbol{x}^{\\ast}`, and
+        compute the auto-covariance between the test points.
+
+        .. code-block:: python
+
+            >>> # Generate a random set of points
+            >>> x_star = generate_points(num_points=4, dimension=2, seed=42)
+
+            >>> # Auto-covariance between test points
+            >>> cov.auto_covariance(x_star)
+            array([[4.        , 2.68545065, 2.54164549, 2.9067261 ],
+                   [2.68545065, 4.        , 2.15816164, 2.01221865],
+                   [2.54164549, 2.15816164, 4.        , 2.76750357],
+                   [2.9067261 , 2.01221865, 2.76750357, 4.        ]])
         """
 
         if self.sigma is None:
             raise RuntimeError('"sigma" cannot be None to create auto ' +
                                'covariance.')
 
-        auto_cor = self.cor.auto_correlation(test_points)
+        auto_cor = self.cor.auto_correlation(training_points)
         auto_cov = (self.sigma**2) * auto_cor
 
         return auto_cov
@@ -2087,9 +2407,148 @@ class Covariance(object):
 
     def cross_covariance(self, test_points):
         """
-        Computes the cross-covariance between the training points (points
-        which this object is initialized with), and a given set of test points.
-        This matrix is rectangular.
+        Compute the cross-covariance between training and test points.
+
+        Parameters
+        ----------
+
+        training_points : numpy.ndarray
+            An array of the size :math:`n^{\\ast} \\times d` representing the
+            coordinates of :math:`n^{\\asr}` test points. Each row of the array
+            is the coordinates of a point
+            :math:`\\boldsymbol{x} = (x_1, \\dots, x_d)`.
+
+        Returns
+        -------
+
+        S_star_star : numpy.ndarray
+            The covariance array :math:`\\boldsymbol{\\Sigma}^{\\ast}` of the
+            size :math:`n \\times n^{\\ast}` where :math:`n` and
+            :math:`n^{\\ast}` are respectively the number of training and test
+            points.
+
+        See Also
+        --------
+
+        glearn.Covariance.get_matrix
+        glearn.Covariance.cross_covariance
+
+        Notes
+        -----
+
+        **Cross-Covariance:**
+
+        Suppose the training points :math:`\\{ \\boldsymbol{x}_i
+        \\}_{i=1}^{n}` that were given at the time of creation of the
+        covariance object. Given a set of test points
+        :math:`\\{ \\boldsymbol{x}^{\\ast}_i \\}_{i=1}^{n^{\\ast}}`,
+        this function generates the :math:`n \\times n^{\\ast}`
+        cross-covariance :math:`\\boldsymbol{\\Sigma}^{\\ast \\ast}`  where
+        each element :math:`\\Sigma^{\\ast}_{ij}` of the matrix is the
+        cross covariance between the points in the :math:`i`-th training point
+        and :math:`j`-th test point, namely,
+
+        .. math::
+
+            \\Sigma^{\\ast}_{ij} = \\mathrm{cov}(
+            \\boldsymbol{x}_i, \\boldsymbol{x}^{\\ast}_j).
+
+        **Specifying Hyperparameters:**
+
+        The cross-covariance matrix :math:`\\boldsymbol{\\Sigma}^{\\ast}`
+        depends on a set of hyperparameters as it is defined by
+
+        .. math::
+
+            \\boldsymbol{\\Sigma}^{\\ast}(\\boldsymbol{\\alpha},
+            \\sigma, \\varsigma) =
+            \\sigma^2 \\mathbf{K}^{\\ast}(\\boldsymbol{\\alpha}) +
+            \\varsigma^2 \\mathbf{I}.
+
+        In the above, :math:`\\mathbf{I}` is the identity matrix and
+        :math:`\\mathbf{K}^{\\ast}` is the cross-correlation matrix that
+        depends on a set of scale hyperparameters
+        :math:`\\boldsymbol{\\alpha}=(\\alpha_1, \\dots, \\alpha_d)`.
+
+        .. note::
+
+            Before using :func:`glearn.Covariance.cross_covariance`, the
+            hyperparameters :math:`\\sigma`, :math:`\\varsigma`, and
+            :math:`\\boldsymbol{\\alpha}` of the covariance object should be
+            defined. These hyperparameters can be either defined at the time of
+            instantiation of :class:`glearn.Covariance`, or to be set by
+
+            * :func:`glearn.Covariance.set_sigmas` to set :math:`\\sigma` and
+              :math:`\\varsigma`.
+            * :func:`glearn.Covariance.set_scale` to set
+              :math:`\\boldsymbol{\\alpha}`.
+
+        **Summary of Covariance Functions:**
+
+        Suppose :math:`\\{ \\boldsymbol{x}_i \\}_{i=1}^{n}` and
+        :math:`\\{ \\boldsymbol{x}^{\\ast}_i \\}_{i=1}^{n^{\\ast}}` are
+        respectively training and test points. Three covariance matrices
+        can be generated:
+
+        * :func:`glearn.Covariance.get_matrix` returns the auto-covariance
+          between training points by the :math:`n \\times n` matrix
+          :math:`\\boldsymbol{\\Sigma}` with the components
+
+          .. math::
+
+            \\Sigma_{ij} = \\mathrm{cov}(\\boldsymbol{x}_i,
+            \\boldsymbol{x}_j).
+
+        * :func:`glearn.Covariance.cross_covariance` returns the
+          cross-covariance between the training points and test points by the
+          :math:`n \\times n^{\\ast}` matrix
+          :math:`\\boldsymbol{\\Sigma}^{\\ast}` with the components
+
+          .. math::
+
+            \\Sigma_{ij}^{\\ast} = \\mathrm{cov}(\\boldsymbol{x}_i,
+            \\boldsymbol{x}^{\\ast}_j).
+
+        * :func:`glearn.Covariance.auto_covariance` returns the
+          cross-covariance between the test points by the
+          :math:`n^{\\ast} \\times n^{\\ast}` matrix
+          :math:`\\boldsymbol{\\Sigma}^{\\ast \\ast}` with the components
+
+          .. math::
+
+            \\Sigma_{ij}^{\\ast \\ast} = \\mathrm{cov}(
+            \\boldsymbol{x}^{\\ast}_i, \\boldsymbol{x}^{\\ast}_j).
+
+        Examples
+        --------
+
+        Create a covariance matrix based on a set of sample data with four
+        points in :math:`d=2` dimensional space.
+
+        .. code-block:: python
+
+            >>> # Generate a set of points
+            >>> from glearn.sample_data import generate_points
+            >>> x = generate_points(num_points=4, dimension=2)
+
+            >>> # Create a covariance object
+            >>> from glearn import Covariance
+            >>> cov = Covariance(x, sigma=2.0, sigma0=3.0, scale=[1.0, 2.0])
+
+        Now, create a set of test points :math:`\\boldsymbol{x}^{\\ast}`, and
+        compute the auto-covariance between the test points.
+
+        .. code-block:: python
+
+            >>> # Generate a random set of points
+            >>> x_star = generate_points(num_points=2, dimension=2, seed=42)
+
+            >>> # Auto-covariance between test points
+            >>> cov.cross_covariance(x_star)
+            array([[3.24126331, 3.30048921],
+                   [2.94735574, 3.50537082],
+                   [3.40813768, 2.93601147],
+                   [3.7310863 , 2.87895123]])
         """
 
         if self.sigma is None:
