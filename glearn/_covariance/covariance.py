@@ -1617,6 +1617,14 @@ class Covariance(object):
         * ``[0, 2, 2, 4]`` corresponds to :math:`\\partial^4 /
           \\partial \\alpha_1 \\partial \\alpha_{3}^2 \\partial \\alpha_5`.
 
+        **Configuring Computation Settings:**
+
+        This function passes the computation of trace to the function
+        :func:`imate.logdet`. To configure the latter function, create a
+        dictionary of input arguments to this function and pass the dictionary
+        with :func:`glearn.Covariance.set_imate_options`. See examples below
+        for details.
+
         Examples
         --------
 
@@ -2259,7 +2267,7 @@ class Covariance(object):
 
         training_points : numpy.ndarray
             An array of the size :math:`n^{\\ast} \\times d` representing the
-            coordinates of :math:`n^{\\asr}` test points. Each row of the array
+            coordinates of :math:`n^{\\ast}` test points. Each row of the array
             is the coordinates of a point
             :math:`\\boldsymbol{x} = (x_1, \\dots, x_d)`.
 
@@ -2414,7 +2422,7 @@ class Covariance(object):
 
         training_points : numpy.ndarray
             An array of the size :math:`n^{\\ast} \\times d` representing the
-            coordinates of :math:`n^{\\asr}` test points. Each row of the array
+            coordinates of :math:`n^{\\ast}` test points. Each row of the array
             is the coordinates of a point
             :math:`\\boldsymbol{x} = (x_1, \\dots, x_d)`.
 
