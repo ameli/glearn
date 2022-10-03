@@ -65,14 +65,14 @@
         :text-align: center
         :class-card: custom-card-link
 
-Overview
-========
-
-To learn more about |project| functionality, see:
-
-.. toctree::
-
-    overview
+.. Overview
+.. ========
+..
+.. To learn more about |project| functionality, see:
+..
+.. .. toctree::
+..
+..     overview
 
 Supported Platforms
 ===================

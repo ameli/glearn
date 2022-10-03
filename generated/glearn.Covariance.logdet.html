@@ -637,6 +637,12 @@ For instance:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">2,</span> <span class="pre">2,</span> <span class="pre">4]</span></code> corresponds to <span class="math notranslate nohighlight">\(\partial^4 /
 \partial \alpha_1 \partial \alpha_{3}^2 \partial \alpha_5\)</span>.</p></li>
 </ul>
+<p><strong>Configuring Computation Settings:</strong></p>
+<p>This function passes the computation of trace to the function
+<a class="reference external" href="https://ameli.github.io/imate/generated/imate.logdet.html#imate.logdet" title="(in imate)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imate.logdet()</span></code></a>. To configure the latter function, create a
+dictionary of input arguments to this function and pass the dictionary
+with <a class="reference internal" href="glearn.Covariance.set_imate_options.html#glearn.Covariance.set_imate_options" title="glearn.Covariance.set_imate_options"><code class="xref py py-func docutils literal notranslate"><span class="pre">glearn.Covariance.set_imate_options()</span></code></a>. See examples below
+for details.</p>
 <p class="rubric">Examples</p>
 <p><strong>Basic Usage:</strong></p>
 <p>Create a sample dataset with four points in <span class="math notranslate nohighlight">\(d=2\)</span> dimensional
