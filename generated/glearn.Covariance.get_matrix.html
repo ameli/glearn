@@ -586,18 +586,15 @@ the size of the matrix.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><a class="reference internal" href="glearn.Covariance.trace.html#glearn.Covariance.trace" title="glearn.Covariance.trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.trace</span></code></a></dt><dd></dd>
-<dt><a class="reference internal" href="glearn.Covariance.traceinv.html#glearn.Covariance.traceinv" title="glearn.Covariance.traceinv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.traceinv</span></code></a></dt><dd></dd>
-<dt><a class="reference internal" href="glearn.Covariance.logdet.html#glearn.Covariance.logdet" title="glearn.Covariance.logdet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.logdet</span></code></a></dt><dd></dd>
-<dt><a class="reference internal" href="glearn.Covariance.solve.html#glearn.Covariance.solve" title="glearn.Covariance.solve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.solve</span></code></a></dt><dd></dd>
-<dt><a class="reference internal" href="glearn.Covariance.dot.html#glearn.Covariance.dot" title="glearn.Covariance.dot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.dot</span></code></a></dt><dd></dd>
+<dt><a class="reference internal" href="glearn.Covariance.auto_covariance.html#glearn.Covariance.auto_covariance" title="glearn.Covariance.auto_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.auto_covariance</span></code></a></dt><dd></dd>
+<dt><a class="reference internal" href="glearn.Covariance.cross_covariance.html#glearn.Covariance.cross_covariance" title="glearn.Covariance.cross_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.cross_covariance</span></code></a></dt><dd></dd>
 </dl>
 </div>
 <p class="rubric">Notes</p>
 <p>This function returns</p>
 <div class="math notranslate nohighlight">
-\[\left. \frac{\partial^q}{\partial \alpha_{i+1} \partial
-\alpha_{j+1} \dots \partial \alpha_{k+1}}
+\[\left. \frac{\partial^q}{\partial \alpha_{i} \partial
+\alpha_{j} \dots \partial \alpha_{k}}
 \boldsymbol{\Sigma}(\boldsymbol{\alpha} \vert
 \sigma, \varsigma) \right|_{\boldsymbol{\alpha}},\]</div>
 <p>where the covariance matrix <span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}\)</span> is defined by</p>
@@ -722,7 +719,7 @@ zero.</p>
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.2.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.3.<br>
 </p>
   </div>
   

@@ -529,21 +529,179 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="glearn.Covariance.solve">
 <span class="sig-prename descclassname"><span class="pre">Covariance.</span></span><span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derivative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.Covariance.solve" title="Permalink to this definition">#</a></dt>
-<dd><p>Solves the linear system</p>
+<dd><p>Solve linear system involving the powers of covariance matrix or its
+derivatives.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>Y</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>The right-hand side matrix of the linear system of equations. The
+size of this matrix is <span class="math notranslate nohighlight">\(n \times m\)</span> where <span class="math notranslate nohighlight">\(n\)</span> is the
+size of the covariance matrix.</p>
+</dd>
+<dt><strong>sigma</strong><span class="classifier">float, default=None</span></dt><dd><p>The hyperparameter <span class="math notranslate nohighlight">\(\sigma\)</span> of the covariance model where
+<span class="math notranslate nohighlight">\(\sigma^2\)</span> represents the variance of the correlated errors
+of the model. <span class="math notranslate nohighlight">\(\sigma\)</span> should be positive and cannot be
+<cite>None</cite>.</p>
+</dd>
+<dt><strong>sigma0</strong><span class="classifier">float, default=None</span></dt><dd><p>The hyperparameter <span class="math notranslate nohighlight">\(\varsigma\)</span> of the covariance model where
+<span class="math notranslate nohighlight">\(\varsigma^2\)</span> represents the variance of the input noise to
+of the model. <span class="math notranslate nohighlight">\(\sigma\)</span> should be positive and cannot be
+<cite>None</cite>.</p>
+</dd>
+<dt><strong>scale</strong><span class="classifier">float or array_like[float], default=None</span></dt><dd><p>The scale hyperparameters
+<span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (\alpha_1, \dots, \alpha_d)\)</span> in
+scales the distance between data points in <span class="math notranslate nohighlight">\(\mathbb{R}^d\)</span>.
+If an array of the size <span class="math notranslate nohighlight">\(d\)</span> is given, each <span class="math notranslate nohighlight">\(\alpha_i\)</span>
+scales the distance in the <span class="math notranslate nohighlight">\(i\)</span>-th dimension. If a scalar
+value <span class="math notranslate nohighlight">\(\alpha\)</span> is given, all dimensions are scaled
+isometrically. <span class="math notranslate nohighlight">\(\boldsymbol{\alpha}\)</span> cannot be <cite>None</cite>.</p>
+</dd>
+<dt><strong>p</strong><span class="classifier">float, default=1</span></dt><dd><p>The integer exponent <span class="math notranslate nohighlight">\(p\)</span> (negative or positive) of the
+covariance matrix <span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}^{p}\)</span> (see Notes
+below).</p>
+</dd>
+<dt><strong>derivative</strong><span class="classifier">list, default=[]</span></dt><dd><p>Specifies a list of derivatives of covariance matrix with respect
+to the hyperparameters <span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (\alpha_1,
+\dots, \alpha_d)\)</span>. A list of the size <span class="math notranslate nohighlight">\(q\)</span> with the
+components <code class="docutils literal notranslate"><span class="pre">[i,</span> <span class="pre">j,</span> <span class="pre">...,</span> <span class="pre">k]</span></code> corresponds to take the derivative</p>
 <div class="math notranslate nohighlight">
-\[\frac{\partial^q}{\partial \theta^q}
-(\sigma^2 \mathbf{K} + \sigma_0^2 \mathbf{I})^{p} \mathbf{X}
-= \mathbf{Y},\]</div>
-<p>where:</p>
+\[\left. \frac{\partial^q}{\partial \alpha_{i+1} \partial
+\alpha_{j+1} \dots \partial \alpha_{k+1}}
+\boldsymbol{\Sigma}^{p}(\boldsymbol{\alpha} \vert
+\sigma^2, \varsigma^2) \right|_{\boldsymbol{\alpha}}.\]</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The derivative with respect to each hyperparameter
+<span class="math notranslate nohighlight">\(\alpha_i\)</span> can be at most of the order two,
+<span class="math notranslate nohighlight">\(\partial^2 / \partial \alpha_i^2\)</span>. That is, each
+index in the <code class="docutils literal notranslate"><span class="pre">derivative</span></code> list can appear at most twice.
+For instance <code class="docutils literal notranslate"><span class="pre">derivative=[1,</span> <span class="pre">1]</span></code> (second order derivative
+with respect to <span class="math notranslate nohighlight">\(\alpha_{2}\)</span>) is a valid input argument,
+how ever <code class="docutils literal notranslate"><span class="pre">derivative=[1,</span> <span class="pre">1,</span> <span class="pre">1]</span></code> (third order derivative) is
+an invalid input.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When the derivative order is non-zero (meaning that
+<code class="docutils literal notranslate"><span class="pre">derivative</span></code> is not <code class="docutils literal notranslate"><span class="pre">[]</span></code>), the exponent <span class="math notranslate nohighlight">\(p\)</span> should
+be <cite>1</cite>.</p>
+</div>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>X</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>The solved array with the same size as of <cite>Y</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="glearn.Covariance.get_matrix.html#glearn.Covariance.get_matrix" title="glearn.Covariance.get_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.get_matrix</span></code></a></dt><dd></dd>
+<dt><a class="reference internal" href="glearn.Covariance.dot.html#glearn.Covariance.dot" title="glearn.Covariance.dot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.dot</span></code></a></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>This function solves the linear system</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\Sigma}^{p}_{(i, j, \dots, k)} \mathbf{X} =
+\mathbf{Y},\]</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}^{p}_{(i, j, \dots, k)}\)</span> is defined
+as</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\Sigma}^{p}_{(i, j, \dots, k)} =
+\frac{\partial^q}{\partial \alpha_{i} \partial
+\alpha_{j} \dots \partial \alpha_{k}}
+\boldsymbol{\Sigma}^{p}(\boldsymbol{\alpha} \vert
+\sigma, \varsigma).\]</div>
+<p>In the above, <span class="math notranslate nohighlight">\(p\)</span> is the matrix exponent and <span class="math notranslate nohighlight">\(q\)</span> is the
+order of derivation. Also, the covariance matrix
+<span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}\)</span> is defined by</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\Sigma}(\boldsymbol{\alpha}, \sigma, \varsigma) =
+\sigma^2 \mathbf{K}(\boldsymbol{\alpha}) + \varsigma^2
+\mathbf{I}.\]</div>
+<p>In the above, <span class="math notranslate nohighlight">\(\mathbf{I}\)</span> is the identity matrix and
+<span class="math notranslate nohighlight">\(\mathbf{K}\)</span> is the correlation matrix that depends on a set of
+scale hyperparameters <span class="math notranslate nohighlight">\(\boldsymbol{\alpha}=(\alpha_1, \dots,
+\alpha_d)\)</span>.</p>
+<p><strong>Derivatives:</strong></p>
+<p>Note that the indices in list <code class="docutils literal notranslate"><span class="pre">derivative=[i,</span> <span class="pre">j,</span> <span class="pre">...,</span> <span class="pre">k]</span></code> are
+zero-indexed, meaning that the index <code class="docutils literal notranslate"><span class="pre">i</span></code> corresponds to take
+derivative with respect to the hyperparameter <span class="math notranslate nohighlight">\(\alpha_{i+1}\)</span>.
+For instance:</p>
 <ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(\mathbf{Y}\)</span> is the given right hand side matrix,</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathbf{X}\)</span> is the solution (unknown) matrix,</p></li>
-<li><p><span class="math notranslate nohighlight">\(\mathbf{I}\)</span> is the identity matrix,</p></li>
-<li><p>:math:<a href="#id1"><span class="problematic" id="id2">`</span></a>p`is a non-negative integer.</p></li>
-<li><p><span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\sigma_0\)</span> are real numbers.</p></li>
-<li><p><span class="math notranslate nohighlight">\(\theta\)</span> is correlation scale parameter.</p></li>
-<li><p><span class="math notranslate nohighlight">\(q\)</span> is the order of the derivative.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[]</span></code> corresponds to no derivative.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[0]</span></code> corresponds to <span class="math notranslate nohighlight">\(\partial / \partial \alpha_1\)</span> and
+<code class="docutils literal notranslate"><span class="pre">[1]</span></code> corresponds to <span class="math notranslate nohighlight">\(\partial / \partial
+\alpha_2\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">2]</span></code> corresponds to <span class="math notranslate nohighlight">\(\partial^2 /
+\partial \alpha_1 \partial \alpha_3\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0]</span></code> corresponds to <span class="math notranslate nohighlight">\(\partial^2 /
+\partial \alpha_1^2\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">2,</span> <span class="pre">2,</span> <span class="pre">4]</span></code> corresponds to <span class="math notranslate nohighlight">\(\partial^4 /
+\partial \alpha_1 \partial \alpha_{3}^2 \partial \alpha_5\)</span>.</p></li>
 </ul>
+<p><strong>Configuring Computation Settings:</strong></p>
+<p>This function passes the computation of the log-determinant to the
+function <a class="reference external" href="https://ameli.github.io/imate/generated/imate.logdet.html#imate.logdet" title="(in imate)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imate.logdet()</span></code></a>. To configure the latter function, create
+a dictionary of input arguments to this function and pass the
+dictionary with <a class="reference internal" href="glearn.Covariance.set_imate_options.html#glearn.Covariance.set_imate_options" title="glearn.Covariance.set_imate_options"><code class="xref py py-func docutils literal notranslate"><span class="pre">glearn.Covariance.set_imate_options()</span></code></a>. See
+examples below for details.</p>
+<p class="rubric">Examples</p>
+<p><strong>Basic Usage:</strong></p>
+<p>Create a covariance matrix based on a set of sample data with four
+points in <span class="math notranslate nohighlight">\(d=2\)</span> dimensional space.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a set of points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn.sample_data</span> <span class="kn">import</span> <span class="n">generate_points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a covariance object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">Covariance</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">Covariance</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the following, we create a sample right-hand side matrix
+<span class="math notranslate nohighlight">\(\mathbf{Y}\)</span> of the size <span class="math notranslate nohighlight">\(n \times 2\)</span>. The size of the
+covariance, <span class="math notranslate nohighlight">\(n\)</span>, is also the same as the size of the number of
+points generated in the above. We solve the linear system</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\Sigma}^{2} \mathbf{X} = \mathbf{Y},\]</div>
+<p>for the hyperparameters <span class="math notranslate nohighlight">\(\sigma=2\)</span>, <span class="math notranslate nohighlight">\(\varsigma = 3\)</span>,
+and <span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (1, 2)\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Solve linear system.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">sigma0</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">array([[-6.41469264e-03, -6.63212215e-04],</span>
+<span class="go">       [ 3.76411547e-03,  8.27826466e-03],</span>
+<span class="go">       [ 9.02944475e-05,  6.40825511e-03],</span>
+<span class="go">       [-3.89733076e-03, -1.20076618e-02]])</span>
+</pre></div>
+</div>
+<p><strong>Taking Derivatives:</strong></p>
+<p>Solve the linear system involving the second mixed derivative</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\Sigma}_{(1, 2)} \mathbf{X} = \mathbf{Y},\]</div>
+<p>where here <span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}_{(1, 2)}\)</span> is</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\Sigma}_{(1, 2)} =
+\frac{\partial^2}{\partial \alpha_1 \partial \alpha_2}
+\boldsymbol{\Sigma} (\boldsymbol{\alpha} \vert \sigma,
+\varsigma).\]</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Compute second mixed derivative</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">sigma0</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="n">derivative</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="go">array([[  29.66090701,  -24.32302349],</span>
+<span class="go">       [ -37.62438132,   25.74258571],</span>
+<span class="go">       [ 419.71827538, -742.15853881],</span>
+<span class="go">       [-103.81860112,  176.67720887]])</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -593,7 +751,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.2.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.3.<br>
 </p>
   </div>
   

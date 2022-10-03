@@ -710,16 +710,16 @@ and Trace of the Powers of Matrix</em>
 <td><p>Compute the log-determinant of the powers of the covariance matrix or its derivatives.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.solve.html#glearn.Covariance.solve" title="glearn.Covariance.solve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve</span></code></a>(Y[, sigma, sigma0, scale, p, derivative])</p></td>
-<td><p>Solves the linear system</p></td>
+<td><p>Solve linear system involving the powers of covariance matrix or its derivatives.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.dot.html#glearn.Covariance.dot" title="glearn.Covariance.dot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dot</span></code></a>(x[, sigma, sigma0, scale, p, derivative])</p></td>
-<td><p>Matrix-vector multiplication:</p></td>
+<td><p>Matrix-vector or matrix-matrix multiplication involving the powers of covariance matrix or its derivatives.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.auto_covariance.html#glearn.Covariance.auto_covariance" title="glearn.Covariance.auto_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">auto_covariance</span></code></a>(test_points)</p></td>
-<td><p>Computes the auto-covariance between the training points and themselves.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.auto_covariance.html#glearn.Covariance.auto_covariance" title="glearn.Covariance.auto_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">auto_covariance</span></code></a>(training_points)</p></td>
+<td><p>Compute the auto-covariance between a set of test points.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.cross_covariance.html#glearn.Covariance.cross_covariance" title="glearn.Covariance.cross_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cross_covariance</span></code></a>(test_points)</p></td>
-<td><p>Computes the cross-covariance between the training points (points which this object is initialized with), and a given set of test points.</p></td>
+<td><p>Compute the cross-covariance between training and test points.</p></td>
 </tr>
 </tbody>
 </table>
@@ -772,7 +772,7 @@ and Trace of the Powers of Matrix</em>
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.2.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.3.<br>
 </p>
   </div>
   

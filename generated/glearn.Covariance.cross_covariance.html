@@ -48,6 +48,8 @@
     <script src="../_static/js/custom-pydata.js"></script>
     <script src="../_static/design-tabs.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -527,9 +529,129 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="glearn.Covariance.cross_covariance">
 <span class="sig-prename descclassname"><span class="pre">Covariance.</span></span><span class="sig-name descname"><span class="pre">cross_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_points</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.Covariance.cross_covariance" title="Permalink to this definition">#</a></dt>
-<dd><p>Computes the cross-covariance between the training points (points
-which this object is initialized with), and a given set of test points.
-This matrix is rectangular.</p>
+<dd><p>Compute the cross-covariance between training and test points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>training_points</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>An array of the size <span class="math notranslate nohighlight">\(n^{\ast} \times d\)</span> representing the
+coordinates of <span class="math notranslate nohighlight">\(n^{\asr}\)</span> test points. Each row of the array
+is the coordinates of a point
+<span class="math notranslate nohighlight">\(\boldsymbol{x} = (x_1, \dots, x_d)\)</span>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>S_star_star</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>The covariance array <span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}^{\ast}\)</span> of the
+size <span class="math notranslate nohighlight">\(n \times n^{\ast}\)</span> where <span class="math notranslate nohighlight">\(n\)</span> and
+<span class="math notranslate nohighlight">\(n^{\ast}\)</span> are respectively the number of training and test
+points.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="glearn.Covariance.get_matrix.html#glearn.Covariance.get_matrix" title="glearn.Covariance.get_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.get_matrix</span></code></a></dt><dd></dd>
+<dt><a class="reference internal" href="#glearn.Covariance.cross_covariance" title="glearn.Covariance.cross_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance.cross_covariance</span></code></a></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p><strong>Cross-Covariance:</strong></p>
+<p>Suppose the training points <span class="math notranslate nohighlight">\(\{ \boldsymbol{x}_i
+\}_{i=1}^{n}\)</span> that were given at the time of creation of the
+covariance object. Given a set of test points
+<span class="math notranslate nohighlight">\(\{ \boldsymbol{x}^{\ast}_i \}_{i=1}^{n^{\ast}}\)</span>,
+this function generates the <span class="math notranslate nohighlight">\(n \times n^{\ast}\)</span>
+cross-covariance <span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}^{\ast \ast}\)</span>  where
+each element <span class="math notranslate nohighlight">\(\Sigma^{\ast}_{ij}\)</span> of the matrix is the
+cross covariance between the points in the <span class="math notranslate nohighlight">\(i\)</span>-th training point
+and <span class="math notranslate nohighlight">\(j\)</span>-th test point, namely,</p>
+<div class="math notranslate nohighlight">
+\[\Sigma^{\ast}_{ij} = \mathrm{cov}(
+\boldsymbol{x}_i, \boldsymbol{x}^{\ast}_j).\]</div>
+<p><strong>Specifying Hyperparameters:</strong></p>
+<p>The cross-covariance matrix <span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}^{\ast}\)</span>
+depends on a set of hyperparameters as it is defined by</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\Sigma}^{\ast}(\boldsymbol{\alpha},
+\sigma, \varsigma) =
+\sigma^2 \mathbf{K}^{\ast}(\boldsymbol{\alpha}) +
+\varsigma^2 \mathbf{I}.\]</div>
+<p>In the above, <span class="math notranslate nohighlight">\(\mathbf{I}\)</span> is the identity matrix and
+<span class="math notranslate nohighlight">\(\mathbf{K}^{\ast}\)</span> is the cross-correlation matrix that
+depends on a set of scale hyperparameters
+<span class="math notranslate nohighlight">\(\boldsymbol{\alpha}=(\alpha_1, \dots, \alpha_d)\)</span>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Before using <a class="reference internal" href="#glearn.Covariance.cross_covariance" title="glearn.Covariance.cross_covariance"><code class="xref py py-func docutils literal notranslate"><span class="pre">glearn.Covariance.cross_covariance()</span></code></a>, the
+hyperparameters <span class="math notranslate nohighlight">\(\sigma\)</span>, <span class="math notranslate nohighlight">\(\varsigma\)</span>, and
+<span class="math notranslate nohighlight">\(\boldsymbol{\alpha}\)</span> of the covariance object should be
+defined. These hyperparameters can be either defined at the time of
+instantiation of <a class="reference internal" href="glearn.Covariance.html#glearn.Covariance" title="glearn.Covariance"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.Covariance</span></code></a>, or to be set by</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="glearn.Covariance.set_sigmas.html#glearn.Covariance.set_sigmas" title="glearn.Covariance.set_sigmas"><code class="xref py py-func docutils literal notranslate"><span class="pre">glearn.Covariance.set_sigmas()</span></code></a> to set <span class="math notranslate nohighlight">\(\sigma\)</span> and
+<span class="math notranslate nohighlight">\(\varsigma\)</span>.</p></li>
+<li><p><a class="reference internal" href="glearn.Covariance.set_scale.html#glearn.Covariance.set_scale" title="glearn.Covariance.set_scale"><code class="xref py py-func docutils literal notranslate"><span class="pre">glearn.Covariance.set_scale()</span></code></a> to set
+<span class="math notranslate nohighlight">\(\boldsymbol{\alpha}\)</span>.</p></li>
+</ul>
+</div>
+<p><strong>Summary of Covariance Functions:</strong></p>
+<p>Suppose <span class="math notranslate nohighlight">\(\{ \boldsymbol{x}_i \}_{i=1}^{n}\)</span> and
+<span class="math notranslate nohighlight">\(\{ \boldsymbol{x}^{\ast}_i \}_{i=1}^{n^{\ast}}\)</span> are
+respectively training and test points. Three covariance matrices
+can be generated:</p>
+<ul>
+<li><p><a class="reference internal" href="glearn.Covariance.get_matrix.html#glearn.Covariance.get_matrix" title="glearn.Covariance.get_matrix"><code class="xref py py-func docutils literal notranslate"><span class="pre">glearn.Covariance.get_matrix()</span></code></a> returns the auto-covariance
+between training points by the <span class="math notranslate nohighlight">\(n \times n\)</span> matrix
+<span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}\)</span> with the components</p>
+<div class="math notranslate nohighlight">
+\[\Sigma_{ij} = \mathrm{cov}(\boldsymbol{x}_i,
+\boldsymbol{x}_j).\]</div>
+</li>
+<li><p><a class="reference internal" href="#glearn.Covariance.cross_covariance" title="glearn.Covariance.cross_covariance"><code class="xref py py-func docutils literal notranslate"><span class="pre">glearn.Covariance.cross_covariance()</span></code></a> returns the
+cross-covariance between the training points and test points by the
+<span class="math notranslate nohighlight">\(n \times n^{\ast}\)</span> matrix
+<span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}^{\ast}\)</span> with the components</p>
+<div class="math notranslate nohighlight">
+\[\Sigma_{ij}^{\ast} = \mathrm{cov}(\boldsymbol{x}_i,
+\boldsymbol{x}^{\ast}_j).\]</div>
+</li>
+<li><p><a class="reference internal" href="glearn.Covariance.auto_covariance.html#glearn.Covariance.auto_covariance" title="glearn.Covariance.auto_covariance"><code class="xref py py-func docutils literal notranslate"><span class="pre">glearn.Covariance.auto_covariance()</span></code></a> returns the
+cross-covariance between the test points by the
+<span class="math notranslate nohighlight">\(n^{\ast} \times n^{\ast}\)</span> matrix
+<span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}^{\ast \ast}\)</span> with the components</p>
+<div class="math notranslate nohighlight">
+\[\Sigma_{ij}^{\ast \ast} = \mathrm{cov}(
+\boldsymbol{x}^{\ast}_i, \boldsymbol{x}^{\ast}_j).\]</div>
+</li>
+</ul>
+<p class="rubric">Examples</p>
+<p>Create a covariance matrix based on a set of sample data with four
+points in <span class="math notranslate nohighlight">\(d=2\)</span> dimensional space.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a set of points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn.sample_data</span> <span class="kn">import</span> <span class="n">generate_points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a covariance object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">Covariance</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">Covariance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">sigma0</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Now, create a set of test points <span class="math notranslate nohighlight">\(\boldsymbol{x}^{\ast}\)</span>, and
+compute the auto-covariance between the test points.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a random set of points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x_star</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Auto-covariance between test points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">cross_covariance</span><span class="p">(</span><span class="n">x_star</span><span class="p">)</span>
+<span class="go">array([[3.24126331, 3.30048921],</span>
+<span class="go">       [2.94735574, 3.50537082],</span>
+<span class="go">       [3.40813768, 2.93601147],</span>
+<span class="go">       [3.7310863 , 2.87895123]])</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -579,7 +701,7 @@ This matrix is rectangular.</p>
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.2.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.3.<br>
 </p>
   </div>
   
