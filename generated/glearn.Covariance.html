@@ -54,8 +54,19 @@
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="glearn.Covariance.get_imate_options" href="glearn.Covariance.get_imate_options.html" />
+    <link rel="next" title="glearn.Covariance.get_size" href="glearn.Covariance.get_size.html" />
     <link rel="prev" title="glearn.LinearModel.update_hyperparam" href="glearn.LinearModel.update_hyperparam.html" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-RCTBMM27GH"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-RCTBMM27GH');
+    </script>
+
     <script defer data-domain="docs.scipy.org" src="https://views.scientific-python.org/js/script.js"></script>
 
     <!-- Adobe Embed API -->
@@ -222,6 +233,11 @@
    </i>
   </label>
   <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="glearn.Covariance.get_size.html">
+     glearn.Covariance.get_size
+    </a>
+   </li>
    <li class="toctree-l2">
     <a class="reference internal" href="glearn.Covariance.get_imate_options.html">
      glearn.Covariance.get_imate_options
@@ -529,12 +545,21 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="glearn.Covariance">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">glearn.</span></span><span class="sig-name descname"><span class="pre">Covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imate_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'method':</span> <span class="pre">'cholesky'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.Covariance" title="Permalink to this definition">#</a></dt>
-<dd><p>Mixed covariance model.</p>
-<p>For the regression problem
-<span class="math notranslate nohighlight">\(y=\mu(\boldsymbol{x})+\delta(\boldsymbol{x}) + \epsilon\)</span> where
-<span class="math notranslate nohighlight">\(\mu\)</span> and <span class="math notranslate nohighlight">\(\delta\)</span> are the mean, miss-fit, and input noise of
-of the regression model respectively, this class implements a covariance
-model</p>
+<dd><p>Create mixed covariance model.</p>
+<p>This class creates mixed-covariance model which can be defined by a set of
+known or unknown hyperparameters and kernel functions. The covariance
+object can compute:</p>
+<ul class="simple">
+<li><p>The auto-covariance or cross-covariance between a set of training
+and test points, or the derivative of the covariance with respect to the
+set of hyperparameters.</p></li>
+<li><p>The covariance object can also compute basic matrix functions of the
+covariance matrix, such as log-determinant, or the trace of the functions
+of the matrix.</p></li>
+<li><p>Solve a linear system or perform matrix-matrix or matrix-vector
+multiplication involving the covariance matrix or its derivatives with
+respect to hyperparameters.</p></li>
+</ul>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
@@ -631,7 +656,7 @@ and data <span class="math notranslate nohighlight">\(y \in \mathbb{R}\)</span> 
 + \epsilon,\]</div>
 <p>where</p>
 <ul class="simple">
-<li><p>:math:<a href="#id2"><span class="problematic" id="id3">``</span></a>mu` is a deterministic mean function.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mu\)</span> is a deterministic mean function.</p></li>
 <li><p><span class="math notranslate nohighlight">\(\delta\)</span> is a zero-mean stochastic function representing the
 missfit of the regression model.</p></li>
 <li><p><span class="math notranslate nohighlight">\(\epsilon\)</span> is a zero-mean stochastic function representing the
@@ -665,6 +690,54 @@ and Trace of the Powers of Matrix</em>
 <span class="math notranslate nohighlight">\(\mathbf{A} + t\mathbf{B}\)</span>. <a class="reference external" href="https://arxiv.org/abs/2207.08038">arXiv: 2009.07385</a> [math.NA].</p>
 </div>
 </div>
+<p class="rubric">Examples</p>
+<p><strong>Create Covariance Object:</strong></p>
+<p>Create a covariance matrix based on a set of sample data with four
+points in <span class="math notranslate nohighlight">\(d=2\)</span> dimensional space.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a set of points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn.sample_data</span> <span class="kn">import</span> <span class="n">generate_points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a covariance object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">Covariance</span>
+<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">Covariance</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<p>By providing a set of hyperparameters, the covariance matrix can be
+fully defined. Here we set <span class="math notranslate nohighlight">\(\sigma=2\)</span>, <span class="math notranslate nohighlight">\(\varsigma=3\)</span>, and
+<span class="math notranslate nohighlight">\(\boldsymbol{\alpha}= (1, 2)\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get the covariance matrix for given hyperparameters</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">set_sigmas</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">set_scale</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">get_matrix</span><span class="p">()</span>
+<span class="go">array([[13.        ,  3.61643745,  3.51285267,  3.47045163],</span>
+<span class="go">       [ 3.61643745, 13.        ,  3.32078482,  3.14804532],</span>
+<span class="go">       [ 3.51285267,  3.32078482, 13.        ,  3.53448631],</span>
+<span class="go">       [ 3.47045163,  3.14804532,  3.53448631, 13.        ]])</span>
+</pre></div>
+</div>
+<p><strong>Specify Hyperparameter at Instantiation:</strong></p>
+<p>The hyperparameters can also be defined at the time of instantiating the
+covariance object.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a covariance object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">traceinv</span><span class="p">(</span><span class="n">sigma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">sigma0</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><strong>Specify Correlation Kernel:</strong></p>
+<p>The kernel function that creates the correlation matrix <span class="math notranslate nohighlight">\(\mathbf{K}\)</span>
+can be specified by one of the kernel objects derived from
+<a class="reference internal" href="glearn.kernels.Kernel.html#glearn.kernels.Kernel" title="glearn.kernels.Kernel"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.kernels.Kernel</span></code></a> class. For instance, in the next example, we
+set a square exponential kernel <a class="reference internal" href="glearn.kernels.SquareExponential.html#glearn.kernels.SquareExponential" title="glearn.kernels.SquareExponential"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.kernels.SquareExponential</span></code></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a kernel object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">kernels</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kernel</span> <span class="o">=</span> <span class="n">kernels</span><span class="o">.</span><span class="n">SquareExponential</span><span class="p">()</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create covariance object with the above kernel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">traceinv</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Sparse Covariance:</strong></p>
+<p>The covariance object can be configured to</p>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -679,46 +752,49 @@ and Trace of the Powers of Matrix</em>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.get_imate_options.html#glearn.Covariance.get_imate_options" title="glearn.Covariance.get_imate_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_imate_options</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.get_size.html#glearn.Covariance.get_size" title="glearn.Covariance.get_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_size</span></code></a>()</p></td>
+<td><p>Returns the size of the covariance matrix.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.get_imate_options.html#glearn.Covariance.get_imate_options" title="glearn.Covariance.get_imate_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_imate_options</span></code></a>()</p></td>
 <td><p>Returns the dictionary of options that is passed to the imate package.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.set_imate_options.html#glearn.Covariance.set_imate_options" title="glearn.Covariance.set_imate_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_imate_options</span></code></a>(imate_options)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.set_imate_options.html#glearn.Covariance.set_imate_options" title="glearn.Covariance.set_imate_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_imate_options</span></code></a>(imate_options)</p></td>
 <td><p>Updates the dictionary of options that is passed to the imate package.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.set_scale.html#glearn.Covariance.set_scale" title="glearn.Covariance.set_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_scale</span></code></a>(scale)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.set_scale.html#glearn.Covariance.set_scale" title="glearn.Covariance.set_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_scale</span></code></a>(scale)</p></td>
 <td><p>Sets the array of scale hyperparameters of the correlation matrix.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.get_scale.html#glearn.Covariance.get_scale" title="glearn.Covariance.get_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_scale</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.get_scale.html#glearn.Covariance.get_scale" title="glearn.Covariance.get_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_scale</span></code></a>()</p></td>
 <td><p>Returns the array of scale hyperparameters of the correlation matrix.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.set_sigmas.html#glearn.Covariance.set_sigmas" title="glearn.Covariance.set_sigmas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_sigmas</span></code></a>(sigma, sigma0)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.set_sigmas.html#glearn.Covariance.set_sigmas" title="glearn.Covariance.set_sigmas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_sigmas</span></code></a>(sigma, sigma0)</p></td>
 <td><p>Sets <span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\varsigma\)</span> hyperparameters of the covariance model.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.get_sigmas.html#glearn.Covariance.get_sigmas" title="glearn.Covariance.get_sigmas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sigmas</span></code></a>([sigma, sigma0])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.get_sigmas.html#glearn.Covariance.get_sigmas" title="glearn.Covariance.get_sigmas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sigmas</span></code></a>([sigma, sigma0])</p></td>
 <td><p>Returns <span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\varsigma\)</span> hyperparameters of the covariance model.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.get_matrix.html#glearn.Covariance.get_matrix" title="glearn.Covariance.get_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_matrix</span></code></a>([sigma, sigma0, scale, derivative])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.get_matrix.html#glearn.Covariance.get_matrix" title="glearn.Covariance.get_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_matrix</span></code></a>([sigma, sigma0, scale, derivative])</p></td>
 <td><p>Compute the covariance matrix or its derivatives for a given set of hyperparameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.trace.html#glearn.Covariance.trace" title="glearn.Covariance.trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace</span></code></a>([sigma, sigma0, scale, p, derivative, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.trace.html#glearn.Covariance.trace" title="glearn.Covariance.trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace</span></code></a>([sigma, sigma0, scale, p, derivative, ...])</p></td>
 <td><p>Compute the trace of the positive powers of the covariance matrix or its derivatives.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.traceinv.html#glearn.Covariance.traceinv" title="glearn.Covariance.traceinv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">traceinv</span></code></a>([sigma, sigma0, B, C, scale, p, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.traceinv.html#glearn.Covariance.traceinv" title="glearn.Covariance.traceinv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">traceinv</span></code></a>([sigma, sigma0, B, C, scale, p, ...])</p></td>
 <td><p>Compute the trace of the negative powers of the covariance matrix or its derivatives.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.logdet.html#glearn.Covariance.logdet" title="glearn.Covariance.logdet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logdet</span></code></a>([sigma, sigma0, scale, p, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.logdet.html#glearn.Covariance.logdet" title="glearn.Covariance.logdet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logdet</span></code></a>([sigma, sigma0, scale, p, ...])</p></td>
 <td><p>Compute the log-determinant of the powers of the covariance matrix or its derivatives.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.solve.html#glearn.Covariance.solve" title="glearn.Covariance.solve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve</span></code></a>(Y[, sigma, sigma0, scale, p, derivative])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.solve.html#glearn.Covariance.solve" title="glearn.Covariance.solve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve</span></code></a>(Y[, sigma, sigma0, scale, p, derivative])</p></td>
 <td><p>Solve linear system involving the powers of covariance matrix or its derivatives.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.dot.html#glearn.Covariance.dot" title="glearn.Covariance.dot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dot</span></code></a>(x[, sigma, sigma0, scale, p, derivative])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.dot.html#glearn.Covariance.dot" title="glearn.Covariance.dot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dot</span></code></a>(x[, sigma, sigma0, scale, p, derivative])</p></td>
 <td><p>Matrix-vector or matrix-matrix multiplication involving the powers of covariance matrix or its derivatives.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.auto_covariance.html#glearn.Covariance.auto_covariance" title="glearn.Covariance.auto_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">auto_covariance</span></code></a>(training_points)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.auto_covariance.html#glearn.Covariance.auto_covariance" title="glearn.Covariance.auto_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">auto_covariance</span></code></a>(training_points)</p></td>
 <td><p>Compute the auto-covariance between a set of test points.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="glearn.Covariance.cross_covariance.html#glearn.Covariance.cross_covariance" title="glearn.Covariance.cross_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cross_covariance</span></code></a>(test_points)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.Covariance.cross_covariance.html#glearn.Covariance.cross_covariance" title="glearn.Covariance.cross_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cross_covariance</span></code></a>(test_points)</p></td>
 <td><p>Compute the cross-covariance between training and test points.</p></td>
 </tr>
 </tbody>
@@ -742,10 +818,10 @@ and Trace of the Powers of Matrix</em>
           <p class="prev-next-title">glearn.LinearModel.update_hyperparam</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="glearn.Covariance.get_imate_options.html" title="next page">
+  <a class='right-next' id="next-link" href="glearn.Covariance.get_size.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">glearn.Covariance.get_imate_options</p>
+      <p class="prev-next-title">glearn.Covariance.get_size</p>
   </div>
   <i class="fas fa-angle-right"></i>
   </a>

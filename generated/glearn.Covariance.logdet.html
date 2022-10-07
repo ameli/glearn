@@ -56,6 +56,17 @@
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="glearn.Covariance.solve" href="glearn.Covariance.solve.html" />
     <link rel="prev" title="glearn.Covariance.traceinv" href="glearn.Covariance.traceinv.html" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-RCTBMM27GH"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-RCTBMM27GH');
+    </script>
+
     <script defer data-domain="docs.scipy.org" src="https://views.scientific-python.org/js/script.js"></script>
 
     <!-- Adobe Embed API -->
@@ -222,6 +233,11 @@
    </i>
   </label>
   <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="glearn.Covariance.get_size.html">
+     glearn.Covariance.get_size
+    </a>
+   </li>
    <li class="toctree-l2">
     <a class="reference internal" href="glearn.Covariance.get_imate_options.html">
      glearn.Covariance.get_imate_options
@@ -647,7 +663,7 @@ for details.</p>
 <p><strong>Basic Usage:</strong></p>
 <p>Create a sample dataset with four points in <span class="math notranslate nohighlight">\(d=2\)</span> dimensional
 space. Then, compute the log-determinant of
-<span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}^{-p}(\boldsymbol{\alpha}, \sigma,
+<span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}^{2}(\boldsymbol{\alpha}, \sigma,
 \varsigma)\)</span> for <span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (1, 2)\)</span>,
 <span class="math notranslate nohighlight">\(\sigma=2\)</span>, and <span class="math notranslate nohighlight">\(\varsigma=3\)</span>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a set of points</span>
@@ -665,7 +681,7 @@ space. Then, compute the log-determinant of
 </div>
 <p><strong>Configure Computation:</strong></p>
 <p>The following example shows how to compute the log-determinant of
-<span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}^{-\frac{3}{2}}(\boldsymbol{\alpha},
+<span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}^{\frac{3}{2}}(\boldsymbol{\alpha},
 \sigma, \varsigma)\)</span>. First, we check the default method:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Check the default imate option</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">get_imate_options</span><span class="p">()</span>

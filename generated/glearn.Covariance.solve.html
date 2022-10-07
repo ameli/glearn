@@ -56,6 +56,17 @@
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="glearn.Covariance.dot" href="glearn.Covariance.dot.html" />
     <link rel="prev" title="glearn.Covariance.logdet" href="glearn.Covariance.logdet.html" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-RCTBMM27GH"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-RCTBMM27GH');
+    </script>
+
     <script defer data-domain="docs.scipy.org" src="https://views.scientific-python.org/js/script.js"></script>
 
     <!-- Adobe Embed API -->
@@ -222,6 +233,11 @@
    </i>
   </label>
   <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="glearn.Covariance.get_size.html">
+     glearn.Covariance.get_size
+    </a>
+   </li>
    <li class="toctree-l2">
     <a class="reference internal" href="glearn.Covariance.get_imate_options.html">
      glearn.Covariance.get_imate_options
@@ -672,15 +688,17 @@ points generated in the above. We solve the linear system</p>
 <p>for the hyperparameters <span class="math notranslate nohighlight">\(\sigma=2\)</span>, <span class="math notranslate nohighlight">\(\varsigma = 3\)</span>,
 and <span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (1, 2)\)</span>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">n</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n</span> <span class="o">=</span> <span class="n">cov</span><span class="o">.</span><span class="n">get_size</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Solve linear system.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">sigma0</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="go">array([[-6.41469264e-03, -6.63212215e-04],</span>
-<span class="go">       [ 3.76411547e-03,  8.27826466e-03],</span>
-<span class="go">       [ 9.02944475e-05,  6.40825511e-03],</span>
-<span class="go">       [-3.89733076e-03, -1.20076618e-02]])</span>
+<span class="go">array([[ 0.00661562,  0.00021078],</span>
+<span class="go">       [-0.00194021,  0.02031901],</span>
+<span class="go">       [ 0.00776767, -0.0137298 ],</span>
+<span class="go">       [-0.00239916, -0.00373247]])</span>
 </pre></div>
 </div>
 <p><strong>Taking Derivatives:</strong></p>
@@ -696,10 +714,10 @@ and <span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (1, 2)\)<
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Compute second mixed derivative</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">sigma0</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
 <span class="gp">... </span>          <span class="n">derivative</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
-<span class="go">array([[  29.66090701,  -24.32302349],</span>
-<span class="go">       [ -37.62438132,   25.74258571],</span>
-<span class="go">       [ 419.71827538, -742.15853881],</span>
-<span class="go">       [-103.81860112,  176.67720887]])</span>
+<span class="go">array([[  -64.59508396,    46.20009763],</span>
+<span class="go">       [   80.00325735,   -49.33936488],</span>
+<span class="go">       [-1320.94755293,   817.88667267],</span>
+<span class="go">       [  314.55331235,  -172.5169869 ]])</span>
 </pre></div>
 </div>
 </dd></dl>
