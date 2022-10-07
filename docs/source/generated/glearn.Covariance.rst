@@ -20,6 +20,7 @@
          Covariance.get_matrix
          Covariance.get_scale
          Covariance.get_sigmas
+         Covariance.get_size
          Covariance.logdet
          Covariance.set_imate_options
          Covariance.set_scale

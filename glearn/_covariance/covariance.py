@@ -27,13 +27,21 @@ __all__ = ['Covariance']
 
 class Covariance(object):
     """
-    Mixed covariance model.
+    Create mixed covariance model.
 
-    For the regression problem
-    :math:`y=\\mu(\\boldsymbol{x})+\\delta(\\boldsymbol{x}) + \\epsilon` where
-    :math:`\\mu` and :math:`\\delta` are the mean, miss-fit, and input noise of
-    of the regression model respectively, this class implements a covariance
-    model
+    This class creates mixed-covariance model which can be defined by a set of
+    known or unknown hyperparameters and kernel functions. The covariance
+    object can compute:
+
+    * The auto-covariance or cross-covariance between a set of training
+      and test points, or the derivative of the covariance with respect to the
+      set of hyperparameters.
+    * The covariance object can also compute basic matrix functions of the
+      covariance matrix, such as log-determinant, or the trace of the functions
+      of the matrix.
+    * Solve a linear system or perform matrix-matrix or matrix-vector
+      multiplication involving the covariance matrix or its derivatives with
+      respect to hyperparameters.
 
     Parameters
     ----------
@@ -137,6 +145,7 @@ class Covariance(object):
     Methods
     -------
 
+    get_size
     get_imate_options
     set_imate_options
     set_scale
@@ -173,7 +182,7 @@ class Covariance(object):
 
     where
 
-    * :math:``\\mu` is a deterministic mean function.
+    * :math:`\\mu` is a deterministic mean function.
     * :math:`\\delta` is a zero-mean stochastic function representing the
       missfit of the regression model.
     * :math:`\\epsilon` is a zero-mean stochastic function representing the
@@ -221,7 +230,66 @@ class Covariance(object):
     Examples
     --------
 
+    **Create Covariance Object:**
 
+    Create a covariance matrix based on a set of sample data with four
+    points in :math:`d=2` dimensional space.
+
+    .. code-block:: python
+        :emphasize-lines: 7
+
+        >>> # Generate a set of points
+        >>> from glearn.sample_data import generate_points
+        >>> x = generate_points(num_points=4, dimension=2)
+
+        >>> # Create a covariance object
+        >>> from glearn import Covariance
+        >>> cov = Covariance(x)
+
+    By providing a set of hyperparameters, the covariance matrix can be
+    fully defined. Here we set :math:`\\sigma=2`, :math:`\\varsigma=3`, and
+    :math:`\\boldsymbol{\\alpha}= (1, 2)`.
+
+    .. code-block:: python
+
+        >>> # Get the covariance matrix for given hyperparameters
+        >>> cov.set_sigmas(2.0, 3.0)
+        >>> cov.set_scale([1.0, 2.0])
+        >>> cov.get_matrix()
+        array([[13.        ,  3.61643745,  3.51285267,  3.47045163],
+               [ 3.61643745, 13.        ,  3.32078482,  3.14804532],
+               [ 3.51285267,  3.32078482, 13.        ,  3.53448631],
+               [ 3.47045163,  3.14804532,  3.53448631, 13.        ]])
+
+    **Specify Hyperparameter at Instantiation:**
+
+    The hyperparameters can also be defined at the time of instantiating the
+    covariance object.
+    
+    .. code-block:: python
+        
+        >>> # Create a covariance object
+        >>> cov.traceinv(sigma=2.0, sigma0=3.0, scale=[1.0, 2.0])
+
+    **Specify Correlation Kernel:**
+
+    The kernel function that creates the correlation matrix :math:`\\mathbf{K}`
+    can be specified by one of the kernel objects derived from
+    :class:`glearn.kernels.Kernel` class. For instance, in the next example, we
+    set a square exponential kernel :class:`glearn.kernels.SquareExponential`.
+
+    .. code-block:: python
+
+        >>> # Create a kernel object
+        >>> from glearn import kernels
+        >>> kernel = kernels.SquareExponential()
+
+        >>> # Create covariance object with the above kernel
+        >>> cov.traceinv(kernel=kernel)
+
+    **Sparse Covariance:**
+
+    The covariance object can be configured to
     """
 
     # ====
@@ -289,6 +357,67 @@ class Covariance(object):
                 raise TypeError('"sigma0" should be a float type.')
             elif sigma0 < 0.0:
                 raise ValueError('"sigma0" cannot be negative.')
+
+    # ========
+    # get size
+    # ========
+
+    def get_size(self):
+        """
+        Returns the size of the covariance matrix.
+
+        Returns
+        -------
+        
+        n : int
+            The size :math:`n` of the :math:`n \\times n` covariance matrix.
+
+        See Also
+        --------
+
+        glearn.Covariance.get_matrix
+
+        Examples
+        --------
+        
+        Create a covariance matrix based on a set of sample data with four
+        points in :math:`d=2` dimensional space.
+
+        .. code-block:: python
+            :emphasize-lines: 10
+
+            >>> # Generate a set of points
+            >>> from glearn.sample_data import generate_points
+            >>> x = generate_points(num_points=4, dimension=2)
+
+            >>> # Create a covariance object
+            >>> from glearn import Covariance
+            >>> cov = Covariance(x)
+
+            >>> # Get the size of the covariance matrix
+            >>> cov.get_size()
+            4
+
+        The size of the covariance defined in the above is the same as the size
+        of the training points, ``x.shape[0]``.
+
+        By providing a set of hyperparameters, the covariance matrix can be
+        fully defined. Here we set :math:`\\sigma=2`, :math:`\\varsigma=3`, and
+        :math:`\\boldsymbol{\\alpha}= (1, 2)`.
+
+        .. code-block:: python
+
+            >>> # Get the covariance matrix for given hyperparameters
+            >>> cov.set_sigmas(2.0, 3.0)
+            >>> cov.set_scale([1.0, 2.0])
+            >>> cov.get_matrix()
+            array([[13.        ,  3.61643745,  3.51285267,  3.47045163],
+                   [ 3.61643745, 13.        ,  3.32078482,  3.14804532],
+                   [ 3.51285267,  3.32078482, 13.        ,  3.53448631],
+                   [ 3.47045163,  3.14804532,  3.53448631, 13.        ]])
+        """
+
+        return self.mixed_cor.cor.points.shape[0]
 
     # =================
     # get imate options
@@ -773,6 +902,7 @@ class Covariance(object):
         See Also
         --------
 
+        glearn.Covariance.get_size
         glearn.Covariance.auto_covariance
         glearn.Covariance.cross_covariance
 
@@ -1632,7 +1762,7 @@ class Covariance(object):
 
         Create a sample dataset with four points in :math:`d=2` dimensional
         space. Then, compute the log-determinant of
-        :math:`\\boldsymbol{\\Sigma}^{-p}(\\boldsymbol{\\alpha}, \\sigma,
+        :math:`\\boldsymbol{\\Sigma}^{2}(\\boldsymbol{\\alpha}, \\sigma,
         \\varsigma)` for :math:`\\boldsymbol{\\alpha} = (1, 2)`,
         :math:`\\sigma=2`, and :math:`\\varsigma=3`.
 
@@ -1654,7 +1784,7 @@ class Covariance(object):
         **Configure Computation:**
 
         The following example shows how to compute the log-determinant of
-        :math:`\\boldsymbol{\\Sigma}^{-\\frac{3}{2}}(\\boldsymbol{\\alpha},
+        :math:`\\boldsymbol{\\Sigma}^{\\frac{3}{2}}(\\boldsymbol{\\alpha},
         \\sigma, \\varsigma)`. First, we check the default method:
 
         .. code-block:: python
@@ -1924,15 +2054,17 @@ class Covariance(object):
         .. code-block:: python
 
             >>> import numpy
-            >>> n, m = x.shape[0], 2
+            >>> numpy.random.seed(0)
+            >>> n = cov.get_size()
+            >>> m = 2
             >>> Y = numpy.random.randn(n, m)
 
             >>> # Solve linear system.
             >>> cov.solve(Y, sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=2)
-            array([[-6.41469264e-03, -6.63212215e-04],
-                   [ 3.76411547e-03,  8.27826466e-03],
-                   [ 9.02944475e-05,  6.40825511e-03],
-                   [-3.89733076e-03, -1.20076618e-02]])
+            array([[ 0.00661562,  0.00021078],
+                   [-0.00194021,  0.02031901],
+                   [ 0.00776767, -0.0137298 ],
+                   [-0.00239916, -0.00373247]])
 
         **Taking Derivatives:**
 
@@ -1956,10 +2088,10 @@ class Covariance(object):
             >>> # Compute second mixed derivative
             >>> cov.solve(Y, sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=1,
             ...           derivative=[0, 1])
-            array([[  29.66090701,  -24.32302349],
-                   [ -37.62438132,   25.74258571],
-                   [ 419.71827538, -742.15853881],
-                   [-103.81860112,  176.67720887]])
+            array([[  -64.59508396,    46.20009763],
+                   [   80.00325735,   -49.33936488],
+                   [-1320.94755293,   817.88667267],
+                   [  314.55331235,  -172.5169869 ]])
         """
 
         # Get sigma and sigma0 (if None, uses class attribute)
@@ -2179,15 +2311,17 @@ class Covariance(object):
         .. code-block:: python
 
             >>> import numpy
-            >>> n, m = x.shape[0], 2
+            >>> numpy.random.seed(0)
+            >>> n = cov.get_size()
+            >>> m = 2
             >>> X = numpy.random.randn(n, m)
 
             >>> # Solve linear system.
             >>> cov.dot(X, sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=2)
-            array([[ -62.43487963,   -9.89158707],
-                   [   2.692417  ,   43.50383989],
-                   [   4.03370002,   47.7992843 ],
-                   [-100.43476314,  -71.39803646]])
+            array([[13.57159509, 48.72998688],
+                   [21.69530401, 87.37975138],
+                   [46.31225613, 36.13137595],
+                   [34.22135642, 43.08362434]])
 
         **Taking Derivatives:**
 
@@ -2212,10 +2346,10 @@ class Covariance(object):
             >>> # Compute second mixed derivative
             >>> cov.dot(Y, sigma=2.0, sigma0=3.0, scale=[1.0, 2.0], p=1,
             ...         derivative=[0, 1])
-            array([[-0.09526064, -0.06087328],
-                   [-0.25840693, -0.20152662],
-                   [-0.00797171,  0.01534789],
-                   [ 0.00716338,  0.10643169]])
+            array([[ 0.13536024,  0.06514873],
+                   [ 0.22977385, -0.02566722],
+                   [ 0.05745453,  0.06238882],
+                   [ 0.23752925,  0.28486212]])
         """
 
         # Get sigma and sigma0 (if None, uses class attribute)
@@ -2292,7 +2426,7 @@ class Covariance(object):
         Given a set of test points :math:`\\{ \\boldsymbol{x}^{\\ast}_i
         \\}_{i=1}^{n^{\\ast}}`, this function generates the :math:`n^{\\ast}
         \\times n^{\\ast}` auto-covariance
-        :math:`\\boldsymbol{\\Sigma}^{\\ast \\ast}`  where each element
+        :math:`\\boldsymbol{\\Sigma}^{\\ast \\ast}` where each element
         :math:`\\Sigma^{\\ast \\ast}_{ij}` of the matrix is the covariance
         between the points in the :math:`i`-th and :math:`j`-th test point,
         namely,
