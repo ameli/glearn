@@ -1,4 +1,4 @@
-.. _imate-docker:
+.. _glearn-docker:
 
 Using |project| on Docker
 *************************
@@ -13,7 +13,7 @@ Why Using Docker
 Workarounds to this problem are either:
 
 * Change your CUDA installation. See :ref:`Install CUDA Toolkit <gpu-install-cuda>`.
-* Compile |project| with a specific CUDA version compatible with your existing CUDA installation. See :ref:`Compile imate from Source <compile-imate>`.
+* Compile :mod:`imate` (a package used by |project|) with a specific CUDA version compatible with your existing CUDA installation. See :ref:`Compile imate from Source <compile-imate>`.
 
 Alternatively, as the third option, you can simply use |project|'s docker image without installing |project| or a compatible CUDA Toolkit as both are installed in the docker container and ready to use out of the box.
 
@@ -84,7 +84,7 @@ Get the |project| docker image by
 
 .. prompt:: bash
 
-  docker pull sameli/imate
+  docker pull sameli/glearn
 
 The docker image has the following pre-installed:
 
@@ -104,13 +104,13 @@ The followings are some examples of using ``docker run`` with various options:
 
   .. prompt:: bash
   
-      docker run sameli/imate nvidia-smi
+      docker run sameli/glearn nvidia-smi
   
 * To run the container and open *Python* interpreter directly at startup:
   
   .. prompt:: bash
   
-      docker run -it sameli/imate
+      docker run -it sameli/glearn
   
   This also imports |project| package automatically.
   
@@ -118,21 +118,21 @@ The followings are some examples of using ``docker run`` with various options:
   
   .. prompt:: bash
 
-        docker run -it sameli/imate ipython
+        docker run -it sameli/glearn ipython
   
-  This also imports `imate` package automatically.
+  This also imports `glearn` package automatically.
   
 * To open *Bash shell* only:
   
   .. prompt:: bash
 
-        docker run -it --entrypoint /bin/bash sameli/imate
+        docker run -it --entrypoint /bin/bash sameli/glearn
   
 * To *mount* a host's directory, such as ``/home/user/project``, onto a directory of the docker's container, such as ``/root``, use:
   
   .. prompt:: bash
   
-        docker run -it -v /home/user/project:/root sameli/imate
+        docker run -it -v /home/user/project:/root sameli/glearn
 
 Deploy |project| Docker Container on GPU
 ========================================
@@ -210,7 +210,7 @@ To use the host's GPU from the docker container, simply add  ``--gpus all`` to a
 
 .. prompt:: bash
 
-    docker run --gpus all -it sameli/imate
+    docker run --gpus all -it sameli/glearn
 
-.. |docker-size| image:: https://img.shields.io/docker/image-size/sameli/imate
-   :target: https://hub.docker.com/r/sameli/imate
+.. |docker-size| image:: https://img.shields.io/docker/image-size/sameli/glearn
+   :target: https://hub.docker.com/r/sameli/glearn

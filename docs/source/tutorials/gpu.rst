@@ -1,4 +1,4 @@
-.. _imate-gpu:
+.. _glearn-gpu:
 
 Using GPU Devices
 *****************
@@ -23,8 +23,8 @@ The version of CUDA libraries installed on the user's machine should match the v
     There are three ways to use |project| with a compatible version of CUDA Toolkit:
 
     1. :ref:`Install NVIDIA CUDA Toolkit <gpu-install-cuda>` with a CUDA version compatible with an existing |project| installation. In this way, you can keep the |project| package that is already installed with ``pip`` or ``conda``.
-    2. :ref:`Compile imate from the source <gpu-compile-imate>` for a specific version of CUDA to use an existing CUDA library. In this way, you can keep the current CUDA installation.
-    3. :ref:`Use docker image <gpu-docker>` with pre-installed |project|, CUDA libraries, and NVIDIA graphic driver. This is the most convenient way as no compilation or installation of |project| and CUDA Toolkit is required.
+    2. :ref:`Compile imate from the source <gpu-compile-imate>` for a specific version of CUDA to use an existing CUDA library. :mod:`imate` is a package used by |project|. In this way, you can keep the current CUDA installation.
+    3. :ref:`Use docker image <gpu-docker>` with pre-installed |project|, :mod:`imate`, CUDA libraries, and NVIDIA graphic driver. This is the most convenient way as no compilation or installation of |project| and CUDA Toolkit is required.
 
 The above methods are described in order below.
 
@@ -177,221 +177,12 @@ In addition to CUDA Toolkit, make sure the `OpenMP` library is also installed us
 
             sudo dnf install libgomp -y
 
-.. _gpu-compile-imate:
+.. _gpu-compile-glearn:
 
 Compile |project| from Source with CUDA
 =======================================
 
-Install C++ Compiler and OpenMP
--------------------------------
-
-Compile |project| with either of GCC, Clang/LLVM, or Intel C++ compiler.
-
-.. rubric:: Install GNU GCC Compiler
-
-.. tab-set::
-
-    .. tab-item:: Ubuntu/Debian
-        :sync: ubuntu
-
-        .. prompt:: bash
-
-            sudo apt install build-essential libomp-dev
-
-    .. tab-item:: CentOS 7
-        :sync: centos
-
-        .. prompt:: bash
-
-            sudo yum group install "Development Tools"
-
-    .. tab-item:: RHEL 9
-        :sync: rhel
-
-        .. prompt:: bash
-
-            sudo dnf group install "Development Tools"
-
-Then, export ``C`` and ``CXX`` variables by
-
-.. prompt:: bash
-
-  export CC=/usr/local/bin/gcc
-  export CXX=/usr/local/bin/g++
-
-.. rubric:: Install Clang/LLVN Compiler
-  
-.. tab-set::
-
-    .. tab-item:: Ubuntu/Debian
-        :sync: ubuntu
-
-        .. prompt:: bash
-
-            sudo apt install clang libomp-dev
-
-    .. tab-item:: CentOS 7
-        :sync: centos
-
-        .. prompt:: bash
-
-            sudo yum install yum-utils
-            sudo yum-config-manager --enable extras
-            sudo yum makecache
-            sudo yum install clang
-
-    .. tab-item:: RHEL 9
-        :sync: rhel
-
-        .. prompt:: bash
-
-            sudo dnf install yum-utils
-            sudo dnf config-manager --enable extras
-            sudo dnf makecache
-            sudo dnf install clang
-
-Then, export ``C`` and ``CXX`` variables by
-
-.. prompt:: bash
-
-  export CC=/usr/local/bin/clang
-  export CXX=/usr/local/bin/clang++
-
-.. rubric:: Install Intel oneAPI Compiler
-
-To install `Intel Compiler` see `Intel oneAPI Base Toolkit <https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit-download.html?operatingsystem=linux&distributions=aptpackagemanager>`_.
-
-Install CUDA Compiler and Development Libraries
------------------------------------------------
-
-.. attention::
-
-    The minimum version of CUDA to compile |project| is `CUDA 10.0`.
-
-If CUDA Toolkit is installed, skip this part. Otherwise, Make sure the CUDA compiler and the development libraries of cuBLAS and cuSparse are installed by
-
-.. tab-set::
-
-    .. tab-item:: Ubuntu/Debian
-        :sync: ubuntu
-
-        .. prompt:: bash
-
-            sudo apt install -y \
-                cuda-nvcc-11-7 \
-                libcublas-11-7 \
-                libcublas-dev-11-7 \
-                libcusparse-11-7 -y \
-                libcusparse-dev-11-7
-
-    .. tab-item:: CentOS 7
-        :sync: centos
-
-        .. prompt:: bash
-
-            sudo yum install --setopt=obsoletes=0 -y \
-                cuda-nvcc-11-7.x86_64 \
-                cuda-cudart-devel-11-7.x86_64 \
-                libcublas-11-7.x86_64 \
-                libcublas-devel-11-7.x86_64 \
-                libcusparse-11-7.x86_64 \
-                libcusparse-devel-11-7.x86_64
-
-    .. tab-item:: RHEL 9
-        :sync: rhel
-
-        .. prompt:: bash
-
-            sudo dnf install --setopt=obsoletes=0 -y \
-                cuda-nvcc-11-7.x86_64 \
-                cuda-cudart-devel-11-7.x86_64 \
-                libcublas-11-7.x86_64 \
-                libcublas-devel-11-7.x86_64 \
-                libcusparse-11-7.x86_64 \
-                libcusparse-devel-11-7.x86_64
-
-Update ``PATH`` with the CUDA installation location by
-
-.. prompt:: bash
-
-    echo 'export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}' >> ~/.bashrc
-    source ~/.bashrc
-
-Check if the CUDA compiler is available with ``which nvcc``.
-
-Load CUDA Compiler on GPU Cluster
----------------------------------
-
-If you are compiling |project| on a GPU cluster, chances are the CUDA Toolkit is already installed. If the cluster uses ``module`` interface, load CUDA as follows.
-
-First, check if a CUDA module is available by
-
-.. prompt:: bash
-
-    module avail
-
-Load both CUDA and GCC by
-
-.. prompt:: bash
-
-    module load cuda gcc
-
-You may specify CUDA version if multiple CUDA versions are available, such as by
-
-.. prompt:: bash
-
-    module load cuda/11.7 gcc/6.3
-
-You may check if CUDA Compiler is available with ``which nvcc``.
-
-Configure Compile-Time Environment Variables
---------------------------------------------
-
-Specify the home directory of CUDA Toolkit by setting either of the variables ``CUDA_HOME``, ``CUDA_ROOT``, or ``CUDA_PATH``. The home directory should be a path containing the executable ``/bin/nvcc``. For instance, if ``/usr/local/cuda/bin/nvcc`` exists, export the following:
-
-.. prompt:: bash
-
-    export CUDA_HOME=/usr/local/cuda
-
-To permanently set this variable, place the above line in a profile file, such as in ``~/.bashrc``, or ``~/.profile``, and source this file, for instance by
-
-.. prompt:: bash
-
-    echo 'export CUDA_HOME=/usr/local/cuda${CUDA_HOME:+:${CUDA_HOME}}' >> ~/.bashrc
-    source ~/.bashrc
-
-To compile |project| with CUDA, export the following flag variable
-
-.. prompt:: bash
-
-    export USE_CUDA=1
-
-Enable Dynamic Loading (*optional*)
------------------------------------
-
-When |project| is complied, the CUDA libraries bundle with the final installation of |project| package, making it over 700MB. While this is generally not an issue for most users, often a small package is preferable if the installed package has to be distributed to other machines. To this end, enable the `dynamic loading` feature of |project|. In this case, the CUDA libraries do not bundle with the |project| installation, rather, |project| loads the existing CUDA libraries of the host machine at runtime. To enable dynamic loading, simply set:
-
-.. prompt:: bash
-    
-    export CUDA_DYNAMIC_LOADING=1
-
-Compile and Install
--------------------
-
-|repo-size|
-
-Get the source code of |project| with
-
-.. prompt:: bash
-
-    git clone https://github.com/ameli/imate.git
-
-Compile and install by
-
-.. prompt:: bash
-
-    cd imate
-    python setup.py install
+The second method to make |project| to be compatible with am existing CUDA installation is to compile :mod:`imate` from source. :mod:`imate` is a dependency package used by |project| that performs linear algebraic computations on GPU devices. Note that |project| itself does not have to be compiled from source. See :ref:`compile imate from the source <gpu-compile-imate>` for details.
 
 .. _gpu-docker:
 
@@ -529,7 +320,7 @@ Get the |project| docker image by
 
 .. prompt:: bash
 
-  docker pull sameli/imate
+  docker pull sameli/glearn
 
 The docker image has the followings pre-installed:
 
@@ -545,7 +336,7 @@ To use host's GPU from the docker container, add  ``--gpus all`` to any of the `
 
 .. prompt:: bash
 
-    docker run --gpus all -it sameli/imate
+    docker run --gpus all -it sameli/glearn
 
 The followings are some examples of using ``docker run`` with various options:
 
@@ -553,13 +344,13 @@ The followings are some examples of using ``docker run`` with various options:
 
   .. prompt:: bash
   
-      docker run --gpus all sameli/imate nvidia-smi
+      docker run --gpus all sameli/glearn nvidia-smi
   
 * To run the container and open *Python* interpreter directly at startup:
   
   .. prompt:: bash
   
-      docker run -it --gpus all sameli/imate
+      docker run -it --gpus all sameli/glearn
   
   This also imports |project| package automatically.
   
@@ -567,38 +358,38 @@ The followings are some examples of using ``docker run`` with various options:
   
   .. prompt:: bash
 
-        docker run -it --gpus all sameli/imate ipython
+        docker run -it --gpus all sameli/glearn ipython
   
-  This also imports `imate` package automatically.
+  This also imports `glearn` package automatically.
   
 * To open *Bash shell* only:
   
   .. prompt:: bash
 
-        docker run -it --gpus all --entrypoint /bin/bash sameli/imate
+        docker run -it --gpus all --entrypoint /bin/bash sameli/glearn
   
 * To *mount* a host's directory, such as ``/home/user/project``, onto a directory of the docker's container, such as ``/root``, use:
   
   .. prompt:: bash
   
-        docker run -it --gpus all -v /home/user/project:/root sameli/imate
+        docker run -it --gpus all -v /home/user/project:/root sameli/glearn
 
 Inquiry GPU and CUDA with |project|
 ===================================
 
-First, make sure |project| recognizes the CUDA libraries and GPU device. There are a number of functions available in :ref:`imate.device <Device Inquiry>` module to inquiry GPU device.
+First, make sure |project| recognizes the CUDA libraries and GPU device. There are a number of functions available in :ref:`glearn.device <Device Inquiry>` module to inquiry GPU device.
 
 Locate CUDA Toolkit
 -------------------
 
-Use :func:`imate.device.locate_cuda` function to find the location of CUDA home directory.
+Use :func:`glearn.device.locate_cuda` function to find the location of CUDA home directory.
 
 .. code-block:: python
 
-    >>> import imate
+    >>> import glearn
 
     >>> # Get the location and version of CUDA Toolkit
-    >>> imate.device.locate_cuda()
+    >>> glearn.device.locate_cuda()
     {
         'home': '/global/software/sl-7.x86_64/modules/langs/cuda/11.2',
         'include': '/global/software/sl-7.x86_64/modules/langs/cuda/11.2/include',
@@ -623,52 +414,53 @@ If the above function does not return an output such as in the above, it is beca
 Detect NVIDIA Graphic Driver
 ----------------------------
 
-Use :func:`imate.device.get_nvidia_driver_version` function to make sure |project| can detect the NVIDIA driver.
+Use :func:`glearn.device.get_nvidia_driver_version` function to make sure |project| can detect the NVIDIA driver.
 
 .. code-block:: python
 
     >>> # Get the version of NVIDIA graphic driver
-    >>> imate.device.get_nvidia_driver_version()
+    >>> glearn.device.get_nvidia_driver_version()
     460.84
 
 Detect GPU Devices
 ------------------
 
-Use :func:`imate.device.get_processor_name()` and :func:`imate.device.get_gpu_name()` to find the name of CPU and GPU devices, respectively.
+Use :func:`glearn.device.get_processor_name()` and :func:`glearn.device.get_gpu_name()` to find the name of CPU and GPU devices, respectively.
 
 .. code-block:: python
 
     >>> # Get the name of CPU processor
-    >>> imate.device.get_processor_name()
+    >>> glearn.device.get_processor_name()
     'Intel(R) Xeon(R) CPU E5-2623 v3 @ 3.00GHz'
 
     >>> # Get the name of GPU devices
-    >>> imate.device.get_gpu_name()
+    >>> glearn.device.get_gpu_name()
     'GeForce GTX 1080 Ti'
 
 .. note::
 
     If the name of the GPU device is empty, this is because either there is no GPU device detected, or *NVIDIA graphic driver* is not installed, or its location is not on the PATH. To do so, set the location of ``nvidia-smi`` executable to the ``PATH`` environment variable. On UNIX, this executable should be on ``/usr/bin`` directory and by default it should be already on the `PATH`.
 
-The number of CPU threads and GPU devices can be obtained respectively by :func:`imate.device.get_num_cpu_threads` and :func:`imate.device.get_num_gpu_devices()` functions.
+The number of CPU threads and GPU devices can be obtained respectively by :func:`glearn.device.get_num_cpu_threads` and :func:`glearn.device.get_num_gpu_devices()` functions.
 
 .. code-block:: python
 
     >>> # Get number of processor threads
-    >>> imate.device.get_num_cpu_threads()
+    >>> glearn.device.get_num_cpu_threads()
     8
 
     >>> # Get number of GPU devices
-    >>> imate.device.get_num_gpu_devices()
+    >>> glearn.device.get_num_gpu_devices()
     4
 
-The :func:`imate.info` function also obtains general information about |project| configuration and devices.
+The :func:`glearn.info` function also obtains general information about |project| configuration and devices.
 
 .. code-block:: python
    :emphasize-lines: 5, 6, 7, 8
 
-    >>> imate.info()
-    imate version   : 0.13.0
+    >>> glearn.info()
+    glearn version  : 0.17.0
+    imate version   : 0.18.0
     processor       : Intel(R) Xeon(R) CPU E5-2623 v3 @ 3.00GHz
     num threads     : 8
     gpu device      : 'GeForce GTX 1080 Ti'
@@ -950,7 +742,7 @@ See the list of `options of sbatch <https://slurm.schedmd.com/sbatch.html>`_ for
 
 In the above job file, modify ``--partition``, ``--account``, and ``--qos`` according to your user account allowance on the cluster.
 
-.. |repo-size| image:: https://img.shields.io/github/repo-size/ameli/imate
-   :target: https://github.com/ameli/imate
-.. |docker-size| image:: https://img.shields.io/docker/image-size/sameli/imate
-   :target: https://hub.docker.com/r/sameli/imate
+.. |repo-size| image:: https://img.shields.io/github/repo-size/ameli/glearn
+   :target: https://github.com/ameli/glearn
+.. |docker-size| image:: https://img.shields.io/docker/image-size/sameli/glearn
+   :target: https://hub.docker.com/r/sameli/glearn

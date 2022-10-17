@@ -30,14 +30,118 @@ class GaussianProcess(object):
     """
     Gaussian process for regression.
 
-    :param X: Linear basis functions for the mean function. A 2D array of size
-        ``(n, m)`` where ``n`` is the size of the data and ``m`` is the number
-        of the basis functions.
-    :type X: numpy.ndarray
+    Parameters
+    ----------
 
-    :param K: Covariance matrix. A 2D array of size ``(n, n)`` where ``n`` is
-        the size of the data.
-    :type K: numpy.ndarray
+    mean : glearn.LinearModel
+        The mean function :math:`\\mu(\\boldsymbol)`.
+        of the regression.
+
+    cov : glearn.Covariance
+        The covariance function :math:`\\boldsymbol{\\Sigma}` of the
+        regression.
+
+    See Also
+    --------
+
+    glearn.LinearModel
+    glearn.Covariance
+
+    Attributes
+    ----------
+
+    z : numpy.ndarray
+        An array of the size :math:`n` representing the data on training
+        points.
+
+    training_result : dict
+        A dictionary containing the training hyperparameters after the model
+        is trained.
+
+    prediction_result: dict
+        A dictionary containing the prediction results and some internal
+        parameters after the model performs prediction on a set of test points.
+
+    Methods
+    -------
+
+    train
+    predict
+    plot_likelihood
+
+    Notes
+    -----
+
+    An instance of this class creates an object representing the Gaussian
+    process :math:`\\mathcal{GP}(\\mu, \\Sigma)`, where :math:`\\mu` and
+    :math:`\\Sigma` are respectively the mean and covariance functions of the
+    Gaussian process model.
+
+    The training method of this class is based on the algorithm described in
+    [1]_.
+
+    References
+    ----------
+
+    .. [1] Ameli, S., and Shadden. S. C. (2022). *Noise Estimation in Gaussian
+       Process Regression*. arXiv: 2206.09976 [cs.LG]}.
+
+    Examples
+    --------
+
+    To define a Gaussian process object :math:`\\mathcal{GP}(\\mu, \\Sigma)`,
+    create an object for the linear model where :math:`\\mu` and an object
+    for the covariance model :math:`\Sigma` as follows.
+
+    **Generate Sample Training Data:**
+
+    .. code-block:: python
+
+        >>> from glearn import sample_data
+
+        >>> # Generate a set of training oints
+        >>> x = sample_data.generate_points(num_points=50)
+
+        >>> # Generate noise sample data on the training points
+        >>> y_noisy = sample_data.generate_data(x, noise_magnitude=0.05)
+
+    **Create Linear Model:**
+
+    Create an object for :math:`\\mu` function using
+    :class:`glearn.LinearModel` class.
+
+    .. code-block:: python
+
+        >>> # Create mean object using glearn.
+        >>> mean = glearn.LinearModel(x)
+
+    **Create Covariance Object:**
+
+    Create the covariance model using :class:`glearn.Covariance` class.
+
+    .. math::
+
+        \\boldsymbol{\\Sigma}(\\sigma^2, \\varsigma^2, \\boldsymbol{\\alpha}) =
+        \\sigma^2 \\mathbf{K} + \\varsigma^2 \\mathbf{I}.
+
+    Here we set :math:`\\sigma=2`, :math:`\\varsigma=3`, and
+    :math:`\\boldsymbol{\\alpha}= (1, 2)`.
+    
+    .. code-block:: python
+        
+        >>> # Create a covariance object
+        >>> cov.traceinv(sigma=2.0, sigma0=3.0, scale=[1.0, 2.0])
+
+    **Create Gaussian Process Object:**
+
+    Putting all together, we can create an object for :math:`\\mathcal{GP}
+    (\\mu, \\Sigma)` as follows:
+
+    .. code-block:: python
+        :emphasize-lines: 2
+
+        >>> # Gaussian process object
+        >>> gp = glearn.GaussianProcess(mean, cov)
     """
 
     # ====
@@ -231,7 +335,10 @@ class GaussianProcess(object):
             verbose=False,
             plot=False):
         """
-        Finds the hyperparameters of the Gaussian process model.
+        Train the hyperparameters of the Gaussian process model.
+
+        Notes
+        -----
 
         Note: ``use_rel_error`` can be None, True, or False. When it is set to
         None, the callback function for minimize is not used.
@@ -298,8 +405,13 @@ class GaussianProcess(object):
             z=None,
             profile_hyperparam='var'):
         """
-        Plots likelihood in multiple figures. This function may take a long
-        time, and is only used for testing purposes on small datasets.
+        Plot the likelihood in multiple figures.
+
+        Notes
+        -----
+
+        This function may take a long time, and is only used for testing
+        purposes on small datasets.
         """
 
         if z is None:

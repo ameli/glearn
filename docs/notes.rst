@@ -27,3 +27,19 @@ Issues
   function value and the final output will be the same as the initial point.
   To see this, use `plot=True`, and observe that the solid lines (Jacobian)
   is negative of dashed lines (numerical first derivative).
+
+=============
+Documentation
+=============
+
+Things yet remained in the documentation to be completed:
+
+* covariance class
+* Gaussian process class
+* A few more tutorials in jupyter notebook
+* performance/.. is empty
+* tutorials/gpu.rst: the examples are for imate and have not been updated to be
+  the examples for glearn.. Once GaussianProcess class is finished, update the
+  usage examples in gpu.rst.
+* In index.rst, I changed the card for "Performance" to "Publications", since
+  the content for performance are not ready.
