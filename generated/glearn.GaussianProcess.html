@@ -48,11 +48,13 @@
     <script src="../_static/js/custom-pydata.js"></script>
     <script src="../_static/design-tabs.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="glearn.kernels.Kernel" href="glearn.kernels.Kernel.html" />
+    <link rel="next" title="glearn.GaussianProcess.train" href="glearn.GaussianProcess.train.html" />
     <link rel="prev" title="glearn.Covariance.cross_covariance" href="glearn.Covariance.cross_covariance.html" />
 
     <!-- Google tag (gtag.js) -->
@@ -226,10 +228,32 @@
    glearn.Covariance
   </a>
  </li>
- <li class="toctree-l1 current active">
+ <li class="toctree-l1 current active has-children">
   <a class="current reference internal" href="#">
    glearn.GaussianProcess
   </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="glearn.GaussianProcess.train.html">
+     glearn.GaussianProcess.train
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="glearn.GaussianProcess.predict.html">
+     glearn.GaussianProcess.predict
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="glearn.GaussianProcess.plot_likelihood.html">
+     glearn.GaussianProcess.plot_likelihood
+    </a>
+   </li>
+  </ul>
  </li>
 </ul>
 <p aria-level="2" class="caption" role="heading">
@@ -464,15 +488,106 @@
 <dd><p>Gaussian process for regression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<em>numpy.ndarray</em>) – Linear basis functions for the mean function. A 2D array of size
-<code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">m)</span></code> where <code class="docutils literal notranslate"><span class="pre">n</span></code> is the size of the data and <code class="docutils literal notranslate"><span class="pre">m</span></code> is the number
-of the basis functions.</p></li>
-<li><p><strong>K</strong> (<em>numpy.ndarray</em>) – Covariance matrix. A 2D array of size <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">n)</span></code> where <code class="docutils literal notranslate"><span class="pre">n</span></code> is
-the size of the data.</p></li>
-</ul>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>mean</strong><span class="classifier">glearn.LinearModel</span></dt><dd><p>The mean function <span class="math notranslate nohighlight">\(\mu(\boldsymbol)\)</span>.
+of the regression.</p>
+</dd>
+<dt><strong>cov</strong><span class="classifier">glearn.Covariance</span></dt><dd><p>The covariance function <span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}\)</span> of the
+regression.</p>
 </dd>
 </dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="glearn.LinearModel.html#glearn.LinearModel" title="glearn.LinearModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.LinearModel</span></code></a></dt><dd></dd>
+<dt><a class="reference internal" href="glearn.Covariance.html#glearn.Covariance" title="glearn.Covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.Covariance</span></code></a></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>An instance of this class creates an object representing the Gaussian
+process <span class="math notranslate nohighlight">\(\mathcal{GP}(\mu, \Sigma)\)</span>, where <span class="math notranslate nohighlight">\(\mu\)</span> and
+<span class="math notranslate nohighlight">\(\Sigma\)</span> are respectively the mean and covariance functions of the
+Gaussian process model.</p>
+<p>The training method of this class is based on the algorithm described in
+<a class="reference internal" href="#r576a069df978-1" id="id1">[1]</a>.</p>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="r576a069df978-1" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Ameli, S., and Shadden. S. C. (2022). <em>Noise Estimation in Gaussian
+Process Regression</em>. arXiv: 2206.09976 [cs.LG]}.</p>
+</div>
+</div>
+<p class="rubric">Examples</p>
+<p>To define a Gaussian process object <span class="math notranslate nohighlight">\(\mathcal{GP}(\mu, \Sigma)\)</span>,
+create an object for the linear model where <span class="math notranslate nohighlight">\(\mu\)</span> and an object
+for the covariance model <span class="math notranslate nohighlight">\(\Sigma\)</span> as follows.</p>
+<p><strong>Generate Sample Training Data:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">sample_data</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a set of training oints</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">sample_data</span><span class="o">.</span><span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate noise sample data on the training points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y_noisy</span> <span class="o">=</span> <span class="n">sample_data</span><span class="o">.</span><span class="n">generate_data</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">noise_magnitude</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Create Linear Model:</strong></p>
+<p>Create an object for <span class="math notranslate nohighlight">\(\mu\)</span> function using
+<a class="reference internal" href="glearn.LinearModel.html#glearn.LinearModel" title="glearn.LinearModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.LinearModel</span></code></a> class.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create mean object using glearn.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mean</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">LinearModel</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Create Covariance Object:</strong></p>
+<p>Create the covariance model using <a class="reference internal" href="glearn.Covariance.html#glearn.Covariance" title="glearn.Covariance"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.Covariance</span></code></a> class.</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\Sigma}(\sigma^2, \varsigma^2, \boldsymbol{\alpha}) =
+\sigma^2 \mathbf{K} + \varsigma^2 \mathbf{I}.\]</div>
+<p>Here we set <span class="math notranslate nohighlight">\(\sigma=2\)</span>, <span class="math notranslate nohighlight">\(\varsigma=3\)</span>, and
+<span class="math notranslate nohighlight">\(\boldsymbol{\alpha}= (1, 2)\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a covariance object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">traceinv</span><span class="p">(</span><span class="n">sigma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">sigma0</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><strong>Create Gaussian Process Object:</strong></p>
+<p>Putting all together, we can create an object for <span class="math notranslate nohighlight">\(\mathcal{GP}
+(\mu, \Sigma)\)</span> as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Gaussian process object</span>
+<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">GaussianProcess</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">cov</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>An array of the size <span class="math notranslate nohighlight">\(n\)</span> representing the data on training
+points.</p>
+</dd>
+<dt><strong>training_result</strong><span class="classifier">dict</span></dt><dd><p>A dictionary containing the training hyperparameters after the model
+is trained.</p>
+</dd>
+<dt><strong>prediction_result: dict</strong></dt><dd><p>A dictionary containing the prediction results and some internal
+parameters after the model performs prediction on a set of test points.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.GaussianProcess.train.html#glearn.GaussianProcess.train" title="glearn.GaussianProcess.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">train</span></code></a>(z[, hyperparam_guess, ...])</p></td>
+<td><p>Train the hyperparameters of the Gaussian process model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="glearn.GaussianProcess.predict.html#glearn.GaussianProcess.predict" title="glearn.GaussianProcess.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code></a>(test_points[, cov, plot, true_data, ...])</p></td>
+<td><p>Regression with Gaussian process on new data points.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="glearn.GaussianProcess.plot_likelihood.html#glearn.GaussianProcess.plot_likelihood" title="glearn.GaussianProcess.plot_likelihood"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_likelihood</span></code></a>([z, profile_hyperparam])</p></td>
+<td><p>Plot the likelihood in multiple figures.</p></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </section>
@@ -492,10 +607,10 @@ the size of the data.</p></li>
           <p class="prev-next-title">glearn.Covariance.cross_covariance</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="glearn.kernels.Kernel.html" title="next page">
+  <a class='right-next' id="next-link" href="glearn.GaussianProcess.train.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">glearn.kernels.Kernel</p>
+      <p class="prev-next-title">glearn.GaussianProcess.train</p>
   </div>
   <i class="fas fa-angle-right"></i>
   </a>
@@ -522,7 +637,7 @@ the size of the data.</p></li>
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.3.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.3.0.<br>
 </p>
   </div>
   

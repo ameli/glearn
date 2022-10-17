@@ -314,7 +314,7 @@
               <article class="bd-article" role="main">
                 
   <section id="using-project-on-docker">
-<span id="imate-docker"></span><h1><a class="toc-backref" href="#id1" role="doc-backlink"><span class="section-number">2. </span>Using <span class="synco">g-learn</span> on Docker</a><a class="headerlink" href="#using-project-on-docker" title="Permalink to this heading">#</a></h1>
+<span id="glearn-docker"></span><h1><a class="toc-backref" href="#id1" role="doc-backlink"><span class="section-number">2. </span>Using <span class="synco">g-learn</span> on Docker</a><a class="headerlink" href="#using-project-on-docker" title="Permalink to this heading">#</a></h1>
 <nav class="contents" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
@@ -340,7 +340,7 @@
 <p>Workarounds to this problem are either:</p>
 <ul class="simple">
 <li><p>Change your CUDA installation. See <a class="reference internal" href="gpu.html#gpu-install-cuda"><span class="std std-ref">Install CUDA Toolkit</span></a>.</p></li>
-<li><p>Compile <span class="synco">g-learn</span> with a specific CUDA version compatible with your existing CUDA installation. See <a class="reference internal" href="install.html#compile-imate"><span class="std std-ref">Compile imate from Source</span></a>.</p></li>
+<li><p>Compile <a class="reference external" href="https://ameli.github.io/imate/index.html#module-imate" title="(in imate)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imate</span></code></a> (a package used by <span class="synco">g-learn</span>) with a specific CUDA version compatible with your existing CUDA installation. See <a class="reference external" href="https://ameli.github.io/imate/tutorials/install.html#compile-imate" title="(in imate)"><span class="xref std std-ref">Compile imate from Source</span></a>.</p></li>
 </ul>
 <p>Alternatively, as the third option, you can simply use <span class="synco">g-learn</span>’s docker image without installing <span class="synco">g-learn</span> or a compatible CUDA Toolkit as both are installed in the docker container and ready to use out of the box.</p>
 </section>
@@ -395,9 +395,9 @@ RHEL 9</label><div class="sd-tab-content docutils">
 </section>
 <section id="get-project-docker-image">
 <h2><a class="toc-backref" href="#id4" role="doc-backlink"><span class="section-number">2.3. </span>Get <span class="synco">g-learn</span> Docker Image</a><a class="headerlink" href="#get-project-docker-image" title="Permalink to this heading">#</a></h2>
-<p><a class="reference external" href="https://hub.docker.com/r/sameli/imate"><img alt="docker-size" src="https://img.shields.io/docker/image-size/sameli/imate" /></a></p>
+<p><a class="reference external" href="https://hub.docker.com/r/sameli/glearn"><img alt="docker-size" src="https://img.shields.io/docker/image-size/sameli/glearn" /></a></p>
 <p>Get the <span class="synco">g-learn</span> docker image by</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">docker pull sameli/imate</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">docker pull sameli/glearn</span>
 </pre></div></div><p>The docker image has the following pre-installed:</p>
 <ul class="simple">
 <li><p>CUDA: in <code class="docutils literal notranslate"><span class="pre">/usr/local/cuda</span></code></p></li>
@@ -411,21 +411,21 @@ RHEL 9</label><div class="sd-tab-content docutils">
 <p>The followings are some examples of using <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">run</span></code> with various options:</p>
 <ul>
 <li><p>To check the host’s NVIDIA driver version, CUDA runtime library version, and list of available GPU devices, run <code class="docutils literal notranslate"><span class="pre">nvida-smi</span></code> command by:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">docker run sameli/imate nvidia-smi</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">docker run sameli/glearn nvidia-smi</span>
 </pre></div></div></li>
 <li><p>To run the container and open <em>Python</em> interpreter directly at startup:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">docker run -it sameli/imate</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">docker run -it sameli/glearn</span>
 </pre></div></div><p>This also imports <span class="synco">g-learn</span> package automatically.</p>
 </li>
 <li><p>To run the container and open <em>IPython</em> interpreter directly at startup:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">docker run -it sameli/imate ipython</span>
-</pre></div></div><p>This also imports <cite>imate</cite> package automatically.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">docker run -it sameli/glearn ipython</span>
+</pre></div></div><p>This also imports <cite>glearn</cite> package automatically.</p>
 </li>
 <li><p>To open <em>Bash shell</em> only:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">docker run -it --entrypoint /bin/bash sameli/imate</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">docker run -it --entrypoint /bin/bash sameli/glearn</span>
 </pre></div></div></li>
 <li><p>To <em>mount</em> a host’s directory, such as <code class="docutils literal notranslate"><span class="pre">/home/user/project</span></code>, onto a directory of the docker’s container, such as <code class="docutils literal notranslate"><span class="pre">/root</span></code>, use:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">docker run -it -v /home/user/project:/root sameli/imate</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">docker run -it -v /home/user/project:/root sameli/glearn</span>
 </pre></div></div></li>
 </ul>
 </section>
@@ -480,7 +480,7 @@ RHEL 9</label><div class="sd-tab-content docutils">
 <section id="run-project-docker-container-on-gpu">
 <h3><a class="toc-backref" href="#id8" role="doc-backlink"><span class="section-number">2.5.2. </span>Run <span class="synco">g-learn</span> Docker Container on GPU</a><a class="headerlink" href="#run-project-docker-container-on-gpu" title="Permalink to this heading">#</a></h3>
 <p>To use the host’s GPU from the docker container, simply add  <code class="docutils literal notranslate"><span class="pre">--gpus</span> <span class="pre">all</span></code> to any of the <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">run</span></code> commands <a class="reference internal" href="#docker-examples"><span class="std std-ref">described earlier</span></a>, such as by</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">docker run --gpus all -it sameli/imate</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">docker run --gpus all -it sameli/glearn</span>
 </pre></div></div></section>
 </section>
 </section>
@@ -530,7 +530,7 @@ RHEL 9</label><div class="sd-tab-content docutils">
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.3.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.3.0.<br>
 </p>
   </div>
   

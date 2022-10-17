@@ -59,11 +59,18 @@
         :text-align: center
         :class-card: custom-card-link
 
-    .. grid-item-card:: Performance
-        :link: index_performance
+    .. grid-item-card:: Publications
+        :link: index_publications
         :link-type: ref
         :text-align: center
         :class-card: custom-card-link
+
+    .. Content for performance are not ready. I cnaged this to Publications temporarily.
+    .. .. grid-item-card:: Performance
+    ..     :link: index_performance
+    ..     :link-type: ref
+    ..     :text-align: center
+    ..     :class-card: custom-card-link
 
 .. Overview
 .. ========
@@ -236,12 +243,14 @@ Some notable implementation techniques used to develop |project| are:
 * OS-independent customized `dynamic loading` of CUDA libraries.
 * Static dispatching enables executing |project| with and without CUDA on the user's machine with the same pre-compiled |project| installation.
 * Completely `GIL <https://en.wikipedia.org/wiki/Global_interpreter_lock>`_-*free* Cython implementation.
-* Providing `manylinux wheels <https://pypi.org/project/imate/#files>`_ build upon customized docker images with CUDA support (see `manylinux CUDA 10 <https://hub.docker.com/r/sameli/manylinux2014_x86_64_cuda_10>`_ and `manylinux CUDA 11 <https://hub.docker.com/r/sameli/manylinux2014_x86_64_cuda_11>`_ docker images on Docker Hub).
+* Providing `manylinux wheels <https://pypi.org/project/glearn/#files>`_ build upon customized docker images with CUDA support (see `manylinux CUDA 10 <https://hub.docker.com/r/sameli/manylinux2014_x86_64_cuda_10>`_ and `manylinux CUDA 11 <https://hub.docker.com/r/sameli/manylinux2014_x86_64_cuda_11>`_ docker images on Docker Hub).
 
 How to Contribute
 =================
 
 We welcome contributions via `GitHub's pull request <https://github.com/ameli/glearn/pulls>`_. If you do not feel comfortable modifying the code, we also welcome feature requests and bug reports as `GitHub issues <https://github.com/ameli/glearn/issues>`_.
+
+.. _index_publications:
 
 Publications
 ============
