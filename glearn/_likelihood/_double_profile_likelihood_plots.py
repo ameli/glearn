@@ -111,22 +111,22 @@ def _plot_likelihood_versus_scale_1d(double_profile_likelihood, result=None):
 
     # Plot
     ax[0, 0].plot(scale, ell, color='black',
-                  label=r'$\ell(\hat{\eta}, \theta)$')
+                  label=r'$\ell(\hat{\eta}, \alpha)$')
     ax[1, 0].plot(scale, der1_ell, color='black', label='Analytic')
     ax[1, 1].plot(scale, der2_ell, color='black', label='Analytic')
     ax[1, 0].plot(scale[1:-1], der1_ell_numerical, '--', color='black',
                   label='Numerical')
     ax[1, 1].plot(scale[2:-2], der2_ell_numerical, '--', color='black',
                   label='Numerical')
-    ax[0, 1].plot(scale, eta, color='black', label=r'$\hat{\eta}(\theta)$')
+    ax[0, 1].plot(scale, eta, color='black', label=r'$\hat{\eta}(\alpha)$')
     ax[0, 0].plot(optimal_scale, optimal_ell, 'o', color='black',
-                  markersize=4, label=r'$\hat{\theta}$ (brute force)')
+                  markersize=4, label=r'$\hat{\alpha}$ (brute force)')
 
     if result is not None:
         opt_scale = result['hyperparam']['scale']
         opt_ell = result['optimization']['max_posterior']
         ax[0, 0].plot(opt_scale, opt_ell, 'o', color='maroon', markersize=4,
-                      label=r'$\hat{\theta}$ (optimized)')
+                      label=r'$\hat{\alpha}$ (optimized)')
 
     # Plot annotations
     ax[0, 0].legend(loc='lower right')
@@ -143,28 +143,28 @@ def _plot_likelihood_versus_scale_1d(double_profile_likelihood, result=None):
     ax[1, 0].set_xlim([scale[0], scale[-1]])
     ax[1, 1].set_xlim([scale[0], scale[-1]])
     ax[0, 1].set_ylim(bottom=0.0, top=None)
-    ax[0, 0].set_xlabel(r'$\theta$')
-    ax[0, 1].set_xlabel(r'$\theta$')
-    ax[1, 0].set_xlabel(r'$\theta$')
-    ax[1, 1].set_xlabel(r'$\theta$')
-    ax[0, 0].set_ylabel(r'$\ell(\hat{\eta}(\theta), \theta)$')
+    ax[0, 0].set_xlabel(r'$\alpha$')
+    ax[0, 1].set_xlabel(r'$\alpha$')
+    ax[1, 0].set_xlabel(r'$\alpha$')
+    ax[1, 1].set_xlabel(r'$\alpha$')
+    ax[0, 0].set_ylabel(r'$\ell(\hat{\eta}(\alpha), \alpha)$')
     if double_profile_likelihood.use_log_scale:
         ax[1, 0].set_ylabel(
-            r'$\frac{\mathrm{d}\ell(\hat{\eta}(\theta),' +
-            r' \theta)}{\mathrm{d} (\ln \theta)}$')
+            r'$\frac{\mathrm{d}\ell(\hat{\eta}(\alpha),' +
+            r' \alpha)}{\mathrm{d} (\ln \alpha)}$')
     else:
         ax[1, 0].set_ylabel(
-            r'$\frac{\mathrm{d}\ell(\hat{\eta}(\theta),' +
-            r' \theta)}{\mathrm{d} \theta}$')
+            r'$\frac{\mathrm{d}\ell(\hat{\eta}(\alpha),' +
+            r' \alpha)}{\mathrm{d} \alpha}$')
     if double_profile_likelihood.use_log_scale:
         ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2\ell(\hat{\eta}(\theta),' +
-            r' \theta)}{\mathrm{d} (\ln \theta)^2}$')
+            r'$\frac{\mathrm{d}^2\ell(\hat{\eta}(\alpha),' +
+            r' \alpha)}{\mathrm{d} (\ln \alpha)^2}$')
     else:
         ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\hat{\eta}(\theta),' +
-            r' \theta)}{\mathrm{d} \theta}^2$')
-    ax[0, 1].set_ylabel(r'$\hat{\eta}(\theta)$')
+            r'$\frac{\mathrm{d}^2 \ell(\hat{\eta}(\alpha),' +
+            r' \alpha)}{\mathrm{d} \alpha}^2$')
+    ax[0, 1].set_ylabel(r'$\hat{\eta}(\alpha)$')
     ax[0, 0].set_title(r'Log likelihood function profiled for $\eta$')
     ax[0, 1].set_title(r'Optimal $\eta$')
     ax[1, 0].set_title(r'First derivative of log likelihood function')
@@ -285,8 +285,8 @@ def _plot_likelihood_versus_scale_2d(double_profile_likelihood, result=None):
     divider1 = make_axes_locatable(ax[0])
     cax1 = divider1.append_axes('right', size='5%', pad=0.05)
     cbar1 = fig.colorbar(c1, cax=cax1, orientation='vertical')
-    cbar1.ax.set_ylabel(r'$\ell(\hat{\eta}(\theta_1, \theta_2), ' +
-                        r'\theta_1, \theta_2)$')
+    cbar1.ax.set_ylabel(r'$\ell(\hat{\eta}(\alpha_1, \alpha_2), ' +
+                        r'\alpha_1, \alpha_2)$')
     # c.set_clim(0, clim)
     # cbar.set_ticks([0,0.3,0.6,0.9,1])
 
@@ -298,24 +298,24 @@ def _plot_likelihood_versus_scale_2d(double_profile_likelihood, result=None):
     divider2 = make_axes_locatable(ax[1])
     cax2 = divider2.append_axes('right', size='5%', pad=0.05)
     cbar2 = fig.colorbar(c2, cax=cax2, orientation='vertical')
-    cbar2.ax.set_ylabel(r'$\hat{\eta}(\theta_1, \theta_2)$')
+    cbar2.ax.set_ylabel(r'$\hat{\eta}(\alpha_1, \alpha_2)$')
     # c.set_clim(0, clim)
     # cbar.set_ticks([0,0.3,0.6,0.9,1])
 
     # Plot max of the whole 2D array
     ax[0].plot(opt_scale1, opt_scale2, 'o', color='red', markersize=6,
-               label=r'$(\hat{\theta}_1, \hat{\theta}_2)$ (by brute ' +
+               label=r'$(\hat{\alpha}_1, \hat{\alpha}_2)$ (by brute ' +
                      r'force on grid)')
     ax[1].plot(opt_scale1, opt_scale2, 'o', color='red', markersize=6,
-               label=r'$(\hat{\theta}_1, \hat{\theta}_2)$ (by brute ' +
+               label=r'$(\hat{\alpha}_1, \hat{\alpha}_2)$ (by brute ' +
                      r'force on grid)')
 
     # Plot optimal point as found by the profile likelihood method
     ax[0].plot(optimal_scale[0], optimal_scale[1], 'o', color='black',
-               markersize=6, label=r'$(\hat{\theta}_1, \hat{\theta}_2)$ ' +
+               markersize=6, label=r'$(\hat{\alpha}_1, \hat{\alpha}_2)$ ' +
                                    r'(by optimization')
     ax[1].plot(optimal_scale[0], optimal_scale[1], 'o', color='black',
-               markersize=6, label=r'$(\hat{\theta}_1, \hat{\theta}_2)$ ' +
+               markersize=6, label=r'$(\hat{\alpha}_1, \hat{\alpha}_2)$ ' +
                                    r'(by optimization')
 
     # Plot annotations
@@ -329,12 +329,12 @@ def _plot_likelihood_versus_scale_2d(double_profile_likelihood, result=None):
     ax[1].set_xscale('log')
     ax[0].set_yscale('log')
     ax[1].set_yscale('log')
-    ax[0].set_xlabel(r'$\log_{10}(\theta_1)$')
-    ax[1].set_xlabel(r'$\log_{10}(\theta_1)$')
-    ax[0].set_ylabel(r'$\log_{10}(\theta_2)$')
-    ax[1].set_ylabel(r'$\log_{10}(\theta_2)$')
+    ax[0].set_xlabel(r'$\log_{10}(\alpha_1)$')
+    ax[1].set_xlabel(r'$\log_{10}(\alpha_1)$')
+    ax[0].set_ylabel(r'$\log_{10}(\alpha_2)$')
+    ax[1].set_ylabel(r'$\log_{10}(\alpha_2)$')
     ax[0].set_title(r'Log Likelihood profiled over $\eta$ ')
-    ax[1].set_title(r'Optimal $\eta$ for $(\theta_1, \theta_2)$')
+    ax[1].set_title(r'Optimal $\eta$ for $(\alpha_1, \alpha_2)$')
 
     plt.tight_layout()
     show_or_save_plot(plt, 'likelihood_vs_scale', transparent_background=False)

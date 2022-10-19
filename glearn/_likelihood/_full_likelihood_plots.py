@@ -268,7 +268,7 @@ def _plot_likelihood_versus_scale(
         ax[0, 1].plot(optimal_scale, 0.0,  marker, color=colors[i],
                       markersize=3)
 
-    ax[0, 0].legend(p, [r'optimal $\theta$'])
+    ax[0, 0].legend(p, [r'optimal $\alpha$'])
     ax[0, 0].legend(loc='lower right')
     ax[0, 1].legend(loc='lower right')
     ax[0, 2].legend(loc='lower right')
@@ -291,68 +291,68 @@ def _plot_likelihood_versus_scale(
     ax[0, 2].set_xlim([scale[0], scale[-1]])
     ax[1, 0].set_xlim([scale[0], scale[-1]])
     ax[1, 1].set_xlim([scale[0], scale[-1]])
-    ax[0, 0].set_xlabel(r'$\theta$')
-    ax[0, 1].set_xlabel(r'$\theta$')
-    ax[0, 2].set_xlabel(r'$\theta$')
-    ax[1, 0].set_xlabel(r'$\theta$')
-    ax[1, 1].set_xlabel(r'$\theta$')
-    ax[0, 0].set_ylabel(r'$\ell(\theta | \sigma^2, \sigma_0^2)$')
+    ax[0, 0].set_xlabel(r'$\alpha$')
+    ax[0, 1].set_xlabel(r'$\alpha$')
+    ax[0, 2].set_xlabel(r'$\alpha$')
+    ax[1, 0].set_xlabel(r'$\alpha$')
+    ax[1, 1].set_xlabel(r'$\alpha$')
+    ax[0, 0].set_ylabel(r'$\ell(\alpha | \sigma^2, \sigma_0^2)$')
 
     if full_likelihood.use_log_scale:
         ax[0, 1].set_ylabel(
-            r'$\frac{\mathrm{d} \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-            r'{\mathrm{d} (\ln \theta)}$')
+            r'$\frac{\mathrm{d} \ell(\alpha | \sigma^2, \sigma_0^2)} ' +
+            r'{\mathrm{d} (\ln \alpha)}$')
     else:
         ax[0, 1].set_ylabel(
-            r'$\frac{\mathrm{d} \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-            r'{\mathrm{d} \theta}$')
+            r'$\frac{\mathrm{d} \ell(\alpha | \sigma^2, \sigma_0^2)} ' +
+            r'{\mathrm{d} \alpha}$')
 
     if full_likelihood.use_log_scale:
         ax[0, 2].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-            r'{\mathrm{d} (\ln \theta)^2}$')
+            r'$\frac{\mathrm{d}^2 \ell(\alpha | \sigma^2, \sigma_0^2)} ' +
+            r'{\mathrm{d} (\ln \alpha)^2}$')
     else:
         ax[0, 2].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-            r'{\mathrm{d} \theta^2}$')
+            r'$\frac{\mathrm{d}^2 \ell(\alpha | \sigma^2, \sigma_0^2)} ' +
+            r'{\mathrm{d} \alpha^2}$')
 
     if full_likelihood.use_log_scale:
         if full_likelihood.use_log_sigmas:
             ax[1, 0].set_ylabel(
-                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-                r'{\mathrm{d} (\ln \theta) \mathrm{d} (\ln \sigma^2)}$')
+                r'$\frac{\mathrm{d}^2 \ell(\alpha | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} (\ln \alpha) \mathrm{d} (\ln \sigma^2)}$')
         else:
             ax[1, 0].set_ylabel(
-                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-                r'{\mathrm{d} (\ln \theta) \mathrm{d} \sigma^2}$')
+                r'$\frac{\mathrm{d}^2 \ell(\alpha | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} (\ln \alpha) \mathrm{d} \sigma^2}$')
     else:
         if full_likelihood.use_log_sigmas:
             ax[1, 0].set_ylabel(
-                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-                r'{\mathrm{d} \theta \mathrm{d} (\ln \sigma^2)}$')
+                r'$\frac{\mathrm{d}^2 \ell(\alpha | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} \alpha \mathrm{d} (\ln \sigma^2)}$')
         else:
             ax[1, 0].set_ylabel(
-                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-                r'{\mathrm{d} \theta \mathrm{d} \sigma^2}$')
+                r'$\frac{\mathrm{d}^2 \ell(\alpha | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} \alpha \mathrm{d} \sigma^2}$')
 
     if full_likelihood.use_log_scale:
         if full_likelihood.use_log_sigmas:
             ax[1, 1].set_ylabel(
-                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-                r'{\mathrm{d} (\ln \theta) \mathrm{d} (\ln {\sigma_0}^2)}$')
+                r'$\frac{\mathrm{d}^2 \ell(\alpha | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} (\ln \alpha) \mathrm{d} (\ln {\sigma_0}^2)}$')
         else:
             ax[1, 1].set_ylabel(
-                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-                r'{\mathrm{d} (\ln \theta) \mathrm{d} {\sigma_0}^2}$')
+                r'$\frac{\mathrm{d}^2 \ell(\alpha | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} (\ln \alpha) \mathrm{d} {\sigma_0}^2}$')
     else:
         if full_likelihood.use_log_sigmas:
             ax[1, 1].set_ylabel(
-                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-                r'{\mathrm{d} \theta \mathrm{d} (\ln {\sigma_0}^2)}$')
+                r'$\frac{\mathrm{d}^2 \ell(\alpha | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} \alpha \mathrm{d} (\ln {\sigma_0}^2)}$')
         else:
             ax[1, 1].set_ylabel(
-                r'$\frac{\mathrm{d}^2 \ell(\theta | \sigma^2, \sigma_0^2)} ' +
-                r'{\mathrm{d} \theta \mathrm{d} {\sigma_0}^2}$')
+                r'$\frac{\mathrm{d}^2 \ell(\alpha | \sigma^2, \sigma_0^2)} ' +
+                r'{\mathrm{d} \alpha \mathrm{d} {\sigma_0}^2}$')
 
     ax[0, 0].set_title(r'Log likelihood function, given ' +
                        r'$(\sigma^2, \sigma_0^2)$ ')
@@ -591,10 +591,10 @@ def _plot_likelihood_versus_sigma(
 
         # Plot
         if any(scales[i] == optimal_scale):
-            label = r'$\hat{\theta}=%0.2e$' % scales[i]
+            label = r'$\hat{\alpha}=%0.2e$' % scales[i]
             marker = 'X'
         else:
-            label = r'$\theta=%0.2e$' % scales[i]
+            label = r'$\alpha=%0.2e$' % scales[i]
             marker = 'o'
         ax[0, 0].plot(sigma, d0_ell_perturb_scale[center_stencil, i, :],
                       color=colors[i], label=label)
@@ -645,64 +645,64 @@ def _plot_likelihood_versus_sigma(
     ax[0, 2].set_xlabel(r'$\sigma$')
     ax[1, 0].set_xlabel(r'$\sigma$')
     ax[1, 1].set_xlabel(r'$\sigma$')
-    ax[0, 0].set_ylabel(r'$\ell(\sigma^2 | \sigma_0^2, \theta)$')
+    ax[0, 0].set_ylabel(r'$\ell(\sigma^2 | \sigma_0^2, \alpha)$')
 
     if full_likelihood.use_log_sigmas:
         ax[0, 1].set_ylabel(
-            r'$\frac{\mathrm{d} \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+            r'$\frac{\mathrm{d} \ell(\sigma^2 | \sigma_0^2, \alpha)} ' +
             r'{\mathrm{d} (\ln \sigma^2)}$')
     else:
         ax[0, 1].set_ylabel(
-            r'$\frac{\mathrm{d} \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+            r'$\frac{\mathrm{d} \ell(\sigma^2 | \sigma_0^2, \alpha)} ' +
             r'{\mathrm{d} \sigma^2}$')
 
     if full_likelihood.use_log_sigmas:
         ax[0, 2].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+            r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \alpha)} ' +
             r'{\mathrm{d} (\ln \sigma^2)^2}$')
     else:
         ax[0, 2].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+            r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \alpha)} ' +
             r'{\mathrm{d} (\sigma^2)^2}$')
 
     if full_likelihood.use_log_scale:
         if full_likelihood.use_log_sigmas:
             ax[1, 0].set_ylabel(
-                r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
-                r'{\mathrm{d} (\ln \sigma^2) \mathrm{d} (\ln \theta)}$')
+                r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \alpha)} ' +
+                r'{\mathrm{d} (\ln \sigma^2) \mathrm{d} (\ln \alpha)}$')
         else:
             ax[1, 0].set_ylabel(
-                r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
-                r'{\mathrm{d} \sigma^2 \mathrm{d} (\ln \theta)}$')
+                r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \alpha)} ' +
+                r'{\mathrm{d} \sigma^2 \mathrm{d} (\ln \alpha)}$')
     else:
         if full_likelihood.use_log_sigmas:
             ax[1, 0].set_ylabel(
-                r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
-                r'{\mathrm{d} (\ln \sigma^2) \mathrm{d} \theta}$')
+                r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \alpha)} ' +
+                r'{\mathrm{d} (\ln \sigma^2) \mathrm{d} \alpha}$')
         else:
             ax[1, 0].set_ylabel(
-                r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
-                r'{\mathrm{d} \sigma^2 \mathrm{d} \theta}$')
+                r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \alpha)} ' +
+                r'{\mathrm{d} \sigma^2 \mathrm{d} \alpha}$')
 
     if full_likelihood.use_log_sigmas:
         ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+            r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \alpha)} ' +
             r'{\mathrm{d} (\ln \sigma^2) \mathrm{d} (\ln {\sigma_0}^2)}$')
     else:
         ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \theta)} ' +
+            r'$\frac{\mathrm{d}^2 \ell(\sigma^2 | \sigma_0^2, \alpha)} ' +
             r'{\mathrm{d} \sigma^2 \mathrm{d} {\sigma_0}^2}$')
 
     ax[0, 0].set_title(r'Log likelihood function, given ' +
-                       r'$(\sigma_0^2, \theta)$')
+                       r'$(\sigma_0^2, \alpha)$')
     ax[0, 1].set_title(r'First derivative of log likelihood, given ' +
-                       r'$(\sigma_0^2, \theta)$')
+                       r'$(\sigma_0^2, \alpha)$')
     ax[0, 2].set_title(r'Second derivative of log likelihood, given ' +
-                       r'$(\sigma_0^2, \theta)$')
+                       r'$(\sigma_0^2, \alpha)$')
     ax[1, 0].set_title(r'Second mixed derivative of log likelihood, given ' +
-                       r'$(\sigma_0^2, \theta)$')
+                       r'$(\sigma_0^2, \alpha)$')
     ax[1, 1].set_title(r'Second mixed derivative of log likelihood, given ' +
-                       r'$(\sigma_0^2, \theta)$')
+                       r'$(\sigma_0^2, \alpha)$')
     ax[0, 0].grid(True, which='both')
     ax[0, 1].grid(True, which='both')
     ax[0, 2].grid(True, which='both')
@@ -931,10 +931,10 @@ def _plot_likelihood_versus_sigma0(
 
         # Plot
         if any(scales[i] == optimal_scale):
-            label = r'$\hat{\theta}=%0.2e$' % scales[i]
+            label = r'$\hat{\alpha}=%0.2e$' % scales[i]
             marker = 'X'
         else:
-            label = r'$\theta=%0.2e$' % scales[i]
+            label = r'$\alpha=%0.2e$' % scales[i]
             marker = 'o'
         ax[0, 0].plot(sigma0, d0_ell_perturb_scale[center_stencil, i, :],
                       color=colors[i], label=label)
@@ -980,65 +980,65 @@ def _plot_likelihood_versus_sigma0(
     ax[0, 2].set_xlabel(r'$\sigma_0$')
     ax[1, 0].set_xlabel(r'$\sigma_0$')
     ax[1, 1].set_xlabel(r'$\sigma_0$')
-    ax[0, 0].set_ylabel(r'$\ell({\sigma_0}^2 | \sigma^2, \theta)$')
+    ax[0, 0].set_ylabel(r'$\ell({\sigma_0}^2 | \sigma^2, \alpha)$')
 
     if full_likelihood.use_log_sigmas:
         ax[0, 1].set_ylabel(
-            r'$\frac{\mathrm{d} \ell({\sigma_0}^2 | \sigma^2, \theta)} ' +
+            r'$\frac{\mathrm{d} \ell({\sigma_0}^2 | \sigma^2, \alpha)} ' +
             r'{\mathrm{d} (\ln {\sigma_0}^2)}$')
     else:
         ax[0, 1].set_ylabel(
-            r'$\frac{\mathrm{d} \ell({\sigma_0}^2 | \sigma^2, \theta)} ' +
+            r'$\frac{\mathrm{d} \ell({\sigma_0}^2 | \sigma^2, \alpha)} ' +
             r'{\mathrm{d} {\sigma_0}^2}$')
 
     if full_likelihood.use_log_sigmas:
         ax[0, 2].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, \theta)} ' +
+            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, \alpha)} ' +
             r'{\mathrm{d} (\ln {\sigma_0}^2)^2}$')
     else:
         ax[0, 2].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, \theta)} ' +
+            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, \alpha)} ' +
             r'{\mathrm{d} ({\sigma_0}^2)^2}$')
 
     if full_likelihood.use_log_scale:
         if full_likelihood.use_log_sigmas:
             ax[1, 0].set_ylabel(
                 r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, ' +
-                r'\theta)} {\mathrm{d} (\ln {\sigma_0}^2) \mathrm{d} ' +
-                r'(\ln \theta)}$')
+                r'\alpha)} {\mathrm{d} (\ln {\sigma_0}^2) \mathrm{d} ' +
+                r'(\ln \alpha)}$')
         else:
             ax[1, 0].set_ylabel(
                 r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, ' +
-                r'\theta)} {\mathrm{d} {\sigma_0}^2 \mathrm{d} (\ln \theta)}$')
+                r'\alpha)} {\mathrm{d} {\sigma_0}^2 \mathrm{d} (\ln \alpha)}$')
     else:
         if full_likelihood.use_log_sigmas:
             ax[1, 0].set_ylabel(
                 r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, ' +
-                r'\theta)} {\mathrm{d} (\ln {\sigma_0}^2) \mathrm{d} \theta}$')
+                r'\alpha)} {\mathrm{d} (\ln {\sigma_0}^2) \mathrm{d} \alpha}$')
         else:
             ax[1, 0].set_ylabel(
                 r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, ' +
-                r'\theta)} {\mathrm{d} {\sigma_0}^2 \mathrm{d} \theta}$')
+                r'\alpha)} {\mathrm{d} {\sigma_0}^2 \mathrm{d} \alpha}$')
 
     if full_likelihood.use_log_sigmas:
         ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, \theta)} ' +
+            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, \alpha)} ' +
             r'{\mathrm{d} (\ln {\sigma_0}^2) \mathrm{d} (\ln \sigma^2)}$')
     else:
         ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, \theta)} ' +
+            r'$\frac{\mathrm{d}^2 \ell({\sigma_0}^2 | \sigma^2, \alpha)} ' +
             r'{\mathrm{d} {\sigma_0}^2 \mathrm{d} \sigma^2}$')
 
     ax[0, 0].set_title(r'Log likelihood function, given ' +
-                       r'$(\sigma^2, \theta)$')
+                       r'$(\sigma^2, \alpha)$')
     ax[0, 1].set_title(r'First derivative of log likelihood, given ' +
-                       r'$(\sigma^2, \theta)$')
+                       r'$(\sigma^2, \alpha)$')
     ax[0, 2].set_title(r'Second derivative of log likelihood, given ' +
-                       r'$(\sigma^2, \theta)$')
+                       r'$(\sigma^2, \alpha)$')
     ax[1, 0].set_title(r'Second mixed derivative of log likelihood, given ' +
-                       r'$(\sigma^2, \theta)$')
+                       r'$(\sigma^2, \alpha)$')
     ax[1, 1].set_title(r'Second mixed derivative of log likelihood, given ' +
-                       r'$(\sigma^2, \theta)$')
+                       r'$(\sigma^2, \alpha)$')
     ax[0, 0].grid(True, which='both')
     ax[0, 1].grid(True, which='both')
     ax[0, 2].grid(True, which='both')
@@ -1217,7 +1217,7 @@ def _plot_likelihood_versus_sigma0_sigma(full_likelihood, result=None):
     ax[2].set_xlabel(r'$\sigma_0$')
     ax[0].set_ylabel(r'$\sigma_0$')
     ax[1].set_ylabel(r'$\ell(\sigma, \hat{\sigma}_0(\sigma))$')
-    ax[2].set_ylabel(r'$\ell(\hat{\sigma}(\sigma_0), sigma_0)$')
+    ax[2].set_ylabel(r'$\ell(\hat{\sigma}(\sigma_0), \sigma_0)$')
     ax[0].set_title('Log likelihood function')
     ax[1].set_title(r'Log Likelihood profiled over $\sigma$ ')
     ax[2].set_title(r'Log likelihood profiled over $\sigma_0$')

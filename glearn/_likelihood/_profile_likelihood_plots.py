@@ -209,7 +209,7 @@ def _plot_likelihood_versus_scale(
     ax[0, 0].plot([scale[0], scale[-1]], [ell_inf, ell_inf], '-.',
                   color='black', label=r'$\eta = \infty$')
 
-    ax[0, 0].legend(p, [r'optimal $\theta$'])
+    ax[0, 0].legend(p, [r'optimal $\alpha$'])
     ax[0, 0].legend(loc='lower right')
     ax[0, 1].legend(loc='lower right')
     ax[1, 0].legend(loc='lower right')
@@ -228,42 +228,42 @@ def _plot_likelihood_versus_scale(
     ax[0, 1].set_xlim([scale[0], scale[-1]])
     ax[1, 0].set_xlim([scale[0], scale[-1]])
     ax[1, 1].set_xlim([scale[0], scale[-1]])
-    ax[0, 0].set_xlabel(r'$\theta$')
-    ax[0, 1].set_xlabel(r'$\theta$')
-    ax[1, 0].set_xlabel(r'$\theta$')
-    ax[1, 1].set_xlabel(r'$\theta$')
-    ax[0, 0].set_ylabel(r'$\ell(\theta | \eta)$')
+    ax[0, 0].set_xlabel(r'$\alpha$')
+    ax[0, 1].set_xlabel(r'$\alpha$')
+    ax[1, 0].set_xlabel(r'$\alpha$')
+    ax[1, 1].set_xlabel(r'$\alpha$')
+    ax[0, 0].set_ylabel(r'$\ell(\alpha | \eta)$')
 
     if profile_likelihood.use_log_scale:
         ax[0, 1].set_ylabel(
-            r'$\frac{\mathrm{d} \ell(\theta | \eta)}{\mathrm{d} (\ln\theta)}$')
+            r'$\frac{\mathrm{d} \ell(\alpha | \eta)}{\mathrm{d} (\ln\alpha)}$')
     else:
         ax[0, 1].set_ylabel(
-            r'$\frac{\mathrm{d} \ell(\theta | \eta)}{\mathrm{d} \theta}$')
+            r'$\frac{\mathrm{d} \ell(\alpha | \eta)}{\mathrm{d} \alpha}$')
 
     if profile_likelihood.use_log_scale:
         ax[1, 0].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} ' +
-            r'(\ln\theta)^2}$')
+            r'$\frac{\mathrm{d}^2 \ell(\alpha | \eta)}{\mathrm{d} ' +
+            r'(\ln\alpha)^2}$')
     else:
         ax[1, 0].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} \theta^2}$')
+            r'$\frac{\mathrm{d}^2 \ell(\alpha | \eta)}{\mathrm{d} \alpha^2}$')
 
     if profile_likelihood.use_log_scale and profile_likelihood.use_log_eta:
         ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} ' +
-            r'(\ln \theta) \mathrm{d} (\ln \eta)}$')
+            r'$\frac{\mathrm{d}^2 \ell(\alpha | \eta)}{\mathrm{d} ' +
+            r'(\ln \alpha) \mathrm{d} (\ln \eta)}$')
     elif profile_likelihood.use_log_scale:
         ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} ' +
-            r'(\ln\theta) \mathrm{d} \eta}$')
+            r'$\frac{\mathrm{d}^2 \ell(\alpha | \eta)}{\mathrm{d} ' +
+            r'(\ln\alpha) \mathrm{d} \eta}$')
     elif profile_likelihood.use_log_eta:
         ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} \theta ' +
+            r'$\frac{\mathrm{d}^2 \ell(\alpha | \eta)}{\mathrm{d} \alpha ' +
             r'\mathrm{d} (\ln \eta)}$')
     else:
         ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2 \ell(\theta | \eta)}{\mathrm{d} \theta ' +
+            r'$\frac{\mathrm{d}^2 \ell(\alpha | \eta)}{\mathrm{d} \alpha ' +
             r'\mathrm{d} \eta}$')
 
     ax[0, 0].set_title(r'Log likelihood function for fixed $\eta$')
@@ -418,10 +418,10 @@ def _plot_likelihood_versus_eta(
         optimal_ell = d0_ell[center_stencil, i, max_index]
 
         if scales[i] == optimal_scale:
-            label = r'$\hat{\theta} = %0.2e$' % scales[i]
+            label = r'$\hat{\alpha} = %0.2e$' % scales[i]
             marker = 'X'
         else:
-            label = r'$\theta = %0.2e$' % scales[i]
+            label = r'$\alpha = %0.2e$' % scales[i]
             marker = 'o'
 
         ax[0, 0].plot(eta, d0_ell[center_stencil, i, :], color=colors[i],
@@ -472,47 +472,47 @@ def _plot_likelihood_versus_eta(
     ax[0, 1].set_xlabel(r'$\eta$')
     ax[1, 0].set_xlabel(r'$\eta$')
     ax[1, 1].set_xlabel(r'$\eta$')
-    ax[0, 0].set_ylabel(r'$\ell(\eta | \theta)$')
+    ax[0, 0].set_ylabel(r'$\ell(\eta | \alpha)$')
 
     if profile_likelihood.use_log_eta:
         ax[0, 1].set_ylabel(
-            r'$\frac{\mathrm{d}\ell(\eta | \theta)}{\mathrm{d} (\ln \eta)}$')
+            r'$\frac{\mathrm{d}\ell(\eta | \alpha)}{\mathrm{d} (\ln \eta)}$')
     else:
         ax[0, 1].set_ylabel(
-            r'$\frac{\mathrm{d}\ell(\eta | \theta)}{\mathrm{d}\eta}$')
+            r'$\frac{\mathrm{d}\ell(\eta | \alpha)}{\mathrm{d}\eta}$')
 
     if profile_likelihood.use_log_eta:
         ax[1, 0].set_ylabel(
-            r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d} ' +
+            r'$\frac{\mathrm{d}^2\ell(\eta | \alpha)}{\mathrm{d} ' +
             r'(\ln \eta)^2}$')
     else:
         ax[1, 0].set_ylabel(
-            r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d} \eta^2}$')
+            r'$\frac{\mathrm{d}^2\ell(\eta | \alpha)}{\mathrm{d} \eta^2}$')
 
     if profile_likelihood.use_log_eta and profile_likelihood.use_log_scale:
         ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d} (\ln \eta) ' +
-            r'\mathrm{d} (\ln \theta)}$')
+            r'$\frac{\mathrm{d}^2\ell(\eta | \alpha)}{\mathrm{d} (\ln \eta) ' +
+            r'\mathrm{d} (\ln \alpha)}$')
     elif profile_likelihood.use_log_eta:
         ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d} (\ln \eta) ' +
-            r'\mathrm{d} \theta}$')
+            r'$\frac{\mathrm{d}^2\ell(\eta | \alpha)}{\mathrm{d} (\ln \eta) ' +
+            r'\mathrm{d} \alpha}$')
     elif profile_likelihood.use_log_scale:
         ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d}\eta ' +
-            r'\mathrm{d} (\ln \theta)}$')
+            r'$\frac{\mathrm{d}^2\ell(\eta | \alpha)}{\mathrm{d}\eta ' +
+            r'\mathrm{d} (\ln \alpha)}$')
     else:
         ax[1, 1].set_ylabel(
-            r'$\frac{\mathrm{d}^2\ell(\eta | \theta)}{\mathrm{d}\eta ' +
-            r'\mathrm{d} \theta}$')
+            r'$\frac{\mathrm{d}^2\ell(\eta | \alpha)}{\mathrm{d}\eta ' +
+            r'\mathrm{d} \alpha}$')
 
-    ax[0, 0].set_title(r'Log likelihood for fixed $\theta$')
+    ax[0, 0].set_title(r'Log likelihood for fixed $\alpha$')
     ax[0, 1].set_title(r'First derivative of log likelihood for fixed ' +
-                       r'$\theta$')
+                       r'$\alpha$')
     ax[1, 0].set_title(r'Second derivative of log likelihood for fixed ' +
-                       r'$\theta$')
+                       r'$\alpha$')
     ax[1, 1].set_title(r'Second mixed derivative of log likelihood for ' +
-                       r'fixed $\theta$')
+                       r'fixed $\alpha$')
     ax[0, 0].grid(True, which='both')
     ax[0, 1].grid(True, which='both')
     ax[1, 0].grid(True, which='both')
@@ -616,7 +616,7 @@ def _plot_likelihood_versus_eta_scale(profile_likelihood, result):
     divider = make_axes_locatable(ax[0])
     cax = divider.append_axes('right', size='5%', pad=0.05)
     cbar = fig.colorbar(c, cax=cax, orientation='vertical')
-    cbar.ax.set_ylabel(r'$\ell(\eta, \theta)$')
+    cbar.ax.set_ylabel(r'$\ell(\eta, \alpha)$')
     # c.set_clim(0, clim)
     # cbar.set_ticks([0,0.3,0.6,0.9,1])
 
@@ -631,7 +631,7 @@ def _plot_likelihood_versus_eta_scale(profile_likelihood, result):
         opt_scale1[j] = scale_fine[max_index]
         opt_ell1[j] = ell_fine[max_index, j]
     ax[0].plot(eta_fine, opt_scale1, color='red',
-               label=r'$\hat{\theta}(\eta)$')
+               label=r'$\hat{\alpha}(\eta)$')
     ax[1].plot(eta_fine, opt_ell1, color='red')
 
     # Find max for each fixed scale
@@ -645,7 +645,7 @@ def _plot_likelihood_versus_eta_scale(profile_likelihood, result):
         opt_eta2[i] = eta_fine[max_index]
         opt_ell2[i] = ell_fine[i, max_index]
     ax[0].plot(opt_eta2, scale_fine, color='black',
-               label=r'$\hat{\eta}(\theta)$')
+               label=r'$\hat{\eta}(\alpha)$')
     ax[2].plot(scale_fine, opt_ell2, color='black')
 
     # Plot max of the whole 2D array
@@ -655,21 +655,21 @@ def _plot_likelihood_versus_eta_scale(profile_likelihood, result):
     opt_eta = eta_fine[max_indices[1]]
     opt_ell = ell_fine[max_indices[0], max_indices[1]]
     ax[0].plot(opt_eta, opt_scale, 'o', color='red', markersize=6,
-               label=r'$(\hat{\eta}, \hat{\theta})$ (by brute force on grid)')
+               label=r'$(\hat{\eta}, \hat{\alpha})$ (by brute force on grid)')
     ax[1].plot(opt_eta, opt_ell, 'o', color='red',
-               label=r'$\ell(\hat{\eta}, \hat{\theta})$ (by brute force on ' +
+               label=r'$\ell(\hat{\eta}, \hat{\alpha})$ (by brute force on ' +
                      r'grid)')
     ax[2].plot(opt_scale, opt_ell, 'o', color='red',
-               label=r'$\ell(\hat{\eta}, \hat{\theta})$ (by brute force on ' +
+               label=r'$\ell(\hat{\eta}, \hat{\alpha})$ (by brute force on ' +
                      r'grid)')
 
     # Plot optimal point as found by the profile likelihood method
     ax[0].plot(optimal_eta, optimal_scale, 'o', color='black', markersize=6,
-               label=r'$(\hat{\eta}, \hat{\theta})$ (by optimization)')
+               label=r'$(\hat{\eta}, \hat{\alpha})$ (by optimization)')
     ax[1].plot(optimal_eta, optimal_ell, 'o', color='black',
-               label=r'$\ell(\hat{\eta}, \hat{\theta})$ (by optimization)')
+               label=r'$\ell(\hat{\eta}, \hat{\alpha})$ (by optimization)')
     ax[2].plot(optimal_scale, optimal_ell, 'o', color='black',
-               label=r'$\ell(\hat{\eta}, \hat{\theta})$ (by optimization)')
+               label=r'$\ell(\hat{\eta}, \hat{\alpha})$ (by optimization)')
 
     # Plot annotations
     ax[0].legend()
@@ -685,12 +685,12 @@ def _plot_likelihood_versus_eta_scale(profile_likelihood, result):
     ax[0].set_yscale('log')
     ax[0].set_xlabel(r'$\eta$')
     ax[1].set_xlabel(r'$\eta$')
-    ax[2].set_xlabel(r'$\theta$')
-    ax[0].set_ylabel(r'$\theta$')
-    ax[1].set_ylabel(r'$\ell(\eta, \hat{\theta}(\eta))$')
-    ax[2].set_ylabel(r'$\ell(\hat{\eta}(\theta), \theta)$')
+    ax[2].set_xlabel(r'$\alpha$')
+    ax[0].set_ylabel(r'$\alpha$')
+    ax[1].set_ylabel(r'$\ell(\eta, \hat{\alpha}(\eta))$')
+    ax[2].set_ylabel(r'$\ell(\hat{\eta}(\alpha), \alpha)$')
     ax[0].set_title('Log likelihood function')
-    ax[1].set_title(r'Log Likelihood profiled over $\theta$ ')
+    ax[1].set_title(r'Log Likelihood profiled over $\alpha$ ')
     ax[2].set_title(r'Log likelihood profiled over $\eta$')
     ax[1].grid(True)
     ax[2].grid(True)

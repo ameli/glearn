@@ -1,0 +1,7 @@
+                               Prediction Summary                               
+================================================================================
+               process                                    config                
+-------------------------------------      -------------------------------------
+wall time (sec)               1.08e-1      num training points                30
+proc time (sec)               8.08e-1      num test points                  1000
+memory used (b)              23334912      compute covariance               True

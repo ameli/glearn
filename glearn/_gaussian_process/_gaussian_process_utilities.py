@@ -128,7 +128,7 @@ def print_training_summary(res):
     print('max bracket try  %2d' % max_bracket_trials, end=colspace)
     print('min num samples %4d' % imate_min_num_samples)
 
-    print('theta %23s' % theta_string, end=colspace)
+    print('alpha %23s' % theta_string, end=colspace)
     print('profile param %5s' % profile_hyperparam, end=colspace)
     print('max num samples %4d' % imate_max_num_samples)
 
@@ -243,9 +243,9 @@ def plot_training_convergence(posterior, res, verbose):
 
     # label of theta (scale)
     if posterior.likelihood.use_log_scale:
-        theta_label = r'$\ln \theta'
+        theta_label = r'$\ln \alpha'
     else:
-        theta_label = r'$\theta'
+        theta_label = r'$\alpha'
 
     # Plot convergence for scale hyperparameters
     num_scales = errors.shape[1] - scale_index
@@ -253,7 +253,7 @@ def plot_training_convergence(posterior, res, verbose):
     for i in range(scale_index, errors.shape[1]):
         ax.plot(iter, errors[:, i], '-o', markersize=markersize,
                 color=colors[i-scale_index, :],
-                label=theta_label + r'%d$' % (scale_index - i + 1))
+                label=theta_label + r'_{%d}$' % (scale_index - i + 1))
 
     # Plot tolerance line
     ax.plot([iter[0], iter[-1]], [tol, tol], '--', color='black',
@@ -342,8 +342,10 @@ def _plot_prediction_1d(
     x_star_sorting_index = numpy.argsort(x_star)
     x_star = x_star[x_star_sorting_index]
     z_star_mean = z_star_mean[x_star_sorting_index]
-    z_star_cov_ = z_star_cov[x_star_sorting_index, :]
-    z_star_cov_ = z_star_cov_[:, x_star_sorting_index]
+
+    if z_star_cov is not None:
+        z_star_cov_ = z_star_cov[x_star_sorting_index, :]
+        z_star_cov_ = z_star_cov_[:, x_star_sorting_index]
 
     fig, ax = plt.subplots(figsize=(6, 4.8))
     markersize = 3
@@ -389,7 +391,7 @@ def _plot_prediction_1d(
     ax.set_xlim([x_min, x_max])
     ax.set_xlabel(r'$x^*$')
     ax.set_ylabel(
-            r'$z^*(x^*|z, \beta, \sigma, \sigma_0, \boldsymbol{\theta})$')
+            r'$y^*(x^*|y, \beta, \sigma, \sigma_0, \boldsymbol{\alpha})$')
     ax.set_title('Prediction')
     ax.legend(fontsize='small')
 
@@ -526,8 +528,8 @@ def _plot_prediction_2d(
     ax.view_init(elev=20, azim=-155)
     ax.set_xlabel(r'$x^*_1$')
     ax.set_ylabel(r'$x^*_2$')
-    ax.set_zlabel(r'$z^*(\boldsymbol{x}^*|z, \beta, \sigma, \sigma_0, ' +
-                  r'\boldsymbol{\theta})$')
+    ax.set_zlabel(r'$y^*(\boldsymbol{x}^*|y, \beta, \sigma, \sigma_0, ' +
+                  r'\boldsymbol{\alpha})$')
     ax.set_title('Prediction')
     ax.legend(fontsize='small')
 

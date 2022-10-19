@@ -43,3 +43,4 @@ Things yet remained in the documentation to be completed:
   usage examples in gpu.rst.
 * In index.rst, I changed the card for "Performance" to "Publications", since
   the content for performance are not ready.
+* overview.rst has to be completely rewritten and to be referenced in index.rst.
