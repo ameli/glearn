@@ -48,6 +48,8 @@
     <script src="../_static/js/custom-pydata.js"></script>
     <script src="../_static/design-tabs.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -483,7 +485,257 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="glearn.GaussianProcess.predict">
 <span class="sig-prename descclassname"><span class="pre">GaussianProcess.</span></span><span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.GaussianProcess.predict" title="Permalink to this definition">#</a></dt>
-<dd><p>Regression with Gaussian process on new data points.</p>
+<dd><p>Make prediction on test points.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function should be called after training the model with
+<a class="reference internal" href="glearn.GaussianProcess.train.html#glearn.GaussianProcess.train" title="glearn.GaussianProcess.train"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.GaussianProcess.train()</span></code></a>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>test_points</strong><span class="classifier">numpy.array</span></dt><dd><p>An array of the size <span class="math notranslate nohighlight">\(n^{\ast} \times d\)</span> representing the
+coordinates of <span class="math notranslate nohighlight">\(n^{\ast}\)</span> training points in the <span class="math notranslate nohighlight">\(d\)</span>
+dimensional space. Each row of this array is the coordinate of a
+test point.</p>
+</dd>
+<dt><strong>cov</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, the prediction includes both the posterior mean and
+posterior covariance. If <cite>False</cite>, only the posterior mean is
+computed. Note that obtaining posterior covariance is
+computationally expensive, so if it is not needed, set this
+argument to <cite>False</cite>.</p>
+</dd>
+<dt><strong>plot</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, plots the prediction results.</p>
+</dd>
+<dt><strong>true_data</strong><span class="classifier">numpy.array, default=None</span></dt><dd><p>An array of the size <span class="math notranslate nohighlight">\(n^{\ast}\)</span> of the true values of the
+test points data (if known). This option is used for benchmarking
+purposes only to compare the prediction results with their true
+values if known. If <code class="docutils literal notranslate"><span class="pre">plot</span></code> is set to <cite>True</cite>, the true values
+together with the error of the prediction with respect to the
+true data is also plotted.</p>
+</dd>
+<dt><strong>confidence_level</strong><span class="classifier">float, default=0.95</span></dt><dd><p>The confidence level that determines the confidence interval of the
+error of the prediction.</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, it prints information about the result.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="glearn.GaussianProcess.train.html#glearn.GaussianProcess.train" title="glearn.GaussianProcess.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.GaussianProcess.train</span></code></a></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>Consider the Gaussian process prior on the function <span class="math notranslate nohighlight">\(y(x)\)</span> by</p>
+<div class="math notranslate nohighlight">
+\[y \sim \mathcal{GP}(\mu, \Sigma).\]</div>
+<p>This means that on the training points <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span>, the
+array of training data <span class="math notranslate nohighlight">\(\boldsymbol{y}\)</span> has the normal
+distribution</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{y} \sim \mathcal{N}(\boldsymbol{\mu},
+\boldsymbol{\Sigma}),\]</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{\mu}\)</span> is the array of the mean and
+<span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}\)</span> is the covariance matrix of the training
+points.</p>
+<p>On some test points <span class="math notranslate nohighlight">\(\boldsymbol{x}^{\ast}\)</span>, the posterior
+predictive distribution of the prediction
+<span class="math notranslate nohighlight">\(\boldsymbol{y}^{\ast}(\boldsymbol{x}^{\ast})\)</span> has the
+distribution</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{y}^{\ast}(\boldsymbol{x}^{\ast}) \sim \mathcal{N}
+\left(\boldsymbol{\mu}^{\ast}(\boldsymbol{x}^{\ast}),
+\mathbf{\Sigma}^{\ast \ast} (\boldsymbol{x}^{\ast},
+\boldsymbol{x}'^{\ast})\right.\]</div>
+<p>where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\mu}^{\ast}\)</span> is the posterior predictive mean.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathbf{\Sigma}^{\ast \ast}\)</span> is the posterior predictive
+covariance between test points and themselves.</p></li>
+</ul>
+<p>This function finds <span class="math notranslate nohighlight">\(\boldsymbol{\mu}^{\ast}\)</span> and
+<span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}^{\ast \ast}\)</span>.</p>
+<p><strong>Computational Complexity:</strong></p>
+<p>The first call to <a class="reference internal" href="#glearn.GaussianProcess.predict" title="glearn.GaussianProcess.predict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.GaussianProcess.predict()</span></code></a> has the
+computational complexity of <span class="math notranslate nohighlight">\(\mathcal{O}((n^3 + n^{\ast})\)</span>,
+where <span class="math notranslate nohighlight">\(n\)</span> is the number of training points and <span class="math notranslate nohighlight">\(n^{\ast}\)</span>
+is the number of test points.</p>
+<p>After the first call to this function, all coefficients during the
+computations that are independent of the test points are stored in
+the Gaussian process object, which can be reused for the future calls.
+The computational complexity of the future calls to this function is
+as follows.</p>
+<ul class="simple">
+<li><p>If posterior covariance is computed (by setting <code class="docutils literal notranslate"><span class="pre">cov=True</span></code>), the
+computational complexity is still the same as the first call to the
+prediction function, namely, <span class="math notranslate nohighlight">\(\mathcal{O}(n^3 + n^{\ast})\)</span>.</p></li>
+<li><p>If posterior covariance is not computed (by setting <code class="docutils literal notranslate"><span class="pre">cov=False</span></code>),
+the computational complexity is <span class="math notranslate nohighlight">\(\mathcal{O}(n^{\ast})\)</span>.
+See this point in the example below.</p></li>
+</ul>
+<p class="rubric">Examples</p>
+<p>To define a Gaussian process object <span class="math notranslate nohighlight">\(\mathcal{GP}(\mu,
+\Sigma)\)</span>, first, an object for the linear model where <span class="math notranslate nohighlight">\(\mu\)</span> and
+an object for the covariance model <span class="math notranslate nohighlight">\(\Sigma\)</span> should be created as
+follows.</p>
+<p><strong>1. Generate Sample Training Data:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">glearn</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">sample_data</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a set of training points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">sample_data</span><span class="o">.</span><span class="n">generate_points</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">num_points</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">a</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">contrast</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate noise sample data on the training points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y_noisy</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">sample_data</span><span class="o">.</span><span class="n">generate_data</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">x</span><span class="p">,</span> <span class="n">noise_magnitude</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>2. Create Linear Model:</strong></p>
+<p>Create an object for <span class="math notranslate nohighlight">\(\mu\)</span> function using
+<a class="reference internal" href="glearn.LinearModel.html#glearn.LinearModel" title="glearn.LinearModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.LinearModel</span></code></a> class. On training points, the mean
+function is represented by the array</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\mu} = \boldsymbol{\phi}^{\intercal}
+(\boldsymbol{x}) \boldsymbol{\beta}.\]</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create mean object using glearn.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mean</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">LinearModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">polynomial_degree</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>3. Create Covariance Object:</strong></p>
+<p>Create the covariance model using <a class="reference internal" href="glearn.Covariance.html#glearn.Covariance" title="glearn.Covariance"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.Covariance</span></code></a> class. On
+the training points, the covariance function is represented by the
+matrix</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\Sigma}(\sigma, \varsigma, \boldsymbol{\alpha}) =
+\sigma^2 \mathbf{K}(\boldsymbol{\alpha}) +
+\varsigma^2 \mathbf{I}.\]</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define a Cauchy prior for scale hyperparameter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scale</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">priors</span><span class="o">.</span><span class="n">Cauchy</span><span class="p">()</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a covariance object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">Covariance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>4. Create Gaussian Process Object:</strong></p>
+<p>Putting all together, we can create an object for <span class="math notranslate nohighlight">\(\mathcal{GP}
+(\mu, \Sigma)\)</span> as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Gaussian process object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">GaussianProcess</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">cov</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>5. Train The Model:</strong></p>
+<p>Train the model to find the regression parameter
+<span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> and the hyperparameters <span class="math notranslate nohighlight">\(\sigma\)</span>,
+<span class="math notranslate nohighlight">\(\varsigma\)</span>, and <span class="math notranslate nohighlight">\(\boldsymbol{\alpha}\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Train</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">y_noisy</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>6. Predict on Test Points:</strong></p>
+<p>After training the hyperparameters, the <code class="docutils literal notranslate"><span class="pre">gp</span></code> object is ready to
+predict the data on new points. First, we create a set of <span class="math notranslate nohighlight">\(1000\)</span>
+test points <span class="math notranslate nohighlight">\(\boldsymbol{x}^{\ast}\)</span> equally distanced in the
+interval <span class="math notranslate nohighlight">\([0, 1]\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate test points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_points</span> <span class="o">=</span> <span class="n">sample_data</span><span class="o">.</span><span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For the purpose of comparison, we also generate the noise-free data on
+the test points, <span class="math notranslate nohighlight">\(y(\boldsymbol{x}^{\ast})\)</span>, using zero noise
+<span class="math notranslate nohighlight">\(\varsigma = 0\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># True data (without noise)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y_true</span> <span class="o">=</span> <span class="n">sample_data</span><span class="o">.</span><span class="n">generate_data</span><span class="p">(</span><span class="n">test_points</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">noise_magnitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the above step is unnecessary and only used for the purpose
+of comparison with the prediction since we already know the exact
+function that generated the noisy data <span class="math notranslate nohighlight">\(y\)</span> in the first place.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Prediction on test points</span>
+<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">y_star_mean</span><span class="p">,</span> <span class="n">y_star_cov</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span>
+</span><span class="hll"><span class="gp">... </span>    <span class="n">test_points</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+</span><span class="hll"><span class="gp">... </span>    <span class="n">true_data</span><span class="o">=</span><span class="n">y_true</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<p>Some information about the prediction process can be found by
+<code class="docutils literal notranslate"><span class="pre">prediction_result</span></code> attribute of <code class="docutils literal notranslate"><span class="pre">GaussianProcess</span></code> class as
+follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Prediction result</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span><span class="o">.</span><span class="n">prediction_result</span>
+<span class="go">{</span>
+<span class="go">    &#39;config&#39;: {</span>
+<span class="go">        &#39;cov&#39;: True,</span>
+<span class="go">        &#39;num_test_points&#39;: 1000,</span>
+<span class="go">        &#39;num_training_points&#39;: 30</span>
+<span class="go">    },</span>
+<span class="go">    &#39;process&#39;: {</span>
+<span class="go">        &#39;memory&#39;: [24768512, &#39;b&#39;],</span>
+<span class="go">        &#39;proc_time&#39;: 0.9903236419999999,</span>
+<span class="go">        &#39;wall_time&#39;: 0.13731884956359863</span>
+<span class="go">    }</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+<p><strong>Verbose Output:</strong></p>
+<p>By setting <code class="docutils literal notranslate"><span class="pre">verbose</span></code> to <cite>True</cite>, useful info about the process is
+printed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>                               <span class="n">Prediction</span> <span class="n">Summary</span>                               
+<span class="o">================================================================================</span>
+               <span class="n">process</span>                                    <span class="n">config</span>                
+<span class="o">-------------------------------------</span>      <span class="o">-------------------------------------</span>
+<span class="n">wall</span> <span class="n">time</span> <span class="p">(</span><span class="n">sec</span><span class="p">)</span>               <span class="mf">1.08e-1</span>      <span class="n">num</span> <span class="n">training</span> <span class="n">points</span>                <span class="mi">30</span>
+<span class="n">proc</span> <span class="n">time</span> <span class="p">(</span><span class="n">sec</span><span class="p">)</span>               <span class="mf">8.08e-1</span>      <span class="n">num</span> <span class="n">test</span> <span class="n">points</span>                  <span class="mi">1000</span>
+<span class="n">memory</span> <span class="n">used</span> <span class="p">(</span><span class="n">b</span><span class="p">)</span>              <span class="mi">23334912</span>      <span class="n">compute</span> <span class="n">covariance</span>               <span class="kc">True</span>
+</pre></div>
+</div>
+<p><strong>Plotting:</strong></p>
+<p>By setting <code class="docutils literal notranslate"><span class="pre">plot</span></code> to <cite>True</cite>, the prediction is plotted as follows.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Prediction on test points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y_star_mean</span><span class="p">,</span> <span class="n">y_star_cov</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">test_points</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+<span class="hll"><span class="gp">... </span>    <span class="n">true_data</span><span class="o">=</span><span class="n">y_true</span><span class="p">,</span> <span class="n">Plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<a class="custom-dark reference internal image-reference" href="../_images/gp_predict.png"><img alt="../_images/gp_predict.png" class="custom-dark align-center" src="../_images/gp_predict.png" style="width: 75%;" /></a>
+<p><strong>Further Call to Prediction Function:</strong></p>
+<p>One of the features of this function is that, once a prediction on a
+set of test points is made, a second and further call to this
+prediction function consumes significantly less processing time,
+provided that we only compute the posterior mean (and not the
+posterior covariance). This result holds even if the future alls are on
+a different set of test points.</p>
+<p>To see this, let print the process time on the previous prediction:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Process time and time</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span><span class="o">.</span><span class="n">prediction_result</span><span class="p">[</span><span class="s1">&#39;process&#39;</span><span class="p">][</span><span class="s1">&#39;proc_time&#39;</span><span class="p">]</span>
+<span class="go">0.9903236419999999</span>
+</pre></div>
+</div>
+<p>Now, we made prediction on a different set of test points generated
+randomly and measure the process time:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate test points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_points_2</span> <span class="o">=</span> <span class="n">sample_data</span><span class="o">.</span><span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Predict posterior mean on the new set of test points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y_star_mean_2</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">test_points_2</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Measure the process time</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span><span class="o">.</span><span class="n">prediction_result</span><span class="p">[</span><span class="s1">&#39;process&#39;</span><span class="p">][</span><span class="s1">&#39;proc_time&#39;</span><span class="p">]</span>
+<span class="go">0.051906865999999496</span>
+</pre></div>
+</div>
+<p>The above process time is significantly less than the first call to
+the prediction function. This is because the first call to the
+prediction function computes the prediction coefficients that are
+independent of the test points. A future call to the prediction
+function reuses the coefficients and makes the prediction at
+<span class="math notranslate nohighlight">\(\mathcal{O}(n^{\ast})\)</span> time.</p>
 </dd></dl>
 
 </section>

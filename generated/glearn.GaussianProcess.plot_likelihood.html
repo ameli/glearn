@@ -48,6 +48,8 @@
     <script src="../_static/js/custom-pydata.js"></script>
     <script src="../_static/design-tabs.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -483,10 +485,133 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="glearn.GaussianProcess.plot_likelihood">
 <span class="sig-prename descclassname"><span class="pre">GaussianProcess.</span></span><span class="sig-name descname"><span class="pre">plot_likelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile_hyperparam</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'var'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.GaussianProcess.plot_likelihood" title="Permalink to this definition">#</a></dt>
-<dd><p>Plot the likelihood in multiple figures.</p>
+<dd><p>Plot the likelihood function and its derivatives with respect to the
+hyperparameters.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>z</strong><span class="classifier">numpy.array</span></dt><dd><p>An array of the size <span class="math notranslate nohighlight">\(n\)</span> representing the training data.
+If <cite>z</cite> is not provided (set to <cite>None</cite>), the training data that used
+to define the <a class="reference internal" href="glearn.GaussianProcess.html#glearn.GaussianProcess" title="glearn.GaussianProcess"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.GaussianProcess</span></code></a> class is used.</p>
+</dd>
+<dt><strong>profile_hyperparam</strong><span class="classifier">{<cite>‘none’</cite>, <cite>‘var’</cite>, <cite>‘var_noise’</cite>}, default:                <cite>‘var’</cite></span></dt><dd><p>The type of likelihood profiling method to be used in optimization
+of the likelihood function.</p>
+<ul class="simple">
+<li><p>When <code class="docutils literal notranslate"><span class="pre">profile_likelihood</span></code> is set to <code class="docutils literal notranslate"><span class="pre">none</span></code>, the likelihood
+function explicitly depends on the two hyperparameters
+<span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\varsigma\)</span>.</p></li>
+<li><p>When <code class="docutils literal notranslate"><span class="pre">profile_likelihood</span></code> is set to <code class="docutils literal notranslate"><span class="pre">var</span></code>, the likelihood
+function depends on the two hyperparameters
+<span class="math notranslate nohighlight">\(\eta=\varsigma^2/\sigma^2\)</span>, which is profiles over
+the hyperparameter <span class="math notranslate nohighlight">\(\sigma\)</span>, reducing the number of the
+hyperparameters by one.</p></li>
+<li><p>When <code class="docutils literal notranslate"><span class="pre">profile_likelihood</span></code> is set to <code class="docutils literal notranslate"><span class="pre">var_sigma</span></code>, the
+likelihood function is profiles over both <span class="math notranslate nohighlight">\(\sigma\)</span> and
+<span class="math notranslate nohighlight">\(\eta\)</span>, reducing the number of unknown hyperparameters
+by two.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Notes</p>
+<p>This function plots likelihood function and its first and second
+derivatives with respect to the hyperparameters. The type of
+hyperparameters depend on the profiling method which is set by
+<code class="docutils literal notranslate"><span class="pre">profile_hyperparam</span></code>.</p>
+<p>This function is only used for testing purposes, and can only plot
+1D and 2D data.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
 <p>This function may take a long time, and is only used for testing
 purposes on small datasets.</p>
+</div>
+<p>Note that the maximum points of the likelihood plots may not
+correspond to the optimal values of the hyperparameters. This is
+because the hyperparameters are found by the maximum points of the
+posterior function. If the prior for the scale hyperparameter is the
+uniform distribution, then the likelihood and the posterior functions
+are them same and the maxima of the likelihood function in the plots
+correspond to the optimal hyperparameters.</p>
+<p class="rubric">Examples</p>
+<p>To define a Gaussian process object <span class="math notranslate nohighlight">\(\mathcal{GP}(\mu,
+\Sigma)\)</span>, first, an object for the linear model where <span class="math notranslate nohighlight">\(\mu\)</span> and
+an object for the covariance model <span class="math notranslate nohighlight">\(\Sigma\)</span> should be created as
+follows.</p>
+<p><strong>1. Generate Sample Training Data:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">glearn</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">sample_data</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a set of training points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">sample_data</span><span class="o">.</span><span class="n">generate_points</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">num_points</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">a</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">contrast</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate noise sample data on the training points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y_noisy</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">sample_data</span><span class="o">.</span><span class="n">generate_data</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">x</span><span class="p">,</span> <span class="n">noise_magnitude</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>2. Create Linear Model:</strong></p>
+<p>Create an object for <span class="math notranslate nohighlight">\(\mu\)</span> function using
+<a class="reference internal" href="glearn.LinearModel.html#glearn.LinearModel" title="glearn.LinearModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.LinearModel</span></code></a> class. On training points, the mean
+function is represented by the array</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\mu} = \boldsymbol{\phi}^{\intercal}
+(\boldsymbol{x}) \boldsymbol{\beta}.\]</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create mean object using glearn.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mean</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">LinearModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">polynomial_degree</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>3. Create Covariance Object:</strong></p>
+<p>Create the covariance model using <a class="reference internal" href="glearn.Covariance.html#glearn.Covariance" title="glearn.Covariance"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.Covariance</span></code></a> class. On
+the training points, the covariance function is represented by the
+matrix</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\Sigma}(\sigma, \varsigma, \boldsymbol{\alpha}) =
+\sigma^2 \mathbf{K}(\boldsymbol{\alpha}) +
+\varsigma^2 \mathbf{I}.\]</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define a Cauchy prior for scale hyperparameter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scale</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">priors</span><span class="o">.</span><span class="n">Cauchy</span><span class="p">()</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a covariance object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">Covariance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>4. Create Gaussian Process Object:</strong></p>
+<p>Putting all together, we can create an object for <span class="math notranslate nohighlight">\(\mathcal{GP}
+(\mu, \Sigma)\)</span> as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Gaussian process object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">GaussianProcess</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">cov</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>5. Train The Model:</strong></p>
+<p>Train the model to find the regression parameter
+<span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> and the hyperparameters <span class="math notranslate nohighlight">\(\sigma\)</span>,
+<span class="math notranslate nohighlight">\(\varsigma\)</span>, and <span class="math notranslate nohighlight">\(\boldsymbol{\alpha}\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Train</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">train</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">y_noisy</span><span class="p">,</span> <span class="n">profile_hyperparam</span><span class="o">=</span><span class="s1">&#39;var&#39;</span><span class="p">,</span> <span class="n">log_hyperparam</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">hyperparam_guess</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">optimization_method</span><span class="o">=</span><span class="s1">&#39;Newton-CG&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">tol</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">use_rel_error</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">imate_options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;cholesky&#39;</span><span class="p">},</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Plotting:</strong></p>
+<p>After the  training when the hyperparameters were tuned, plot the
+likelihood function as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Plot likelihood function and its derivatives</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span><span class="o">.</span><span class="n">plot_likelihood</span><span class="p">()</span>
+</pre></div>
+</div>
+<a class="custom-dark reference internal image-reference" href="../_images/gp_likelihood_var_1.png"><img alt="../_images/gp_likelihood_var_1.png" class="custom-dark align-center" src="../_images/gp_likelihood_var_1.png" style="width: 100%;" /></a>
+<a class="custom-dark reference internal image-reference" href="../_images/gp_likelihood_var_2.png"><img alt="../_images/gp_likelihood_var_2.png" class="custom-dark align-center" src="../_images/gp_likelihood_var_2.png" style="width: 100%;" /></a>
+<a class="custom-dark reference internal image-reference" href="../_images/gp_likelihood_var_3.png"><img alt="../_images/gp_likelihood_var_3.png" class="custom-dark align-center" src="../_images/gp_likelihood_var_3.png" style="width: 100%;" /></a>
+<p>If we set <code class="docutils literal notranslate"><span class="pre">profile_likelihood=none</span></code>, the followings will be plotted
+instead:</p>
+<a class="custom-dark reference internal image-reference" href="../_images/gp_likelihood_none_1.png"><img alt="../_images/gp_likelihood_none_1.png" class="custom-dark align-center" src="../_images/gp_likelihood_none_1.png" style="width: 100%;" /></a>
+<a class="custom-dark reference internal image-reference" href="../_images/gp_likelihood_none_2.png"><img alt="../_images/gp_likelihood_none_2.png" class="custom-dark align-center" src="../_images/gp_likelihood_none_2.png" style="width: 100%;" /></a>
+<a class="custom-dark reference internal image-reference" href="../_images/gp_likelihood_none_3.png"><img alt="../_images/gp_likelihood_none_3.png" class="custom-dark align-center" src="../_images/gp_likelihood_none_3.png" style="width: 100%;" /></a>
 </dd></dl>
 
 </section>

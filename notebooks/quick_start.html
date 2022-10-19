@@ -614,21 +614,21 @@ div.rendered_html tbody tr:hover {
 <div class="highlight"><pre>
 
 glearn version  : 0.21.1
-imate version   : 0.18.2
-processor       : Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz
-num threads     : 8
+imate version   : 0.18.0
+processor       : Intel(R) Core(TM) i5-2520M CPU @ 2.50GHz
+num threads     : 4
 gpu device      : not found
 num gpu devices : 0
-cuda version    : 11.7.0
+cuda version    : not found
 nvidia driver   : not found
-process memory  : 124.5 (Mb)
+process memory  : 124.6 (Mb)
 
 </pre></div></div>
 </div>
 </section>
 <section id="Generate-Points">
 <h2>Generate Points<a class="headerlink" href="#Generate-Points" title="Permalink to this heading">#</a></h2>
-<p>We generate a set of 50 points randomly distributed in the interval $ <span class="math">\mathcal{D}</span> = [0, 1]$, where <span class="math notranslate nohighlight">\(80\%\)</span> more points are concentrated in the sub-interval <span class="math notranslate nohighlight">\([a=0.4, b=0.6]\)</span> with uniform distrubution, and the rest of the points spread elsewhere uniformly.</p>
+<p>We generate a set of 50 points randomly distributed in the interval $ <span class="math">\mathcal{D}</span> = [0, 1]$, where <span class="math notranslate nohighlight">\(90\%\)</span> more points are concentrated in the sub-interval <span class="math notranslate nohighlight">\([a=0.4, b=0.6]\)</span> with uniform distrubution, and the rest of the points spread elsewhere uniformly.</p>
 <p>For simplicity,such set of points can be screated using <code class="docutils literal notranslate"><span class="pre">glearn.sample_data</span></code> module.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
@@ -637,7 +637,7 @@ process memory  : 124.5 (Mb)
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from glearn import sample_data
 x = sample_data.generate_points(num_points=50, dimension=1,
                                 grid=False,a=0.4, b=0.6,
-                                contrast=0.8, seed=42)
+                                contrast=0.9, seed=42)
 </pre></div>
 </div>
 </div>
@@ -653,7 +653,7 @@ x = sample_data.generate_points(num_points=50, dimension=1,
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>y_noisy = sample_data.generate_data(x, noise_magnitude=0.05, plot=True)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>y_noisy = sample_data.generate_data(x, noise_magnitude=0.1, plot=True)
 </pre></div>
 </div>
 </div>
@@ -767,7 +767,7 @@ kernel.plot()
 </section>
 <section id="Scale-Hyperparameter">
 <h2>Scale Hyperparameter<a class="headerlink" href="#Scale-Hyperparameter" title="Permalink to this heading">#</a></h2>
-<p>The hyperparameters <span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (\alpha_1, \dots, \alpha_d) \in \mathbb{R}^d\)</span> determines the scale of each spatial dimension. In our example, <span class="math notranslate nohighlight">\(d=1\)</span>. Scale can be either explicity given if known, or can be charactewrized by a prior distribution <span class="math notranslate nohighlight">\(p(\boldsymbol{\alpha})\)</span> using <code class="docutils literal notranslate"><span class="pre">glearn.priors</span></code> class. A list of available priors are</p>
+<p>The hyperparameters <span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (\alpha_1, \dots, \alpha_d) \in \mathbb{R}^d\)</span> determines the scale of each spatial dimension. In our example, <span class="math notranslate nohighlight">\(d=1\)</span>. Scale can be either explicitly given if known, or can be characterized by a prior distribution <span class="math notranslate nohighlight">\(p(\boldsymbol{\alpha})\)</span> using <code class="docutils literal notranslate"><span class="pre">glearn.priors</span></code> class. A list of available priors are</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Uniform</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Cauchy</span></code></p></li>
@@ -886,23 +886,22 @@ result = gp.train(y_noisy, profile_hyperparam=profile_hyperparam,
 itr   param  1   param  2
 ---   --------   --------
 001        inf        inf
-002   3.70e-01   7.11e-01
-003   7.81e-02   1.25e-01
-004   1.30e-02   2.95e-01
-005   2.04e-03   5.29e-02
-006   1.19e-04   2.21e-03
-007   1.88e-07   3.57e-06
-008   1.10e-07   1.03e-06
+002   8.87e-02   5.89e-03
+003   6.06e-03   2.44e-01
+004   3.09e-03   8.21e-02
+005   1.35e-04   9.87e-03
+006   2.10e-06   1.45e-04
+007   0.00e+00   0.00e+00
 
                                 Training Summary
 ================================================================================
        posterior/param                optimization              imate solver
 -----------------------------      -------------------      --------------------
-posterior    +5.569396122e+01      method    Newton-CG      method      cholesky
-eta          1.4289804133e+01      tol        1.00e-06      tol         1.00e-08
-sigma        1.4772871442e-02      max iter       1000      interpolate    False
-sigma0       5.5844197776e-02      max bracket try   6      min num samples    0
-theta        2.5006269597e-01      profile param   var      max num samples    0
+posterior    +2.355328920e+01      method    Newton-CG      method      cholesky
+eta          7.9209829878e+01      tol        1.00e-06      tol         1.00e-08
+sigma        1.3028753864e-02      max iter       1000      interpolate    False
+sigma0       1.1595578487e-01      max bracket try   6      min num samples    0
+alpha        1.2929866862e-01      profile param   var      max num samples    0
 
                                     Process
 ================================================================================
@@ -910,18 +909,18 @@ theta        2.5006269597e-01      profile param   var      max num samples    0
 -----------------------------      -------------------      --------------------
 task         clock    process      task              #      device             #
 ================================================================================
-correlation  3.21e-1  2.36e+0      correlation      23      cpu threads        8
-logdet       1.68e-3  1.32e-2      likelihood       10      gpu devices        0
-traceinv     6.32e-3  4.61e-2      jacobian         10      gpu multiproc      0
-solver       1.21e-1  8.98e-1      hessian           8      gpu thrds/sm       0
-overall      3.92e-1  2.88e+0      optimization      8      mem used (b) 1409024
+correlation  2.81e-1  1.03e+0      correlation      23      cpu threads        4
+logdet       2.79e-3  9.24e-3      likelihood        8      gpu devices        0
+traceinv     8.48e-3  2.98e-2      jacobian          8      gpu multiproc      0
+solver       1.15e-1  4.33e-1      hessian           7      gpu thrds/sm       0
+overall      5.45e-1  1.85e+0      optimization      7      mem used (b) 1585152
 
 </pre></div></div>
 </div>
 </section>
 <section id="Prediction">
 <h2>Prediction<a class="headerlink" href="#Prediction" title="Permalink to this heading">#</a></h2>
-<p>After training the hyperparameters, the <code class="docutils literal notranslate"><span class="pre">gp</span></code> object is ready to predict the data on new points. First, we greate a set of <span class="math notranslate nohighlight">\(1000\)</span> test points <span class="math notranslate nohighlight">\(x^{\star}\)</span> equally distanced in the interval <span class="math notranslate nohighlight">\([0, 1]\)</span>.</p>
+<p>After training the hyperparameters, the <code class="docutils literal notranslate"><span class="pre">gp</span></code> object is ready to predict the data on new points. First, we create a set of <span class="math notranslate nohighlight">\(1000\)</span> test points <span class="math notranslate nohighlight">\(x^{\star}\)</span> equally distanced in the interval <span class="math notranslate nohighlight">\([0, 1]\)</span>.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
@@ -931,7 +930,7 @@ test_points = sample_data.generate_points(num_points=1000, dimension=1, grid=Tru
 </pre></div>
 </div>
 </div>
-<p>For sake of compaison, we also generate the noise-free data on the test points, <span class="math notranslate nohighlight">\(z(x^{\star})\)</span>, using zero noise <span class="math notranslate nohighlight">\(\sigma_0 = 0\)</span>.</p>
+<p>For sake of comparison, we also generate the noise-free data on the test points, <span class="math notranslate nohighlight">\(z(x^{\star})\)</span>, using zero noise <span class="math notranslate nohighlight">\(\sigma_0 = 0\)</span>.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
@@ -941,8 +940,8 @@ z_true = sample_data.generate_data(test_points, noise_magnitude=0.0)
 </pre></div>
 </div>
 </div>
-<p>Note that the above step is unneccessary and only used for the purpose of comparson with the prediction since we already know the exact function that generated the noisy data <span class="math notranslate nohighlight">\(z\)</span> ikn the first place.</p>
-<p>The posterior predictive distribution of the predicton <span class="math notranslate nohighlight">\(z^{\star}(x^{\star})\)</span> is of the form</p>
+<p>Note that the above step is unnecessary and only used for the purpose of comparison with the prediction since we already know the exact function that generated the noisy data <span class="math notranslate nohighlight">\(z\)</span> in the first place.</p>
+<p>The posterior predictive distribution of the prediction <span class="math notranslate nohighlight">\(z^{\star}(x^{\star})\)</span> is of the form</p>
 <div class="math notranslate nohighlight">
 \[z^{\star}(x^{\star}) \sim \mathcal{N}\left(\mu^{\star}(x^{\star}), \mathbf{\Sigma}^{\star \star}(x^{\star}, x'^{\star})\right)\]</div>
 <p>where:</p>
@@ -971,9 +970,9 @@ z_true = sample_data.generate_data(test_points, noise_magnitude=0.0)
 ================================================================================
                process                                    config
 -------------------------------------      -------------------------------------
-wall time (sec)               1.65e-1      num training points                50
-proc time (sec)               1.13e+0      num test points                  1000
-memory used (b)              23707648      compute covariance               True
+wall time (sec)               1.95e-1      num training points                50
+proc time (sec)               6.88e-1      num test points                  1000
+memory used (b)              21159936      compute covariance               True
 
 </pre></div></div>
 </div>
@@ -1008,8 +1007,8 @@ memory used (b)              23707648      compute covariance               True
 ================================================================================
                process                                    config
 -------------------------------------      -------------------------------------
-wall time (sec)               1.87e-2      num training points                50
-proc time (sec)               9.40e-2      num test points                  1000
+wall time (sec)               2.18e-2      num training points                50
+proc time (sec)               5.16e-2      num test points                  1000
 memory used (b)                     0      compute covariance              False
 
 </pre></div></div>

@@ -65,12 +65,12 @@
         :text-align: center
         :class-card: custom-card-link
 
-    .. Content for performance are not ready. I cnaged this to Publications temporarily.
-    .. .. grid-item-card:: Performance
-    ..     :link: index_performance
-    ..     :link-type: ref
-    ..     :text-align: center
-    ..     :class-card: custom-card-link
+.. Content for performance are not ready. I cnaged this to Publications temporarily.
+.. .. grid-item-card:: Performance
+..     :link: index_performance
+..     :link-type: ref
+..     :text-align: center
+..     :class-card: custom-card-link
 
 .. Overview
 .. ========
@@ -206,7 +206,8 @@ Tutorials
 .. toctree::
     :maxdepth: 1
 
-    Jupyter Notebook <notebooks/quick_start.ipynb>
+    Quick Start (jupyter notebook) <notebooks/quick_start.ipynb>
+    2D Example (jupyter notebook) <notebooks/two_dimensional_example.ipynb>
 
 Launch `online interactive notebook <https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2Fquick_start.ipynb>`_ with Binder.
 

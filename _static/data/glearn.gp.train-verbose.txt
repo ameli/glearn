@@ -1,0 +1,40 @@
+          Error
+=========================
+itr   param  1   param  2
+---   --------   --------
+001        inf        inf
+002   6.94e+00   8.28e-01
+003   7.86e-01   4.14e-01
+004   4.21e-01   3.02e-01
+005   2.81e-01   2.44e-01
+006   2.05e-01   2.05e-01
+007   1.59e-01   2.05e-01
+008   1.14e-01   3.02e-01
+009   8.53e-02   7.04e-02
+010   7.29e-02   7.03e-02
+011   6.62e-02   6.16e-02
+012   6.74e-02   5.09e-02
+013   6.80e-02   4.48e-02
+014   0.00e+00   0.00e+00
+
+                                Training Summary
+================================================================================
+       posterior/param                optimization              imate solver
+-----------------------------      -------------------      --------------------
+posterior    +2.094444496e+01      method    Newton-CG      method      cholesky
+eta          1.5971145695e+06      tol        1.00e-02      tol         1.00e-08
+sigma        8.7512674550e-05      max iter       1000      interpolate    False
+sigma0       1.1059589121e-01      max bracket try   6      min num samples    0
+alpha        3.2828647028e-04      profile param   var      max num samples    0
+
+                                    Process
+================================================================================
+         time (sec)                    evaluations               processor
+-----------------------------      -------------------      --------------------
+task         clock    process      task              #      device             #
+================================================================================
+correlation  5.83e-1  4.51e+0      correlation      42      cpu threads        8
+logdet       2.12e-3  1.49e-2      likelihood       14      gpu devices        0
+traceinv     5.96e-3  4.95e-2      jacobian         14      gpu multiproc      0
+solver       2.09e-1  1.58e+0      hessian          14      gpu thrds/sm       0
+overall      7.14e-1  5.49e+0      optimization     14      mem used (b) 2199552

@@ -48,6 +48,8 @@
     <script src="../_static/js/custom-pydata.js"></script>
     <script src="../_static/design-tabs.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -484,9 +486,444 @@
 <dt class="sig sig-object py" id="glearn.GaussianProcess.train">
 <span class="sig-prename descclassname"><span class="pre">GaussianProcess.</span></span><span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hyperparam_guess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile_hyperparam</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'var'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_hyperparam</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Newton-CG'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_rel_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imate_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.GaussianProcess.train" title="Permalink to this definition">#</a></dt>
 <dd><p>Train the hyperparameters of the Gaussian process model.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>z</strong><span class="classifier">numpy.array</span></dt><dd><p>An array of the size <span class="math notranslate nohighlight">\(n\)</span> representing the training data.</p>
+</dd>
+<dt><strong>hyperparam_guess</strong><span class="classifier">array_like or list, default=None</span></dt><dd><p>A list (or array) of the initial guess for the hyperparameters of
+the Gaussian process model. The unknown hyperparameters depends on
+the following values for the argument <code class="docutils literal notranslate"><span class="pre">profile_hyperparam</span></code>:</p>
+<ul class="simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">profile_hyperparam=none</span></code>, then the hyperparameters are
+<span class="math notranslate nohighlight">\([\sigma, \varsigma]\)</span>,
+where <span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\varsigma\)</span> are the standard
+deviations of the covariance model.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">profile_hyperparam=var</span></code>, then the hyperparameters are
+<span class="math notranslate nohighlight">\([\eta]\)</span>, where <span class="math notranslate nohighlight">\(\eta = \varsigma^2 / \sigma^2\)</span>.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">profile_hyperparam=var_noise</span></code>, no guess is required.</p></li>
+</ul>
+<p>If no guess for either of the parameters are given (by setting
+<code class="docutils literal notranslate"><span class="pre">hyperparam_guess=None</span></code>), an initial guess is generated using
+the asymptotic analysis algorithm described in <a class="reference internal" href="#r4298129096b1-1" id="id1">[1]</a>.</p>
+</dd>
+<dt><strong>profile_hyperparam</strong><span class="classifier">{<cite>‘none’</cite>, <cite>‘var’</cite>, <cite>‘var_noise’</cite>}, default:                <cite>‘var’</cite></span></dt><dd><p>The type of likelihood profiling method to be used in optimization
+of the likelihood function.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'none'</span></code>: No profiling of the likelihood function. The
+optimization is performed in the full hyperparameter space.
+This is the standard method of optimizing the likelihood
+function.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'var'</span></code>: The variable variable <span class="math notranslate nohighlight">\(\sigma\)</span> is profiled
+in the likelihood function. This method is the fastest.
+The algorithm for this method can be found in <a class="reference internal" href="#r4298129096b1-1" id="id2">[1]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'var_noise'</span></code>: Both variables <span class="math notranslate nohighlight">\(\sigma\)</span> and
+<span class="math notranslate nohighlight">\(\varsigma\)</span> are profiled in the likelihood function.
+The algorithm for this method can be found in <a class="reference internal" href="#r4298129096b1-1" id="id3">[1]</a>.</p></li>
+</ul>
+</dd>
+<dt><strong>log_hyperparam</strong><span class="classifier">bool, default=True</span></dt><dd><p>If <cite>True</cite>, the logarithm of the hyperparameters is used during the
+optimization process. This allows a greater search interval of the
+variables, making the optimization process more efficient.</p>
+</dd>
+<dt><strong>optimization_method</strong><span class="classifier">{<cite>‘chandrupatla’</cite>, <cite>‘brentq’</cite>, <cite>‘Nelder-Mead’</cite>,                <cite>‘BFGS’</cite>, <cite>‘CG’</cite>, <cite>‘Newton-CG’</cite>, <cite>‘dogleg’</cite>, <cite>‘trust-exact’</cite>,                <cite>‘trust-ncg’</cite>}, default: <cite>‘Newton-CG’</cite></span></dt><dd><p>The optimization method.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'chandrupatla'</span></code>: uses Jacobian only</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'brentq'</span></code>: uses Jacobian only</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'Nelder-Mead'</span></code>: uses function only (no derivative)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'BFGS'</span></code>: uses function and Jacobian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'CG'</span></code>: uses function and Jacobian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'Newton-CG'</span></code>: uses function, Jacobian, and Hessian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'dogleg'</span></code>: uses function, Jacobian, and Hessian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'trust-exact'</span></code>: uses function, Jacobian, and Hessian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'trust-ncg'</span></code>: uses function, Jacobian, and Hessian</p></li>
+</ul>
+<p>In the above methods, function, Jacobian, and Hessian refers to
+the likelihood function and its derivatives. The Jacobian and
+Hessian are computed automatically and the user does not need to
+provide them.</p>
+</dd>
+<dt><strong>tol</strong><span class="classifier">float, default: 1e-3</span></dt><dd><p>The tolerance of convergence of hyperparameters during
+optimization. In case of multiple hyperparameters, the iterations
+stop once the convergence criterion is satisfied for all of the
+hyperparameters.</p>
+</dd>
+<dt><strong>max_iter</strong><span class="classifier">int, default: 1000</span></dt><dd><p>Maximum number of iterations of the optimization process.</p>
+</dd>
+<dt><strong>use_rel_error</strong><span class="classifier">bool or None, default=True</span></dt><dd><p>If <cite>True</cite>, the relative error is used for the convergence
+criterion. When <cite>False</cite>, the absolute error is used. When it is
+set to <cite>None</cite>, the callback function for minimize is not used.</p>
+</dd>
+<dt><strong>imate_options</strong><span class="classifier">dict, default={}</span></dt><dd><p>A dictionary of options to pass arguments of the functions of the
+<a class="reference external" href="https://ameli.github.io/imate/index.html#module-imate" title="(in imate)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imate</span></code></a> package, such as <a class="reference external" href="https://ameli.github.io/imate/generated/imate.logdet.html#imate.logdet" title="(in imate)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imate.logdet()</span></code></a>,
+<a class="reference external" href="https://ameli.github.io/imate/generated/imate.trace.html#imate.trace" title="(in imate)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imate.trace()</span></code></a>, and <a class="reference external" href="https://ameli.github.io/imate/generated/imate.traceinv.html#imate.traceinv" title="(in imate)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imate.traceinv()</span></code></a>.</p>
+</dd>
+<dt><strong>gpu</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, the computations are performed on GPU devices.
+Further setting on the GPU devices (such as the number of GPU
+devices) can be set by passing options to the <a class="reference external" href="https://ameli.github.io/imate/index.html#module-imate" title="(in imate)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imate</span></code></a>
+package through <code class="docutils literal notranslate"><span class="pre">imate_options</span></code> argument.</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, verbose output on the optimization process is printer
+both during and after the computation.</p>
+</dd>
+<dt><strong>plot</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, the likelihood or posterior function is plotted.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="glearn.GaussianProcess.predict.html#glearn.GaussianProcess.predict" title="glearn.GaussianProcess.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glearn.GaussianProcess.predict</span></code></a></dt><dd></dd>
+</dl>
+</div>
 <p class="rubric">Notes</p>
-<p>Note: <code class="docutils literal notranslate"><span class="pre">use_rel_error</span></code> can be None, True, or False. When it is set to
-None, the callback function for minimize is not used.</p>
+<p><strong>Maximum Posterior Method:</strong></p>
+<p>The training process maximizes the posterior function</p>
+<div class="math notranslate nohighlight">
+\[p(\boldsymbol{\beta}, \sigma, \varsigma,
+\boldsymbol{\alpha} \vert z) = 
+\frac{ p(z \vert \boldsymbol{\beta}, \sigma, \varsigma,
+\boldsymbol{\alpha})
+p(\boldsymbol{\beta}, \sigma, \varsigma, \boldsymbol{\alpha})
+}{p(z)}.\]</div>
+<p>The above hyperparameters are explained in the next section below.</p>
+<p>It is assumed that the hyperparameters are independent, namely</p>
+<div class="math notranslate nohighlight">
+\[p(\boldsymbol{\beta}, \sigma, \varsigma, \boldsymbol{\alpha})
+= p(\boldsymbol{\beta}) p(\sigma) p(\varsigma)
+p(\boldsymbol{\alpha})\]</div>
+<p>Also, it is assumed that <span class="math notranslate nohighlight">\(p(\sigma) = 1\)</span> and
+<span class="math notranslate nohighlight">\(p(\varsigma) = 1\)</span>.</p>
+<p><strong>Unknown Hyperparameters:</strong></p>
+<p>The unknown hyperparameters are as follows:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> from the linear model. A normal prior
+<span class="math notranslate nohighlight">\(\boldsymbol{\beta} \sim \mathcal{N}(\boldsymbol{b},
+\mathbf{B})\)</span> for this hyperparameter can be set though
+<a class="reference internal" href="glearn.LinearModel.html#glearn.LinearModel" title="glearn.LinearModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.LinearModel</span></code></a>. Once the model is trained, the optimal
+value of the posterior <span class="math notranslate nohighlight">\(\hat{\boldsymbol{\beta}} \sim
+\mathcal{N}(\bar{\boldsymbol{\beta}},\mathbf{C})\)</span> with the
+posterior mean and posterior covariance of this hyperparameter can be
+obtained by <code class="docutils literal notranslate"><span class="pre">GaussianProcess.mean.beta</span></code> and
+<code class="docutils literal notranslate"><span class="pre">GaussianProcess.mean.C</span></code> attributes.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (\alpha_1, \dots, \alpha_d)\)</span>,
+where <span class="math notranslate nohighlight">\(d\)</span> is the dimension of the space. A prior
+<span class="math notranslate nohighlight">\(p(\boldsymbol{\alpha})\)</span> or an initial guess for this
+hyperparameter can be set by the argument <code class="docutils literal notranslate"><span class="pre">scale</span></code> in
+<a class="reference internal" href="glearn.Covariance.html#glearn.Covariance" title="glearn.Covariance"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.Covariance</span></code></a> class. The posterior value
+<span class="math notranslate nohighlight">\(\hat{\boldsymbol{\alpha}}\)</span> of this hyperparameter can be
+accessed by <a class="reference internal" href="glearn.Covariance.get_scale.html#glearn.Covariance.get_scale" title="glearn.Covariance.get_scale"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Covariance.get_scale()</span></code></a> function on the
+attribute <code class="docutils literal notranslate"><span class="pre">GaussianProcess.cov</span></code> covariance object.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\varsigma\)</span>, which an initial guess for
+these hyperparameters can be set by <code class="docutils literal notranslate"><span class="pre">hyperparam_guess</span></code> argument to
+the <a class="reference internal" href="#glearn.GaussianProcess.train" title="glearn.GaussianProcess.train"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.GaussianProcess.train()</span></code></a> function. The optimal
+estimated values <span class="math notranslate nohighlight">\(\hat{\sigma}\)</span> and <span class="math notranslate nohighlight">\(\hat{\varsigma}\)</span>
+of these hyperparameters can be found by the
+<a class="reference internal" href="glearn.Covariance.get_sigmas.html#glearn.Covariance.get_sigmas" title="glearn.Covariance.get_sigmas"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.Covariance.get_sigmas()</span></code></a> function on the
+<code class="docutils literal notranslate"><span class="pre">GaussianProcess.cov</span></code> attribute.</p></li>
+</ul>
+<p><strong>Profile Likelihood:</strong></p>
+<p>The profile likelihood reduces the dimension of the space of the
+unknown hyperparameters.</p>
+<ul class="simple">
+<li><p>When <code class="docutils literal notranslate"><span class="pre">profile_likelihood</span></code> is set to <code class="docutils literal notranslate"><span class="pre">none</span></code>, the likelihood
+function explicitly depends on the two hyperparameters
+<span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\varsigma\)</span>.</p></li>
+<li><p>When <code class="docutils literal notranslate"><span class="pre">profile_likelihood</span></code> is set to <code class="docutils literal notranslate"><span class="pre">var</span></code>, the likelihood
+function depends on the two hyperparameters
+<span class="math notranslate nohighlight">\(\eta=\varsigma^2/\sigma^2\)</span>, which is profiles over
+the hyperparameter <span class="math notranslate nohighlight">\(\sigma\)</span>, reducing the number of the
+hyperparameters by one.</p></li>
+<li><p>When <code class="docutils literal notranslate"><span class="pre">profile_likelihood</span></code> is set to <code class="docutils literal notranslate"><span class="pre">var_sigma</span></code>, the
+likelihood function is profiles over both <span class="math notranslate nohighlight">\(\sigma\)</span> and
+<span class="math notranslate nohighlight">\(\eta\)</span>, reducing the number of unknown hyperparameters
+by two.</p></li>
+</ul>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="r4298129096b1-1" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id2">2</a>,<a role="doc-backlink" href="#id3">3</a>)</span>
+<p>Ameli, S., and Shadden. S. C. (2022). <em>Noise Estimation in
+Gaussian Process Regression</em>.
+<a class="reference external" href="https://arxiv.org/abs/2206.09976">arXiv: 2206.09976 [cs.LG]</a>.</p>
+</div>
+</div>
+<p class="rubric">Examples</p>
+<p>To define a Gaussian process object <span class="math notranslate nohighlight">\(\mathcal{GP}(\mu,
+\Sigma)\)</span>, first, an object for the linear model where <span class="math notranslate nohighlight">\(\mu\)</span> and
+an object for the covariance model <span class="math notranslate nohighlight">\(\Sigma\)</span> should be created as
+follows.</p>
+<p><strong>1. Generate Sample Training Data:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">glearn</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">sample_data</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a set of training points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">sample_data</span><span class="o">.</span><span class="n">generate_points</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">num_points</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">a</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">contrast</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate noise sample data on the training points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y_noisy</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">sample_data</span><span class="o">.</span><span class="n">generate_data</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">x</span><span class="p">,</span> <span class="n">noise_magnitude</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>2. Create Linear Model:</strong></p>
+<p>Create an object for <span class="math notranslate nohighlight">\(\mu\)</span> function using
+<a class="reference internal" href="glearn.LinearModel.html#glearn.LinearModel" title="glearn.LinearModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.LinearModel</span></code></a> class. On training points, the mean
+function is represented by the array</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\mu} = \boldsymbol{\phi}^{\intercal}
+(\boldsymbol{x}) \boldsymbol{\beta}.\]</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create mean object using glearn.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mean</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">LinearModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">polynomial_degree</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>3. Create Covariance Object:</strong></p>
+<p>Create the covariance model using <a class="reference internal" href="glearn.Covariance.html#glearn.Covariance" title="glearn.Covariance"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.Covariance</span></code></a> class. On
+the training points, the covariance function is represented by the
+matrix</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\Sigma}(\sigma, \varsigma, \boldsymbol{\alpha}) =
+\sigma^2 \mathbf{K}(\boldsymbol{\alpha}) +
+\varsigma^2 \mathbf{I}.\]</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define a Cauchy prior for scale hyperparameter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scale</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">priors</span><span class="o">.</span><span class="n">Cauchy</span><span class="p">()</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a covariance object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">Covariance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>4. Create Gaussian Process Object:</strong></p>
+<p>Putting all together, we can create an object for <span class="math notranslate nohighlight">\(\mathcal{GP}
+(\mu, \Sigma)\)</span> as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Gaussian process object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">GaussianProcess</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">cov</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>5. Train The Model:</strong></p>
+<p>Train the model to find the regression parameter
+<span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> and the hyperparameters <span class="math notranslate nohighlight">\(\sigma\)</span>,
+<span class="math notranslate nohighlight">\(\varsigma\)</span>, and <span class="math notranslate nohighlight">\(\boldsymbol{\alpha}\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Train</span>
+<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">train</span><span class="p">(</span>
+</span><span class="hll"><span class="gp">... </span>    <span class="n">y_noisy</span><span class="p">,</span> <span class="n">profile_hyperparam</span><span class="o">=</span><span class="s1">&#39;var&#39;</span><span class="p">,</span> <span class="n">log_hyperparam</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span class="hll"><span class="gp">... </span>    <span class="n">hyperparam_guess</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">optimization_method</span><span class="o">=</span><span class="s1">&#39;Newton-CG&#39;</span><span class="p">,</span>
+</span><span class="hll"><span class="gp">... </span>    <span class="n">tol</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">use_rel_error</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span class="hll"><span class="gp">... </span>    <span class="n">imate_options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;cholesky&#39;</span><span class="p">},</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<p>The results of training process can be found in the <code class="docutils literal notranslate"><span class="pre">training_result</span></code>
+attribute as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Training results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span><span class="o">.</span><span class="n">training_results</span>
+<span class="go">{</span>
+<span class="go">    &#39;config&#39;: {</span>
+<span class="go">        &#39;max_bracket_trials&#39;: 6,</span>
+<span class="go">        &#39;max_iter&#39;: 1000,</span>
+<span class="go">        &#39;optimization_method&#39;: &#39;Newton-CG&#39;,</span>
+<span class="go">        &#39;profile_hyperparam&#39;: &#39;var&#39;,</span>
+<span class="go">        &#39;tol&#39;: 0.001,</span>
+<span class="go">        &#39;use_rel_error&#39;: True</span>
+<span class="go">    },</span>
+<span class="go">    &#39;convergence&#39;: {</span>
+<span class="go">        &#39;converged&#39;: array([ True,  True]),</span>
+<span class="go">        &#39;errors&#39;: array([[       inf,        inf],</span>
+<span class="go">                         [0.71584751, 0.71404119],</span>
+<span class="go">                         ...</span>
+<span class="go">                         [0.09390544, 0.07001806],</span>
+<span class="go">                         [0.        , 0.        ]]),</span>
+<span class="go">        &#39;hyperparams&#39;: array([[-0.39474532,  0.39496465],</span>
+<span class="go">                             [-0.11216787,  0.67698568],</span>
+<span class="go">                             ...</span>
+<span class="go">                             [ 2.52949461,  3.31844015],</span>
+<span class="go">                             [ 2.52949461,  3.31844015]])</span>
+<span class="go">    },</span>
+<span class="go">    &#39;data&#39;: {</span>
+<span class="go">        &#39;avg_row_nnz&#39;: 30.0,</span>
+<span class="go">        &#39;density&#39;: 1.0,</span>
+<span class="go">        &#39;dimension&#39;: 1,</span>
+<span class="go">        &#39;kernel_threshold&#39;: None,</span>
+<span class="go">        &#39;nnz&#39;: 900,</span>
+<span class="go">        &#39;size&#39;: 30,</span>
+<span class="go">        &#39;sparse&#39;: False</span>
+<span class="go">    },</span>
+<span class="go">    &#39;device&#39;: {},</span>
+<span class="go">    &#39;hyperparam&#39;: {</span>
+<span class="go">        &#39;eq_sigma&#39;: 0.0509670753735289,</span>
+<span class="go">        &#39;eta&#39;: 338.4500691178316,</span>
+<span class="go">        &#39;scale&#39;: array([2081.80547198]),</span>
+<span class="go">        &#39;sigma&#39;: 0.002766315834132389,</span>
+<span class="go">        &#39;sigma0&#39;: 0.05089194699396757</span>
+<span class="go">    },</span>
+<span class="go">    &#39;imate_config&#39;: {</span>
+<span class="go">        &#39;device&#39;: {</span>
+<span class="go">            &#39;num_cpu_threads&#39;: 8,</span>
+<span class="go">            &#39;num_gpu_devices&#39;: 0,</span>
+<span class="go">            &#39;num_gpu_multiprocessors&#39;: 0,</span>
+<span class="go">            &#39;num_gpu_threads_per_multiprocessor&#39;: 0</span>
+<span class="go">        },</span>
+<span class="go">        &#39;imate_interpolate&#39;: False,</span>
+<span class="go">        &#39;imate_method&#39;: &#39;cholesky&#39;,</span>
+<span class="go">        &#39;imate_tol&#39;: 1e-08,</span>
+<span class="go">        &#39;max_num_samples&#39;: 0,</span>
+<span class="go">        &#39;min_num_samples&#39;: 0,</span>
+<span class="go">        &#39;solver&#39;: {</span>
+<span class="go">            &#39;cholmod_used&#39;: False,</span>
+<span class="go">            &#39;method&#39;: &#39;cholesky&#39;,</span>
+<span class="go">            &#39;version&#39;: &#39;0.18.2&#39;</span>
+<span class="go">        }</span>
+<span class="go">    },</span>
+<span class="go">    &#39;optimization&#39;: {</span>
+<span class="go">        &#39;max_fun&#39;: 42.062003754316756,</span>
+<span class="go">        &#39;message&#39;: &#39;Optimization terminated successfully.&#39;,</span>
+<span class="go">        &#39;num_cor_eval&#39;: 45,</span>
+<span class="go">        &#39;num_fun_eval&#39;: 15,</span>
+<span class="go">        &#39;num_hes_eval&#39;: 15,</span>
+<span class="go">        &#39;num_jac_eval&#39;: 15,</span>
+<span class="go">        &#39;num_opt_iter&#39;: 15</span>
+<span class="go">    },</span>
+<span class="go">    &#39;time&#39;: {</span>
+<span class="go">        &#39;cor_count&#39;: 45,</span>
+<span class="go">        &#39;cor_proc_time&#39;: 5.494710099000002,</span>
+<span class="go">        &#39;cor_wall_time&#39;: 0.7112228870391846,</span>
+<span class="go">        &#39;det_count&#39;: 15,</span>
+<span class="go">        &#39;det_proc_time&#39;: 0.013328177999998747,</span>
+<span class="go">        &#39;det_wall_time&#39;: 0.002137899398803711,</span>
+<span class="go">        &#39;lik_count&#39;: 45,</span>
+<span class="go">        &#39;lik_proc_time&#39;: 6.337607392999995,</span>
+<span class="go">        &#39;lik_wall_time&#39;: 0.8268890380859375,</span>
+<span class="go">        &#39;opt_proc_time&#39;: 6.542538159,</span>
+<span class="go">        &#39;opt_wall_time&#39;: 0.8506159782409668,</span>
+<span class="go">        &#39;sol_count&#39;: 105,</span>
+<span class="go">        &#39;sol_proc_time&#39;: 1.9085943260000005,</span>
+<span class="go">        &#39;sol_wall_time&#39;: 0.24165892601013184,</span>
+<span class="go">        &#39;trc_count&#39;: 30,</span>
+<span class="go">        &#39;trc_proc_time&#39;: 0.05656320299999962,</span>
+<span class="go">        &#39;trc_wall_time&#39;: 0.006264448165893555</span>
+<span class="go">    }</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+<p><strong>Verbose Output:</strong></p>
+<p>By setting <code class="docutils literal notranslate"><span class="pre">verbose</span></code> to <cite>True</cite>, useful info about the process is
+printed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>          <span class="n">Error</span>
+<span class="o">=========================</span>
+<span class="n">itr</span>   <span class="n">param</span>  <span class="mi">1</span>   <span class="n">param</span>  <span class="mi">2</span>
+<span class="o">---</span>   <span class="o">--------</span>   <span class="o">--------</span>
+<span class="mi">001</span>        <span class="n">inf</span>        <span class="n">inf</span>
+<span class="mi">002</span>   <span class="mf">6.94e+00</span>   <span class="mf">8.28e-01</span>
+<span class="mi">003</span>   <span class="mf">7.86e-01</span>   <span class="mf">4.14e-01</span>
+<span class="mi">004</span>   <span class="mf">4.21e-01</span>   <span class="mf">3.02e-01</span>
+<span class="mi">005</span>   <span class="mf">2.81e-01</span>   <span class="mf">2.44e-01</span>
+<span class="mi">006</span>   <span class="mf">2.05e-01</span>   <span class="mf">2.05e-01</span>
+<span class="mi">007</span>   <span class="mf">1.59e-01</span>   <span class="mf">2.05e-01</span>
+<span class="mi">008</span>   <span class="mf">1.14e-01</span>   <span class="mf">3.02e-01</span>
+<span class="mi">009</span>   <span class="mf">8.53e-02</span>   <span class="mf">7.04e-02</span>
+<span class="mi">010</span>   <span class="mf">7.29e-02</span>   <span class="mf">7.03e-02</span>
+<span class="mi">011</span>   <span class="mf">6.62e-02</span>   <span class="mf">6.16e-02</span>
+<span class="mi">012</span>   <span class="mf">6.74e-02</span>   <span class="mf">5.09e-02</span>
+<span class="mi">013</span>   <span class="mf">6.80e-02</span>   <span class="mf">4.48e-02</span>
+<span class="mi">014</span>   <span class="mf">0.00e+00</span>   <span class="mf">0.00e+00</span>
+
+                                <span class="n">Training</span> <span class="n">Summary</span>
+<span class="o">================================================================================</span>
+       <span class="n">posterior</span><span class="o">/</span><span class="n">param</span>                <span class="n">optimization</span>              <span class="n">imate</span> <span class="n">solver</span>
+<span class="o">-----------------------------</span>      <span class="o">-------------------</span>      <span class="o">--------------------</span>
+<span class="n">posterior</span>    <span class="o">+</span><span class="mf">2.094444496e+01</span>      <span class="n">method</span>    <span class="n">Newton</span><span class="o">-</span><span class="n">CG</span>      <span class="n">method</span>      <span class="n">cholesky</span>
+<span class="n">eta</span>          <span class="mf">1.5971145695e+06</span>      <span class="n">tol</span>        <span class="mf">1.00e-02</span>      <span class="n">tol</span>         <span class="mf">1.00e-08</span>
+<span class="n">sigma</span>        <span class="mf">8.7512674550e-05</span>      <span class="nb">max</span> <span class="nb">iter</span>       <span class="mi">1000</span>      <span class="n">interpolate</span>    <span class="kc">False</span>
+<span class="n">sigma0</span>       <span class="mf">1.1059589121e-01</span>      <span class="nb">max</span> <span class="n">bracket</span> <span class="k">try</span>   <span class="mi">6</span>      <span class="nb">min</span> <span class="n">num</span> <span class="n">samples</span>    <span class="mi">0</span>
+<span class="n">alpha</span>        <span class="mf">3.2828647028e-04</span>      <span class="n">profile</span> <span class="n">param</span>   <span class="n">var</span>      <span class="nb">max</span> <span class="n">num</span> <span class="n">samples</span>    <span class="mi">0</span>
+
+                                    <span class="n">Process</span>
+<span class="o">================================================================================</span>
+         <span class="n">time</span> <span class="p">(</span><span class="n">sec</span><span class="p">)</span>                    <span class="n">evaluations</span>               <span class="n">processor</span>
+<span class="o">-----------------------------</span>      <span class="o">-------------------</span>      <span class="o">--------------------</span>
+<span class="n">task</span>         <span class="n">clock</span>    <span class="n">process</span>      <span class="n">task</span>              <span class="c1">#      device             #</span>
+<span class="o">================================================================================</span>
+<span class="n">correlation</span>  <span class="mf">5.83e-1</span>  <span class="mf">4.51e+0</span>      <span class="n">correlation</span>      <span class="mi">42</span>      <span class="n">cpu</span> <span class="n">threads</span>        <span class="mi">8</span>
+<span class="n">logdet</span>       <span class="mf">2.12e-3</span>  <span class="mf">1.49e-2</span>      <span class="n">likelihood</span>       <span class="mi">14</span>      <span class="n">gpu</span> <span class="n">devices</span>        <span class="mi">0</span>
+<span class="n">traceinv</span>     <span class="mf">5.96e-3</span>  <span class="mf">4.95e-2</span>      <span class="n">jacobian</span>         <span class="mi">14</span>      <span class="n">gpu</span> <span class="n">multiproc</span>      <span class="mi">0</span>
+<span class="n">solver</span>       <span class="mf">2.09e-1</span>  <span class="mf">1.58e+0</span>      <span class="n">hessian</span>          <span class="mi">14</span>      <span class="n">gpu</span> <span class="n">thrds</span><span class="o">/</span><span class="n">sm</span>       <span class="mi">0</span>
+<span class="n">overall</span>      <span class="mf">7.14e-1</span>  <span class="mf">5.49e+0</span>      <span class="n">optimization</span>     <span class="mi">14</span>      <span class="n">mem</span> <span class="n">used</span> <span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="mi">2199552</span>
+</pre></div>
+</div>
+<p><strong>Obtaining the Optimal Hyperparameter:</strong></p>
+<p>Once the model is trained, the optimal regression parameter
+<span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> of the mean function, the variance
+hyperparameters <span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\varsigma\)</span> of the
+covariance, and the scale hyperparameters <span class="math notranslate nohighlight">\(\boldsymbol{\alpha}\)</span>
+of the covariance can be accessed as follows.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Getting beta</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span><span class="o">.</span><span class="n">mean</span><span class="o">.</span><span class="n">beta</span>
+<span class="go">[ 0.07843029  3.75650903 -3.68907446]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Getting variances sigma and varsigma</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span><span class="o">.</span><span class="n">cov</span><span class="o">.</span><span class="n">get_sigmas</span><span class="p">()</span>
+<span class="go">(8.751267455041524e-05, 0.11059589121331345)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Getting the scale parameter alpha</span>
+<span class="go">gp.cov.get_scale()</span>
+<span class="go">[0.00032829]</span>
+</pre></div>
+</div>
+<p><strong>Plotting:</strong></p>
+<p>Plotting the convergence of the hyperparameters:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Train</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">train</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">y_noisy</span><span class="p">,</span> <span class="n">profile_hyperparam</span><span class="o">=</span><span class="s1">&#39;var&#39;</span><span class="p">,</span> <span class="n">log_hyperparam</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">hyperparam_guess</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">optimization_method</span><span class="o">=</span><span class="s1">&#39;Newton-CG&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">use_rel_error</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">imate_options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;cholesky&#39;</span><span class="p">},</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="hll"><span class="gp">... </span>    <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<a class="custom-dark reference internal image-reference" href="../_images/gp_convergence.png"><img alt="../_images/gp_convergence.png" class="custom-dark align-center" src="../_images/gp_convergence.png" style="width: 75%;" /></a>
+<p>Note that since we set <code class="docutils literal notranslate"><span class="pre">log_hyperparam=True</span></code>, the logarithm of the
+scale hyperparameter, <span class="math notranslate nohighlight">\(\log \alpha_1\)</span>, is used in the
+optimization process, as can be seen in the legend of the figure. Also,
+the iterations stop once the convergence error reaches the specified
+tolerance <code class="docutils literal notranslate"><span class="pre">tol=1e-2</span></code>.</p>
+<p><strong>Passing Initial Guess for Hyperparameters:</strong></p>
+<p>One can set an initial guess for hyperparameters by passing the
+argument <code class="docutils literal notranslate"><span class="pre">hyperparam_guess</span></code>. Since in the above example, the
+argument <code class="docutils literal notranslate"><span class="pre">profile_hyperparam</span></code> is set to <code class="docutils literal notranslate"><span class="pre">var</span></code>, the unknown
+hyperparameters are</p>
+<div class="math notranslate nohighlight">
+\[(\eta, \alpha_1, \dots, \alpha_d),\]</div>
+<p>where <span class="math notranslate nohighlight">\(d\)</span> is the dimension of the space, here <span class="math notranslate nohighlight">\(d=1\)</span>.
+Suppose we guess <span class="math notranslate nohighlight">\(\sigma=0.1\)</span>, <span class="math notranslate nohighlight">\(\varsigma=1\)</span>, which makes
+<span class="math notranslate nohighlight">\(\eta = \varsigma^2/\sigma^2 = 100\)</span>. We also set an initial
+guess <span class="math notranslate nohighlight">\(\alpha_1 = 1\)</span> for the scale hyperparameter.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Train</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hyperparam_guess</span> <span class="o">=</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">train</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">y_noisy</span><span class="p">,</span> <span class="n">profile_hyperparam</span><span class="o">=</span><span class="s1">&#39;var&#39;</span><span class="p">,</span>
+<span class="hll"><span class="gp">... </span>    <span class="n">hyperparam_guess</span><span class="o">=</span><span class="n">hyperparam_guess</span><span class="p">)</span>
+</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Getting variances sigma and varsigma</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span><span class="o">.</span><span class="n">cov</span><span class="o">.</span><span class="n">get_sigmas</span><span class="p">()</span>
+<span class="go">(8.053463077699365e-05, 0.11059589693864141)</span>
+</pre></div>
+</div>
+<p><strong>Using Other Profile Likelihood Methods:</strong></p>
+<p>Here we use no profiling method (<code class="docutils literal notranslate"><span class="pre">profile_likelihood=none</span></code>) and we
+pass the hyperparameter guesses <span class="math notranslate nohighlight">\((\sigma, \varsigma) = (0.1,
+1, 0.5)\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Train</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hyperparam_guess</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">train</span><span class="p">(</span>
+<span class="hll"><span class="gp">... </span>    <span class="n">y_noisy</span><span class="p">,</span> <span class="n">profile_hyperparam</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span>
+</span><span class="hll"><span class="gp">... </span>    <span class="n">hyperparam_guess</span><span class="o">=</span><span class="n">hyperparam_guess</span><span class="p">)</span>
+</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Getting variances sigma and varsigma</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span><span class="o">.</span><span class="n">cov</span><span class="o">.</span><span class="n">get_sigmas</span><span class="p">()</span>
+<span class="go">(0.0956820228647455, 0.11062417694050758)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>

@@ -485,15 +485,13 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="glearn.GaussianProcess">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">glearn.</span></span><span class="sig-name descname"><span class="pre">GaussianProcess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.GaussianProcess" title="Permalink to this definition">#</a></dt>
-<dd><p>Gaussian process for regression.</p>
-<dl class="field-list simple">
+<dd><p>Gaussian process prior for regression.</p>
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>mean</strong><span class="classifier">glearn.LinearModel</span></dt><dd><p>The mean function <span class="math notranslate nohighlight">\(\mu(\boldsymbol)\)</span>.
-of the regression.</p>
+<dd class="field-odd"><dl>
+<dt><strong>mean</strong><span class="classifier"><a class="reference internal" href="glearn.LinearModel.html#glearn.LinearModel" title="glearn.LinearModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.LinearModel</span></code></a></span></dt><dd><p>The mean function <span class="math notranslate nohighlight">\(\mu\)</span> of the regression.</p>
 </dd>
-<dt><strong>cov</strong><span class="classifier">glearn.Covariance</span></dt><dd><p>The covariance function <span class="math notranslate nohighlight">\(\boldsymbol{\Sigma}\)</span> of the
-regression.</p>
+<dt><strong>cov</strong><span class="classifier"><a class="reference internal" href="glearn.Covariance.html#glearn.Covariance" title="glearn.Covariance"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.Covariance</span></code></a></span></dt><dd><p>The covariance function <span class="math notranslate nohighlight">\(\Sigma\)</span> of the regression.</p>
 </dd>
 </dl>
 </dd>
@@ -510,6 +508,7 @@ regression.</p>
 process <span class="math notranslate nohighlight">\(\mathcal{GP}(\mu, \Sigma)\)</span>, where <span class="math notranslate nohighlight">\(\mu\)</span> and
 <span class="math notranslate nohighlight">\(\Sigma\)</span> are respectively the mean and covariance functions of the
 Gaussian process model.</p>
+<p><strong>Training Algorithm:</strong></p>
 <p>The training method of this class is based on the algorithm described in
 <a class="reference internal" href="#r576a069df978-1" id="id1">[1]</a>.</p>
 <p class="rubric">References</p>
@@ -517,59 +516,272 @@ Gaussian process model.</p>
 <div class="citation" id="r576a069df978-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p>Ameli, S., and Shadden. S. C. (2022). <em>Noise Estimation in Gaussian
-Process Regression</em>. arXiv: 2206.09976 [cs.LG]}.</p>
+Process Regression</em>.
+<a class="reference external" href="https://arxiv.org/abs/2206.09976">arXiv: 2206.09976 [cs.LG]</a>.</p>
 </div>
 </div>
 <p class="rubric">Examples</p>
 <p>To define a Gaussian process object <span class="math notranslate nohighlight">\(\mathcal{GP}(\mu, \Sigma)\)</span>,
-create an object for the linear model where <span class="math notranslate nohighlight">\(\mu\)</span> and an object
-for the covariance model <span class="math notranslate nohighlight">\(\Sigma\)</span> as follows.</p>
-<p><strong>Generate Sample Training Data:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">sample_data</span>
+first, an object for the linear model where <span class="math notranslate nohighlight">\(\mu\)</span> and an object
+for the covariance model <span class="math notranslate nohighlight">\(\Sigma\)</span> should be created as follows.</p>
+<p><strong>1. Generate Sample Training Data:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">glearn</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">sample_data</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a set of training oints</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">sample_data</span><span class="o">.</span><span class="n">generate_points</span><span class="p">(</span><span class="n">num_points</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate a set of training points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">sample_data</span><span class="o">.</span><span class="n">generate_points</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">num_points</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">a</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">contrast</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Generate noise sample data on the training points</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">y_noisy</span> <span class="o">=</span> <span class="n">sample_data</span><span class="o">.</span><span class="n">generate_data</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">noise_magnitude</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y_noisy</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">sample_data</span><span class="o">.</span><span class="n">generate_data</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">noise_magnitude</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>Create Linear Model:</strong></p>
+<p><strong>2. Create Linear Model:</strong></p>
 <p>Create an object for <span class="math notranslate nohighlight">\(\mu\)</span> function using
-<a class="reference internal" href="glearn.LinearModel.html#glearn.LinearModel" title="glearn.LinearModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.LinearModel</span></code></a> class.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create mean object using glearn.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mean</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">LinearModel</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><strong>Create Covariance Object:</strong></p>
-<p>Create the covariance model using <a class="reference internal" href="glearn.Covariance.html#glearn.Covariance" title="glearn.Covariance"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.Covariance</span></code></a> class.</p>
+<a class="reference internal" href="glearn.LinearModel.html#glearn.LinearModel" title="glearn.LinearModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.LinearModel</span></code></a> class. On training points, the mean function is
+represented by the array</p>
 <div class="math notranslate nohighlight">
-\[\boldsymbol{\Sigma}(\sigma^2, \varsigma^2, \boldsymbol{\alpha}) =
-\sigma^2 \mathbf{K} + \varsigma^2 \mathbf{I}.\]</div>
-<p>Here we set <span class="math notranslate nohighlight">\(\sigma=2\)</span>, <span class="math notranslate nohighlight">\(\varsigma=3\)</span>, and
-<span class="math notranslate nohighlight">\(\boldsymbol{\alpha}= (1, 2)\)</span>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a covariance object</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span><span class="o">.</span><span class="n">traceinv</span><span class="p">(</span><span class="n">sigma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">sigma0</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">])</span>
+\[\boldsymbol{\mu} = \boldsymbol{\phi}^{\intercal}(\boldsymbol{x})
+\boldsymbol{\beta}.\]</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create mean object using glearn.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mean</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">LinearModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">polynomial_degree</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>Create Gaussian Process Object:</strong></p>
+<p><strong>3. Create Covariance Object:</strong></p>
+<p>Create the covariance model using <a class="reference internal" href="glearn.Covariance.html#glearn.Covariance" title="glearn.Covariance"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.Covariance</span></code></a> class. On
+the training points, the covariance function is represented by the matrix</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\Sigma}(\sigma, \varsigma, \boldsymbol{\alpha}) =
+\sigma^2 \mathbf{K}(\boldsymbol{\alpha}) +
+\varsigma^2 \mathbf{I}.\]</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define a Cauchy prior for scale hyperparameter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scale</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">priors</span><span class="o">.</span><span class="n">Cauchy</span><span class="p">()</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a covariance object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">Covariance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>4. Create Gaussian Process Object:</strong></p>
 <p>Putting all together, we can create an object for <span class="math notranslate nohighlight">\(\mathcal{GP}
 (\mu, \Sigma)\)</span> as follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Gaussian process object</span>
 <span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">gp</span> <span class="o">=</span> <span class="n">glearn</span><span class="o">.</span><span class="n">GaussianProcess</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">cov</span><span class="p">)</span>
 </span></pre></div>
 </div>
-<dl class="field-list simple">
+<p>To train the model and predict on test data, see
+<a class="reference internal" href="glearn.GaussianProcess.train.html#glearn.GaussianProcess.train" title="glearn.GaussianProcess.train"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.GaussianProcess.train()</span></code></a> and
+<a class="reference internal" href="glearn.GaussianProcess.predict.html#glearn.GaussianProcess.predict" title="glearn.GaussianProcess.predict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.GaussianProcess.predict()</span></code></a>.</p>
+<p>Train the model to find the regression parameter
+<span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> and the hyperparameters <span class="math notranslate nohighlight">\(\sigma\)</span>,
+:math:``</p>
+<dl class="field-list">
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>z</strong><span class="classifier">numpy.ndarray</span></dt><dd><p>An array of the size <span class="math notranslate nohighlight">\(n\)</span> representing the data on training
-points.</p>
+<dd class="field-odd"><dl>
+<dt><strong>z</strong><span class="classifier">numpy.array</span></dt><dd><p>An array of the size <span class="math notranslate nohighlight">\(n\)</span> representing the training data.</p>
+</dd>
+<dt><strong>mean</strong><span class="classifier"><a class="reference internal" href="glearn.LinearModel.html#glearn.LinearModel" title="glearn.LinearModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.LinearModel</span></code></a></span></dt><dd><p>An object representing the mean function of the Gaussian process prior.
+Once the model is trained, the hyperparameters of this object will be
+updated with their optimal values.</p>
+</dd>
+<dt><strong>cov</strong><span class="classifier"><a class="reference internal" href="glearn.Covariance.html#glearn.Covariance" title="glearn.Covariance"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.Covariance</span></code></a></span></dt><dd><p>An object representing the covariance function of the Gaussian process
+prior. Once the model is trained, the hyperparameters of this object
+will be updated with their optimal values.</p>
+</dd>
+<dt><strong>timer</strong><span class="classifier"><a class="reference internal" href="glearn.Timer.html#glearn.Timer" title="glearn.Timer"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.Timer</span></code></a></span></dt><dd><p>A timer object that keeps track of process time and elapsed time of
+the training process.</p>
+</dd>
+<dt><strong>memory</strong><span class="classifier"><a class="reference internal" href="glearn.Memory.html#glearn.Memory" title="glearn.Memory"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.Memory</span></code></a></span></dt><dd><p>A memory object that keeps track of resident memory acquired during the
+computation.</p>
 </dd>
 <dt><strong>training_result</strong><span class="classifier">dict</span></dt><dd><p>A dictionary containing the training hyperparameters after the model
-is trained.</p>
+is trained. This attribute is initially an empty dictionary, however,
+after calling <a class="reference internal" href="glearn.GaussianProcess.train.html#glearn.GaussianProcess.train" title="glearn.GaussianProcess.train"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.GaussianProcess.train()</span></code></a>, this dictionary is
+updated and will have the following keys:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'config'</span></code>:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">'max_bracket_trials'</span></code>: int, maximum number of trials to search
+for a bracket with sign-change in Chandrupatla root finding
+method. This option is relevant if <code class="docutils literal notranslate"><span class="pre">optimization_method</span></code> is
+set to <code class="docutils literal notranslate"><span class="pre">chandrupatla</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'max_iter'</span></code>: int, maximum number of iterations during
+optimization process.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'optimization_method'</span></code> : {<cite>‘chandrupatla’</cite>, <cite>‘brentq’</cite>,
+<cite>‘Nelder-Mead’</cite>,<cite>‘BFGS’</cite>, <cite>‘CG’</cite>, <cite>‘Newton-CG’</cite>, <cite>‘dogleg’</cite>,
+<cite>‘trust-exact’</cite>, <cite>‘trust-ncg’</cite>}, the optimization method.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'profile_hyperparam'</span></code> : {<cite>‘none’</cite>, <cite>‘var’</cite>, <cite>‘var_noise’</cite>},
+the profiling method of the likelihood function.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'tol'</span></code> : float, the tolerance of convergence of
+hyperparameters during optimization.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'use_rel_error'</span></code>: bool, whether to use relative error or
+absolute error for the convergence criterion of the
+hyperparameters during the optimization.</p></li>
+</ul>
 </dd>
-<dt><strong>prediction_result: dict</strong></dt><dd><p>A dictionary containing the prediction results and some internal
-parameters after the model performs prediction on a set of test points.</p>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'convergence'</span></code>:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">'converged'</span></code>: numpy.array, an boolean array of the size of the
+number of the unknown hyperparameters, indicating which of the
+hyperparameters were converged according to the convergence
+criterion.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'errors'</span></code>: numpy.ndarray, a 2D array of the size of
+<span class="math notranslate nohighlight">\(n_{\mathrm{itr}} \times, p\)</span> where
+<span class="math notranslate nohighlight">\(n_{\mathrm{itr}}\)</span> is the number of the optimization
+iterations and <span class="math notranslate nohighlight">\(p\)</span> is the number of unknown
+hyperparameters. The <span class="math notranslate nohighlight">\(i\)</span>-th row of this array is the error
+of the convergence of the hyperparameters at the <span class="math notranslate nohighlight">\(i\)</span>-th
+iteration.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'hyperparams'</span></code>: numpy.ndarray, a 2D array of the size of
+<span class="math notranslate nohighlight">\(n_{\mathrm{itr}} \times, p\)</span> where
+<span class="math notranslate nohighlight">\(n_{\mathrm{itr}}\)</span> is the number of the optimization
+iterations and <span class="math notranslate nohighlight">\(p\)</span> is the number of unknown
+hyperparameters. The <span class="math notranslate nohighlight">\(i\)</span>-th row of this array is the solved
+hyperparameters at the <span class="math notranslate nohighlight">\(i\)</span>-th iteration.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'data'</span></code>:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">'size'</span></code>: int, the size of the data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'sparse'</span></code>: bool, determines whether the covariance matrix is
+sparse.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'nnz'</span></code>: int, the number of non-zero elements of the
+covariance matrix.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'avg_row_nnz'</span></code>: float, the average number of non-zero elements
+of the rows of the covariance matrix.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'density'</span></code>: float, the density of the covariance matrix, if
+sparse.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'dimension'</span></code>: int, the dimension of the space of data points.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'kernel_threshold'</span></code>: float, the threshold to tapper the
+kernel function to produce sparse covariance matrix.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'device'</span></code>:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">'memory_usage'</span></code>: [int, str], a list where the first entry
+is the residence memory acquired during the computation, and the
+second entry of the list is the unit of the memory, which is
+one of <code class="docutils literal notranslate"><span class="pre">'b'</span></code>, <code class="docutils literal notranslate"><span class="pre">'Kb'</span></code>, <code class="docutils literal notranslate"><span class="pre">'M'</span></code>, <code class="docutils literal notranslate"><span class="pre">'Gb'</span></code>, etc.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'num_cpu_threads'</span></code>: int, number of CPU threads used during the
+computation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'num_gpu_devices'</span></code>: int, number of GPU devices used during the
+computation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'num_gpu_multiproc'</span></code>: int, number of GPU multi-processors per
+a GPU device.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'num_gpu_threads_per_multiproc'</span></code>: int, number of GPU threads
+per a GPU multiprocessors in each GPU device.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'hyperparam'</span></code>:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">'eq_sigma'</span></code>: float, equivalent variance, which is
+<span class="math notranslate nohighlight">\(\sqrt{\sigma^2 + \varsigma^2}\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'sigma'</span></code>: float, the hyperparameter <span class="math notranslate nohighlight">\(\sigma\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'sigma0'</span></code>: float, the hyperparameter <span class="math notranslate nohighlight">\(\varsigma\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'eta'</span></code>: float, the ratio
+<span class="math notranslate nohighlight">\(\eta = \varsigma^2/\sigma^2\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'scale'</span></code>: numpy.array, the scale hyperparameters
+<span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (\alpha_1, \dots, \alpha_d)\)</span>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'optimization'</span></code>:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">'max_fun'</span></code>: float, maximum value of the optimal likelihood
+function.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'message'</span></code>: str, message about optimization success or error.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'num_cor_eval'</span></code>: int, number of evaluations of the correlation
+matrix.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'num_fun_eval'</span></code>: int, number of evaluations of the likelihood
+function.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'num_jac_eval'</span></code>: int, number of evaluations of the Jacobian of
+the likelihood function.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'num_hes_eval'</span></code>: int, number of evaluations of the Hessian of
+the likelihood function.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'num_opt_eval'</span></code>: int, number of optimization iterations.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'time'</span></code>:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">'cor_count'</span></code>: int, number of evaluations of correlation
+matrix.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'cor_proc_time'</span></code>: float, process time of evaluating
+correlation matrix.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'cor_wall_time'</span></code>: float, wall time of evaluating correlation
+matrix.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'det_count'</span></code>: int, number of evaluations of log-determinants.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'cor_proc_time'</span></code>: float, process time of evaluating
+log-determinants.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'det_wall_time'</span></code>: float, wall time of evaluating log
+determinants.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'lik_count'</span></code>: int, number of evaluations of the
+likelihood function.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'lik_proc_time'</span></code>: float, process time of evaluating the
+likelihood function.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'lik_wall_time'</span></code>: float, wall time of evaluating the</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'opt_count'</span></code>: int, number of optimization iterations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'opt_proc_time'</span></code>: float, process time of optimization.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'opt_wall_time'</span></code>: float, wall time of optimization.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'sol_count'</span></code>: int, number of solving linear systems.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'sol_proc_time'</span></code>: float, process time of linear systems.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'sol_wall_time'</span></code>: float, wall time of solving linear systems.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'trc_count'</span></code>: int, number of evaluating the trace of matrices.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'trc_proc_time'</span></code>: float, process time of evaluating the trace
+of matrices.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'trc_wall_time'</span></code>: float, wall time of evaluating the trace of
+matrices.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'imate_config'</span></code>:</dt><dd><p>See <code class="docutils literal notranslate"><span class="pre">info</span></code> output of <a class="reference external" href="https://ameli.github.io/imate/generated/imate.logdet.html#imate.logdet" title="(in imate)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imate.logdet()</span></code></a>, <a class="reference external" href="https://ameli.github.io/imate/generated/imate.trace.html#imate.trace" title="(in imate)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imate.trace()</span></code></a>,
+or <a class="reference external" href="https://ameli.github.io/imate/generated/imate.traceinv.html#imate.traceinv" title="(in imate)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imate.traceinv()</span></code></a>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt><strong>prediction_result: dict</strong></dt><dd><p>A dictionary containing the prediction results. This attribute is
+initially empty, but once the function
+<a class="reference internal" href="glearn.GaussianProcess.predict.html#glearn.GaussianProcess.predict" title="glearn.GaussianProcess.predict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">glearn.GaussianProcess.predict()</span></code></a> is called, this attribute is
+updated with the following keys:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'config'</span></code>:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">'cov'</span></code>: bool, indicates whether the posterior covariance was
+computed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'num_test_points'</span></code>: int, number of test points,
+<span class="math notranslate nohighlight">\(n^{\ast}\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'num_training_points'</span></code>: int, number of training points
+<span class="math notranslate nohighlight">\(n\)</span>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'process'</span></code>:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">'memory'</span></code>: [int, unit], a list that contains the used resident
+memory and its unit in the form of either of <cite>b</cite>, <cite>Kb</cite>, <cite>Mb</cite>,
+<cite>Gb</cite>, etc.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'proc_time'</span></code>: float, the process time of computing prediction.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'wall_time'</span></code>: float, the wall time of computing prediction.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
 </dd>
 </dl>
 </dd>
@@ -581,10 +793,10 @@ parameters after the model performs prediction on a set of test points.</p>
 <td><p>Train the hyperparameters of the Gaussian process model.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="glearn.GaussianProcess.predict.html#glearn.GaussianProcess.predict" title="glearn.GaussianProcess.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code></a>(test_points[, cov, plot, true_data, ...])</p></td>
-<td><p>Regression with Gaussian process on new data points.</p></td>
+<td><p>Make prediction on test points.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="glearn.GaussianProcess.plot_likelihood.html#glearn.GaussianProcess.plot_likelihood" title="glearn.GaussianProcess.plot_likelihood"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_likelihood</span></code></a>([z, profile_hyperparam])</p></td>
-<td><p>Plot the likelihood in multiple figures.</p></td>
+<td><p>Plot the likelihood function and its derivatives with respect to the hyperparameters.</p></td>
 </tr>
 </tbody>
 </table>
