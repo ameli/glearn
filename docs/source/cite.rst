@@ -28,22 +28,24 @@ If you publish work that uses |project|, please consider citing the following ma
         </div>
         </div>
 
-.. [2] Ameli, S., and Shadden. S. C. (2022). *Interpolating Log-Determinant and Trace of the Powers of Matrix* :math:`\mathbf{A} + t \mathbf{B}`. |ameli-int| |btn-bib-int| |btn-view-pdf-int|
+.. [2] Ameli, S., and Shadden. S. C. (2022). *Interpolating Log-Determinant and Trace of the Powers of Matrix* :math:`\mathbf{A} + t \mathbf{B}`. Statistics and Computing 32, 108. |btn-int-doi| |ameli-int-arxiv| |btn-bib-int| |btn-view-pdf-int|
 
    .. raw:: html
 
         <div class="highlight-BibTeX notranslate collapse" id="collapse-bib-int">
         <div class="highlight">
         <pre class="language-bib">
-        <code class="language-bib">@misc{arxiv.2009.07385,
-            doi = {10.48550/ARXIV.2009.07385},
-            author = {Ameli, S. and Shadden, S. C.}, 
-            title = {Interpolating Log-Determinant and Trace of the Powers of Matrix $\mathbf{A} + t \mathbf{B}$},
-            year = {2022}, 
-            archivePrefix={arXiv},
-            eprint = {2009.07385},
-            primaryClass={math.NA},
-            howpublished={\emph{arXiv}: 2009.07385 [math.NA]},
+        <code class="language-bib">@article{Ameli2022,
+            title    = {Interpolating log-determinant and trace of the powers of matrix \(\mathbf{A} + t \mathbf{B}\)},
+            author   = {Ameli, Siavash and Shadden, Shawn C.},
+            journal  = {Statistics and Computing},
+            volume   = {32},
+            number   = {6},
+            pages    = {108},
+            month    = {Nov},
+            year     = {2022},
+            doi      = {10.1007/s11222-022-10173-4},
+            url      = {https://doi.org/10.1007/s11222-022-10173-4},
         }</code></pre>
         </div>
         </div>
@@ -92,6 +94,10 @@ This list will be updated as more publications are in progress.
 
 .. <div id="adobe-dc-view" style="height: 600px;"></div>
 
+.. |btn-int-doi| raw:: html
+
+    <a href="https://doi.org/10.1007/s11222-022-10173-4" class="btn btn-outline-info btn-sm btn-extra-sm" role="button">DOI</a>
+
 .. |btn-bib-int| raw:: html
 
     <button class="btn btn-outline-info btn-sm btn-extra-sm" type="button" data-toggle="collapse" data-target="#collapse-bib-int">
@@ -125,22 +131,22 @@ This list will be updated as more publications are in progress.
 .. |btn-view-pdf-int| raw:: html
 
     <button class="btn btn-outline-info btn-sm btn-extra-sm" type="button" id="showPDF-int">
-        View Article
+        PDF
     </button>
 
 .. |btn-view-pdf-gpr| raw:: html
 
     <button class="btn btn-outline-info btn-sm btn-extra-sm" type="button" id="showPDF-gpr">
-        View Article
+        PDF
     </button>
 
 .. |btn-view-pdf-inv| raw:: html
 
     <button class="btn btn-outline-info btn-sm btn-extra-sm" type="button" id="showPDF-inv">
-        View Article
+        PDF
     </button>
 
-.. |ameli-int| image:: https://img.shields.io/badge/arXiv-2009.07385-b31b1b.svg
+.. |ameli-int-arxiv| image:: https://img.shields.io/badge/arXiv-2009.07385-b31b1b.svg
    :target: https://doi.org/10.48550/arXiv.2009.07385
    :alt: arXiv 2009.07385
 
