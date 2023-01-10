@@ -1,9 +1,9 @@
 name: deploy-conda
 
 on:
-    # push:
-    #     branches:
-    #         - main
+    push:
+        branches:
+            - main
     release:
         types: 
             - published
@@ -24,7 +24,7 @@ jobs:
             - name: Setup Python 
               uses: actions/setup-python@v4
               with:
-                python-version: '3.10'
+                python-version: '3.11'
 
             - name: Install cibuildwheel (not macos)
               if: matrix.os != 'macos-latest'
@@ -44,7 +44,19 @@ jobs:
             - name: Install OpenMP and numpy for mac
               if: runner.os == 'macos'
               run: |
-                  brew install libomp
+                  # brew install libomp
+
+                  # Starting from libomp>=15.0, the libomp installation in homebrew is "keg-only",
+                  # meaning that libomp is only installed in homebrew's directory, but not moved
+                  # to /usr/local to avoid other OpenMP installations (such as with gcc's version
+                  # of OpenMP). To use the homebrew's version of OpenMP,the followong symbolic
+                  # links are created. Without these, the instllation will fail with the error
+                  # of "fatal error: omp.h file found"
+                  ln -s /usr/local/opt/libomp/include/omp-tools.h /usr/local/include/omp-tools.h
+                  ln -s /usr/local/opt/libomp/include/omp.h /usr/local/include/omp.h
+                  ln -s /usr/local/opt/libomp/include/ompt.h /usr/local/include/ompt.h
+                  ln -s /usr/local/opt/libomp/lib/libomp.a /usr/local/lib/libomp.a
+                  ln -s /usr/local/opt/libomp/lib/libomp.dylib /usr/local/lib/libomp.dylib
 
             - name: Build wheels in linux with CUDA support
               run: python -m cibuildwheel --output-dir wheelhouse
@@ -52,7 +64,7 @@ jobs:
                   CIBW_MANYLINUX_X86_64_IMAGE: sameli/manylinux2014_x86_64_cuda_11
                   # CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
                   CIBW_BUILD: "*-manylinux_x86_64 *-macosx_x86_64 *-win_amd64"
-                  CIBW_SKIP: "pp* cp27-* cp35-* cp311-*"
+                  CIBW_SKIP: "pp* cp27-* cp35-* cp36-*"
                   CIBW_BUILD_VERBOSITY: 1
             
             - name: Upload artifacts
@@ -129,7 +141,7 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest, windows-latest, macos-latest]
-                python-version: [3.6, 3.7, 3.8, 3.9, 3.10]
+                python-version: [3.7, 3.8, 3.9, 3.10, 3.11]
 
         steps:
             - name: Setup Miniconda

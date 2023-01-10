@@ -54,7 +54,7 @@ Successful installation and tests performed on the following operating systems, 
 +----------+--------+--------+-------+-------+-------+-------+-------+-----------------+
 | Platform | Arch   | Device | Python Version                        | Continuous      |
 +          |        +        +-------+-------+-------+-------+-------+ Integration     +
-|          |        |        |  3.6  |  3.7  |  3.8  |  3.9  |  3.10 |                 |
+|          |        |        |  3.7  |  3.8  |  3.9  |  3.10 |  3.11 |                 |
 +==========+========+========+=======+=======+=======+=======+=======+=================+
 | Linux    | X86-64 | CPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  | |build-linux|   |
 +          +        +--------+-------+-------+-------+-------+-------+                 +
@@ -69,11 +69,11 @@ Successful installation and tests performed on the following operating systems, 
 |          |        | GPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  |                 |
 +----------+--------+--------+-------+-------+-------+-------+-------+-----------------+
 
-.. |build-linux| image:: https://img.shields.io/github/workflow/status/ameli/glearn/build-linux
+.. |build-linux| image:: https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-linux.yml
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Abuild-linux 
-.. |build-macos| image:: https://img.shields.io/github/workflow/status/ameli/glearn/build-macos
+.. |build-macos| image:: https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-macos.yml
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Abuild-macos
-.. |build-windows| image:: https://img.shields.io/github/workflow/status/ameli/glearn/build-windows
+.. |build-windows| image:: https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-windows.yml
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Abuild-windows
 
 Python wheels for ``glearn`` for all supported platforms and versions in the above are available through `PyPI <https://pypi.org/project/glearn/>`_ and `Anaconda Cloud <https://anaconda.org/s-ameli/glearn>`_. If you need ``glearn`` on other platforms, architectures, and Python or PyPy versions, `raise an issue <https://github.com/ameli/glearn/issues>`_ on GitHub and we build its Python Wheel for you.
@@ -91,6 +91,8 @@ Supported GPU Architectures
 | CUDA 10         |   |n|   |   |y|   |   |y|   |   |y|   |   |y|   |   |y|   |   |y|   |   |y|  |
 +-----------------+---------+---------+---------+---------+---------+---------+---------+--------+
 | CUDA 11         |   |n|   |   |n|   |   |n|   |   |y|   |   |y|   |   |y|   |   |y|   |   |y|  |
++-----------------+---------+---------+---------+---------+---------+---------+---------+--------+
+| CUDA 12         |   |n|   |   |n|   |   |n|   |   |y|   |   |y|   |   |y|   |   |y|   |   |y|  |
 +-----------------+---------+---------+---------+---------+---------+---------+---------+--------+
 
 Documentation
@@ -129,7 +131,7 @@ This project uses a `BSD 3-clause license <https://github.com/ameli/glearn/blob/
    :width: 160
 .. |license| image:: https://img.shields.io/github/license/ameli/glearn
    :target: https://opensource.org/licenses/BSD-3-Clause
-.. |deploy-docs| image:: https://img.shields.io/github/workflow/status/ameli/glearn/deploy-docs?label=docs
+.. |deploy-docs| image:: https://img.shields.io/github/actions/workflow/status/ameli/glearn/deploy-docs.yml?label=docs
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Adeploy-docs
 .. |binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2Fquick_start.ipynb
@@ -137,7 +139,7 @@ This project uses a `BSD 3-clause license <https://github.com/ameli/glearn/blob/
    :target: https://pypi.org/project/glearn/
 .. |codecov-devel| image:: https://img.shields.io/codecov/c/github/ameli/glearn
    :target: https://codecov.io/gh/ameli/glearn
-.. |deploy-docker| image:: https://img.shields.io/github/workflow/status/ameli/glearn/deploy-docker?label=build%20docker
+.. |deploy-docker| image:: https://img.shields.io/github/actions/workflow/status/ameli/glearn/deploy-docker.yml?label=build%20docker
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Adeploy-docker
 .. |docker-pull| image:: https://img.shields.io/docker/pulls/sameli/glearn?color=green&label=downloads
    :target: https://hub.docker.com/r/sameli/glearn
