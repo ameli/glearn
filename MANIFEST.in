@@ -20,6 +20,7 @@ recursive-include docs Makefile
 recursive-include docs *.bib
 recursive-include docs *.in
 recursive-include docs *.txt
+recursive-include docs *.ipynb
 recursive-exclude docs *.html
 recursive-exclude docs *.pdf
 recursive-include docs/source *.html
