@@ -107,11 +107,11 @@ Successful installation and tests performed on the following operating systems, 
 |          |        | GPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  |                 |
 +----------+--------+--------+-------+-------+-------+-------+-------+-----------------+
 
-.. |build-linux| image:: https://img.shields.io/github/workflow/status/ameli/glearn/build-linux
+.. |build-linux| image:: https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-linux.yml
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Abuild-linux 
-.. |build-macos| image:: https://img.shields.io/github/workflow/status/ameli/glearn/build-macos
+.. |build-macos| image:: https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-macos.yml
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Abuild-macos
-.. |build-windows| image:: https://img.shields.io/github/workflow/status/ameli/glearn/build-windows
+.. |build-windows| image:: https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-windows.yml
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Abuild-windows
 
 Python wheels for |project| for all supported platforms and versions in the above are available through `PyPI <https://pypi.org/project/glearn/>`_ and `Anaconda Cloud <https://anaconda.org/s-ameli/glearn>`_. If you need |project| on other platforms, architectures, and Python versions, `raise an issue <https://github.com/ameli/glearn/issues>`_ on GitHub and we build its Python Wheel for you.
@@ -296,9 +296,9 @@ Related Projects
 
       A python package providing both Python and Cython interface for special mathematical functions.
 
-.. |deploy-docs| image:: https://img.shields.io/github/workflow/status/ameli/glearn/deploy-docs?label=docs
+.. |deploy-docs| image:: https://img.shields.io/github/actions/workflow/status/ameli/glearn/deploy-docs.yml?label=docs
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Adeploy-docs
-.. |deploy-docker| image:: https://img.shields.io/github/workflow/status/ameli/glearn/deploy-docker?label=build%20docker
+.. |deploy-docker| image:: https://img.shields.io/github/actions/workflow/status/ameli/glearn/deploy-docker.yml?label=build%20docker
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Adeploy-docker
 .. |codecov-devel| image:: https://img.shields.io/codecov/c/github/ameli/glearn
    :target: https://codecov.io/gh/ameli/glearn
