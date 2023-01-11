@@ -83,7 +83,7 @@ class GaussianProcess(object):
             * ``'max_iter'``: int, maximum number of iterations during
               optimization process.
             * ``'optimization_method'`` : {`'chandrupatla'`, `'brentq'`,
-              `'Nelder-Mead'`,\ `'BFGS'`, `'CG'`, `'Newton-CG'`, `'dogleg'`,
+              `'Nelder-Mead'`, `'BFGS'`, `'CG'`, `'Newton-CG'`, `'dogleg'`,
               `'trust-exact'`, `'trust-ncg'`}, the optimization method.
             * ``'profile_hyperparam'`` : {`'none'`, `'var'`, `'var_noise'`},
               the profiling method of the likelihood function.
@@ -249,7 +249,7 @@ class GaussianProcess(object):
 
     To define a Gaussian process object :math:`\\mathcal{GP}(\\mu, \\Sigma)`,
     first, an object for the linear model where :math:`\\mu` and an object
-    for the covariance model :math:`\Sigma` should be created as follows.
+    for the covariance model :math:`\\Sigma` should be created as follows.
 
     **1. Generate Sample Training Data:**
 
@@ -297,7 +297,7 @@ class GaussianProcess(object):
 
         >>> # Define a Cauchy prior for scale hyperparameter
         >>> scale = glearn.priors.Cauchy()
-        
+
         >>> # Create a covariance object
         >>> cov = glearn.Covariance(x, scale=scale)
 
@@ -519,7 +519,7 @@ class GaussianProcess(object):
 
         z : numpy.array
             An array of the size :math:`n` representing the training data.
-        
+
         hyperparam_guess : array_like or list, default=None
             A list (or array) of the initial guess for the hyperparameters of
             the Gaussian process model. The unknown hyperparameters depends on
@@ -576,7 +576,7 @@ class GaussianProcess(object):
             In the above methods, function, Jacobian, and Hessian refers to
             the likelihood function and its derivatives. The Jacobian and
             Hessian are computed automatically and the user does not need to
-            provide them. 
+            provide them.
 
         tol : float, default: 1e-3
             The tolerance of convergence of hyperparameters during
@@ -625,7 +625,7 @@ class GaussianProcess(object):
         .. math::
 
             p(\\boldsymbol{\\beta}, \\sigma, \\varsigma,
-            \\boldsymbol{\\alpha} \\vert z) = 
+            \\boldsymbol{\\alpha} \\vert z) =
             \\frac{ p(z \\vert \\boldsymbol{\\beta}, \\sigma, \\varsigma,
             \\boldsymbol{\\alpha})
             p(\\boldsymbol{\\beta}, \\sigma, \\varsigma, \\boldsymbol{\\alpha})
@@ -705,7 +705,7 @@ class GaussianProcess(object):
 
         To define a Gaussian process object :math:`\\mathcal{GP}(\\mu,
         \\Sigma)`, first, an object for the linear model where :math:`\\mu` and
-        an object for the covariance model :math:`\Sigma` should be created as
+        an object for the covariance model :math:`\\Sigma` should be created as
         follows.
 
         **1. Generate Sample Training Data:**
@@ -745,7 +745,7 @@ class GaussianProcess(object):
         Create the covariance model using :class:`glearn.Covariance` class. On
         the training points, the covariance function is represented by the
         matrix
-        
+
         .. math::
 
             \\boldsymbol{\\Sigma}(\\sigma, \\varsigma, \\boldsymbol{\\alpha}) =
@@ -756,7 +756,7 @@ class GaussianProcess(object):
 
             >>> # Define a Cauchy prior for scale hyperparameter
             >>> scale = glearn.priors.Cauchy()
-            
+
             >>> # Create a covariance object
             >>> cov = glearn.Covariance(x, scale=scale)
 
@@ -1075,7 +1075,7 @@ class GaussianProcess(object):
               likelihood function is profiles over both :math:`\\sigma` and
               :math:`\\eta`, reducing the number of unknown hyperparameters
               by two.
-        
+
         Notes
         -----
 
@@ -1105,7 +1105,7 @@ class GaussianProcess(object):
 
         To define a Gaussian process object :math:`\\mathcal{GP}(\\mu,
         \\Sigma)`, first, an object for the linear model where :math:`\\mu` and
-        an object for the covariance model :math:`\Sigma` should be created as
+        an object for the covariance model :math:`\\Sigma` should be created as
         follows.
 
         **1. Generate Sample Training Data:**
@@ -1145,7 +1145,7 @@ class GaussianProcess(object):
         Create the covariance model using :class:`glearn.Covariance` class. On
         the training points, the covariance function is represented by the
         matrix
-        
+
         .. math::
 
             \\boldsymbol{\\Sigma}(\\sigma, \\varsigma, \\boldsymbol{\\alpha}) =
@@ -1156,7 +1156,7 @@ class GaussianProcess(object):
 
             >>> # Define a Cauchy prior for scale hyperparameter
             >>> scale = glearn.priors.Cauchy()
-            
+
             >>> # Create a covariance object
             >>> cov = glearn.Covariance(x, scale=scale)
 
@@ -1236,7 +1236,7 @@ class GaussianProcess(object):
 
         if (self.training_result is None) or \
            (self.training_result['config']['profile_hyperparam'] !=
-            profile_hyperparam):
+                profile_hyperparam):
 
             # Train
             self.training_result = self.train(
@@ -1380,7 +1380,7 @@ class GaussianProcess(object):
 
         To define a Gaussian process object :math:`\\mathcal{GP}(\\mu,
         \\Sigma)`, first, an object for the linear model where :math:`\\mu` and
-        an object for the covariance model :math:`\Sigma` should be created as
+        an object for the covariance model :math:`\\Sigma` should be created as
         follows.
 
         **1. Generate Sample Training Data:**
@@ -1420,7 +1420,7 @@ class GaussianProcess(object):
         Create the covariance model using :class:`glearn.Covariance` class. On
         the training points, the covariance function is represented by the
         matrix
-        
+
         .. math::
 
             \\boldsymbol{\\Sigma}(\\sigma, \\varsigma, \\boldsymbol{\\alpha}) =
@@ -1431,7 +1431,7 @@ class GaussianProcess(object):
 
             >>> # Define a Cauchy prior for scale hyperparameter
             >>> scale = glearn.priors.Cauchy()
-            
+
             >>> # Create a covariance object
             >>> cov = glearn.Covariance(x, scale=scale)
 
@@ -1531,7 +1531,7 @@ class GaussianProcess(object):
             >>> y_star_mean, y_star_cov = gp.predict(
             ...     test_points, cov=True, plot=True, confidence_level=0.95,
             ...     true_data=y_true, Plot=True)
-            
+
         .. image:: ../_static/images/plots/gp_predict.png
             :align: center
             :width: 75%

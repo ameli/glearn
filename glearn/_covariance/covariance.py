@@ -265,9 +265,9 @@ class Covariance(object):
 
     The hyperparameters can also be defined at the time of instantiating the
     covariance object.
-    
+
     .. code-block:: python
-        
+
         >>> # Create a covariance object
         >>> cov.traceinv(sigma=2.0, sigma0=3.0, scale=[1.0, 2.0])
 
@@ -368,7 +368,7 @@ class Covariance(object):
 
         Returns
         -------
-        
+
         n : int
             The size :math:`n` of the :math:`n \\times n` covariance matrix.
 
@@ -379,7 +379,7 @@ class Covariance(object):
 
         Examples
         --------
-        
+
         Create a covariance matrix based on a set of sample data with four
         points in :math:`d=2` dimensional space.
 
@@ -2043,7 +2043,7 @@ class Covariance(object):
         :math:`\\mathbf{Y}` of the size :math:`n \\times 2`. The size of the
         covariance, :math:`n`, is also the same as the size of the number of
         points generated in the above. We solve the linear system
-        
+
         .. math::
 
             \\boldsymbol{\\Sigma}^{2} \\mathbf{X} = \\mathbf{Y},
@@ -2300,7 +2300,7 @@ class Covariance(object):
         covariance, :math:`n`, is also the same as the size of the number of
         points generated in the above. We perform the matrix-matrix
         multiplication:
-        
+
         .. math::
 
             \\mathbf{Y} = \\boldsymbol{\\Sigma}^{2} \\mathbf{X},

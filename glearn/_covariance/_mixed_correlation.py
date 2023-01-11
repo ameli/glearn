@@ -768,7 +768,7 @@ class MixedCorrelation(object):
                     y += eta * x_copy
 
                 # Update x_copy for next iteration
-                if i < - 1:
+                if i < p - 1:
                     x_copy = y.copy()
 
         return y

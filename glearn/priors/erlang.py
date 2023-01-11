@@ -201,7 +201,8 @@ class Erlang(Prior):
         """
 
         # Check shape
-        if numpy.isscalar(shape) and not isinstance(shape, (int, numpy.int)):
+        if numpy.isscalar(shape) and \
+                not isinstance(shape, (int, numpy.integer)):
             raise ValueError('"shape" should be an integer. For non-integer ' +
                              '"shape" parameter, use "Gamma" distribution.')
         if any(numpy.array([shape]) <= 0.0):
