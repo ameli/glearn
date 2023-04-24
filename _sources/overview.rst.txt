@@ -108,7 +108,7 @@ References
 
 .. [R1] Ubaru, S., Saad, Y. (2018). *Applications of Trace Estimation Techniques*. In: High-Performance Computing in Science and Engineering. HPCSE 2017. Lecture Notes in Computer Science, vol 11087. Springer, Cham. `doi: 10.1007/978-3-319-97136-0_2 <https://doi.org/10.1007/978-3-319-97136-0_2>`_
 
-.. [R2] Ameli, S. and Shadden, S. C. (2022). *A Singular Woodbury and Pseudo-Determinant Matrix Identities and Application to Gaussian Process Regression*. `arXiv: 2207.08038 [math.ST] <https://arxiv.org/abs/2207.08038>`_.
+.. [R2] Ameli, S., and Shadden. S. C. (2023). *A Singular Woodbury and Pseudo-Determinant Matrix Identities and Application to Gaussian Process Regression*. Applied Mathematics and Computation 452, 128032. `DOI <https://doi.org/10.1016/j.amc.2023.128032>`__, `arXiv: 2207.08038 [math.ST] <https://arxiv.org/abs/2207.08038>`_.
 
 .. [R3] Ameli, S. and Shadden, S. C. (2022). *Noise Estimation in Gaussian Process Regression*. `arXiv: 2206.09976 [cs.LG] <https://arxiv.org/abs/2206.09976>`_
 

@@ -31,15 +31,12 @@
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/custom-pydata.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/toggleprompt.js"></script>
@@ -49,7 +46,7 @@
     <script src="../_static/design-tabs.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
-    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="2. Using g-learn on Docker" href="docker.html" />
@@ -704,7 +701,7 @@ macOS</label><div class="sd-tab-content docutils">
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>In <em>macOS</em>, starting from <code class="docutils literal notranslate"><span class="pre">libomp</span></code> with version <code class="docutils literal notranslate"><span class="pre">15</span></code> and above, Homebrew installs OpenMP as <em>keg-only</em>. As a result, create the following symbolic links to be able to use the OpenMP installation</p>
+<p>In <em>macOS</em>, starting from <code class="docutils literal notranslate"><span class="pre">libomp</span></code> with version <code class="docutils literal notranslate"><span class="pre">15</span></code> and above, Homebrew installs OpenMP as <em>keg-only</em>. To be able to use the OpenMP installation, create the following symbolic links :</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">ln<span class="w"> </span>-s<span class="w"> </span>/usr/local/opt/libomp/include/omp-tools.h<span class="w"> </span>/usr/local/include/omp-tools.h</span>
 <span class="prompt1">ln<span class="w"> </span>-s<span class="w"> </span>/usr/local/opt/libomp/include/omp.h<span class="w"> </span>/usr/local/include/omp.h</span>
 <span class="prompt1">ln<span class="w"> </span>-s<span class="w"> </span>/usr/local/opt/libomp/include/ompt.h<span class="w"> </span>/usr/local/include/ompt.h</span>
