@@ -50,22 +50,22 @@ If you publish work that uses |project|, please consider citing the following ma
         </div>
         </div>
 
-.. [3] Ameli, S., and Shadden. S. C. (2022). *A Singular Woodbury and Pseudo-Determinant Matrix Identities and Application to Gaussian Process Regression*. |ameli-inv| |btn-bib-inv| |btn-view-pdf-inv|
+.. [3] Ameli, S., and Shadden. S. C. (2023). *A Singular Woodbury and Pseudo-Determinant Matrix Identities and Application to Gaussian Process Regression*. Applied Mathematics and Computation 452, 128032. |btn-inv-doi| |ameli-inv| |btn-bib-inv| |btn-view-pdf-inv|
 
    .. raw:: html
 
-        <div class="highlight-BibTeX notranslate collapse" id="collapse-bib-inv">
+        <div class="highlight-BibTeX notranslate collapse" id="collapse-bib1">
         <div class="highlight">
         <pre class="language-bib">
-        <code class="language-bib">@misc{arxiv.2207.08038,
-            doi = {10.48550/ARXIV.2207.08038},
-            author = {Ameli, S. and Shadden, S. C.}, 
-            title = {A Singular Woodbury and Pseudo-Determinant Matrix Identities and Application to Gaussian Process Regression},
-            year = {2022},
-            archivePrefix={arXiv},
-            eprint = {2207.08038},
-            primaryClass={math.ST},
-            howpublished={\emph{arXiv}: 2207.08038 [math.ST]},
+        <code class="language-bib">@article{amc-2023,
+            title = {A singular Woodbury and pseudo-determinant matrix identities and application to Gaussian process regression},
+            journal = {Applied Mathematics and Computation},
+            volume = {452},
+            pages = {128032},
+            year = {2023},
+            issn = {0096-3003},
+            doi = {https://doi.org/10.1016/j.amc.2023.128032},
+            author = {Siavash Ameli and Shawn C. Shadden},
         }</code></pre>
         </div>
         </div>
@@ -97,6 +97,10 @@ This list will be updated as more publications are in progress.
 .. |btn-int-doi| raw:: html
 
     <a href="https://doi.org/10.1007/s11222-022-10173-4" class="btn btn-outline-info btn-sm btn-extra-sm" role="button">DOI</a>
+
+.. |btn-inv-doi| raw:: html
+
+    <a href="https://doi.org/10.1016/j.amc.2023.128032" class="btn btn-outline-info btn-sm btn-extra-sm" role="button">DOI</a>
 
 .. |btn-bib-int| raw:: html
 
