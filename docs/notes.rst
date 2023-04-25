@@ -44,3 +44,7 @@ Things yet remained in the documentation to be completed:
 * In index.rst, I changed the card for "Performance" to "Publications", since
   the content for performance are not ready.
 * overview.rst has to be completely rewritten and to be referenced in index.rst.
+* ISSUE: in /docs/source/tutorials/gu.rst, in section "3.5. Run GLearn
+  Functions on GPU", all context there is for imate instead of glearn. Provide
+  example of running glearn on GPU, and create a sample output txt file in
+  /docs/source/_statis/data/

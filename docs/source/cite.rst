@@ -54,7 +54,7 @@ If you publish work that uses |project|, please consider citing the following ma
 
    .. raw:: html
 
-        <div class="highlight-BibTeX notranslate collapse" id="collapse-bib1">
+        <div class="highlight-BibTeX notranslate collapse" id="collapse-bib-inv">
         <div class="highlight">
         <pre class="language-bib">
         <code class="language-bib">@article{amc-2023,
