@@ -13,17 +13,14 @@
 # =======
 
 import getopt
-import os
 from os.path import join
 import sys
 import pickle
 import numpy
-import multiprocessing
 from datetime import datetime
 
 import glearn
-from glearn import sample_data, LinearModel, kernels, priors, Covariance, \
-        GaussianProcess
+from glearn import sample_data, LinearModel, Covariance, GaussianProcess
 
 
 # ===============
@@ -148,7 +145,9 @@ def benchmark(argv):
         # 'hyperparam_guesses': {'var': None, 'none': None},
         # 'profile_hyperparam': ['var', 'none'],
         'profile_hyperparam': ['none', 'var'],
-        # 'optimization_method': {'var': 'chandrupatla', 'none': 'Nelder-Mead'},
+        # 'optimization_method': {
+        #     'var': 'chandrupatla',
+        #     'none': 'Nelder-Mead'},
         # 'optimization_method': {'var': 'BFGS', 'none': 'BFGS'},
         # 'optimization_method': {'var': 'Newton-CG', 'none': 'Newton-CG'},
         'optimization_method': {'var': 'CG', 'none': 'CG'},

@@ -1447,12 +1447,12 @@ def main(argv):
     readme_file = join(directory, 'README.rst')
     long_description = open(readme_file, 'r').read()
 
-    # Cyhton cpp extensions
+    # Cython cpp extensions
     extensions = []
 
     extensions.append(create_extension(package_name, 'kernels'))
     extensions.append(create_extension(package_name, '_correlation'))
-    extensions.append(create_extension(package_name, '_load_omp'))
+    extensions.append(create_extension(package_name, '_load_omp'))  # for macos
 
     # Cythonize
     if 'clean' in argv:
@@ -1496,7 +1496,7 @@ def main(argv):
             "Tracker": tracker_url,
         },
         platforms=['Linux', 'OSX', 'Windows'],
-        packages=setuptools.find_packages(exclude=[
+        packages=setuptools.find_namespace_packages(exclude=[
             'tests.*',
             'tests',
             'examples.*',

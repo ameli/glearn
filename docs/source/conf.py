@@ -102,7 +102,7 @@ nitpicky = True
 root_doc = "contents"
 
 # Common definitions for the whole pages
-rst_epilog = f'''
+rst_epilog = '''
 .. role:: synco
    :class: synco
 
@@ -136,14 +136,15 @@ extensions = [
     # 'sphinxcontrib.napoleon',               # either use napoleon or numpydoc
     'numpydoc',                               # either use napoleon or numpydoc
     'sphinx_design',
-    'sphinx_multitoc_numbering',
+    # 'sphinx_multitoc_numbering',
     'sphinx-prompt',
     'sphinx_copybutton',
     'nbsphinx',
     'sphinx_gallery.load_style',
+    "sphinxext.opengraph",
 ]
 
-# Inner-sphinx to cross-reference imate packahe
+# Inner-sphinx to cross-reference other packages
 intersphinx_mapping = {
     'imate': ('https://ameli.github.io/imate', None),
     'detkit': ('https://ameli.github.io/detkit', None),
@@ -240,8 +241,9 @@ html_theme_options = {
         },
         {
             "name": "Lanuch Jupyter on Binder",
-            "url": "https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2FInterpolateTraceOfInverse.ipynb",
-            "icon": "fa fa-chart-line",
+            "url": "https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=" + \
+                   "notebooks%2FInterpolateTraceOfInverse.ipynb",
+            "icon": "fas fa-book-open",
             "type": "fontawesome",
         },
     ],
@@ -271,7 +273,6 @@ html_sidebars = {
 #     "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
 # ]
 
-
 html_title = f"{project} Manual"
 html_last_updated_fmt = '%b %d, %Y'
 # html_show_sourcelink = False
@@ -297,7 +298,6 @@ html_last_updated_fmt = '%b %d, %Y'
 # extensions.append('sphinxjp.themes.basicstrap')
 # html_theme = 'basicstrap'
 
-
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
@@ -310,6 +310,22 @@ html_static_path = ['_static']
 html_js_files = ["js/custom-pydata.css"]
 # html_logo = '_static/images/icons/logo-glearn-light.png'
 html_favicon = '_static/images/icons/favicon.ico'
+
+# Open Graph cards for sharing the documentation on social media
+ogp_site_url = 'https://ameli.github.io/glearn'
+ogp_image = 'https://raw.githubusercontent.com/ameli/glearn/main/docs/' + \
+            'source/_static/images/icons/logo-glearn-light.svg'
+ogp_site_name = 'g-learn'
+ogp_description_length = 300
+ogp_type = "website"
+ogp_enable_meta_description = True
+ogp_custom_meta_tags = [
+    '<meta property="og:title" content="RestoreIO">',
+    '<meta property="og:description" content="g-learn is a modular and ' +
+    'high-performance Python package for machine learning using ' +
+    'Gaussian process regression with novel algorithms capable of ' +
+    'petascale computation on multi-GPU devices.">',
+]
 
 
 # =====

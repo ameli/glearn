@@ -61,7 +61,7 @@ jobs:
             - name: Build wheels in linux with CUDA support
               run: python -m cibuildwheel --output-dir wheelhouse
               env:
-                  CIBW_MANYLINUX_X86_64_IMAGE: sameli/manylinux2014_x86_64_cuda_11
+                  CIBW_MANYLINUX_X86_64_IMAGE: sameli/manylinux2014_x86_64_cuda_12.2
                   # CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
                   CIBW_BUILD: "*-manylinux_x86_64 *-macosx_x86_64 *-win_amd64"
                   CIBW_SKIP: "pp* cp27-* cp35-* cp36-*"

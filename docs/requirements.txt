@@ -11,3 +11,5 @@ sphinx-multitoc-numbering
 sphinx-prompt
 sphinx-copybutton
 sphinx-gallery
+sphinxext-opengraph
+scipy
