@@ -11,7 +11,7 @@ Links
 * `PyPI <https://pypi.org/project/glearn/>`_
 * `Anaconda <https://anaconda.org/s-ameli/glearn>`_
 * `Docker Hub <https://hub.docker.com/r/sameli/glearn>`_
-* `Git Hub <https://github.com/ameli/glearn>`_
+* `Github <https://github.com/ameli/glearn>`_
 
 Install
 =======
