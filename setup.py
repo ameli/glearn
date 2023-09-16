@@ -49,7 +49,8 @@ def install_package(package):
     :type package: string
     """
 
-    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+    subprocess.check_call([sys.executable, "-m", "pip", "install",
+                           "--prefer-binary", package])
 
 
 # =====================
@@ -956,13 +957,17 @@ class CustomBuildExtension(build_ext):
             cuda = locate_cuda()
 
             # Code generations for various device architectures
-            gencodes = ['-gencode', 'arch=compute_35,code=sm_35',
-                        '-gencode', 'arch=compute_50,code=sm_50',
-                        '-gencode', 'arch=compute_52,code=sm_52',
-                        '-gencode', 'arch=compute_60,code=sm_60',
-                        '-gencode', 'arch=compute_61,code=sm_61',
-                        '-gencode', 'arch=compute_70,code=sm_70',
-                        '-gencode', 'arch=compute_75,code=sm_75']
+            gencodes = []
+
+            if cuda['version']['major'] < 12:
+                gencodes += ['-gencode', 'arch=compute_35,code=sm_35']
+
+            gencodes += ['-gencode', 'arch=compute_50,code=sm_50',
+                         '-gencode', 'arch=compute_52,code=sm_52',
+                         '-gencode', 'arch=compute_60,code=sm_60',
+                         '-gencode', 'arch=compute_61,code=sm_61',
+                         '-gencode', 'arch=compute_70,code=sm_70',
+                         '-gencode', 'arch=compute_75,code=sm_75']
 
             if cuda['version']['major'] < 11:
                 gencodes += \
@@ -1193,6 +1198,13 @@ def create_extension(
     language = 'c++'
     define_macros += [('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')]
 
+    # When compiled with Cython>=3.0.1, all externs are defined as
+    # "extern C++", however, Cython<=0.29.36 uses "extern C". To avoid this
+    # disambiguation, here we define CYTHON_EXTERN_C, which is already defined
+    # in Cython>=3.0.0 but not defined in lower version. In all C++ codes, I
+    # should replace any extern clause with this macro.
+    define_macros += [("CYTHON_EXTERN_C", 'extern "C"')]
+
     # Include any additional source files
     if other_source_files is not None:
 
@@ -1356,6 +1368,7 @@ def cythonize_extensions(extensions):
         'wraparound': False,
         'nonecheck': False,
         'embedsignature': True,
+        'language_level': "3",
     }
 
     # Used for sphinx to find docstring of pyx files

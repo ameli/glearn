@@ -12,17 +12,18 @@ recursive-include docs *.css
 recursive-include docs *.py
 recursive-include docs *.rst
 recursive-include docs *.svg
-recursive-include docs *.ico
-recursive-include docs *.js
-recursive-include docs *.png
-recursive-include docs *.ttf
 recursive-include docs Makefile
 recursive-include docs *.bib
 recursive-include docs *.in
 recursive-include docs *.txt
-recursive-include docs *.ipynb
 recursive-exclude docs *.html
 recursive-exclude docs *.pdf
+recursive-include docs *.ico
+recursive-include docs *.ipynb
+recursive-include docs *.js
+recursive-include docs *.png
+recursive-include docs *.ttf
+recursive-include docs *.md
 recursive-include docs/source *.html
 
 recursive-include glearn *.rst
@@ -39,6 +40,8 @@ recursive-exclude examples *.pdf
 recursive-exclude examples *.svg
 recursive-exclude tests *.svg
 recursive-include tests *.txt
+recursive-exclude tests *.svg
+recursive-exclude tests *.pdf
 
 include CHANGELOG.rst
 include README.rst
@@ -58,6 +61,7 @@ exclude .coverage
 exclude .gitattributes
 exclude .tokeignore
 
+prune docs/source/_static/images
 prune docs/build
 prune .git
 prune tmp
@@ -65,4 +69,3 @@ prune .tox
 prune .github
 prune conda-recipe
 prune benchmark
-prune docs/_buil
