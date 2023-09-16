@@ -7,16 +7,18 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<meta property="og:title" content="glearn.priors.Cauchy.plot" />
+<meta property="og:title" content="Tutorials" />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://ameli.github.io/generated/glearn.priors.Cauchy.plot.html" />
+<meta property="og:url" content="https://ameli.github.io/tutorials/tutorials.html" />
 <meta property="og:site_name" content="g-learn" />
+<meta property="og:description" content="This page contains notebook examples for using g-learn. Click on any image below to get started. Additionally, you can launch an online interactive notebook with Binder." />
 <meta property="og:image" content="https://raw.githubusercontent.com/ameli/glearn/main/docs/source/_static/images/icons/logo-glearn-light.svg" />
 <meta property="og:image:alt" content="g-learn" />
+<meta name="description" content="This page contains notebook examples for using g-learn. Click on any image below to get started. Additionally, you can launch an online interactive notebook with Binder." />
 <meta property="og:title" content="RestoreIO">
 <meta property="og:description" content="g-learn is a modular and high-performance Python package for machine learning using Gaussian process regression with novel algorithms capable of petascale computation on multi-GPU devices.">
 
-    <title>glearn.priors.Cauchy.plot &#8212; glearn Manual</title>
+    <title>Tutorials &#8212; glearn Manual</title>
 <script>
   document.documentElement.dataset.mode = localStorage.getItem("mode") || "auto";
   document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
@@ -40,6 +42,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/custom-pydata.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css" />
     <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-gallery.css" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
@@ -56,12 +59,12 @@
     <script src="../_static/js/custom-pydata.js"></script>
     <script src="../_static/design-tabs.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script>window.MathJax = {"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}, "tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/custom-pydata.css"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Two-Dimensional Example" href="two_dimensional_example.html" />
+    <link rel="prev" title="glearn.device.restrict_to_single_processor" href="../generated/glearn.device.restrict_to_single_processor.html" />
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-RCTBMM27GH"></script>
@@ -152,8 +155,8 @@
  </a>
 </li>
 
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../tutorials/tutorials.html">
+<li class="toctree-l1 current active nav-item">
+ <a class="current reference internal nav-link" href="#">
   Tutorials
  </a>
 </li>
@@ -221,7 +224,19 @@
   <div class="sidebar-start-items"><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
   <div class="bd-toc-item active">
     
-    
+    <ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="two_dimensional_example.html">
+   2D Example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="quick_start.html">
+   Quick Start
+  </a>
+ </li>
+</ul>
+
     
   </div>
 </nav>
@@ -239,23 +254,9 @@
     
     <div class="toc-item">
       
-<div class="tocsection onthispage mt-5 pt-1 pb-3">
-    <i class="fas fa-list"></i> On this page
-</div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#glearn.priors.Cauchy.plot">
-   <code class="docutils literal notranslate">
-    <span class="pre">
-     Cauchy.plot()
-    </span>
-   </code>
-  </a>
- </li>
-</ul>
-
+    
 </nav>
     </div>
     
@@ -263,7 +264,7 @@
       
 
 <div class="tocsection editthispage">
-    <a href="https://github.com/ameli/glearn/edit/main/docs/source/generated/glearn.priors.Cauchy.plot.rst">
+    <a href="https://github.com/ameli/glearn/edit/main/docs/source/tutorials/tutorials.rst">
         <i class="fas fa-pencil-alt"></i> Edit this page
     </a>
 </div>
@@ -280,62 +281,21 @@
               
               <article class="bd-article" role="main">
                 
-  <section id="glearn-priors-cauchy-plot">
-<h1>glearn.priors.Cauchy.plot<a class="headerlink" href="#glearn-priors-cauchy-plot" title="Permalink to this heading">#</a></h1>
-<dl class="py method">
-<dt class="sig sig-object py" id="glearn.priors.Cauchy.plot">
-<span class="sig-prename descclassname"><span class="pre">Cauchy.</span></span><span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compare_numerical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.priors.Cauchy.plot" title="Permalink to this definition">#</a></dt>
-<dd><p>Plot the kernel function and its first and second derivative.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>interval</strong><span class="classifier">float, default=[0, 2]</span></dt><dd><p>The abscissa interval of the plot.</p>
-</dd>
-<dt><strong>log_scale</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, the hyperparameter (abscissa) is assumed to be in the
-logarithmic scale.</p>
-</dd>
-<dt><strong>compare_numerical</strong><span class="classifier">bool, default=False</span></dt><dd><p>It <cite>True</cite>, it computes the derivatives of the prior distribution
-and plots the numerical derivatives together with the exact values
-of the derivatives from analytical formula. This is used to
-validate the analytical formulas.</p>
-</dd>
-<dt><strong>test</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, this function is used for test purposes.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<p class="rubric">Notes</p>
-<ul class="simple">
-<li><p>If no graphical backend exists (such as running the code on a remote
-server or manually disabling the X11 backend), the plot will not be
-shown, rather, it will be saved as an <code class="docutils literal notranslate"><span class="pre">svg</span></code> file in the current
-directory.</p></li>
-<li><p>If the executable <code class="docutils literal notranslate"><span class="pre">latex</span></code> is available on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>, the plot is
-rendered using <span class="math notranslate nohighlight">\(\rm\LaTeX\)</span> and it may take slightly longer to
-produce the plot.</p></li>
-<li><p>If <span class="math notranslate nohighlight">\(\rm\LaTeX\)</span> is not installed, it uses any available
-San-Serif font to render the plot.</p></li>
-</ul>
-<p>To manually disable interactive plot display and save the plot as
-<code class="docutils literal notranslate"><span class="pre">svg</span></code> instead, add the following at the very beginning of your code
-before importing <a class="reference internal" href="../index.html#module-glearn" title="glearn"><code class="xref py py-mod docutils literal notranslate"><span class="pre">glearn</span></code></a>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;GLEARN_NO_DISPLAY&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;True&#39;</span>
-</pre></div>
+  <section id="tutorials">
+<span id="id1"></span><h1>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this heading">#</a></h1>
+<p>This page contains notebook examples for using <span class="synco">g-learn</span>. Click on any image below to get started. Additionally, you can launch an <a class="reference external" href="https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2Fquick_start.ipynb">online interactive notebook</a> with Binder.</p>
+<div class="toctree-wrapper compound" id="rst-gallery">
+<div class="nbsphinx-gallery">
+<a class="reference internal" href="two_dimensional_example.html">
+  <div><img alt="" src="../_images/tutorials_two_dimensional_example_27_1.png"></div>
+  <div>2D Example</div>
+</a>
+<a class="reference internal" href="quick_start.html">
+  <div><img alt="" src="../_images/tutorials_quick_start_29_1.png"></div>
+  <div>Quick Start</div>
+</a>
 </div>
-<p class="rubric">Examples</p>
-<p>Create the inverse Gamma distribution with the shape parameter
-<span class="math notranslate nohighlight">\(\alpha=4\)</span> and rate parameter <span class="math notranslate nohighlight">\(\beta=2\)</span>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">glearn</span> <span class="kn">import</span> <span class="n">priors</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">prior</span> <span class="o">=</span> <span class="n">priors</span><span class="o">.</span><span class="n">InverseGamma</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Plot the distribution and its first and second derivative</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">prior</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-</pre></div>
 </div>
-<a class="custom-dark reference internal image-reference" href="../_images/prior_inverse_gamma.png"><img alt="../_images/prior_inverse_gamma.png" class="custom-dark align-center" src="../_images/prior_inverse_gamma.png" style="width: 100%;" /></a>
-</dd></dl>
-
 </section>
 
 
@@ -346,6 +306,20 @@ before importing <a class="reference internal" href="../index.html#module-glearn
               <footer class="bd-footer-article">
                   <!-- Previous / next buttons -->
 <div class='prev-next-area'>
+  <a class='left-prev' id="prev-link" href="../generated/glearn.device.restrict_to_single_processor.html" title="previous page">
+      <i class="fas fa-angle-left"></i>
+      <div class="prev-next-info">
+          <p class="prev-next-subtitle">previous</p>
+          <p class="prev-next-title">glearn.device.restrict_to_single_processor</p>
+      </div>
+  </a>
+  <a class='right-next' id="next-link" href="two_dimensional_example.html" title="next page">
+  <div class="prev-next-info">
+      <p class="prev-next-subtitle">next</p>
+      <p class="prev-next-title">Two-Dimensional Example</p>
+  </div>
+  <i class="fas fa-angle-right"></i>
+  </a>
 </div>
               </footer>
               

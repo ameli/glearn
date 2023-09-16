@@ -42,6 +42,7 @@
     <link rel="stylesheet" type="text/css" href="_static/css/custom-pydata.css" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css" />
     <link rel="stylesheet" type="text/css" href="_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
+    <link rel="stylesheet" type="text/css" href="_static/nbsphinx-gallery.css" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
@@ -154,6 +155,12 @@
  </a>
 </li>
 
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="tutorials/tutorials.html">
+  Tutorials
+ </a>
+</li>
+
     
 </ul>
       </div>
@@ -262,13 +269,13 @@
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#tutorials">
-   Tutorials
+  <a class="reference internal nav-link" href="#api-reference">
+   API Reference
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#api-reference">
-   API Reference
+  <a class="reference internal nav-link" href="#tutorials">
+   Tutorials
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
@@ -411,13 +418,11 @@ Publications</div>
 <tr class="row-odd"><th class="head" rowspan="2"><p>Platform</p></th>
 <th class="head" rowspan="2"><p>Arch</p></th>
 <th class="head" rowspan="2"><p>Device</p></th>
-<th class="head" colspan="5"><p>Python Version</p></th>
+<th class="head" colspan="3"><p>Python Version</p></th>
 <th class="head" rowspan="2"><p>Continuous
 Integration</p></th>
 </tr>
-<tr class="row-even"><th class="head"><p>3.7</p></th>
-<th class="head"><p>3.8</p></th>
-<th class="head"><p>3.9</p></th>
+<tr class="row-even"><th class="head"><p>3.9</p></th>
 <th class="head"><p>3.10</p></th>
 <th class="head"><p>3.11</p></th>
 </tr>
@@ -429,13 +434,9 @@ Integration</p></th>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
-<td><p>✔</p></td>
-<td><p>✔</p></td>
 <td rowspan="2"><p><a class="reference external" href="https://github.com/ameli/glearn/actions?query=workflow%3Abuild-linux"><img alt="build-linux" src="https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-linux.yml" /></a></p></td>
 </tr>
 <tr class="row-even"><td><p>GPU</p></td>
-<td><p>✔</p></td>
-<td><p>✔</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
@@ -446,13 +447,9 @@ Integration</p></th>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
-<td><p>✔</p></td>
-<td><p>✔</p></td>
 <td rowspan="2"><p><a class="reference external" href="https://github.com/ameli/glearn/actions?query=workflow%3Abuild-macos"><img alt="build-macos" src="https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-macos.yml" /></a></p></td>
 </tr>
 <tr class="row-even"><td><p>GPU</p></td>
-<td><p>✖</p></td>
-<td><p>✖</p></td>
 <td><p>✖</p></td>
 <td><p>✖</p></td>
 <td><p>✖</p></td>
@@ -463,13 +460,9 @@ Integration</p></th>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
-<td><p>✔</p></td>
-<td><p>✔</p></td>
 <td rowspan="2"><p><a class="reference external" href="https://github.com/ameli/glearn/actions?query=workflow%3Abuild-windows"><img alt="build-windows" src="https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-windows.yml" /></a></p></td>
 </tr>
 <tr class="row-even"><td><p>GPU</p></td>
-<td><p>✔</p></td>
-<td><p>✔</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
@@ -624,17 +617,6 @@ span.prompt1:before {
 </tbody>
 </table>
 </section>
-<section id="tutorials">
-<span id="index-tutorials"></span><h2>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this heading">#</a></h2>
-<p><a class="reference external" href="https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2Fquick_start.ipynb"><img alt="binder" src="https://mybinder.org/badge_logo.svg" /></a></p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/quick_start.html">Quick Start (jupyter notebook)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/two_dimensional_example.html">2D Example (jupyter notebook)</a></li>
-</ul>
-</div>
-<p>Launch <a class="reference external" href="https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2Fquick_start.ipynb">online interactive notebook</a> with Binder.</p>
-</section>
 <section id="api-reference">
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this heading">#</a></h2>
 <p>Check the list of functions, classes, and modules of <span class="synco">g-learn</span> with their usage, options, and examples.</p>
@@ -649,6 +631,23 @@ span.prompt1:before {
 </ul>
 </li>
 </ul>
+</div>
+</section>
+<section id="tutorials">
+<span id="index-tutorials"></span><h2>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this heading">#</a></h2>
+<p><a class="reference external" href="https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2Fquick_start.ipynb"><img alt="binder" src="https://mybinder.org/badge_logo.svg" /></a></p>
+<p>Launch an <a class="reference external" href="https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2Fquick_start.ipynb">online interactive notebook</a> with Binder. You can also explore the Jupyter notebooks below to get started using <span class="synco">g-learn</span>.</p>
+<div class="toctree-wrapper compound" id="rst-gallery">
+<div class="nbsphinx-gallery">
+<a class="reference internal" href="tutorials/two_dimensional_example.html">
+  <div><img alt="" src="./_images/tutorials_two_dimensional_example_27_1.png"></div>
+  <div>2D Example</div>
+</a>
+<a class="reference internal" href="tutorials/quick_start.html">
+  <div><img alt="" src="./_images/tutorials_quick_start_29_1.png"></div>
+  <div>Quick Start</div>
+</a>
+</div>
 </div>
 </section>
 <section id="features">

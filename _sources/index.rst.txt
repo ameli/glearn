@@ -89,23 +89,23 @@ Successful installation and tests performed on the following operating systems, 
 .. |y| unicode:: U+2714
 .. |n| unicode:: U+2716
 
-+----------+--------+--------+-------+-------+-------+-------+-------+-----------------+
-| Platform | Arch   | Device | Python Version                        | Continuous      |
-+          |        +        +-------+-------+-------+-------+-------+ Integration     +
-|          |        |        |  3.7  |  3.8  |  3.9  |  3.10 |  3.11 |                 |
-+==========+========+========+=======+=======+=======+=======+=======+=================+
-| Linux    | X86-64 | CPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  | |build-linux|   |
-+          +        +--------+-------+-------+-------+-------+-------+                 +
-|          |        | GPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  |                 |
-+----------+--------+--------+-------+-------+-------+-------+-------+-----------------+
-| macOS    | X86-64 | CPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  | |build-macos|   |
-+          +        +--------+-------+-------+-------+-------+-------+                 +
-|          |        | GPU    |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |                 |
-+----------+--------+--------+-------+-------+-------+-------+-------+-----------------+
-| Windows  | X86-64 | CPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  | |build-windows| |
-+          +        +--------+-------+-------+-------+-------+-------+                 +
-|          |        | GPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  |                 |
-+----------+--------+--------+-------+-------+-------+-------+-------+-----------------+
++----------+--------+--------+-------+-------+-------+-----------------+
+| Platform | Arch   | Device | Python Version        | Continuous      |
++          |        +        +-------+-------+-------+ Integration     +
+|          |        |        |  3.9  |  3.10 |  3.11 |                 |
++==========+========+========+=======+=======+=======+=================+
+| Linux    | X86-64 | CPU    |  |y|  |  |y|  |  |y|  | |build-linux|   |
++          +        +--------+-------+-------+-------+                 +
+|          |        | GPU    |  |y|  |  |y|  |  |y|  |                 |
++----------+--------+--------+-------+-------+-------+-----------------+
+| macOS    | X86-64 | CPU    |  |y|  |  |y|  |  |y|  | |build-macos|   |
++          +        +--------+-------+-------+-------+                 +
+|          |        | GPU    |  |n|  |  |n|  |  |n|  |                 |
++----------+--------+--------+-------+-------+-------+-----------------+
+| Windows  | X86-64 | CPU    |  |y|  |  |y|  |  |y|  | |build-windows| |
++          +        +--------+-------+-------+-------+                 +
+|          |        | GPU    |  |y|  |  |y|  |  |y|  |                 |
++----------+--------+--------+-------+-------+-------+-----------------+
 
 .. |build-linux| image:: https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-linux.yml
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Abuild-linux 
@@ -194,21 +194,6 @@ The supported GPU micro-architectures and CUDA version are as follows:
 | CUDA 12         |   |n|   |   |n|   |   |n|   |   |y|   |   |y|   |   |y|   |   |y|   |   |y|  |
 +-----------------+---------+---------+---------+---------+---------+---------+---------+--------+
 
-.. _index_tutorials:
-
-Tutorials
-=========
-
-|binder|
-
-.. toctree::
-    :maxdepth: 1
-
-    Quick Start (jupyter notebook) <notebooks/quick_start.ipynb>
-    2D Example (jupyter notebook) <notebooks/two_dimensional_example.ipynb>
-
-Launch `online interactive notebook <https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2Fquick_start.ipynb>`_ with Binder.
-
 API Reference
 =============
 
@@ -218,6 +203,24 @@ Check the list of functions, classes, and modules of |project| with their usage,
    :maxdepth: 2
    
    API Reference <api>
+
+.. _index_tutorials:
+
+Tutorials
+=========
+
+|binder|
+
+Launch an `online interactive notebook <https://mybinder.org/v2/gh/ameli/glearn/HEAD?filepath=notebooks%2Fquick_start.ipynb>`_ with Binder. You can also explore the Jupyter notebooks below to get started using |project|.
+
+
+.. nbgallery::
+    :name: rst-gallery
+    :glob:
+    :reversed:
+
+    Quick Start <tutorials/quick_start.ipynb>
+    2D Example <tutorials/two_dimensional_example.ipynb>
 
 Features
 ========

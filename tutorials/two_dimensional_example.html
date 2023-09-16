@@ -9,12 +9,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <meta property="og:title" content="Two-Dimensional Example" />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://ameli.github.io/notebooks/two_dimensional_example.html" />
+<meta property="og:url" content="https://ameli.github.io/tutorials/two_dimensional_example.html" />
 <meta property="og:site_name" content="g-learn" />
-<meta property="og:description" content="This is a quick tutorial to demonstrate basic usage of G-Learn package. Import: Import the package using: Before starting, you may check the version of G-Learn, avaialble number of CPU processors, GPU devices, and memory usage of the current python process via: Generate Points: We generate a set ..." />
+<meta property="og:description" content="This is a quick tutorial to demonstrate basic usage of the G-Learn package. Import: Import the package using: Before starting, you can check the version of G-Learn, the available number of CPU processors, GPU devices, and memory usage of the current Python process via: Generate Points: We generat..." />
 <meta property="og:image" content="https://raw.githubusercontent.com/ameli/glearn/main/docs/source/_static/images/icons/logo-glearn-light.svg" />
 <meta property="og:image:alt" content="g-learn" />
-<meta name="description" content="This is a quick tutorial to demonstrate basic usage of G-Learn package. Import: Import the package using: Before starting, you may check the version of G-Learn, avaialble number of CPU processors, GPU devices, and memory usage of the current python process via: Generate Points: We generate a set ..." />
+<meta name="description" content="This is a quick tutorial to demonstrate basic usage of the G-Learn package. Import: Import the package using: Before starting, you can check the version of G-Learn, the available number of CPU processors, GPU devices, and memory usage of the current Python process via: Generate Points: We generat..." />
 <meta property="og:title" content="RestoreIO">
 <meta property="og:description" content="g-learn is a modular and high-performance Python package for machine learning using Gaussian process regression with novel algorithms capable of petascale computation on multi-GPU devices.">
 
@@ -65,6 +65,8 @@
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Quick Start" href="quick_start.html" />
+    <link rel="prev" title="Tutorials" href="tutorials.html" />
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-RCTBMM27GH"></script>
@@ -155,6 +157,12 @@
  </a>
 </li>
 
+<li class="toctree-l1 current active nav-item">
+ <a class="reference internal nav-link" href="tutorials.html">
+  Tutorials
+ </a>
+</li>
+
     
 </ul>
       </div>
@@ -218,7 +226,19 @@
   <div class="sidebar-start-items"><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
   <div class="bd-toc-item active">
     
-    
+    <ul class="current nav bd-sidenav">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   2D Example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="quick_start.html">
+   Quick Start
+  </a>
+ </li>
+</ul>
+
     
   </div>
 </nav>
@@ -296,8 +316,8 @@
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#Gaussian-Proces">
-   Gaussian Proces
+  <a class="reference internal nav-link" href="#Gaussian-Process">
+   Gaussian Process
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
@@ -319,7 +339,7 @@
       
 
 <div class="tocsection editthispage">
-    <a href="https://github.com/ameli/glearn/edit/main/docs/source/notebooks/two_dimensional_example.ipynb">
+    <a href="https://github.com/ameli/glearn/edit/main/docs/source/tutorials/two_dimensional_example.ipynb">
         <i class="fas fa-pencil-alt"></i> Edit this page
     </a>
 </div>
@@ -338,7 +358,7 @@
                 
   <section id="Two-Dimensional-Example">
 <h1>Two-Dimensional Example<a class="headerlink" href="#Two-Dimensional-Example" title="Permalink to this heading">#</a></h1>
-<p>This is a quick tutorial to demonstrate basic usage of G-Learn package.</p>
+<p>This is a quick tutorial to demonstrate basic usage of the G-Learn package.</p>
 <section id="Import">
 <h2>Import<a class="headerlink" href="#Import" title="Permalink to this heading">#</a></h2>
 <p>Import the package using:</p>
@@ -350,7 +370,7 @@
 </pre></div>
 </div>
 </div>
-<p>Before starting, you may check the version of G-Learn, avaialble number of CPU processors, GPU devices, and memory usage of the current python process via:</p>
+<p>Before starting, you can check the version of G-Learn, the available number of CPU processors, GPU devices, and memory usage of the current Python process via:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -380,8 +400,8 @@ process memory  : 124.2 (Mb)
 </section>
 <section id="Generate-Points">
 <h2>Generate Points<a class="headerlink" href="#Generate-Points" title="Permalink to this heading">#</a></h2>
-<p>We generate a set of 50 points randomly distributed in the domain $ <span class="math">\mathcal{D}</span> = [0, 1]^2$, where <span class="math notranslate nohighlight">\(80\%\)</span> more points are concentrated in the sub-domain <span class="math notranslate nohighlight">\([a=0.4, b=0.6]^2\)</span> with uniform distrubution, and the rest of the points spread elsewhere uniformly.</p>
-<p>For simplicity,such set of points can be screated using <code class="docutils literal notranslate"><span class="pre">glearn.sample_data</span></code> module.</p>
+<p>We generate a set of 50 points randomly distributed in the domain <span class="math notranslate nohighlight">\(\mathcal{D} = [0, 1]^2\)</span>, where <span class="math notranslate nohighlight">\(80\%\)</span> more points are concentrated in the sub-domain <span class="math notranslate nohighlight">\([a=0.4, b=0.6]^2\)</span> with a uniform distribution, and the rest of the points are spread uniformly elsewhere.</p>
+<p>For simplicity, you can create such a set of points using the <code class="docutils literal notranslate"><span class="pre">glearn.sample_data</span></code> module.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -396,11 +416,11 @@ x = sample_data.generate_points(num_points=100, dimension=2,
 </section>
 <section id="Generate-Noisy-Data">
 <h2>Generate Noisy Data<a class="headerlink" href="#Generate-Noisy-Data" title="Permalink to this heading">#</a></h2>
-<p>On the set of points <span class="math notranslate nohighlight">\(\boldsymbol{x} = (x_1, \dots, x_d) \in \mathcal{D} \in \mathbb{R}^d\)</span> (here <span class="math notranslate nohighlight">\(d=1\)</span>) defined in the above, we define a stochastic function:</p>
+<p>On the set of points <span class="math notranslate nohighlight">\(\boldsymbol{x} = (x_1, \dots, x_d) \in \mathcal{D} \in \mathbb{R}^d\)</span> (where <span class="math notranslate nohighlight">\(d=1\)</span> as specified above), we define a stochastic function:</p>
 <div class="math notranslate nohighlight">
 \[y(\boldsymbol{x}) = \sum_{i=1}^d \sin\left(\pi x_i \right) + \epsilon,\]</div>
-<p>where <span class="math notranslate nohighlight">\(\epsilon\)</span> is a random variable <span class="math notranslate nohighlight">\(\epsilon(x) \sim \mathcal{N}(0, \sigma_0^2)\)</span> with the noise standard deviation <span class="math notranslate nohighlight">\(\sigma_0 = 0.05\)</span>.</p>
-<p>The above random data can be generated by <code class="docutils literal notranslate"><span class="pre">glearn.sample_data</span></code> module.</p>
+<p>where <span class="math notranslate nohighlight">\(\epsilon\)</span> is a random variable <span class="math notranslate nohighlight">\(\epsilon(x) \sim \mathcal{N}(0, \sigma_0^2)\)</span> with a noise standard deviation of <span class="math notranslate nohighlight">\(\sigma_0 = 0.05\)</span>.</p>
+<p>You can generate the random data described above using the <code class="docutils literal notranslate"><span class="pre">glearn.sample_data</span></code> module.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
@@ -413,46 +433,44 @@ x = sample_data.generate_points(num_points=100, dimension=2,
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_two_dimensional_example_7_0.png" src="../_images/notebooks_two_dimensional_example_7_0.png" />
+<img alt="../_images/tutorials_two_dimensional_example_7_0.png" src="../_images/tutorials_two_dimensional_example_7_0.png" />
 </div>
 </div>
-<p>The above figure shows the noisy data (dots) and the original function without noise (solid curve). We remind that most of the data points are concentrated in the sub-domain <span class="math notranslate nohighlight">\([0.4, 0.6]^2\)</span>, whereas outside this interval, we have sparse data. We wil later demonstrate a good prediction in the concentrated sub-interval and less accurate prediction outside.</p>
+<p>The figure above illustrates the noisy data (represented as dots) alongside the original function without noise (depicted as a solid curve). It’s important to note that the majority of data points are concentrated within the sub-domain <span class="math notranslate nohighlight">\([0.4, 0.6]^2\)</span>, while outside this interval, data points are sparsely distributed.</p>
+<p>Later on, we will demonstrate accurate predictions within the concentrated sub-interval and less precise predictions outside of it.</p>
 </section>
 <section id="Stochastic-Model-for-Noisy-Data">
 <h2>Stochastic Model for Noisy Data<a class="headerlink" href="#Stochastic-Model-for-Noisy-Data" title="Permalink to this heading">#</a></h2>
-<p>We model the random data <span class="math notranslate nohighlight">\(z\)</span> by</p>
+<p>We model the random data <span class="math notranslate nohighlight">\(z\)</span> as:</p>
 <div class="math notranslate nohighlight">
 \[y(x) = \mu(x) + \delta(x) + \epsilon(x),\]</div>
-<p>where</p>
+<p>where:</p>
 <ul>
-<li><p><span class="math notranslate nohighlight">\(\mu(x)\)</span> is a deterministic mean function.</p></li>
-<li><p><span class="math notranslate nohighlight">\(\delta(x)\)</span> is a zero-mean stochastic function and will be determined later.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mu(x)\)</span> represents a deterministic mean function.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\delta(x)\)</span> is a zero-mean stochastic function that will be determined later.</p></li>
 <li><p><span class="math notranslate nohighlight">\(\epsilon(x)\)</span> is a zero-mean stochastic function representing the input noise and characterized by the discrete covariance:</p>
 <div class="math notranslate nohighlight">
 \[\mathbb{E}[\epsilon(x), \epsilon(x')] = \sigma_0^2 \mathbf{I}\]</div>
-<p>where <span class="math notranslate nohighlight">\(\mathbf{I}\)</span> is the identity matrix, and the hyperparameter <span class="math notranslate nohighlight">\(\sigma_0^2\)</span> is the variance of the noise. We assume the noise variance is not known.</p>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{I}\)</span> is the identity matrix, and the hyperparameter <span class="math notranslate nohighlight">\(\sigma_0^2\)</span> is the variance of the noise. It is assumed that the noise variance is not known.</p>
 </li>
 </ul>
 </section>
 <section id="Design-Matrix">
 <h2>Design Matrix<a class="headerlink" href="#Design-Matrix" title="Permalink to this heading">#</a></h2>
-<p>We represent the deterministic mean function <span class="math notranslate nohighlight">\(\mu\)</span> by the linear model <span class="math notranslate nohighlight">\(\mu(\boldsymbol{x}) = \boldsymbol{\phi}(x)^{\intercal} \boldsymbol{\beta}\)</span> as a linear combination of basis functions:</p>
-<div class="math notranslate nohighlight">
-\[\boldsymbol{\phi}(x): \mathcal{D} \to \mathbb{R}^m,\]</div>
-<p>and <span class="math notranslate nohighlight">\(\beta \in \mathbb{R}^{m}\)</span> are the parameters. On discrete points <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span>, the set of basis functions are disretized to the design matrix <span class="math notranslate nohighlight">\(\mathbf{X} \in \mathbf{R}^{n \times m}\)</span></p>
+<p>We represent the deterministic mean function <span class="math notranslate nohighlight">\(\mu\)</span> using the linear model <span class="math notranslate nohighlight">\(\mu(\boldsymbol{x}) = \boldsymbol{\phi}(x)^{\intercal} \boldsymbol{\beta}\)</span>, where <span class="math notranslate nohighlight">\(\boldsymbol{\phi}(x): \mathcal{D} \to \mathbb{R}^m\)</span>, and <span class="math notranslate nohighlight">\(\boldsymbol{\beta} \in \mathbb{R}^{m}\)</span> are the parameters. On discrete points <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span>, the set of basis functions is discretized into the design matrix <span class="math notranslate nohighlight">\(\mathbf{X} \in \mathbb{R}^{n \times m}\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[X_{ij} = \phi_{j}(\boldsymbol{x}_i)\]</div>
-<p>Other ways to contrust the design matrix are by trogonometric functions, hyperbolic functions, user-defined custom functions, or a combination of all. Here we only use a fifth order monomial as follows:</p>
+<p>Other ways to construct the design matrix include using trigonometric functions, hyperbolic functions, user-defined custom functions, or a combination of all. In this case, only a fifth-order monomial is used:</p>
 <div class="math notranslate nohighlight">
 \[\boldsymbol{\phi}(\boldsymbol{x}) = (1, x, \cdots, x^4)^{\intercal}.\]</div>
-<p>Hence, <span class="math notranslate nohighlight">\(m = 5\)</span>.</p>
+<p>Hence, in this context, <span class="math notranslate nohighlight">\(m = 5\)</span>.</p>
 </section>
 <section id="Prior-for-Parameter-\boldsymbol{\beta}">
 <h2>Prior for Parameter <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span><a class="headerlink" href="#Prior-for-Parameter-\boldsymbol{\beta}" title="Permalink to this heading">#</a></h2>
-<p>We also prescibe a normal prior to the unknown parameter <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span>:</p>
+<p>A normal prior is prescribed for the unknown parameter <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> as follows:</p>
 <div class="math notranslate nohighlight">
 \[p(\boldsymbol{\beta} | \sigma^2) \sim \mathcal{N}(\boldsymbol{b}, \sigma^2 \mathbf{B}),\]</div>
-<p>where <span class="math notranslate nohighlight">\(\sigma^2 \mathbf{B} \in \mathbb{R}^{m \times m}\)</span> is the covariance of <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span>. The hyperparameter <span class="math notranslate nohighlight">\(\sigma^2\)</span> is the variance of the regression and is not known.</p>
+<p>where <span class="math notranslate nohighlight">\(\sigma^2 \mathbf{B} \in \mathbb{R}^{m \times m}\)</span> represents the covariance of <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span>. The hyperparameter <span class="math notranslate nohighlight">\(\sigma^2\)</span> denotes the variance of the regression and is not known.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
@@ -475,7 +493,7 @@ B = 1e+5 * B.T @ B
 </section>
 <section id="Linear-Model">
 <h2>Linear Model<a class="headerlink" href="#Linear-Model" title="Permalink to this heading">#</a></h2>
-<p>The linear model of mean <span class="math notranslate nohighlight">\(\mu = \mathbf{X} \boldsymbol{\beta}\)</span> can be created by <code class="docutils literal notranslate"><span class="pre">glearn.mean.LinearModel</span></code> class:</p>
+<p>The linear model with mean <span class="math notranslate nohighlight">\(\mu = \mathbf{X} \boldsymbol{\beta}\)</span> can be created using the <code class="docutils literal notranslate"><span class="pre">glearn.mean.LinearModel</span></code> class:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
@@ -491,14 +509,14 @@ mean = glearn.LinearModel(x, polynomial_degree=5, b=b, B=B)
 <p>The zero-mean stochastic function <span class="math notranslate nohighlight">\(\delta(x): \mathcal{D} \to \mathbb{R}\)</span> is characterized by its covariance,</p>
 <div class="math notranslate nohighlight">
 \[\mathbb{E}[\delta(x), \delta(x')] = k(x, x'|\boldsymbol{\alpha}).\]</div>
-<p>The function <span class="math notranslate nohighlight">\(k: \mathcal{D} \times \mathcal{D} \times \mathbb{R}^d \to \mathbb{R}\)</span> is the correlation kernel and can be created by <code class="docutils literal notranslate"><span class="pre">glearn.kernel</span></code> module. Various kernels of this module are</p>
+<p>The function <span class="math notranslate nohighlight">\(k: \mathcal{D} \times \mathcal{D} \times \mathbb{R}^d \to \mathbb{R}\)</span> represents the correlation kernel and can be created using the <code class="docutils literal notranslate"><span class="pre">glearn.kernel</span></code> module. Various kernels available in this module include:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Matern()</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Exponential()</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">SquareExponential()</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RationalQuadratic()</span></code></p></li>
 </ul>
-<p>Here we use the exponential kernel.</p>
+<p>In this example, we use the exponential kernel.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
@@ -513,7 +531,7 @@ kernel.plot()
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_two_dimensional_example_15_0.png" src="../_images/notebooks_two_dimensional_example_15_0.png" />
+<img alt="../_images/tutorials_two_dimensional_example_15_0.png" src="../_images/tutorials_two_dimensional_example_15_0.png" />
 </div>
 </div>
 </section>
@@ -544,20 +562,20 @@ scale.plot()
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_two_dimensional_example_17_0.png" src="../_images/notebooks_two_dimensional_example_17_0.png" />
+<img alt="../_images/tutorials_two_dimensional_example_17_0.png" src="../_images/tutorials_two_dimensional_example_17_0.png" />
 </div>
 </div>
 </section>
 <section id="Covariance">
 <h2>Covariance<a class="headerlink" href="#Covariance" title="Permalink to this heading">#</a></h2>
-<p>The covariance of the model is</p>
+<p>The covariance of the model is given by:</p>
 <div class="math notranslate nohighlight">
 \[\boldsymbol{\Sigma}(\sigma^2, \sigma_0^2, \boldsymbol{\alpha}) = \sigma^2 \mathbf{K}(\boldsymbol{\alpha}) + \sigma_0^2 \mathbf{I},\]</div>
-<p>where</p>
+<p>where:</p>
 <div class="math notranslate nohighlight">
 \[\mathbf{K}(\boldsymbol{\alpha}): \mathbb{R}^{d} \to \mathbb{R}^{n \times n},\]</div>
-<p>and <span class="math notranslate nohighlight">\(\mathbf{I}\)</span> is the identity matrix.</p>
-<p>An object of the above covariance model can be created by <code class="docutils literal notranslate"><span class="pre">glearn.Covariance</span></code> class.</p>
+<p>and <span class="math notranslate nohighlight">\(\mathbf{I}\)</span> represents the identity matrix.</p>
+<p>An object of the above covariance model can be created using the <code class="docutils literal notranslate"><span class="pre">glearn.Covariance</span></code> class.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
@@ -567,12 +585,12 @@ scale.plot()
 </div>
 </div>
 </section>
-<section id="Gaussian-Proces">
-<h2>Gaussian Proces<a class="headerlink" href="#Gaussian-Proces" title="Permalink to this heading">#</a></h2>
-<p>The Gaussian process</p>
+<section id="Gaussian-Process">
+<h2>Gaussian Process<a class="headerlink" href="#Gaussian-Process" title="Permalink to this heading">#</a></h2>
+<p>The Gaussian process is defined as:</p>
 <div class="math notranslate nohighlight">
 \[z \sim \mathcal{GP}(\mu, \boldsymbol{\Sigma})\]</div>
-<p>is then created by <code class="docutils literal notranslate"><span class="pre">glearn.GaussianProcess</span></code> class using the mean and covariance objects.</p>
+<p>You can create the Gaussian process using the <code class="docutils literal notranslate"><span class="pre">glearn.GaussianProcess</span></code> class, which utilizes the mean and covariance objects.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
@@ -584,33 +602,33 @@ scale.plot()
 </section>
 <section id="Training-Hyperparameters">
 <h2>Training Hyperparameters<a class="headerlink" href="#Training-Hyperparameters" title="Permalink to this heading">#</a></h2>
-<p>The hyperparameters <span class="math notranslate nohighlight">\((\sigma, \sigma_0, \boldsymbol{\alpha})\)</span> and the parameter <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> can be trained via <code class="docutils literal notranslate"><span class="pre">gp.train()</span></code> function.</p>
-<p>The type of profiling for the likelihood function can be set by <code class="docutils literal notranslate"><span class="pre">profile_hyperparam</span></code> argument, which can take one of the following values:</p>
+<p>The hyperparameters <span class="math notranslate nohighlight">\((\sigma, \sigma_0, \boldsymbol{\alpha})\)</span> and the parameter <span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> can be trained using the <code class="docutils literal notranslate"><span class="pre">gp.train()</span></code> function.</p>
+<p>The type of profiling for the likelihood function can be set using the <code class="docutils literal notranslate"><span class="pre">profile_hyperparam</span></code> argument, which can take one of the following values:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">'none</span></code>: no profiling</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'none'</span></code>: no profiling</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">'var'</span></code>: profiling on variance hyperparameter.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">'var_noise'</span></code>: profiling on both variance and noise hypeprarameter.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'var_noise'</span></code>: profiling on both variance and noise hyperparameters.</p></li>
 </ul>
-<p>The optimization method can be set by <code class="docutils literal notranslate"><span class="pre">optimization_method</span></code> and can be one of:</p>
+<p>The optimization method can be set using the <code class="docutils literal notranslate"><span class="pre">optimization_method</span></code> argument, which can be one of the following:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">'chandrupatla'</span></code>: requires jacobian</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">'brentq'</span></code>: requires jacobian</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">'Nelder-Mead'</span></code>: requires func</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">'BFGS'</span></code>: requires func, jacobian</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">'CG'</span></code>: requires func, jacobian</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">'Newton-CG'</span></code>: requires func, jacobian, hessian</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">'dogleg'</span></code>: requires func, jacobian, hessian</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">'trust-exact'</span></code>: requires func, jacobian, hessian</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">'trust-ncg'</span></code>: requires func, jacobian, hessian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'chandrupatla'</span></code>: requires Jacobian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'brentq'</span></code>: requires Jacobian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'Nelder-Mead'</span></code>: requires function</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'BFGS'</span></code>: requires function, Jacobian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'CG'</span></code>: requires function, Jacobian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'Newton-CG'</span></code>: requires function, Jacobian, Hessian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'dogleg'</span></code>: requires function, Jacobian, Hessian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'trust-exact'</span></code>: requires function, Jacobian, Hessian</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'trust-ncg'</span></code>: requires function, Jacobian, Hessian</p></li>
 </ul>
-<p>The internal matrix algebra of this object can be set via <code class="docutils literal notranslate"><span class="pre">imate_method</span></code> argument, which can take value from one of the followings:</p>
+<p>The internal matrix algebra of this object can be set using the <code class="docutils literal notranslate"><span class="pre">imate_method</span></code> argument, which can take one of the following values:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">eigenvalue</span></code>: using eigenvalue method.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">cholesky</span></code>: using Cholesky method.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">hutchinson</span></code>: using stochastic Hotchinson method.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">slq</span></code>: using stochastic Lanczos quadrature method.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eigenvalue</span></code>: using the eigenvalue method.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cholesky</span></code>: using the Cholesky method.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hutchinson</span></code>: using the stochastic Hutchinson method.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">slq</span></code>: using the stochastic Lanczos quadrature method.</p></li>
 </ul>
-<p>Here we use the Cholesky method.</p>
+<p>In this example, we use the Cholesky method.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
@@ -675,7 +693,7 @@ overall      2.81e+0  1.03e+1      optimization     10      mem used (b) 2260992
 </section>
 <section id="Prediction">
 <h2>Prediction<a class="headerlink" href="#Prediction" title="Permalink to this heading">#</a></h2>
-<p>After training the hyperparameters, the <code class="docutils literal notranslate"><span class="pre">gp</span></code> object is ready to predict the data on new points. First, we create a set of <span class="math notranslate nohighlight">\(50^2\)</span> test points <span class="math notranslate nohighlight">\(x^{\star}\)</span> equally distanced in the domain <span class="math notranslate nohighlight">\([0, 1]^2\)</span>.</p>
+<p>After training the hyperparameters, the <code class="docutils literal notranslate"><span class="pre">gp</span></code> object is ready to predict the data on new points. First, we create a set of <span class="math notranslate nohighlight">\(50^2\)</span> test points <span class="math notranslate nohighlight">\(x^{\star}\)</span> equally spaced in the domain <span class="math notranslate nohighlight">\([0, 1]^2\)</span>.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
@@ -685,8 +703,8 @@ test_points = sample_data.generate_points(num_points=50, dimension=2, grid=True)
 </pre></div>
 </div>
 </div>
-<p>Note that the above step is unnecessary and only used for the purpose of comparison with the prediction since we already know the exact function that generated the noisy data <span class="math notranslate nohighlight">\(z\)</span> in the first place.</p>
-<p>The posterior predictive distribution of the prediction <span class="math notranslate nohighlight">\(z^{\star}(x^{\star})\)</span> is of the form</p>
+<p>Note that the above step is unnecessary and is only used for the purpose of comparison with the prediction since we already know the exact function that generated the noisy data <span class="math notranslate nohighlight">\(z\)</span> in the first place.</p>
+<p>The posterior predictive distribution of the prediction <span class="math notranslate nohighlight">\(z^{\star}(x^{\star})\)</span> takes the form:</p>
 <div class="math notranslate nohighlight">
 \[z^{\star}(x^{\star}) \sim \mathcal{N}\left(\mu^{\star}(x^{\star}), \mathbf{\Sigma}^{\star \star}(x^{\star}, x'^{\star})\right)\]</div>
 <p>where:</p>
@@ -694,7 +712,7 @@ test_points = sample_data.generate_points(num_points=50, dimension=2, grid=True)
 <li><p><span class="math notranslate nohighlight">\(\mu^{\star}\)</span> is the posterior predictive mean, and</p></li>
 <li><p><span class="math notranslate nohighlight">\(\mathbf{\Sigma}^{\star \star}\)</span> is the posterior predictive covariance between test points and themselves.</p></li>
 </ul>
-<p>Prediction can be made using <code class="docutils literal notranslate"><span class="pre">gp.predict()</span></code> function.</p>
+<p>Prediction can be made using the <code class="docutils literal notranslate"><span class="pre">gp.predict()</span></code> function.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
@@ -724,15 +742,15 @@ memory used (b)              66920448      compute covariance               True
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_two_dimensional_example_27_1.png" src="../_images/notebooks_two_dimensional_example_27_1.png" />
+<img alt="../_images/tutorials_two_dimensional_example_27_1.png" src="../_images/tutorials_two_dimensional_example_27_1.png" />
 </div>
 </div>
-<p>By seeting boolean argument <code class="docutils literal notranslate"><span class="pre">cov=False</span></code> the predictive covariance is not computed, which enhances the computaional speed.</p>
+<p>By setting the boolean argument <code class="docutils literal notranslate"><span class="pre">cov=False</span></code>, the predictive covariance is not computed, which enhances computational speed.</p>
 <ul class="simple">
 <li><p>When <code class="docutils literal notranslate"><span class="pre">cov=True</span></code>, meaning that both <span class="math notranslate nohighlight">\(\mu^{\star}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{\Sigma}^{\star \star}\)</span> are computed, the prediction process is <span class="math notranslate nohighlight">\(\mathcal{O}\left((n^{\star})^3\right)\)</span> complex.</p></li>
 <li><p>In contrast, when <code class="docutils literal notranslate"><span class="pre">cov=False</span></code> to only compute <span class="math notranslate nohighlight">\(\mu^{\star}\)</span>, the prediction process is only <span class="math notranslate nohighlight">\(\mathcal{O}\left((n^{\star})^2\right)\)</span> complex.</p></li>
 </ul>
-<p>Furthermore, when <code class="docutils literal notranslate"><span class="pre">cov=False</span></code>, once the first prediciton on a set of test points <span class="math notranslate nohighlight">\(\left\{ x_i^{\star} \right\}_{n^{\star}}\)</span> is made, the future calls to the <code class="docutils literal notranslate"><span class="pre">predict()</span></code> function is of order <span class="math notranslate nohighlight">\(\mathcal{O}(n^{\star})\)</span>, <em>even when applied on a different set of test points</em>. This is becase the <code class="docutils literal notranslate"><span class="pre">gp</span></code> object stores all internal computations that are independent of the test points.</p>
+<p>Furthermore, when <code class="docutils literal notranslate"><span class="pre">cov=False</span></code>, once the first prediction on a set of test points <span class="math notranslate nohighlight">\(\left\{ x_i^{\star} \right\}_{n^{\star}}\)</span> is made, the future calls to the <code class="docutils literal notranslate"><span class="pre">predict()</span></code> function are of order <span class="math notranslate nohighlight">\(\mathcal{O}(n^{\star})\)</span>, even when applied to a different set of test points. This is because the <code class="docutils literal notranslate"><span class="pre">gp</span></code> object stores all internal computations that are independent of the test points.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
@@ -768,6 +786,20 @@ memory used (b)                     0      compute covariance              False
               <footer class="bd-footer-article">
                   <!-- Previous / next buttons -->
 <div class='prev-next-area'>
+  <a class='left-prev' id="prev-link" href="tutorials.html" title="previous page">
+      <i class="fas fa-angle-left"></i>
+      <div class="prev-next-info">
+          <p class="prev-next-subtitle">previous</p>
+          <p class="prev-next-title">Tutorials</p>
+      </div>
+  </a>
+  <a class='right-next' id="next-link" href="quick_start.html" title="next page">
+  <div class="prev-next-info">
+      <p class="prev-next-subtitle">next</p>
+      <p class="prev-next-title">Quick Start</p>
+  </div>
+  <i class="fas fa-angle-right"></i>
+  </a>
 </div>
               </footer>
               
