@@ -51,23 +51,35 @@ Successful installation and tests performed on the following operating systems, 
 .. |y| unicode:: U+2714
 .. |n| unicode:: U+2716
 
-+----------+--------+--------+-------+-------+-------+-----------------+
-| Platform | Arch   | Device | Python Version        | Continuous      |
-+          |        +        +-------+-------+-------+ Integration     +
-|          |        |        |  3.9  |  3.10 |  3.11 |                 |
-+==========+========+========+=======+=======+=======+=================+
-| Linux    | X86-64 | CPU    |  |y|  |  |y|  |  |y|  | |build-linux|   |
-+          +        +--------+-------+-------+-------+                 +
-|          |        | GPU    |  |y|  |  |y|  |  |y|  |                 |
-+----------+--------+--------+-------+-------+-------+-----------------+
-| macOS    | X86-64 | CPU    |  |y|  |  |y|  |  |y|  | |build-macos|   |
-+          +        +--------+-------+-------+-------+                 +
-|          |        | GPU    |  |n|  |  |n|  |  |n|  |                 |
-+----------+--------+--------+-------+-------+-------+-----------------+
-| Windows  | X86-64 | CPU    |  |y|  |  |y|  |  |y|  | |build-windows| |
-+          +        +--------+-------+-------+-------+                 +
-|          |        | GPU    |  |y|  |  |y|  |  |y|  |                 |
-+----------+--------+--------+-------+-------+-------+-----------------+
++----------+-------------------+--------+-------+-------+-------+-------+-------+-------+-------+-----------------+
+| Platform | Arch              | Device | Python Version                | PyPy Version          | Continuous      |
++          |                   +        +-------+-------+-------+-------+-------+-------+-------+ Integration     +
+|          |                   |        |  3.9  |  3.10 |  3.11 |  3.12 |  3.8  |  3.9  |  3.10 |                 |
++==========+===================+========+=======+=======+=======+=======+=======+=======+=======+=================+
+| Linux    | X86-64            | CPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  | |build-linux|   |
++          +                   +--------+-------+-------+-------+-------+-------+-------+-------+                 +
+|          |                   | GPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  |  |y|  |                 |
++          +-------------------+--------+-------+-------+-------+-------+-------+-------+-------+                 +
+|          | AARCH-64 :sup:`*` | CPU    |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |                 |
++          +                   +--------+-------+-------+-------+-------+-------+-------+-------+                 +
+|          |                   | GPU    |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |                 |
++----------+-------------------+--------+-------+-------+-------+-------+-------+-------+-------+-----------------+
+| macOS    | X86-64            | CPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |n|  |  |n|  |  |n|  | |build-macos|   |
++          +                   +--------+-------+-------+-------+-------+-------+-------+-------+                 +
+|          |                   | GPU    |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |                 |
++          +-------------------+--------+-------+-------+-------+-------+-------+-------+-------+                 +
+|          | ARM-64 :sup:`*`   | CPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |n|  |  |n|  |  |n|  |                 |
++          +                   +--------+-------+-------+-------+-------+-------+-------+-------+                 +
+|          |                   | GPU    |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |                 |
++----------+-------------------+--------+-------+-------+-------+-------+-------+-------+-------+-----------------+
+| Windows  | X86-64            | CPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |n|  |  |n|  |  |n|  | |build-windows| |
++          +                   +--------+-------+-------+-------+-------+-------+-------+-------+                 +
+|          |                   | GPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |n|  |  |n|  |  |n|  |                 |
++          +-------------------+--------+-------+-------+-------+-------+-------+-------+-------+                 +
+|          | ARM-64 :sup:`*`   | CPU    |  |y|  |  |y|  |  |y|  |  |y|  |  |n|  |  |n|  |  |n|  |                 |
++          +                   +--------+-------+-------+-------+-------+-------+-------+-------+                 +
+|          |                   | GPU    |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |  |n|  |                 |
++----------+-------------------+--------+-------+-------+-------+-------+-------+-------+-------+-----------------+
 
 .. |build-linux| image:: https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-linux.yml
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Abuild-linux 
@@ -77,6 +89,8 @@ Successful installation and tests performed on the following operating systems, 
    :target: https://github.com/ameli/glearn/actions?query=workflow%3Abuild-windows
 
 Python wheels for ``glearn`` for all supported platforms and versions in the above are available through `PyPI <https://pypi.org/project/glearn/>`_ and `Anaconda Cloud <https://anaconda.org/s-ameli/glearn>`_. If you need ``glearn`` on other platforms, architectures, and Python or PyPy versions, `raise an issue <https://github.com/ameli/glearn/issues>`_ on GitHub and we build its Python Wheel for you.
+
+:sup:`* Wheels compatible with the ARM-64 (also known as AARCH-64) architecture, including those for Apple Silicon M1 machines, are exclusively available for installation through pip and cannot be installed using conda.`
 
 Supported GPU Architectures
 ===========================

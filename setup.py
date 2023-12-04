@@ -23,8 +23,6 @@ import subprocess
 import codecs
 import tempfile
 import shutil
-from distutils.errors import CompileError, LinkError, DistutilsExecError
-from distutils.command.clean import clean
 import textwrap
 import multiprocessing
 import re
@@ -57,6 +55,20 @@ def install_package(package):
 # Import Setup Packages
 # =====================
 
+# Install setuptools package
+try:
+    import setuptools                                               # noqa F401
+except ImportError:
+    # Install setuptools
+    install_package('setuptools')
+    import setuptools                                               # noqa F401
+
+from setuptools import Command
+from setuptools.extension import Extension
+from setuptools.errors import CompileError, LinkError, ExecError
+from setuptools.command.build_ext import build_ext
+# from Cython.Distutils import build_ext
+
 # Import numpy
 try:
     import numpy
@@ -72,36 +84,13 @@ except ImportError:
     # Install scipy
     install_package('scipy')
 
-# Check special_functions is installed (needed for build)
-try:
-    import special_functions                                        # noqa F401
-except ImportError:
-    # Install special_functions
-    install_package('special_functions')
-
-# Import setuptools
-try:
-    import setuptools
-    from setuptools.extension import Extension
-except ImportError:
-    # Install setuptools
-    install_package('setuptools')
-    import setuptools
-    from setuptools.extension import Extension
-
 # Import Cython (to convert pyx to C code)
 try:
     from Cython.Build import cythonize
 except ImportError:
     # Install Cython
-    install_package('cython')
+    install_package('cython>=0.29,<3.0')
     from Cython.Build import cythonize
-
-# Import build_ext
-try:
-    from Cython.Distutils import build_ext
-except ImportError:
-    from distutils.command import build_ext
 
 
 # =========================
@@ -639,7 +628,7 @@ def customize_windows_compiler_for_nvcc(self, cuda):
                 try:
                     self.spawn([self.rc] + pp_opts +
                                [output_opt] + [input_opt])
-                except DistutilsExecError as msg:
+                except ExecError as msg:
                     raise CompileError(msg)
                 continue
             elif ext in self._mc_extensions:
@@ -666,7 +655,7 @@ def customize_windows_compiler_for_nvcc(self, cuda):
                     self.spawn([self.rc] +
                                ["/fo" + obj] + [rc_file])
 
-                except DistutilsExecError as msg:
+                except ExecError as msg:
                     raise CompileError(msg)
                 continue
             elif ext in ['.cu']:
@@ -695,7 +684,7 @@ def customize_windows_compiler_for_nvcc(self, cuda):
                                [input_opt, output_opt] +
                                extra_postargs)
 
-            except DistutilsExecError as msg:
+            except ExecError as msg:
                 raise CompileError(msg)
 
         return objects
@@ -1489,9 +1478,17 @@ def main(argv):
 
     # Custom clean to remove cython generated *.c, *.cpp, and *.so files.
     # To clean cython generated files, run "python setup.py clean"
-    class CustomClean(clean):
+    class CustomClean(Command):
+
+        user_options = []
+
+        def initialize_options(self):
+            pass
+
+        def finalize_options(self):
+            pass
+
         def run(self):
-            super().run()
             clean_extensions(extensions)
 
     # Inputs to setup
@@ -1522,7 +1519,7 @@ def main(argv):
         ext_modules=external_modules,
         include_dirs=[numpy.get_include()],
         install_requires=requirements,
-        python_requires='>=3.7',
+        python_requires='>=3.9',
         setup_requires=[
             'setuptools',
             'wheel',
@@ -1548,11 +1545,10 @@ def main(argv):
         classifiers=[
             'Programming Language :: Cython',
             'Programming Language :: Python',
-            'Programming Language :: Python :: 3.7',
-            'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: 3.9',
             'Programming Language :: Python :: 3.10',
             'Programming Language :: Python :: 3.11',
+            'Programming Language :: Python :: 3.12',
             'Programming Language :: Python :: Implementation :: CPython',
             'Programming Language :: Python :: Implementation :: PyPy',
             'Environment :: GPU :: NVIDIA CUDA',

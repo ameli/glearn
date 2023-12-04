@@ -24,7 +24,7 @@ jobs:
             - name: Setup Python 
               uses: actions/setup-python@v4
               with:
-                python-version: '3.11'
+                python-version: '3.12'
 
             - name: Install numpy
               run: |
@@ -55,11 +55,14 @@ jobs:
                   # brew install lapack
                   # pip3 install numpy
 
-            - name: Build wheels
+            - name: Build wheels (X84_64 and arm64)
               uses: pypa/cibuildwheel@v2.15.0
               env:
-                  CIBW_BUILD: "*-manylinux_x86_64 *-macosx_x86_64 *-win_amd64"
-                  CIBW_SKIP: "pp* cp36-* cp37-* cp38-* cp312-*"
+                  CIBW_ARCHS_WINDOWS: "AMD64 x86 ARM64"
+                  CIBW_ARCHS_MACOS: "x86_64 arm64"
+                  CIBW_ARCHS_LINUX: "x86_64"
+                  CIBW_BUILD: "*-win_amd64 *-win_arm64 *-macosx_arm64 *-macosx_x86_64 *-manylinux_x86_64"
+                  CIBW_SKIP: "pp* cp36-* cp37-* cp38-*"
                   CIBW_BUILD_VERBOSITY: 1
                   CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
               with:
@@ -81,7 +84,7 @@ jobs:
             - name: Install Python
               uses: actions/setup-python@v4
               with:
-                python-version: '3.11'
+                python-version: '3.12'
 
             - name: Install numpy
               run: |
@@ -132,7 +135,7 @@ jobs:
                 # linux, we only test it on cpython, not on pypy, since many
                 # other required dependencies (like matplotlib, etc) need to be
                 # compiled on pypy.
-                python-version: ['3.9', '3.10', '3.11']
+                python-version: ['3.9', '3.10', '3.11', '3.12']
 
         steps:
             - name: Setup Python ${{ matrix.python-version }}

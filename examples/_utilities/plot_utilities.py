@@ -21,8 +21,8 @@ from matplotlib.ticker import ScalarFormatter, NullFormatter       # noqa: F401
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes       # noqa: F401
 from mpl_toolkits.axes_grid1.inset_locator import InsetPosition    # noqa: F401
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset       # noqa: F401
-from distutils.spawn import find_executable
 from .display_utilities import is_notebook
+import shutil
 
 # Check DISPLAY
 if ((not bool(os.environ.get('DISPLAY', None))) or
@@ -69,7 +69,7 @@ def load_plot_settings():
     # sns.set()
 
     # LaTeX
-    if find_executable('latex'):
+    if shutil.which('latex'):
         try:
             # plt.rc('text', usetex=True)
             matplotlib.rcParams['text.usetex'] = True
