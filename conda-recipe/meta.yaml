@@ -10,7 +10,7 @@ source:
 
 # build:
 #     number: 0
-#     script: 
+#     script:
 #         - {{ PYTHON }} -m pip install . -vv --no-binary :all:
         # - {{ PYTHON }} -m pip install --upgrade pip setuptools wheel &&
         # - {{ PYTHON }} -m pip install dist/*.whl -vvv  # [osx]
@@ -37,7 +37,7 @@ requirements:
         - setuptools
         - numpy>1.11
         - scipy>=1.5
-        - cython>=0.29
+        - cython>=0.29,<3.0
         - pip
         - special_functions       # needs -c s-ameli
         - detkit                  # needs -c s-sameli

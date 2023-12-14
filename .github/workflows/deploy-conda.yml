@@ -1,11 +1,11 @@
 name: deploy-conda
 
 on:
-    # push:
-    #     branches:
-    #         - main
+    push:
+        branches:
+            - main
     release:
-        types: 
+        types:
             - published
 
 jobs:
@@ -59,14 +59,17 @@ jobs:
                   # CIBW_MANYLINUX_X86_64_IMAGE: sameli/manylinux2014_x86_64_cuda_12.2
                   CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
                   CIBW_ARCHS_WINDOWS: "AMD64 x86 ARM64"
-                  CIBW_ARCHS_MACOS: "x86_64 arm64"
+                  CIBW_ARCHS_MACOS: "x86_64"
                   CIBW_ARCHS_LINUX: "x86_64"
-                  CIBW_BUILD: "*-win_amd64 *-win_arm64 *-macosx_arm64 *-macosx_x86_64 *-manylinux_x86_64"
+                  CIBW_BUILD: "*-win_amd64 *-win_arm64 *-macosx_x86_64 *-manylinux_x86_64"
                   CIBW_SKIP: "pp* cp36-* cp37-* cp38-*"
-                  CIBW_BUILD_VERBOSITY: 1
+                  CIBW_BUILD_VERBOSITY: 3
+                  CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
+                  CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
               with:
                 output-dir: wheelhouse
             
+            # Upload all wheels to an artifact
             - name: Upload artifacts
               uses: actions/upload-artifact@v3
               with:
@@ -88,7 +91,7 @@ jobs:
         # To publish to pypi on each GitHub Release, use the following:
         # if: github.event_name == 'release' && github.event.action == 'published'
         steps:
-            
+
             - name: Clean runner space
               if: matrix.os == 'ubuntu-latest'
               run: |

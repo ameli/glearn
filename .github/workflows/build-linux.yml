@@ -1,9 +1,9 @@
 name: build-linux
 
 on:
-    # push:
-    #     branches:
-    #         - main
+    push:
+        branches:
+            - main
     release:
         types: 
             - published
@@ -15,7 +15,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                python-version: ['3.9', '3.10', '3.11', '3.12']
+                python-version: ['3.9', '3.10', '3.11', '3.12', 'pypy3.8', 'pypy3.9', 'pypy3.10']
 
         steps:
             - name: Checkout
@@ -30,7 +30,7 @@ jobs:
               run: |
                   python -m pip install --upgrade pip
                   python -m pip install --upgrade numpy
-                  python -m pip install --upgrade .
+                  python -m pip install --upgrade . -vvv
 
             # Despite the package is built on both cpython and pypy, here we
             # only test it on cpython, not on pypy, since many other required

@@ -1,9 +1,9 @@
 name: build-macos
 
 on:
-    # push:
-    #     branches:
-    #         - main
+    push:
+        branches:
+            - main
     release:
         types: 
             - published
@@ -53,7 +53,7 @@ jobs:
               run: |
                   python -m pip install --upgrade pip
                   python -m pip install --upgrade numpy
-                  python -m pip install --upgrade .
+                  python -m pip install --upgrade . -vvv
 
               # Move source to avoid import from local folder
             - name: Rename source
@@ -70,13 +70,13 @@ jobs:
               shell: bash
 
             # Temporarily do not perform test due to duplicate libomp error in MacOS.
-            # - name: Test
-            #   run: |
-            #       python -m pip install --upgrade pytest
-            #       python -m pip install --upgrade pytest-cov
-            #       pytest
-            #
-            # - name: Coverage
-            #   run: |
-            #       python -m pip install codecov
-            #       codecov
+            - name: Test
+              run: |
+                  python -m pip install --upgrade pytest
+                  python -m pip install --upgrade pytest-cov
+                  pytest
+
+            - name: Coverage
+              run: |
+                  python -m pip install codecov
+                  codecov
