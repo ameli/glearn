@@ -418,58 +418,148 @@ Publications</div>
 <tr class="row-odd"><th class="head" rowspan="2"><p>Platform</p></th>
 <th class="head" rowspan="2"><p>Arch</p></th>
 <th class="head" rowspan="2"><p>Device</p></th>
-<th class="head" colspan="3"><p>Python Version</p></th>
+<th class="head" colspan="4"><p>Python Version</p></th>
+<th class="head" colspan="3"><p>PyPy Version <sup>1</sup></p></th>
 <th class="head" rowspan="2"><p>Continuous
 Integration</p></th>
 </tr>
 <tr class="row-even"><th class="head"><p>3.9</p></th>
 <th class="head"><p>3.10</p></th>
 <th class="head"><p>3.11</p></th>
+<th class="head"><p>3.12</p></th>
+<th class="head"><p>3.8</p></th>
+<th class="head"><p>3.9</p></th>
+<th class="head"><p>3.10</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-odd"><td rowspan="2"><p>Linux</p></td>
+<tr class="row-odd"><td rowspan="4"><p>Linux</p></td>
 <td rowspan="2"><p>X86-64</p></td>
 <td><p>CPU</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
-<td rowspan="2"><p><a class="reference external" href="https://github.com/ameli/glearn/actions?query=workflow%3Abuild-linux"><img alt="build-linux" src="https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-linux.yml" /></a></p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td rowspan="4"><p><a class="reference external" href="https://github.com/ameli/glearn/actions?query=workflow%3Abuild-linux"><img alt="build-linux" src="https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-linux.yml" /></a></p></td>
 </tr>
 <tr class="row-even"><td><p>GPU</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="2"><p>macOS</p></td>
+<tr class="row-odd"><td rowspan="2"><p>AARCH-64</p></td>
+<td><p>CPU</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+</tr>
+<tr class="row-even"><td><p>GPU</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+</tr>
+<tr class="row-odd"><td rowspan="4"><p>macOS</p></td>
 <td rowspan="2"><p>X86-64</p></td>
 <td><p>CPU</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
-<td rowspan="2"><p><a class="reference external" href="https://github.com/ameli/glearn/actions?query=workflow%3Abuild-macos"><img alt="build-macos" src="https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-macos.yml" /></a></p></td>
+<td><p>✔</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td rowspan="4"><p><a class="reference external" href="https://github.com/ameli/glearn/actions?query=workflow%3Abuild-macos"><img alt="build-macos" src="https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-macos.yml" /></a></p></td>
 </tr>
 <tr class="row-even"><td><p>GPU</p></td>
 <td><p>✖</p></td>
 <td><p>✖</p></td>
 <td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="2"><p>Windows</p></td>
+<tr class="row-odd"><td rowspan="2"><p>ARM-64</p></td>
+<td><p>CPU</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+</tr>
+<tr class="row-even"><td><p>GPU</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+</tr>
+<tr class="row-odd"><td rowspan="4"><p>Windows</p></td>
 <td rowspan="2"><p>X86-64</p></td>
 <td><p>CPU</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
-<td rowspan="2"><p><a class="reference external" href="https://github.com/ameli/glearn/actions?query=workflow%3Abuild-windows"><img alt="build-windows" src="https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-windows.yml" /></a></p></td>
+<td><p>✔</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td rowspan="4"><p><a class="reference external" href="https://github.com/ameli/glearn/actions?query=workflow%3Abuild-windows"><img alt="build-windows" src="https://img.shields.io/github/actions/workflow/status/ameli/glearn/build-windows.yml" /></a></p></td>
 </tr>
 <tr class="row-even"><td><p>GPU</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+</tr>
+<tr class="row-odd"><td rowspan="2"><p>ARM-64 <sup>2</sup></p></td>
+<td><p>CPU</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✔</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+</tr>
+<tr class="row-even"><td><p>GPU</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
+<td><p>✖</p></td>
 </tr>
 </tbody>
 </table>
 <p>Python wheels for <span class="synco">g-learn</span> for all supported platforms and versions in the above are available through <a class="reference external" href="https://pypi.org/project/glearn/">PyPI</a> and <a class="reference external" href="https://anaconda.org/s-ameli/glearn">Anaconda Cloud</a>. If you need <span class="synco">g-learn</span> on other platforms, architectures, and Python versions, <a class="reference external" href="https://github.com/ameli/glearn/issues">raise an issue</a> on GitHub and we build its Python Wheel for you.</p>
+<div class="line-block">
+<div class="line"><sup>1. Wheels for PyPy are exclusively available for installation through pip and cannot be installed using conda.</sup></div>
+<div class="line"><sup>2. Wheels for Windows on ARM-64 architecture are exclusively available for installation through pip and cannot be installed using conda.</sup></div>
+</div>
 </section>
 <section id="install">
 <h2>Install<a class="headerlink" href="#install" title="Permalink to this heading">#</a></h2>
@@ -504,7 +594,7 @@ span.prompt1:before {
 <li class="toctree-l1"><a class="reference internal" href="install/install.html">Install</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="install/install_wheels.html">1. Install from Wheels</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install/virtual_env.html">2. Install in Virtual Environment</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install/optional_dependencies.html">3. Optional Runtime Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/dependencies.html">3. Runtime Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install/compile_source.html">4. Compile from Source</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install/gen_documentation.html">5. Generate Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install/test_package.html">6. Test Package</a></li>
