@@ -37,7 +37,7 @@ def main():
     # Generate data points
     num_points = 50
     points = generate_points(num_points, dimension=1, grid=False, seed=0,
-                             a=0.4, b=0.6, ratio=0.8)
+                             a=0.4, b=0.6, contrast=0.8)
 
     # Generate noisy data
     # noise_magnitude = 0.2

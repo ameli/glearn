@@ -38,7 +38,7 @@ Set ``CYTHON_BUILD_FOR_DOC`` to `1` (see :ref:`Configure Compile-Time Environmen
 
         .. prompt:: powershell
 
-            $env:export CYTHON_BUILD_FOR_DOC = "1"
+            $env:CYTHON_BUILD_FOR_DOC = "1"
             sudo -E python setup.py install
 
 Generate Sphinx Documentation

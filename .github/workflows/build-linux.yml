@@ -15,7 +15,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                python-version: ['3.9', '3.10', '3.11', '3.12']
+                python-version: ['3.9', '3.10', '3.11', '3.12', 'pypy3.8', 'pypy3.9', 'pypy3.10']
 
         steps:
             - name: Checkout
@@ -26,11 +26,21 @@ jobs:
               with:
                   python-version: ${{ matrix.python-version }}
 
-            - name: Install package and dependencies
+            # Install OpenBLAS when PyPy is used as PyPy builds numpy from source.
+            # This is not needed for building wheels of this package (so no
+            # installation of OpenBLAS in deploy-pypi), but it is needed for "install"ing
+            # this package. This is because this package does not need numpy to build this
+            # package's wheel, but it needs numpy at runtime. Hence, PyPy does not build numpy
+            # when building this package's wheel, but PyPy needs numpy when installing the
+            # package.
+            - name: Install prerequisites
+              if: (contains(matrix.python-version, 'pypy'))
+              run: sudo apt-get install gfortran libopenblas-dev liblapack-dev
+
+            - name: Install package and dependencies (CPython)
               run: |
                   python -m pip install --upgrade pip
-                  python -m pip install --upgrade numpy
-                  python -m pip install --upgrade . -vvv
+                  python -m pip install . -vvv
 
             # Despite the package is built on both cpython and pypy, here we
             # only test it on cpython, not on pypy, since many other required

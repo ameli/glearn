@@ -69,21 +69,6 @@ from setuptools.errors import CompileError, LinkError, ExecError
 from setuptools.command.build_ext import build_ext
 # from Cython.Distutils import build_ext
 
-# Import numpy
-try:
-    import numpy
-except ImportError:
-    # Install numpy
-    install_package('numpy>1.11')
-    import numpy
-
-# Check scipy is installed (needed for build, but not required to be imported)
-try:
-    import scipy                                                    # noqa F401
-except ImportError:
-    # Install scipy
-    install_package('scipy')
-
 # Import Cython (to convert pyx to C code)
 try:
     from Cython.Build import cythonize
@@ -113,8 +98,8 @@ except ImportError:
     export CUDA_DYNAMIC_LOADING=1
 
     # In Windows
-    $env:export CYTHON_BUILD_IN_SOURCE = "1"
-    $env:export CYTHON_BUILD_FOR_DOC = "1"
+    $env:CYTHON_BUILD_IN_SOURCE = "1"
+    $env:CYTHON_BUILD_FOR_DOC = "1"
     $env:USE_CUDA = "1"
     $env:DEBUG_MODE = "1"
     $env:CUDA_DYNAMIC_LOADDING= "1"
@@ -1377,7 +1362,7 @@ def cythonize_extensions(extensions):
     cythonized_extensions = cythonize(
         extensions,
         build_dir=cython_build_dir,
-        include_path=[numpy.get_include(), "."],
+        include_path=["."],
         language_level="3",
         nthreads=multiprocessing.cpu_count(),
         compiler_directives=compiler_derivatives
@@ -1517,17 +1502,13 @@ def main(argv):
             'examples']
         ),
         ext_modules=external_modules,
-        include_dirs=[numpy.get_include()],
         install_requires=requirements,
-        python_requires='>=3.9',
+        python_requires='>=3.8',
         setup_requires=[
             'setuptools',
             'wheel',
-            'numpy>1.11',
-            'scipy>=1.5',
             'special_functions',
-            'cython',
-            'pytest-runner'],
+            'cython'],
         tests_require=[
             'pytest',
             'pytest-cov'],
@@ -1553,6 +1534,8 @@ def main(argv):
             'Programming Language :: Python :: Implementation :: PyPy',
             'Environment :: GPU :: NVIDIA CUDA',
             'License :: OSI Approved :: BSD License',
+            'Operating System :: Unix',
+            'Operating System :: POSIX',
             'Operating System :: POSIX :: Linux',
             'Operating System :: Microsoft :: Windows',
             'Operating System :: MacOS',

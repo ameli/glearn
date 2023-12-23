@@ -34,7 +34,7 @@ def main():
     # Generate data points
     num_points = int(2**(13/2.0))
     points = generate_points(num_points, dimension=2, grid=True)
-                             # a=[0, 0], b=[0.1, 0.1], ratio=0.4)
+                             # a=[0, 0], b=[0.1, 0.1], contrast=0.4)
 
     # Generate noisy data
     noise_magnitude = 0.2

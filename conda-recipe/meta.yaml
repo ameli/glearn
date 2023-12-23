@@ -35,8 +35,6 @@ requirements:
         - python {{ python }}
         # - python
         - setuptools
-        - numpy>1.11
-        - scipy>=1.5
         - cython>=0.29,<3.0
         - pip
         - special_functions       # needs -c s-ameli

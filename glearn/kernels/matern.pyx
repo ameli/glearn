@@ -11,8 +11,7 @@
 # Imports
 # =======
 
-from scipy.special.cython_special cimport gamma
-from special_functions cimport besselk
+from special_functions cimport besselk, lngamma
 from libc.math cimport sqrt, exp, fabs, isnan, isinf
 from libc.stdio cimport printf
 from .kernel import Kernel
@@ -267,7 +266,7 @@ cdef class Matern(Kernel):
                 if fabs(x) < epsilon:
                     k = 1.0
                 else:
-                    k = ((2.0**(1.0-self.nu)) / gamma(self.nu)) * \
+                    k = ((2.0**(1.0-self.nu)) / exp(lngamma(self.nu))) * \
                             ((sqrt(2.0*self.nu) * x)**self.nu) * \
                             besselk(self.nu, sqrt(2.0*self.nu)*x, 0)
 
@@ -367,7 +366,8 @@ cdef class Matern(Kernel):
                 else:
                     y = sqrt(2.0*self.nu) * x
 
-                c = ((2.0**(1.0-self.nu)) / gamma(self.nu)) * sqrt(2.0*self.nu)
+                c = ((2.0**(1.0-self.nu)) / exp(lngamma(self.nu))) * \
+                    sqrt(2.0*self.nu)
                 dk = c * (y**(self.nu-1.0)) * \
                     (self.nu * besselk(self.nu, y, 0) +
                      y * besselk(self.nu, y, 1))
@@ -467,7 +467,7 @@ cdef class Matern(Kernel):
                 else:
                     y = sqrt(2.0*self.nu) * x
 
-                c = ((2.0**(1.0-self.nu)) / gamma(self.nu)) * 2.0*self.nu
+                c = ((2.0**(1.0-self.nu)) / exp(lngamma(self.nu))) * 2.0*self.nu
                 d2k = c * (y**(self.nu-2.0)) * (
                         self.nu * (self.nu - 1.0) * besselk(self.nu, y, 0) +
                         2.0 * y * besselk(self.nu, y, 1) +

@@ -29,7 +29,6 @@ from ._sparse_matrix_utilities import estimate_kernel_threshold, \
 from ..kernels import Kernel
 from ..kernels cimport Kernel
 cimport cython
-cimport numpy
 cimport openmp
 
 __all__ = ['sparse_auto_correlation']
@@ -534,13 +533,13 @@ def sparse_auto_correlation(
         p_matrix_column_indices = pp_matrix_column_indices[0]
         p_matrix_data = pp_matrix_data[0]
 
-        # Create number array from c pointers
+        # Create numpy array from c pointers
         matrix_row_indices = numpy.asarray(
                 <long[:max_nnz[0]]> p_matrix_row_indices)
         matrix_column_indices = numpy.asarray(
                 <long[:max_nnz[0]]> p_matrix_column_indices)
         matrix_data = numpy.asarray(
-                <numpy.float64_t[:max_nnz[0]]> p_matrix_data)
+                <double[:max_nnz[0]]> p_matrix_data)
 
         # Free double-pointers. We only need array pointer not double-pointer.
         # The pointers will be destructed in number array after their lifetime,

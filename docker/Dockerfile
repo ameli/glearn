@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2021, Siavash Ameli <sameli@berkeley.edu>
+# SPDX-FileCopyrightText: Copyright 2022, Siavash Ameli <sameli@berkeley.edu>
 # SPDX-License-Identifier: BSD-3-Clause
 # SPDX-FileType: SOURCE
 
@@ -28,7 +28,7 @@
 # Build
 # -----
 
-FROM nvidia/cuda:11.7.1-devel-ubuntu22.04 as builder
+FROM nvidia/cuda:12.3.1-devel-ubuntu22.04 as builder
 MAINTAINER Siavash Ameli <samei@berkeley.edu>
 LABEL Description="glearn python package with cuda-11 support"
 
@@ -37,6 +37,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         python3-dev \
         python3-pip \
+        python3-venv \
         wget \
         && \
     apt-get clean && \
@@ -54,7 +55,7 @@ RUN rm -rf build dist
 RUN /usr/bin/python3 setup.py clean
 RUN /usr/bin/python3 -m pip install --upgrade pip
 RUN /usr/bin/python3 -m pip install build
-RUN /usr/bin/python3 -m build --wheel
+RUN /usr/bin/python3 -m build --wheel --outdir dist
 
 # -------
 # Runtime
@@ -67,8 +68,8 @@ FROM sameli/imate
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive \
     apt-get install -y --no-install-recommends \
-        libcublas-11-7 \
-        libcusparse-11-7 \
+        libcublas-12-3 \
+        libcusparse-12-3 \
         python3-pip \
         libgomp1 \
         libsuitesparse-dev \

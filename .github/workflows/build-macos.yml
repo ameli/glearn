@@ -15,7 +15,9 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                python-version: ['3.9', '3.10', '3.11', '3.12']
+                # PyPy works, but takes a long time to build, this commented out only for reducing the runner time
+                python-version: ['3.9', '3.10', '3.11', '3.12', 'pypy3.8', 'pypy3.9', 'pypy3.10']
+                # python-version: ['3.9', '3.10', '3.11', '3.12']
 
         steps:
             - name: Checkout
@@ -49,11 +51,21 @@ jobs:
                   # brew install lapack
                   # pip3 install numpy
 
-            - name: Install package and dependencies
+            - name: Install package and dependencies (not PyPy)
+              if: (!contains(matrix.python-version, 'pypy'))
               run: |
                   python -m pip install --upgrade pip
-                  python -m pip install --upgrade numpy
-                  python -m pip install --upgrade . -vvv
+                  python -m pip install . -vvv
+
+            # For PyPy, export OpenBLAS pkgconfig file, when pypy tries to build scipy from source
+            # which needs OpenBLAS
+            - name: Install package and dependencies (PyPy)
+              if: (contains(matrix.python-version, 'pypy'))
+              run: |
+                  python -m pip install --upgrade pip
+                  python -m pip install . -vvv
+              env:
+                  PKG_CONFIG_PATH: /usr/local/opt/openblas/lib/pkgconfig
 
               # Move source to avoid import from local folder
             - name: Rename source
