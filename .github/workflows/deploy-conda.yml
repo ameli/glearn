@@ -52,17 +52,15 @@ jobs:
               uses: pypa/cibuildwheel@v2.15.0
               env:
                   CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-                  CIBW_ARCHS_WINDOWS: "AMD64 x86 ARM64"
+                  CIBW_ARCHS_WINDOWS: "AMD64 x86"
                   CIBW_ARCHS_MACOS: "x86_64"
                   CIBW_ARCHS_LINUX: "x86_64"
                   CIBW_BUILD: >
                     ${{ matrix.python-version }}-win_amd64
-                    ${{ matrix.python-version }}-win_arm64
                     ${{ matrix.python-version }}-macosx_x86_64
                     ${{ matrix.python-version }}-manylinux_x86_64
                   CIBW_SKIP: "pp* cp36-* cp37-* cp38-*"
                   CIBW_BUILD_VERBOSITY: 3
-                  # CIBW_BEFORE_BUILD_MACOS: brew reinstall gcc # TEST
                   CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
                   CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
               with:
