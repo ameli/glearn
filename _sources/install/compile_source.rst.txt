@@ -183,7 +183,7 @@ Set the following environment variables as desired to configure the compilation 
 
                 .. prompt:: powershell
 
-                    $env:export CYTHON_BUILD_IN_SOURCE = "1"
+                    $env:CYTHON_BUILD_IN_SOURCE = "1"
 
         .. hint::
 
@@ -207,7 +207,7 @@ Set the following environment variables as desired to configure the compilation 
 
                 .. prompt:: powershell
 
-                    $env:export CYTHON_BUILD_FOR_DOC = "1"
+                    $env:CYTHON_BUILD_FOR_DOC = "1"
 
         .. warning::
 
@@ -235,7 +235,7 @@ Set the following environment variables as desired to configure the compilation 
 
                 .. prompt:: powershell
 
-                    $env:export DEBUG_MODE = "1"
+                    $env:DEBUG_MODE = "1"
 
         .. attention::
 
@@ -285,9 +285,9 @@ If you are using ``sudo`` for the above command, add ``-E`` option to ``sudo`` t
         .. code-block:: PowerShell
             :emphasize-lines: 5
 
-            $env:export CUDA_HOME = "/usr/local/cuda"
-            $env:export USE_CUDA = "1"
-            $env:export CUDA_DYNAMIC_LOADING = "1"
+            $env:CUDA_HOME = "/usr/local/cuda"
+            $env:USE_CUDA = "1"
+            $env:CUDA_DYNAMIC_LOADING = "1"
 
             sudo -E python -m pip install .
 
