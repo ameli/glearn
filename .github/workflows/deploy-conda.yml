@@ -115,6 +115,12 @@ jobs:
                   miniconda-version: "latest"
                   auto-update-conda: true
 
+            - name: Setup tmate session
+              if: matrix.os == 'macos-latest'
+              uses: mxschmitt/action-tmate@v3
+              with:
+                detached: true
+
             - name: Build and upload package
               shell: bash -el {0}
               run: |
