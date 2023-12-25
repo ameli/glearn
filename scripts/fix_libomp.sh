@@ -38,25 +38,8 @@
 # `imate` package. Also, if `glearn` package comes with `libomp.dylib`, it
 # copies it from `glearn` package to `imate` package.
 
+
 set -e
-
-# Check if the operating system is MacOS.
-if [[ $OSTYPE != 'darwin'* ]]; then
-  echo 'This script should run only on MacOS.'
-  exit
-fi
-
-# Get the directory of python
-if [[ $1 != '' ]];
-then
-    # Use user-defined python
-    PYTHON=$1
-else
-    # Use default python
-    PYTHON=`which python`
-    echo "Using default python at '${PYTHON}'."
-fi
-
 
 # ===========
 # Find libomp
@@ -105,6 +88,23 @@ find_libomp()
 )}
 
 # ===========
+
+# Check if the operating system is MacOS.
+if [[ $OSTYPE != 'darwin'* ]]; then
+  echo 'This script should run only on MacOS.'
+  exit
+fi
+
+# Get the directory of python
+if [[ $1 != '' ]];
+then
+    # Use user-defined python
+    PYTHON=$1
+else
+    # Use default python
+    PYTHON=`which python`
+    echo "Using default python at '${PYTHON}'."
+fi
 
 # Find libomp in imate package
 package1='imate'

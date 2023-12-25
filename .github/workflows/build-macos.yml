@@ -51,6 +51,15 @@ jobs:
                   # brew install lapack
                   # pip3 install numpy
 
+            # Install OpenBLAS when PyPy is used, since it tries to compile numpy and scipt from
+            # source, whic needs OpenBLAS
+            - name: Install package and dependencies (OpenBLAS, gfortran)
+              if: (contains(matrix.python-version, 'pypy'))
+              run: |
+                  brew install openblas
+                  brew install libomp
+                  brew reinstall gcc
+
             - name: Install package and dependencies (not PyPy)
               if: (!contains(matrix.python-version, 'pypy'))
               run: |
