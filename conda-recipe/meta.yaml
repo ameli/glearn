@@ -30,6 +30,7 @@ requirements:
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
         - llvm-openmp  # [osx]
+        - special_functions       # needs -c s-ameli
 
     host:
         - python {{ python }}
