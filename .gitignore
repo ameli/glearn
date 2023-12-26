@@ -46,3 +46,6 @@ docs/build/
 
 # Lint
 .ruff_cache/
+
+# Conda
+conda-bld
