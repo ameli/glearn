@@ -30,11 +30,10 @@ requirements:
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
         - llvm-openmp  # [osx]
-        - python {{ python }}
         - special_functions       # needs -c s-ameli
 
     host:
-        # - python {{ python }}
+        - python {{ python }}
         - setuptools
         - cython>=0.29,<3.0
         - pip
