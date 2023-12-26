@@ -48,4 +48,4 @@ docs/build/
 .ruff_cache/
 
 # Conda
-conda-bld
+conda-bld/
