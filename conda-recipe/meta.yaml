@@ -31,6 +31,7 @@ requirements:
         - {{ compiler('cxx') }}
         - llvm-openmp  # [osx]
         - special_functions       # needs -c s-ameli
+        - python {{ python }}
 
     host:
         - python {{ python }}
@@ -42,8 +43,8 @@ requirements:
         - detkit                  # needs -c s-sameli
         - llvm-openmp  # [osx]
     run:
-        # - python {{ python }}
-        - python
+        - python {{ python }}
+        # - python
         - numpy>1.11
         # - {{ pin_compatible('numpy') }}
         - scipy>=1.5
