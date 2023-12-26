@@ -115,11 +115,6 @@ jobs:
                   miniconda-version: "latest"
                   auto-update-conda: true
 
-            - name: Setup tmate session # TEST
-              uses: mxschmitt/action-tmate@v3
-              with:
-                detached: true
-
             - name: Build and upload package
               shell: bash -el {0}
               run: |
@@ -127,7 +122,8 @@ jobs:
                   conda config --set anaconda_upload yes
                   export PATH=$(conda info --root):$PATH
                   export PATH=$(conda info --root)/bin:$PATH
-                  conda-build --output-folder . . -c s-ameli
+                  conda install special_functions -c s-ameli
+                  conda-build --output-folder conda-bld . -c s-ameli
               env:
                   CYTHON_BUILD_IN_SOURCE: '1'  # see setup.py. Avoids a bug when building with multiple python variants
                   ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
