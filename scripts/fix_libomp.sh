@@ -115,7 +115,7 @@ package2='glearn'
 gp_libomp="$(find_libomp ${PYTHON} ${package2})"
 
 # Remove libomp from imate
-if [[ ${imate_libomp} != '' ]];
+if [[ ${gp_libomp} != '' ]] && [[ ${imate_libomp} != '' ]];
 then
     # Find directory of imate_libomp
     imate_libomp_dir=$(dirname $imate_libomp)
@@ -129,11 +129,7 @@ then
         echo "ERROR: removing '${imate_libomp}' failed."
         exit 1
     fi
-fi
 
-# Copy libomp from glearn to imate
-if [[ ${gp_libomp} != '' ]] && [[ ${imate_libomp} != '' ]];
-then
     # Copy libomp of glearn package into imate package
     cp -f ${gp_libomp} ${imate_libomp_dir}
     status=$?
