@@ -48,7 +48,7 @@ jobs:
               if: matrix.os != 'windows-latest'
               run: rm -rf /opt/hostedtoolcache 
 
-            - name: Build wheels (X86_64 and arm64)
+            - name: Build wheels (X86_64)
               uses: pypa/cibuildwheel@v2.15.0
               env:
                   CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014

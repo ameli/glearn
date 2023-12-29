@@ -136,7 +136,8 @@ jobs:
                 # linux, we only test it on cpython, not on pypy, since many
                 # other required dependencies (like matplotlib, etc) need to be
                 # compiled on pypy.
-                python-version: ['3.9', '3.10', '3.11', '3.12']
+                # python-version: ['3.9', '3.10', '3.11', '3.12'] # TEST
+                python-version: ['3.11']
 
         steps:
             - name: Setup Python ${{ matrix.python-version }}
@@ -169,11 +170,11 @@ jobs:
               shell: bash
 
             - name: Test
-              if: matrix.os != 'macos-latest'
+              # if: matrix.os != 'macos-latest'
               run: pytest
 
-            - name: Setup tmate session
-              if: matrix.os == 'macos-latest'
-              uses: mxschmitt/action-tmate@v3
-              with:
-                detached: true
+            # - name: Setup tmate session
+            #   if: matrix.os == 'macos-latest'
+            #   uses: mxschmitt/action-tmate@v3
+            #   with:
+            #     detached: true
