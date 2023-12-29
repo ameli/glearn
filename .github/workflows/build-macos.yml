@@ -16,8 +16,8 @@ jobs:
             fail-fast: false
             matrix:
                 # PyPy works, but takes a long time to build, this commented out only for reducing the runner time
-                python-version: ['3.9', '3.10', '3.11', '3.12', 'pypy3.8', 'pypy3.9', 'pypy3.10']
-                # python-version: ['3.9', '3.10', '3.11', '3.12']
+                # python-version: ['3.9', '3.10', '3.11', '3.12', 'pypy3.8', 'pypy3.9', 'pypy3.10']
+                python-version: ['3.9', '3.10', '3.11', '3.12']
 
         steps:
             - name: Checkout

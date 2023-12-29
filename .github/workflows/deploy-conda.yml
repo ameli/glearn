@@ -68,7 +68,7 @@ jobs:
 
             # Upload all wheels to an artifact
             - name: Upload artifacts
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               with:
                   name: wheel-artifacts
                   path: ./wheelhouse/*.whl
@@ -131,7 +131,7 @@ jobs:
             # them, however, they will be deleted after the retention days,
             # which I set to one day.
             - name: Delete artifacts
-              uses: geekyeggo/delete-artifact@v1
+              uses: geekyeggo/delete-artifact@v4
               with:
                   name: wheel-artifacts
 
