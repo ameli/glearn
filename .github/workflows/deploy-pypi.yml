@@ -15,8 +15,8 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                # os: [ubuntu-latest, windows-latest, macos-latest] # TEST
-                # python-version: ['cp39', 'cp310', 'cp311', 'cp312', 'pp38', 'pp39', 'pp310']
+                os: [ubuntu-latest, windows-latest, macos-latest]
+                python-version: ['cp39', 'cp310', 'cp311', 'cp312', 'pp38', 'pp39', 'pp310']
                 os: [macos-latest]
                 python-version: ['cp311']
         steps:
@@ -65,7 +65,7 @@ jobs:
                     ${{ matrix.python-version }}-manylinux_x86_64
                   CIBW_SKIP: "pp37-* cp36-* cp37-* cp38-*"
                   CIBW_BUILD_VERBOSITY: 3
-                  # CIBW_BEFORE_BUILD_MACOS: brew reinstall gcc # TEST
+                  # CIBW_BEFORE_BUILD_MACOS: brew reinstall gcc
                   CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
                   CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
               with:
@@ -131,14 +131,12 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                # os: [ubuntu-latest, windows-latest, macos-latest] # TEST
-                os: [macos-latest]
+                os: [ubuntu-latest, windows-latest, macos-latest]
                 # Despite the package is built on both cpython and pypy in
                 # linux, we only test it on cpython, not on pypy, since many
                 # other required dependencies (like matplotlib, etc) need to be
                 # compiled on pypy.
-                # python-version: ['3.9', '3.10', '3.11', '3.12'] # TEST
-                python-version: ['3.11']
+                python-version: ['3.9', '3.10', '3.11', '3.12']
 
         steps:
             - name: Setup Python ${{ matrix.python-version }}
@@ -171,11 +169,5 @@ jobs:
               shell: bash
 
             - name: Test
-              # if: matrix.os != 'macos-latest'
+              if: matrix.os != 'macos-latest'
               run: pytest
-
-            # - name: Setup tmate session
-            #   if: matrix.os == 'macos-latest'
-            #   uses: mxschmitt/action-tmate@v3
-            #   with:
-            #     detached: true

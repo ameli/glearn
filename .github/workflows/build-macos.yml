@@ -1,9 +1,9 @@
 name: build-macos
 
 on:
-    # push:
-    #     branches:
-    #         - main
+    push:
+        branches:
+            - main
     release:
         types: 
             - published
@@ -91,13 +91,13 @@ jobs:
               shell: bash
 
             # Temporarily do not perform test due to duplicate libomp error in MacOS.
-            - name: Test
-              run: |
-                  python -m pip install --upgrade pytest
-                  python -m pip install --upgrade pytest-cov
-                  pytest
-
-            - name: Coverage
-              run: |
-                  python -m pip install codecov
-                  codecov
+            # - name: Test
+            #   run: |
+            #       python -m pip install --upgrade pytest
+            #       python -m pip install --upgrade pytest-cov
+            #       pytest
+            #
+            # - name: Coverage
+            #   run: |
+            #       python -m pip install codecov
+            #       codecov

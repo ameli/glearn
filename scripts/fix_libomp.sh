@@ -345,8 +345,7 @@ then
     # If both imate and glearn have their own bundled lib, keep imate lib, but
     # replace glearn's lib and create a symbolic link for glearn to use
     # imate's lib.
-    # replace_lib ${bundled_libomp_1} ${bundled_libomp_2}
-    replace_lib ${bundled_libomp_2} ${bundled_libomp_1}
+    replace_lib ${bundled_libomp_1} ${bundled_libomp_2}
 
 elif [[ ${bundled_libomp_1} != '' ]] && [[ ${system_libomp_2} != '' ]];
 then
