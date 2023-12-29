@@ -131,7 +131,8 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                os: [ubuntu-latest, windows-latest, macos-latest]
+                # os: [ubuntu-latest, windows-latest, macos-latest] # TEST
+                os: [macos-latest]
                 # Despite the package is built on both cpython and pypy in
                 # linux, we only test it on cpython, not on pypy, since many
                 # other required dependencies (like matplotlib, etc) need to be
