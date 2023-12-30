@@ -74,7 +74,6 @@ build_upload_anaconda() {
     # build_upload_anaconda "macosx_arm64"
 
     conda install -y anaconda-client conda-build
-    conda install -y -c s-ameli special_functions
 
     # Anaconda account
     ANACONDA_USERNAME="s-ameli"
@@ -105,7 +104,8 @@ build_upload_anaconda() {
 
     # Build wheels and upload them automatically
     if compgen -G "./dist/*.whl"; then
-        conda-build --output-folder conda-bld .
+        conda install -y -c s-ameli special_functions
+        conda build --output-folder conda-bld . -c s-ameli
         anaconda -t ${ANACONDA_API_TOKEN} upload --force \
             -u ${ANACONDA_USERNAME} conda-bld/${BUILD_SUBDIR}/*.tar.bz2
     else
