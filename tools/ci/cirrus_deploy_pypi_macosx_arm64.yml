@@ -113,39 +113,39 @@ pypi_upload_wheels_macosx_arm64_task:
 # ======================
 
 # Disable test temporarily due to libomp issue
-pypi_test_macosx_arm64_task:
-  use_compute_credits: $CIRRUS_USER_COLLABORATOR == 'true'
-  macos_instance:
-    image: ghcr.io/cirruslabs/macos-monterey-base:latest
-    cpu: 1
-    memory: 4G
-  depends_on:
-    - pypi_upload_wheels_macosx_arm64
-  matrix:
-    # - env:
-    #     PY_VER: "3.9"
-    - env:
-        PY_VER: "3.10"
-    - env:
-        PY_VER: "3.11"
-    # - env:
-    #     PY_VER: "3.12"
-
-  test_script:
-    - brew install pyenv
-    - PY_VER_NAME=`pyenv install -l | grep " ${PY_VER}.*" -m 1`
-    - pyenv install ${PY_VER_NAME}
-    - pyenv local ${PY_VER_NAME}
-    - eval "$(command pyenv init -)"
-    - eval "$(command pyenv init --path)"
-    - set -x
-    - which python
-    - uname -m
-    - python -c "import platform;print(platform.python_version());print(platform.system());print(platform.machine())"
-    - mv glearn glearn_do_not_import
-    - python -m pip install --upgrade pip
-    - python -m pip install --prefer-binary --upgrade glearn
-    - python -m pip install numpy
-    - python -m pip install -r tests/requirements.txt
-    - bash ./scripts/fix_libomp.sh `which python`
-    - python -m pytest
+# pypi_test_macosx_arm64_task:
+#   use_compute_credits: $CIRRUS_USER_COLLABORATOR == 'true'
+#   macos_instance:
+#     image: ghcr.io/cirruslabs/macos-monterey-base:latest
+#     cpu: 1
+#     memory: 4G
+#   depends_on:
+#     - pypi_upload_wheels_macosx_arm64
+#   matrix:
+#     # - env:
+#     #     PY_VER: "3.9"
+#     - env:
+#         PY_VER: "3.10"
+#     - env:
+#         PY_VER: "3.11"
+#     # - env:
+#     #     PY_VER: "3.12"
+#
+#   test_script:
+#     - brew install pyenv
+#     - PY_VER_NAME=`pyenv install -l | grep " ${PY_VER}.*" -m 1`
+#     - pyenv install ${PY_VER_NAME}
+#     - pyenv local ${PY_VER_NAME}
+#     - eval "$(command pyenv init -)"
+#     - eval "$(command pyenv init --path)"
+#     - set -x
+#     - which python
+#     - uname -m
+#     - python -c "import platform;print(platform.python_version());print(platform.system());print(platform.machine())"
+#     - mv glearn glearn_do_not_import
+#     - python -m pip install --upgrade pip
+#     - python -m pip install --prefer-binary --upgrade glearn
+#     - python -m pip install numpy
+#     - python -m pip install -r tests/requirements.txt
+#     - bash ./scripts/fix_libomp.sh `which python`
+#     - python -m pytest

@@ -74,6 +74,7 @@ build_upload_anaconda() {
     # build_upload_anaconda "macosx_arm64"
 
     conda install -y anaconda-client conda-build
+    conda install -y -c s-ameli special_functions
 
     # Anaconda account
     ANACONDA_USERNAME="s-ameli"

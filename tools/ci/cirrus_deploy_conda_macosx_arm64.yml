@@ -96,7 +96,6 @@ conda_build_upload_conda_macosx_arm64_task:
     - unzip -j wheels.zip -d dist
     - source ./tools/wheels/upload_wheels.sh
     - install_anaconda "macosx_arm64"
-    - conda install -y -c s-ameli special_functions
     - build_upload_anaconda "macosx_arm64"
 
 
@@ -105,39 +104,39 @@ conda_build_upload_conda_macosx_arm64_task:
 # =======================
 
 # Disable test temporarily due to libomp issue
-conda_test_macosx_arm64_task:
-  use_compute_credits: $CIRRUS_USER_COLLABORATOR == 'true'
-  macos_instance:
-    image: ghcr.io/cirruslabs/macos-monterey-base:latest
-    cpu: 1
-    memory: 4G
-  depends_on:
-    - conda_build_upload_conda_macosx_arm64
-  matrix:
-    - env:
-        PY_VER: "3.9"
-    - env:
-        PY_VER: "3.10"
-    - env:
-        PY_VER: "3.11"
-    - env:
-        PY_VER: "3.12"
-
-  test_script:
-    - uname -m
-    - source ./tools/wheels/upload_wheels.sh
-    - install_anaconda "macosx_arm64"
-    - conda update conda -y
-    - eval "$(conda shell.bash hook)"
-    - conda create --name myenv python=${PY_VER} -y
-    - conda activate myenv
-    - which python
-    - set -x
-    - python -c "import platform;print(platform.python_version());print(platform.system());print(platform.machine())"
-    - mv glearn glearn_do_not_import
-    - conda install -c s-ameli glearn -y
-    - python -m pip install --upgrade pip
-    - python -m pip install numpy
-    - python -m pip install -r tests/requirements.txt
-    - bash ./scripts/fix_libomp.sh `which python`
-    - python -m pytest
+# conda_test_macosx_arm64_task:
+#   use_compute_credits: $CIRRUS_USER_COLLABORATOR == 'true'
+#   macos_instance:
+#     image: ghcr.io/cirruslabs/macos-monterey-base:latest
+#     cpu: 1
+#     memory: 4G
+#   depends_on:
+#     - conda_build_upload_conda_macosx_arm64
+#   matrix:
+#     - env:
+#         PY_VER: "3.9"
+#     - env:
+#         PY_VER: "3.10"
+#     - env:
+#         PY_VER: "3.11"
+#     - env:
+#         PY_VER: "3.12"
+#
+#   test_script:
+#     - uname -m
+#     - source ./tools/wheels/upload_wheels.sh
+#     - install_anaconda "macosx_arm64"
+#     - conda update conda -y
+#     - eval "$(conda shell.bash hook)"
+#     - conda create --name myenv python=${PY_VER} -y
+#     - conda activate myenv
+#     - which python
+#     - set -x
+#     - python -c "import platform;print(platform.python_version());print(platform.system());print(platform.machine())"
+#     - mv glearn glearn_do_not_import
+#     - conda install -c s-ameli glearn -y
+#     - python -m pip install --upgrade pip
+#     - python -m pip install numpy
+#     - python -m pip install -r tests/requirements.txt
+#     - bash ./scripts/fix_libomp.sh `which python`
+#     - python -m pytest
