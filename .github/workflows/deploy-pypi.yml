@@ -15,10 +15,8 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                # os: [ubuntu-latest, windows-latest, macos-latest] # TEST
-                # python-version: ['cp39', 'cp310', 'cp311', 'cp312', 'pp38', 'pp39', 'pp310']
-                os: [macos-latest]
-                python-version: ['cp311']
+                os: [ubuntu-latest, windows-latest, macos-latest]
+                python-version: ['cp39', 'cp310', 'cp311', 'cp312', 'pp38', 'pp39', 'pp310']
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -133,14 +131,12 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                # os: [ubuntu-latest, windows-latest, macos-latest] # TEST
-                os: [macos-latest]
+                os: [ubuntu-latest, windows-latest, macos-latest]
                 # Despite the package is built on both cpython and pypy in
                 # linux, we only test it on cpython, not on pypy, since many
                 # other required dependencies (like matplotlib, etc) need to be
                 # compiled on pypy.
-                # python-version: ['3.9', '3.10', '3.11', '3.12'] # TEST
-                python-version: ['3.11']
+                python-version: ['3.9', '3.10', '3.11', '3.12']
 
         steps:
             - name: Setup Python ${{ matrix.python-version }}

@@ -73,10 +73,6 @@ build_upload_anaconda() {
     # build_upload_anaconda "linux_x86_64"
     # build_upload_anaconda "macosx_arm64"
 
-    # Build sdist
-    python -m pip install build
-    python -m build . --sdist
-
     conda install -y anaconda-client conda-build
 
     # Anaconda account
@@ -108,7 +104,7 @@ build_upload_anaconda() {
 
     # Build wheels and upload them automatically
     if compgen -G "./dist/*.whl"; then
-        conda build --output-folder conda-bld .
+        conda-build --output-folder conda-bld .
         anaconda -t ${ANACONDA_API_TOKEN} upload --force \
             -u ${ANACONDA_USERNAME} conda-bld/${BUILD_SUBDIR}/*.tar.bz2
     else
