@@ -15,8 +15,8 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                os: [ubuntu-latest, windows-latest, macos-latest]
-                python-version: ['cp39', 'cp310', 'cp311', 'cp312', 'pp38', 'pp39', 'pp310']
+                # os: [ubuntu-latest, windows-latest, macos-latest] # TEST
+                # python-version: ['cp39', 'cp310', 'cp311', 'cp312', 'pp38', 'pp39', 'pp310']
                 os: [macos-latest]
                 python-version: ['cp311']
         steps:
@@ -73,8 +73,9 @@ jobs:
 
             # Upload all wheels to an artifact
             - name: Upload artifacts
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               with:
+                  name: artifacts-wheel-${{ matrix.os }}-${{ matrix.python-version }}
                   path: ./wheelhouse/*.whl
                   retention-days: 1
 
@@ -96,8 +97,9 @@ jobs:
                 python -m build . --sdist
             
             - name: Upload artifacts
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               with:
+                  name: artifacts-sdist
                   path: dist/*.tar.gz
                   retention-days: 1
 
@@ -112,9 +114,10 @@ jobs:
         # if: github.event_name == 'release' && github.event.action == 'published'
         steps:
             - name: Download artifacts
-              uses: actions/download-artifact@v3
+              uses: actions/download-artifact@v4
               with:
-                  name: artifact
+                  patern: artifacts-*
+                  merge-multiple: true
                   path: dist
 
             - name: Upload to PyPi
@@ -131,12 +134,14 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                os: [ubuntu-latest, windows-latest, macos-latest]
+                # os: [ubuntu-latest, windows-latest, macos-latest] # TEST
+                os: [macos-latest]
                 # Despite the package is built on both cpython and pypy in
                 # linux, we only test it on cpython, not on pypy, since many
                 # other required dependencies (like matplotlib, etc) need to be
                 # compiled on pypy.
-                python-version: ['3.9', '3.10', '3.11', '3.12']
+                # python-version: ['3.9', '3.10', '3.11', '3.12'] # TEST
+                python-version: ['3.11']
 
         steps:
             - name: Setup Python ${{ matrix.python-version }}
