@@ -90,7 +90,6 @@ conda_build_upload_conda_linux_aarch64_task:
 
     source ./tools/wheels/upload_wheels.sh
     install_anaconda "linux_aarch64"
-    conda install special_functions -c s-ameli
     build_upload_anaconda "linux_aarch64"
 
 

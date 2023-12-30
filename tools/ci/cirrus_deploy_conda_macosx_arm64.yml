@@ -96,7 +96,6 @@ conda_build_upload_conda_macosx_arm64_task:
     - unzip -j wheels.zip -d dist
     - source ./tools/wheels/upload_wheels.sh
     - install_anaconda "macosx_arm64"
-    - conda install special_functions -c s-ameli
     - build_upload_anaconda "macosx_arm64"
 
 
