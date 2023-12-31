@@ -67,7 +67,6 @@ from setuptools import Command
 from setuptools.extension import Extension
 from setuptools.errors import CompileError, LinkError, ExecError
 from setuptools.command.build_ext import build_ext
-# from Cython.Distutils import build_ext
 
 # Import Cython (to convert pyx to C code)
 try:

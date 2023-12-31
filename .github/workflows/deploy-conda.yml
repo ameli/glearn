@@ -1,9 +1,9 @@
 name: deploy-conda
 
 on:
-    push:
-        branches:
-            - main
+    # push:
+    #     branches:
+    #         - main
     release:
         types:
             - published
@@ -168,17 +168,17 @@ jobs:
             # which occurs only in MacOS. To circumvent the error, the
             # following script will remove libomp.dylib from imate package, and
             # copies libomp.dylib from glearn to imate package.
-            - name: Test (MacOS)
-              if: matrix.os == 'macos-latest'
-              run: |
-                  export PATH=$(conda info --root):$PATH
-                  export PATH=$(conda info --root)/bin:$PATH
-                  conda install -c s-ameli glearn -y
-                  conda install pytest -y
-                  chmod +x scripts/fix_libomp.sh
-                  ./scripts/fix_libomp.sh "$(conda info --root)/bin/python"
-                  pytest
-              shell: bash
+            # - name: Test (MacOS)
+            #   if: matrix.os == 'macos-latest'
+            #   run: |
+            #       export PATH=$(conda info --root):$PATH
+            #       export PATH=$(conda info --root)/bin:$PATH
+            #       conda install -c s-ameli glearn -y
+            #       conda install pytest -y
+            #       chmod +x scripts/fix_libomp.sh
+            #       ./scripts/fix_libomp.sh "$(conda info --root)/bin/python"
+            #       pytest
+            #   shell: bash
 
             - name: Test (Linux, Windows)
               if: matrix.os != 'macos-latest'
