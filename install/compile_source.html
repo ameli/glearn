@@ -478,12 +478,13 @@ macOS</label><div class="sd-tab-content docutils">
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>In <em>macOS</em>, starting from <code class="docutils literal notranslate"><span class="pre">libomp</span></code> with version <code class="docutils literal notranslate"><span class="pre">15</span></code> and above, Homebrew installs OpenMP as <em>keg-only</em>. To be able to use the OpenMP installation, create the following symbolic links :</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">ln<span class="w"> </span>-s<span class="w"> </span>/usr/local/opt/libomp/include/omp-tools.h<span class="w"> </span>/usr/local/include/omp-tools.h</span>
-<span class="prompt1">ln<span class="w"> </span>-s<span class="w"> </span>/usr/local/opt/libomp/include/omp.h<span class="w"> </span>/usr/local/include/omp.h</span>
-<span class="prompt1">ln<span class="w"> </span>-s<span class="w"> </span>/usr/local/opt/libomp/include/ompt.h<span class="w"> </span>/usr/local/include/ompt.h</span>
-<span class="prompt1">ln<span class="w"> </span>-s<span class="w"> </span>/usr/local/opt/libomp/lib/libomp.a<span class="w"> </span>/usr/local/lib/libomp.a</span>
-<span class="prompt1">ln<span class="w"> </span>-s<span class="w"> </span>/usr/local/opt/libomp/lib/libomp.dylib<span class="w"> </span>/usr/local/lib/libomp.dylib</span>
+<p>In <em>macOS</em>, for <code class="docutils literal notranslate"><span class="pre">libomp</span></code> versions <code class="docutils literal notranslate"><span class="pre">15</span></code> and above, Homebrew installs OpenMP as <em>keg-only</em>. To utilize the OpenMP installation, you should establish the following symbolic links:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1"><span class="nv">libomp_dir</span><span class="o">=</span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="w"> </span>libomp<span class="k">)</span></span>
+<span class="prompt1">ln<span class="w"> </span>-sf<span class="w"> </span><span class="si">${</span><span class="nv">libomp_dir</span><span class="si">}</span>/include/omp-tools.h<span class="w">  </span>/usr/local/include/omp-tools.h</span>
+<span class="prompt1">ln<span class="w"> </span>-sf<span class="w"> </span><span class="si">${</span><span class="nv">libomp_dir</span><span class="si">}</span>/include/omp.h<span class="w">        </span>/usr/local/include/omp.h</span>
+<span class="prompt1">ln<span class="w"> </span>-sf<span class="w"> </span><span class="si">${</span><span class="nv">libomp_dir</span><span class="si">}</span>/include/ompt.h<span class="w">       </span>/usr/local/include/ompt.h</span>
+<span class="prompt1">ln<span class="w"> </span>-sf<span class="w"> </span><span class="si">${</span><span class="nv">libomp_dir</span><span class="si">}</span>/lib/libomp.a<span class="w">         </span>/usr/local/lib/libomp.a</span>
+<span class="prompt1">ln<span class="w"> </span>-sf<span class="w"> </span><span class="si">${</span><span class="nv">libomp_dir</span><span class="si">}</span>/lib/libomp.dylib<span class="w">     </span>/usr/local/lib/libomp.dylib</span>
 </pre></div></div></div>
 </section>
 <section id="configure-compile-time-environment-variables-optional">

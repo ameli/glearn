@@ -495,36 +495,13 @@
 <h1>glearn.GaussianProcess.plot_likelihood<a class="headerlink" href="#glearn-gaussianprocess-plot-likelihood" title="Permalink to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="glearn.GaussianProcess.plot_likelihood">
-<span class="sig-prename descclassname"><span class="pre">GaussianProcess.</span></span><span class="sig-name descname"><span class="pre">plot_likelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile_hyperparam</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'var'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.GaussianProcess.plot_likelihood" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">GaussianProcess.</span></span><span class="sig-name descname"><span class="pre">plot_likelihood</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#glearn.GaussianProcess.plot_likelihood" title="Permalink to this definition">#</a></dt>
 <dd><p>Plot the likelihood function and its derivatives with respect to the
 hyperparameters.</p>
-<dl class="field-list">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl>
-<dt><strong>z</strong><span class="classifier">numpy.array</span></dt><dd><p>An array of the size <span class="math notranslate nohighlight">\(n\)</span> representing the training data.
-If <cite>z</cite> is not provided (set to <cite>None</cite>), the training data that used
-to define the <a class="reference internal" href="glearn.GaussianProcess.html#glearn.GaussianProcess" title="glearn.GaussianProcess"><code class="xref py py-class docutils literal notranslate"><span class="pre">glearn.GaussianProcess</span></code></a> class is used.</p>
-</dd>
-<dt><strong>profile_hyperparam</strong><span class="classifier">{<cite>‘none’</cite>, <cite>‘var’</cite>, <cite>‘var_noise’</cite>}, default:                <cite>‘var’</cite></span></dt><dd><p>The type of likelihood profiling method to be used in optimization
-of the likelihood function.</p>
-<ul class="simple">
-<li><p>When <code class="docutils literal notranslate"><span class="pre">profile_likelihood</span></code> is set to <code class="docutils literal notranslate"><span class="pre">none</span></code>, the likelihood
-function explicitly depends on the two hyperparameters
-<span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\varsigma\)</span>.</p></li>
-<li><p>When <code class="docutils literal notranslate"><span class="pre">profile_likelihood</span></code> is set to <code class="docutils literal notranslate"><span class="pre">var</span></code>, the likelihood
-function depends on the two hyperparameters
-<span class="math notranslate nohighlight">\(\eta=\varsigma^2/\sigma^2\)</span>, which is profiles over
-the hyperparameter <span class="math notranslate nohighlight">\(\sigma\)</span>, reducing the number of the
-hyperparameters by one.</p></li>
-<li><p>When <code class="docutils literal notranslate"><span class="pre">profile_likelihood</span></code> is set to <code class="docutils literal notranslate"><span class="pre">var_sigma</span></code>, the
-likelihood function is profiles over both <span class="math notranslate nohighlight">\(\sigma\)</span> and
-<span class="math notranslate nohighlight">\(\eta\)</span>, reducing the number of unknown hyperparameters
-by two.</p></li>
-</ul>
-</dd>
-</dl>
-</dd>
-</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The model should be pre-trained before calling this function.</p>
+</div>
 <p class="rubric">Notes</p>
 <p>This function plots likelihood function and its first and second
 derivatives with respect to the hyperparameters. The type of
