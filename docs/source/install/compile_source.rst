@@ -148,15 +148,16 @@ OpenMP comes with the C++ compiler installed. However, you may alternatively ins
 
 .. note::
 
-    In *macOS*, starting from ``libomp`` with version ``15`` and above, Homebrew installs OpenMP as *keg-only*. To be able to use the OpenMP installation, create the following symbolic links :
+    In *macOS*, for ``libomp`` versions ``15`` and above, Homebrew installs OpenMP as *keg-only*. To utilize the OpenMP installation, you should establish the following symbolic links:
 
     .. prompt:: bash
 
-        ln -s /usr/local/opt/libomp/include/omp-tools.h /usr/local/include/omp-tools.h
-        ln -s /usr/local/opt/libomp/include/omp.h /usr/local/include/omp.h
-        ln -s /usr/local/opt/libomp/include/ompt.h /usr/local/include/ompt.h
-        ln -s /usr/local/opt/libomp/lib/libomp.a /usr/local/lib/libomp.a
-        ln -s /usr/local/opt/libomp/lib/libomp.dylib /usr/local/lib/libomp.dylib
+        libomp_dir=$(brew --prefix libomp)
+        ln -sf ${libomp_dir}/include/omp-tools.h  /usr/local/include/omp-tools.h
+        ln -sf ${libomp_dir}/include/omp.h        /usr/local/include/omp.h
+        ln -sf ${libomp_dir}/include/ompt.h       /usr/local/include/ompt.h
+        ln -sf ${libomp_dir}/lib/libomp.a         /usr/local/lib/libomp.a
+        ln -sf ${libomp_dir}/lib/libomp.dylib     /usr/local/lib/libomp.dylib
 
 Configure Compile-Time Environment Variables (`Optional`)
 ---------------------------------------------------------

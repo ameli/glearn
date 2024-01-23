@@ -485,6 +485,10 @@ class GaussianProcess(object):
 
         elif profile_hyperparam == 'var_noise':
             # No hyperparameter
+            # TODO: I just fould this is an issue here (Jan 18, 2024), since
+            # the function should return at least some hyperparam_guess. Should
+            # this be None? Find the backtrace of this function to the double
+            # likelihood method, what is needed?
             pass
 
         # Include scale guess
@@ -1042,39 +1046,14 @@ class GaussianProcess(object):
     # plot likelihood
     # ===============
 
-    def plot_likelihood(
-            self,
-            z=None,
-            profile_hyperparam='var'):
+    def plot_likelihood(self):
         """
         Plot the likelihood function and its derivatives with respect to the
         hyperparameters.
 
-        Parameters
-        ----------
+        .. note::
 
-        z : numpy.array
-            An array of the size :math:`n` representing the training data.
-            If `z` is not provided (set to `None`), the training data that used
-            to define the :class:`glearn.GaussianProcess` class is used.
-
-        profile_hyperparam : {`'none'`, `'var'`, `'var_noise'`}, default:\
-                `'var'`
-            The type of likelihood profiling method to be used in optimization
-            of the likelihood function.
-
-            * When ``profile_likelihood`` is set to ``none``, the likelihood
-              function explicitly depends on the two hyperparameters
-              :math:`\\sigma` and :math:`\\varsigma`.
-            * When ``profile_likelihood`` is set to ``var``, the likelihood
-              function depends on the two hyperparameters
-              :math:`\\eta=\\varsigma^2/\\sigma^2`, which is profiles over
-              the hyperparameter :math:`\\sigma`, reducing the number of the
-              hyperparameters by one.
-            * When ``profile_likelihood`` is set to ``var_sigma``, the
-              likelihood function is profiles over both :math:`\\sigma` and
-              :math:`\\eta`, reducing the number of unknown hyperparameters
-              by two.
+            The model should be pre-trained before calling this function.
 
         Notes
         -----
@@ -1229,26 +1208,11 @@ class GaussianProcess(object):
             :class: custom-dark
         """
 
-        if z is None:
-            if self.z is None:
-                raise ValueError('Data "z" cannot be None.')
-            z = self.z
-
-        if (self.training_result is None) or \
-           (self.training_result['config']['profile_hyperparam'] !=
-                profile_hyperparam):
-
-            # Train
-            self.training_result = self.train(
-                z, hyperparam_guess=None,
-                profile_hyperparam=profile_hyperparam, log_hyperparam=True,
-                optimization_method='Newton-CG', tol=1e-3, use_rel_error=True,
-                verbose=False, plot=False)
-
-            # Create a posterior object
-            self.posterior = Posterior(self.mean, self.cov, z,
-                                       profile_hyperparam=profile_hyperparam,
-                                       log_hyperparam=True)
+        if (self.training_result is None) or (self.z is None) or \
+                (self.posterior is None):
+            raise RuntimeError('The model is not yet trained. To plot the ' +
+                               'likelihood function, first call "train() " ' +
+                               'function.')
 
         # Plot likelihood
         self.posterior.likelihood.plot(self.training_result)

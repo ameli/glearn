@@ -14,9 +14,8 @@
 import numpy
 from numpy import format_float_scientific as ffs
 import scipy
-from .._utilities.plot_utilities import *                    # noqa: F401, F403
-from .._utilities.plot_utilities import load_plot_settings, plt, \
-        show_or_save_plot, matplotlib
+from .._utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
+        show_or_save_plot
 
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
@@ -198,11 +197,10 @@ def print_training_summary(res):
 # plot training convergence
 # =========================
 
+@matplotlib.rc_context(get_custom_theme(font_scale=1.2))
 def plot_training_convergence(posterior, res, verbose):
     """
     """
-
-    load_plot_settings()
 
     fig, ax = plt.subplots(figsize=(6, 4.8))
     markersize = 3
@@ -314,6 +312,7 @@ def plot_prediction(
 # plot prediction 1D
 # ==================
 
+@matplotlib.rc_context(get_custom_theme(font_scale=1.2))
 def _plot_prediction_1d(
         points,
         test_points,
@@ -326,8 +325,6 @@ def _plot_prediction_1d(
     """
     Plots prediction mean and covariance for 1D data.
     """
-
-    load_plot_settings()
 
     # Short names, also since data are 1D, use vector of points than 2D array
     x = points[:, 0]
@@ -405,6 +402,7 @@ def _plot_prediction_1d(
 # plot prediction 2D
 # ==================
 
+@matplotlib.rc_context(get_custom_theme(font_scale=1.2))
 def _plot_prediction_2d(
         points,
         test_points,
@@ -438,7 +436,6 @@ def _plot_prediction_2d(
         https://matplotlib.org/2.2.2/mpl_toolkits/mplot3d/faq.html
     """
 
-    load_plot_settings()
     colormap = 'magma_r'
     cmap = plt.cm.get_cmap(colormap)
 

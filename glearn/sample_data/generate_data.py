@@ -12,8 +12,7 @@
 # =======
 
 import numpy
-from .._utilities.plot_utilities import *                    # noqa: F401, F403
-from .._utilities.plot_utilities import load_plot_settings, plt, \
+from .._utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
     save_plot, show_or_save_plot
 
 __all__ = ['generate_data']
@@ -174,12 +173,11 @@ def generate_data(
 # plot data
 # =========
 
+@matplotlib.rc_context(get_custom_theme(font_scale=1.2))
 def _plot_data(x, y, plot):
     """
     Plots 1D or 2D data.
     """
-
-    load_plot_settings()
 
     dimension = x.shape[1]
 

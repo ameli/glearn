@@ -13,10 +13,8 @@
 
 import numpy
 import scipy
-from .._utilities.plot_utilities import *                    # noqa: F401, F403
-from .._utilities.plot_utilities import load_plot_settings, plt, \
-        show_or_save_plot, mark_inset, InsetPosition, matplotlib, \
-        make_axes_locatable
+from .._utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
+        show_or_save_plot
 
 __all__ = ['plot']
 
@@ -49,6 +47,7 @@ def plot(profile_likelihood, result):
 # plot likelihood versus scale
 # ============================
 
+@matplotlib.rc_context(get_custom_theme(font_scale=1))
 def _plot_likelihood_versus_scale(
         profile_likelihood,
         result,
@@ -62,8 +61,6 @@ def _plot_likelihood_versus_scale(
     if dimension != 1:
         raise ValueError('To plot likelihood w.r.t "eta" and "scale", the ' +
                          'dimension of the data points should be one.')
-
-    load_plot_settings()
 
     # Optimal point
     optimal_eta = result['hyperparam']['eta']
@@ -284,6 +281,7 @@ def _plot_likelihood_versus_scale(
 # plot likelihood versus eta
 # ==========================
 
+@matplotlib.rc_context(get_custom_theme(font_scale=1))
 def _plot_likelihood_versus_eta(
         profile_likelihood,
         result,
@@ -297,8 +295,6 @@ def _plot_likelihood_versus_eta(
     if dimension != 1:
         raise ValueError('To plot likelihood w.r.t "eta" and "scale", the ' +
                          'dimension of the data points should be one.')
-
-    load_plot_settings()
 
     # Optimal point
     optimal_scale = result['hyperparam']['scale']
@@ -526,6 +522,7 @@ def _plot_likelihood_versus_eta(
 # plot likelihood versus eta scale
 # ================================
 
+@matplotlib.rc_context(get_custom_theme(font_scale=1))
 def _plot_likelihood_versus_eta_scale(profile_likelihood, result):
     """
     Plots log likelihood versus sigma and eta hyperparam.
@@ -536,8 +533,6 @@ def _plot_likelihood_versus_eta_scale(profile_likelihood, result):
     if dimension != 1:
         raise ValueError('To plot likelihood w.r.t "eta" and "scale", the ' +
                          'dimension of the data points should be one.')
-
-    load_plot_settings()
 
     # Optimal point
     optimal_eta = result['hyperparam']['eta']
@@ -613,9 +608,8 @@ def _plot_likelihood_versus_eta_scale(profile_likelihood, result):
     # Contour fill Plot
     levels = numpy.linspace(min_z, max_z, 2000)
     c = ax[0].contourf(x, y, z, levels, cmap=colormap, zorder=-9)
-    divider = make_axes_locatable(ax[0])
-    cax = divider.append_axes('right', size='5%', pad=0.05)
-    cbar = fig.colorbar(c, cax=cax, orientation='vertical')
+    cbar = fig.colorbar(c, ax=ax[0], orientation='vertical', pad=0.012,
+                        aspect=20)
     cbar.ax.set_ylabel(r'$\ell(\eta, \alpha)$')
     # c.set_clim(0, clim)
     # cbar.set_ticks([0,0.3,0.6,0.9,1])
@@ -704,14 +698,13 @@ def _plot_likelihood_versus_eta_scale(profile_likelihood, result):
 # plot likelihood der1 eta
 # ========================
 
+@matplotlib.rc_context(get_custom_theme(font_scale=1))
 def _plot_likelihood_der1_eta(profile_likelihood, result):
     """
     Plots the derivative of log likelihood as a function of eta. Also it shows
     where the optimal eta is, which is the location where the derivative is
     zero.
     """
-
-    load_plot_settings()
 
     # Optimal point
     optimal_eta = result['hyperparam']['eta']
@@ -777,7 +770,7 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
             x, degree=1)
 
     # Main plot
-    fig, ax1 = plt.subplots(figsize=(6, 4.5))
+    fig, ax1 = plt.subplots(figsize=(8, 4.5))
     axes = [ax1]
 
     ax1.semilogx(eta, dell_deta_upper_bound, '--', color='black',
@@ -809,22 +802,10 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
 
     # Inset plot
     if plot_optimal_eta:
-        ax2 = plt.axes([0, 0, 1, 1])
-        axes.append(ax2)
-
         # Manually set position and relative size of inset axes within ax1
-        ip = InsetPosition(ax1, [0.43, 0.39, 0.5, 0.5])
-        ax2.set_axes_locator(ip)
-        # Mark the region corresponding to the inset axes on ax1 and draw
-        # lines in grey linking the two axes.
-
-        # Avoid inset mark lines intersect inset axes by setting its anchor
-        if log_eta_end > log_eta_end_high_res:
-            mark_inset(ax1, ax2, loc1=3, loc2=4, facecolor='none',
-                       edgecolor='0.5')
-        else:
-            mark_inset(ax1, ax2, loc1=3, loc2=1, facecolor='none',
-                       edgecolor='0.5')
+        inset_color = 'oldlace'
+        ax2 = ax1.inset_axes([0.43, 0.39, 0.5, 0.5], facecolor=inset_color)
+        axes.append(ax2)
 
         ax2.semilogx(eta, numpy.abs(dell_deta_upper_bound), '--',
                      color='black')
@@ -892,7 +873,6 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
 
         # ax2.ticklabel_format(axis='y', style='sci', scilimits=(0, 0))
         ax2.grid(True, axis='y')
-        ax2.set_facecolor('oldlace')
         plt.setp(ax2.get_xticklabels(), backgroundcolor='white')
         ax2.tick_params(axis='x', labelsize=10)
         ax2.tick_params(axis='y', labelsize=10)
@@ -900,13 +880,28 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
         # ax2.set_yticklabels(ax2.get_yticks(), backgroundcolor='w')
         # ax2.tick_params(axis='y', which='major', pad=0)
 
+        # Mark the region corresponding to the inset axes on ax1 and draw lines
+        # in grey linking the two axes.
+        _, connects = ax1.indicate_inset_zoom(ax2, facecolor='none',
+                                              edgecolor='0.5')
+        if log_eta_end > log_eta_end_high_res:
+            connects[0].set_visible(True)
+            connects[1].set_visible(False)
+            connects[2].set_visible(True)
+            connects[3].set_visible(False)
+        else:
+            connects[0].set_visible(True)
+            connects[1].set_visible(False)
+            connects[2].set_visible(False)
+            connects[3].set_visible(True)
+
     handles, labels = [], []
     for ax in axes:
         for h, l in zip(*ax.get_legend_handles_labels()):
             handles.append(h)
             labels.append(l)
     lg = plt.legend(handles, labels, frameon=False, fontsize='small',
-                    loc='upper left', bbox_to_anchor=(1.2, 1.04))
+                    loc='upper left', bbox_to_anchor=(1.05, 1.04))
 
     # Save plots
     plt.tight_layout()

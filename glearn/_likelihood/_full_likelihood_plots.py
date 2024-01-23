@@ -13,9 +13,8 @@
 
 import numpy
 import scipy
-from .._utilities.plot_utilities import *                    # noqa: F401, F403
-from .._utilities.plot_utilities import load_plot_settings, plt, matplotlib, \
-        make_axes_locatable, show_or_save_plot
+from .._utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
+        show_or_save_plot
 
 __all__ = ['plot']
 
@@ -49,6 +48,7 @@ def plot(full_likelihood, result):
 # plot likelihood versus scale
 # ============================
 
+@matplotlib.rc_context(get_custom_theme(font_scale=1))
 def _plot_likelihood_versus_scale(
         full_likelihood,
         result,
@@ -65,8 +65,6 @@ def _plot_likelihood_versus_scale(
     if dimension != 1:
         raise ValueError('To plot likelihood w.r.t "eta" and "scale", ' +
                          'the dimension of the data points should be one.')
-
-    load_plot_settings()
 
     # Optimal point
     optimal_sigma = result['hyperparam']['sigma']
@@ -380,6 +378,7 @@ def _plot_likelihood_versus_scale(
 # plot likelihood versus sigma
 # ============================
 
+@matplotlib.rc_context(get_custom_theme(font_scale=1))
 def _plot_likelihood_versus_sigma(
         full_likelihood,
         result,
@@ -396,8 +395,6 @@ def _plot_likelihood_versus_sigma(
     if dimension != 1:
         raise ValueError('To plot likelihood w.r.t "eta" and "scale", ' +
                          'the dimension of the data points should be one.')
-
-    load_plot_settings()
 
     # Optimal point
     optimal_sigma = result['hyperparam']['sigma']
@@ -719,6 +716,7 @@ def _plot_likelihood_versus_sigma(
 # plot likelihood versus sigma0
 # =============================
 
+@matplotlib.rc_context(get_custom_theme(font_scale=1))
 def _plot_likelihood_versus_sigma0(
         full_likelihood,
         result,
@@ -735,8 +733,6 @@ def _plot_likelihood_versus_sigma0(
     if dimension != 1:
         raise ValueError('To plot likelihood w.r.t "eta" and "scale", ' +
                          'the dimension of the data points should be one.')
-
-    load_plot_settings()
 
     # Optimal point
     optimal_sigma = result['hyperparam']['sigma']
@@ -1056,12 +1052,11 @@ def _plot_likelihood_versus_sigma0(
 # plot likelihood versus sigma0 sigma
 # ===================================
 
+@matplotlib.rc_context(get_custom_theme(font_scale=1))
 def _plot_likelihood_versus_sigma0_sigma(full_likelihood, result=None):
     """
     2D contour plot of log likelihood versus sigma0 and sigma.
     """
-
-    load_plot_settings()
 
     # Optimal point
     optimal_sigma = result['hyperparam']['sigma']
@@ -1138,9 +1133,8 @@ def _plot_likelihood_versus_sigma0_sigma(full_likelihood, result=None):
     # Contour fill Plot
     levels = numpy.linspace(min_z, max_z, 2000)
     c = ax[0].contourf(x, y, z, levels, cmap=colormap, zorder=-9)
-    divider = make_axes_locatable(ax[0])
-    cax = divider.append_axes('right', size='5%', pad=0.05)
-    cbar = fig.colorbar(c, cax=cax, orientation='vertical')
+    cbar = fig.colorbar(c, ax=ax[0], orientation='vertical', pad=0.012,
+                        aspect=20)
     cbar.ax.set_ylabel(r'$\ell(\sigma, \sigma_0)$')
     # c.set_clim(0, clim)
     # cbar.set_ticks([0,0.3,0.6,0.9,1])

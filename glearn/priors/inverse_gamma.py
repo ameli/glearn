@@ -332,8 +332,7 @@ class InverseGamma(Prior):
         elif isinstance(x, numpy.ndarray):
             x_ = x
         else:
-            raise TypeError('"x" should be scalar, list, or numpy ' +
-                            'array.')
+            raise TypeError('"x" should be scalar, list, or numpy array.')
 
         # Match the size of self.scale and self.shape with size of input x
         if x_.size == self.scale.size and x_.size == self.shape.size:
@@ -412,13 +411,22 @@ class InverseGamma(Prior):
         x, shape, scale = self._check_param(x)
 
         pdf_ = numpy.zeros((x.size, ), dtype=float)
+
+        # Note that shape[i] cannot be negative integer as gamma(shape) becomes
+        # infinity.
         for i in range(x.size):
-            coeff = scale[i]**shape[i] / gamma(shape[i])
-            a = shape[i] + 1.0
-            b = scale[i] / x[i]
-            k = numpy.exp(-b)
-            m = (1.0 / x[i])**(a)
-            pdf_[i] = coeff * m * k
+            if (shape[i] > -1.0) and (numpy.mod(shape[i], 1) != 0) and \
+                    (x[i] < 0.0):
+                raise ValueError('x cannot be negative.')
+            elif (shape[i] > -1.0) and (x[i] == 0):
+                pdf_[i] = numpy.inf
+            else:
+                coeff = scale[i]**shape[i] / gamma(shape[i])
+                a = shape[i] + 1.0
+                b = scale[i] / x[i]
+                k = numpy.exp(-b)
+                m = (1.0 / x[i])**(a)
+                pdf_[i] = coeff * m * k
 
         return pdf_
 
@@ -491,14 +499,30 @@ class InverseGamma(Prior):
 
         pdf_jacobian_ = numpy.zeros((x.size, ), dtype=float)
 
+        # Note that shape[i] cannot be negative integer as gamma(shape) becomes
+        # infinity.
         for i in range(x.size):
-            coeff = scale[i]**shape[i] / gamma(shape[i])
-            a = shape[i] + 1.0
-            b = scale[i] / x[i]
-            k = numpy.exp(-b)
-            m = (1.0 / x[i])**(a)
-            pdf_jacobian_[i] = coeff * m * k * \
-                (-(shape[i]+1.0)/x[i] + scale[i]/x[i]**2)
+            if (shape[i] > -2.0) and (numpy.mod(shape[i], 1) != 0) and \
+                    (x[i] < 0.0):
+                raise ValueError('x cannot be negative.')
+            elif (shape[i] > -2.0) and (x[i] == 0):
+                if scale[i] == 0.0:
+                    if shape[i] == 1.0:
+                        pdf_jacobian_[i] = 0.0
+                    else:
+                        pdf_jacobian_[i] = numpy.sign(-shape[i]+1) * numpy.inf
+                else:
+                    pdf_jacobian_[i] = numpy.sign(scale[i]) * numpy.inf
+            elif (shape[i] <= -2.0) and (x[i] == 0):
+                pdf_jacobian_[i] = 0.0
+            else:
+                coeff = scale[i]**shape[i] / gamma(shape[i])
+                a = shape[i] + 1.0
+                b = scale[i] / x[i]
+                k = numpy.exp(-b)
+                m = (1.0 / x[i])**(a)
+                pdf_jacobian_[i] = coeff * m * k * \
+                    (-(shape[i]+1.0)/x[i] + scale[i]/x[i]**2)
 
         return pdf_jacobian_
 
@@ -572,13 +596,31 @@ class InverseGamma(Prior):
 
         pdf_hessian_ = numpy.zeros((x.size, x.size), dtype=float)
 
+        # Note that shape[i] cannot be negative integer as gamma(shape) becomes
+        # infinity.
         for i in range(x.size):
-            coeff = scale[i]**shape[i] / gamma(shape[i])
-            a = shape[i] + 1.0
-            b = scale[i] / x[i]
-            k = numpy.exp(-b)
-            m = (1.0 / x[i])**(a)
-            pdf_hessian_[i, i] = (coeff * m * k / x[i]**2) * \
-                (a**2 + a - 2.0*a*b - 2*b + b**2)
+            if (shape[i] > -3.0) and (numpy.mod(shape[i], 1) != 0) and \
+                    (x[i] < 0.0):
+                raise ValueError('x cannot be negative.')
+            elif (shape[i] > -3.0) and (x[i] == 0):
+                if scale[i] == 0.0:
+                    a = shape[i] + 1.0
+                    c = a**2 + a
+                    if c == 0.0:
+                        pdf_hessian_[i, i] = 0.0
+                    else:
+                        pdf_hessian_[i, i] = numpy.sign(c) * numpy.inf
+                else:
+                    pdf_hessian_[i, i] = numpy.inf
+            elif (shape[i] <= -3.0) and (x[i] == 0):
+                pdf_hessian_[i, i] = 0.0
+            else:
+                coeff = scale[i]**shape[i] / gamma(shape[i])
+                a = shape[i] + 1.0
+                b = scale[i] / x[i]
+                k = numpy.exp(-b)
+                m = (1.0 / x[i])**(a)
+                pdf_hessian_[i, i] = (coeff * m * k / x[i]**2) * \
+                    (a**2 + a - 2.0*a*b - 2*b + b**2)
 
         return pdf_hessian_

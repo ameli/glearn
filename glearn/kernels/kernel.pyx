@@ -14,14 +14,8 @@
 import numpy
 from libc.stdio cimport printf
 from libc.math cimport NAN
-
-try:
-    from .._utilities.plot_utilities import matplotlib, plt
-    from .._utilities.plot_utilities import load_plot_settings, \
+from .._utilities.plot_utilities import matplotlib, plt, get_custom_theme, \
         save_plot, show_or_save_plot
-    plot_modules_exist = True
-except ImportError:
-    plot_modules_exist = False
 
 __all__ = ['Kernel']
 
@@ -190,6 +184,7 @@ cdef class Kernel(object):
     # plot
     # ====
 
+    @matplotlib.rc_context(get_custom_theme(font_scale=1.2))
     def plot(self, compare_numerical=False, x_max=4.0, test=False):
         """
         Plot the kernel function and its first and second derivative.
@@ -251,12 +246,6 @@ cdef class Kernel(object):
             :width: 100%
             :class: custom-dark
         """
-
-        # Load plot settings
-        if plot_modules_exist:
-            load_plot_settings()
-        else:
-            raise ImportError("Cannot load plot settings.")
 
         fig, ax = plt.subplots(ncols=3, figsize=(12.5, 4))
 

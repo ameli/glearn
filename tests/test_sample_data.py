@@ -17,6 +17,10 @@ import sys
 import os
 from glearn.sample_data import generate_points, generate_data
 
+import warnings
+warnings.resetwarnings()
+warnings.filterwarnings("error")
+
 
 # ===========
 # remove file

@@ -46,7 +46,6 @@ requirements:
         # - {{ pin_compatible('numpy') }}
         - scipy>=1.5
         - matplotlib
-        - seaborn
         - imate                   # needs -c s-ameli
         - special_functions       # needs -c s-sameli
         - detkit                  # needs -c s-sameli

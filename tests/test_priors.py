@@ -17,6 +17,10 @@ import sys
 import os
 from glearn import priors
 
+import warnings
+warnings.resetwarnings()
+warnings.filterwarnings("error")
+
 
 # ===========
 # remove file

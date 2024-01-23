@@ -18,6 +18,10 @@ import glearn
 from glearn import Memory
 from glearn import Timer
 
+import warnings
+warnings.resetwarnings()
+warnings.filterwarnings("error")
+
 
 # ===========
 # test device

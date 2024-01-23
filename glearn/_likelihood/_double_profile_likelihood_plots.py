@@ -13,9 +13,8 @@
 
 import numpy
 import scipy
-from .._utilities.plot_utilities import *                    # noqa: F401, F403
-from .._utilities.plot_utilities import load_plot_settings, plt, matplotlib, \
-        make_axes_locatable, show_or_save_plot
+from .._utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
+        show_or_save_plot
 
 __all__ = ['plot']
 
@@ -56,12 +55,11 @@ def _plot_likelihood_versus_scale(double_profile_likelihood, result):
 # plot likelihood versus scale 1d
 # ===============================
 
+@matplotlib.rc_context(get_custom_theme(font_scale=1))
 def _plot_likelihood_versus_scale_1d(double_profile_likelihood, result=None):
     """
     Plots log likelihood versus sigma, eta hyperparam
     """
-
-    load_plot_settings()
 
     # Generate ell for various distance scales
     scale = numpy.logspace(-3, 2, 200)
@@ -182,12 +180,11 @@ def _plot_likelihood_versus_scale_1d(double_profile_likelihood, result=None):
 # plot likelihood versus scale 2d
 # ===============================
 
+@matplotlib.rc_context(get_custom_theme(font_scale=1))
 def _plot_likelihood_versus_scale_2d(double_profile_likelihood, result=None):
     """
     Plots log likelihood versus sigma, eta hyperparam
     """
-
-    load_plot_settings()
 
     # Optimal point
     optimal_scale = result['hyperparam']['scale']
@@ -282,9 +279,8 @@ def _plot_likelihood_versus_scale_2d(double_profile_likelihood, result=None):
     # Contour fill Plot of likelihood versus scales
     levels1 = numpy.linspace(min_z, max_z, 2000)
     c1 = ax[0].contourf(x, y, z, levels1, cmap=colormap, zorder=-9)
-    divider1 = make_axes_locatable(ax[0])
-    cax1 = divider1.append_axes('right', size='5%', pad=0.05)
-    cbar1 = fig.colorbar(c1, cax=cax1, orientation='vertical')
+    cbar1 = fig.colorbar(c1, ax=ax[0], orientation='vertical', pad=0.012,
+                         aspect=20)
     cbar1.ax.set_ylabel(r'$\ell(\hat{\eta}(\alpha_1, \alpha_2), ' +
                         r'\alpha_1, \alpha_2)$')
     # c.set_clim(0, clim)
@@ -295,9 +291,8 @@ def _plot_likelihood_versus_scale_2d(double_profile_likelihood, result=None):
     max_eta = numpy.max(numpy.max(eta))
     levels2 = numpy.linspace(min_eta, max_eta, 2000)
     c2 = ax[1].contourf(x, y, eta_fine, levels2, cmap=colormap, zorder=-9)
-    divider2 = make_axes_locatable(ax[1])
-    cax2 = divider2.append_axes('right', size='5%', pad=0.05)
-    cbar2 = fig.colorbar(c2, cax=cax2, orientation='vertical')
+    cbar2 = fig.colorbar(c2, ax=ax[1], orientation='vertical', pad=0.012,
+                         aspect=20)
     cbar2.ax.set_ylabel(r'$\hat{\eta}(\alpha_1, \alpha_2)$')
     # c.set_clim(0, clim)
     # cbar.set_ticks([0,0.3,0.6,0.9,1])

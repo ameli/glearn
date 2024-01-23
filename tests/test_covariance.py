@@ -16,9 +16,14 @@
 import sys
 import numpy
 import numpy.linalg
+import scipy
 from glearn import sample_data
 from glearn.kernels import Matern
 from glearn import Covariance
+
+import warnings
+warnings.resetwarnings()
+warnings.filterwarnings("error")
 
 
 # ==============
@@ -30,22 +35,40 @@ def relative_error(estimate, exact, tol=1e-13):
     Compute the relative error of an estimate, in percent.
     """
 
-    # Ravel matrix data
-    difference = estimate - exact
-    if not numpy.isscalar(difference):
-        difference = difference.ravel()
+    if numpy.isscalar(estimate):
+        estimate = numpy.array([estimate])
+    else:
+        # Ravel matrix data
+        estimate = estimate.ravel()
+
+    if numpy.isscalar(exact):
+        exact = numpy.array([exact])
+    else:
+        # Ravel matrix data
         exact = exact.ravel()
 
-    if numpy.linalg.norm(exact) < tol:
-        if numpy.linalg.norm(difference) < tol:
-            relative_error = 0.0
-        else:
-            relative_error = numpy.inf
-    else:
-        relative_error = numpy.linalg.norm(difference) / \
-                numpy.linalg.norm(exact) * 100.0
+    relative_error = numpy.zeros_like(estimate)
 
-    return relative_error
+    for i in range(relative_error.size):
+
+        if (numpy.isinf(estimate[i]) and numpy.isinf(exact[i])) or \
+                (numpy.isinf(-estimate[i]) and numpy.isinf(-exact[i])):
+            relative_error[i] = 0.0
+        else:
+
+            # Ravel matrix data
+            difference = numpy.abs(estimate[i] - exact[i])
+
+            if numpy.linalg.norm(exact[i]) < tol:
+                if numpy.linalg.norm(difference) < tol:
+                    relative_error[i] = 0.0
+                else:
+                    relative_error[i] = numpy.inf
+            else:
+                relative_error[i] = numpy.linalg.norm(difference) / \
+                        numpy.linalg.norm(exact[i]) * 100.0
+
+    return numpy.max(relative_error)
 
 
 # ===============
@@ -89,12 +112,16 @@ def check_functions(
                         continue
 
                     K = cov.cor.get_matrix(derivative=derivative)
-                    I = numpy.eye(K.shape[0])                      # noqa: E741
+                    n = K.shape[0]
+                    if scipy.sparse.issparse(K):
+                        I = scipy.sparse.eye(n, format='csr')      # noqa: E741
+                    else:
+                        I = numpy.eye(n)                           # noqa: E741
 
                     # A column vector
                     m = 3
-                    X = numpy.arange(m * K.shape[0]).astype(float)
-                    X = X.reshape((K.shape[0], m))
+                    X = numpy.arange(m * n).astype(float)
+                    X = X.reshape((n, m))
 
                     if len(derivative) == 0:
                         S1 = sigma**2 * K + sigma0**2 * I
@@ -103,7 +130,10 @@ def check_functions(
                         S1 = sigma**2 * K
 
                     if p == 0 and len(derivative) > 0:
-                        S = numpy.zeros_like(I)
+                        if scipy.sparse.issparse(K):
+                            S = scipy.sparse.csr_array((n, n), dtype=float)
+                        else:
+                            S = numpy.zeros_like(I)
                     else:
                         S = I
 
@@ -113,7 +143,10 @@ def check_functions(
 
                     # check trace
                     if function == 'trace':
-                        y0 = numpy.trace(S)
+                        if scipy.sparse.issparse(S):
+                            y0 = S.trace()
+                        else:
+                            y0 = numpy.trace(S)
                         y1 = cov.trace(sigma, sigma0, p=p,
                                        derivative=derivative)
 
@@ -125,7 +158,11 @@ def check_functions(
                             elif sigma == 0 and len(derivative) > 0:
                                 y0 = numpy.nan
                             else:
-                                y0 = numpy.trace(numpy.linalg.inv(S))
+                                if scipy.sparse.issparse(S):
+                                    Sinv = scipy.sparse.linalg.inv(S.tocsc())
+                                    y0 = Sinv.trace()
+                                else:
+                                    y0 = numpy.trace(numpy.linalg.inv(S))
                             y1 = cov.traceinv(sigma, sigma0, p=p,
                                               derivative=derivative)
                         else:
@@ -134,11 +171,35 @@ def check_functions(
                     # check logdet
                     elif function == 'logdet':
                         if sigma != 0 or sigma0 != 0:
-                            det_S = numpy.linalg.det(S)
-                            if numpy.abs(det_S) < 1e-15:
-                                y0 = -numpy.inf
-                            else:
-                                y0 = numpy.log(det_S)
+                            with numpy.errstate(over='raise'):
+                                try:
+                                    if scipy.sparse.issparse(S):
+                                        det_S = numpy.linalg.det(S.toarray())
+                                    else:
+                                        det_S = numpy.linalg.det(S)
+                                    if numpy.abs(det_S) < 1e-15:
+                                        y0 = -numpy.inf
+                                    else:
+                                        y0 = numpy.log(det_S)
+                                except FloatingPointError:
+                                    if scipy.sparse.issparse(S):
+                                        eig_S = numpy.linalg.eig(
+                                            S.toarray())[0]
+                                    else:
+                                        eig_S = numpy.linalg.eig(S)[0]
+                                    y0 = numpy.sum(numpy.log(
+                                        eig_S.astype(numpy.complex128)))
+                                    imag = numpy.mod(y0.imag, numpy.pi)
+                                    imag = numpy.abs(imag)
+                                    tol = 1e-7
+                                    if (imag < tol) or \
+                                       (numpy.abs((imag - numpy.pi)) < tol):
+                                        y0 = y0.real
+                                    else:
+                                        raise RuntimeError(
+                                            'logdet of S is a complex number: '
+                                            'real: %e, imag: %e'
+                                            % (y0.real, imag))
                             y1 = cov.logdet(sigma, sigma0, p=p,
                                             derivative=derivative)
                         else:
@@ -154,7 +215,10 @@ def check_functions(
                                 y0 = numpy.zeros_like(X)
                                 y0[:] = numpy.nan
                             else:
-                                y0 = numpy.linalg.solve(S, X)
+                                if scipy.sparse.issparse(S):
+                                    y0 = scipy.sparse.linalg.spsolve(S, X)
+                                else:
+                                    y0 = numpy.linalg.solve(S, X)
                             y1 = cov.solve(X, sigma=sigma, sigma0=sigma0, p=p,
                                            derivative=derivative)
                         else:
@@ -169,7 +233,7 @@ def check_functions(
                     # Check error
                     if y0 is not None:
                         error = relative_error(y1, y0)
-                        if error > error_rtol:
+                        if numpy.any(error > error_rtol):
                             if success:
                                 print('\tcheck %8s: Failed' % function)
                                 success = False

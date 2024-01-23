@@ -403,12 +403,18 @@ class Erlang(Prior):
 
         pdf_ = numpy.zeros((x.size, ), dtype=float)
         for i in range(x.size):
-            coeff = rate[i]**shape[i] / gamma(shape[i])
-            a = shape[i] - 1.0
-            b = rate[i] * x[i]
-            k = numpy.exp(-b)
-            m = x[i]**a
-            pdf_[i] = coeff * m * k
+            if (shape[i] < 1.0) and (numpy.mod(shape[i], 1) != 0) and \
+                    (x[i] < 0.0):
+                raise ValueError('x cannot be negative.')
+            elif (shape[i] < 1.0) and (x[i] == 0):
+                pdf_[i] = numpy.inf
+            else:
+                coeff = rate[i]**shape[i] / gamma(shape[i])
+                a = shape[i] - 1.0
+                b = rate[i] * x[i]
+                k = numpy.exp(-b)
+                m = x[i]**a
+                pdf_[i] = coeff * m * k
 
         return pdf_
 
@@ -478,12 +484,25 @@ class Erlang(Prior):
         pdf_jacobian_ = numpy.zeros((x.size, ), dtype=float)
 
         for i in range(x.size):
-            coeff = rate[i]**shape[i] / gamma(shape[i])
-            a = shape[i] - 1.0
-            b = rate[i] * x[i]
-            k = numpy.exp(-b)
-            m = x[i]**a
-            pdf_jacobian_[i] = coeff * m * k * (a - b) / x[i]
+            if shape[i] == 1.0:
+                b = rate[i] * x[i]
+                k = numpy.exp(-b)
+                pdf_jacobian_[i] = - k * (rate[i]**2)
+            elif (shape[i] < 2.0) and (numpy.mod(shape[i], 1) != 0) and \
+                    (x[i] < 0.0):
+                raise ValueError('x cannot be negative.')
+            elif (shape[i] < 2.0) and (x[i] == 0):
+                a = shape[i] - 1.0
+                pdf_jacobian_[i] = numpy.sign(a) * numpy.inf
+            elif (shape[i] >= 2.0) and (x[i] == 0):
+                pdf_jacobian_[i] = 0.0
+            else:
+                coeff = rate[i]**shape[i] / gamma(shape[i])
+                a = shape[i] - 1.0
+                b = rate[i] * x[i]
+                k = numpy.exp(-b)
+                m = x[i]**(a - 1.0)
+                pdf_jacobian_[i] = coeff * m * k * (a - b)
 
         return pdf_jacobian_
 
@@ -555,11 +574,28 @@ class Erlang(Prior):
         pdf_hessian_ = numpy.zeros((x.size, x.size), dtype=float)
 
         for i in range(x.size):
-            coeff = rate[i]**shape[i] / gamma(shape[i])
-            a = shape[i] - 1.0
-            b = rate[i] * x[i]
-            k = numpy.exp(-b)
-            m = x[i]**a
-            pdf_hessian_[i, i] = coeff * m * k * ((a - b)**2 - a) / x[i]**2
+            if shape[i] == 1.0:
+                b = rate[i] * x[i]
+                k = numpy.exp(-b)
+                pdf_hessian_[i, i] = k * (rate[i]**3)
+            elif (shape[i] < 3.0) and (numpy.mod(shape[i], 1) != 0) and \
+                    (x[i] < 0.0):
+                raise ValueError('x cannot be negative.')
+            elif (shape[i] < 3.0) and (x[i] == 0):
+                a = shape[i] - 1.0
+                c = a**2 - a
+                if c == 0.0:
+                    pdf_hessian_[i, i] = 0.0
+                else:
+                    pdf_hessian_[i, i] = numpy.sign(c) * numpy.inf
+            elif (shape[i] >= 3.0) and (x[i] == 0):
+                pdf_hessian_[i, i] = 0.0
+            else:
+                coeff = rate[i]**shape[i] / gamma(shape[i])
+                a = shape[i] - 1.0
+                b = rate[i] * x[i]
+                k = numpy.exp(-b)
+                m = x[i]**(a - 2.0)
+                pdf_hessian_[i, i] = coeff * m * k * ((a - b)**2 - a)
 
         return pdf_hessian_

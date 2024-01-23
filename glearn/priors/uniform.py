@@ -350,8 +350,7 @@ class Uniform(Prior):
         elif isinstance(x, numpy.ndarray):
             x_ = x
         else:
-            raise TypeError('"x" should be scalar, list, or numpy ' +
-                            'array.')
+            raise TypeError('"x" should be scalar, list, or numpy array.')
 
         # Match the size of self.a and self.b with size of input x
         if x_.size == self.a.size:

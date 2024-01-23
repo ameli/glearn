@@ -324,8 +324,7 @@ class Normal(Prior):
         elif isinstance(x, numpy.ndarray):
             x_ = x
         else:
-            raise TypeError('"x" should be scalar, list, or numpy ' +
-                            'array.')
+            raise TypeError('"x" should be scalar, list, or numpy array.')
 
         # Match the size of self.std and self.mean with size of input x
         if x_.size == self.std.size and x_.size == self.mean.size:

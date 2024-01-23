@@ -330,8 +330,7 @@ class StudentT(Prior):
         elif isinstance(x, numpy.ndarray):
             x_ = x
         else:
-            raise TypeError('"x" should be scalar, list, or numpy ' +
-                            'array.')
+            raise TypeError('"x" should be scalar, list, or numpy array.')
 
         # Match the size of self.a and self.b with size of input x
         if x_.size == self.dof.size:
@@ -417,7 +416,7 @@ class StudentT(Prior):
             ex = 0.5 * (dof[i] + 1.0)
             coeff = gamma(ex) / \
                 (numpy.sqrt(dof[i] * numpy.pi) * gamma(0.5*dof[i]))
-            k = 1.0 + x[i]**2 / self.dof
+            k = 1.0 + x[i]**2 / dof[i]
             pdf_[i] = coeff * k**(-ex)
 
         if self.half:

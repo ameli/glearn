@@ -12,8 +12,7 @@
 # =======
 
 import numpy
-from .._utilities.plot_utilities import *                    # noqa: F401, F403
-from .._utilities.plot_utilities import load_plot_settings, plt, \
+from .._utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
     save_plot, show_or_save_plot
 
 __all__ = ['Prior']
@@ -272,7 +271,10 @@ class Prior(object):
         pdf_ = self.pdf(scale)
 
         # Take log of the product of all distributions
-        log_pdf_ = numpy.sum(numpy.log(pdf_))
+        if numpy.any(pdf_ == 0):
+            log_pdf_ = -numpy.inf
+        else:
+            log_pdf_ = numpy.sum(numpy.log(pdf_))
 
         return log_pdf_
 
@@ -367,7 +369,17 @@ class Prior(object):
         # Take log of the pdf
         log_pdf_jacobian_ = numpy.zeros((scale.size, ), dtype=float)
         for i in range(scale.size):
-            log_pdf_jacobian_[i] = pdf_jacobian_[i] / pdf_[i]
+            # In the followings, we introduce these conventions:
+            # 1. (non-zero) / (zero) = sign(non_zero) * inf
+            # 2. (zero) / (zero) = nan
+            if pdf_[i] == 0.0:
+                if pdf_jacobian_[i] == 0.0:
+                    log_pdf_jacobian_[i] = numpy.nan
+                else:
+                    log_pdf_jacobian_[i] = \
+                        numpy.sign(pdf_jacobian_[i]) * numpy.inf
+            else:
+                log_pdf_jacobian_[i] = pdf_jacobian_[i] / pdf_[i]
 
         # Convert derivative w.r.t log of scale
         if self.use_log_scale:
@@ -484,8 +496,29 @@ class Prior(object):
         # Take log of the pdf
         log_pdf_hessian_ = numpy.zeros((scale.size, scale.size), dtype=float)
         for i in range(scale.size):
-            log_pdf_hessian_[i, i] = (pdf_hessian_[i, i] / pdf_[i]) - \
-                    (pdf_jacobian_[i] / pdf_[i])**2
+            # In the followings, we introduce these conventions:
+            # 1. (non-zero) / (zero) = sign(non_zero) * inf
+            # 2. (zero) / (zero) = nan
+            # 3. nan < (inf)**2 if nan can be at worst inf or -inf.
+            if pdf_[i] == 0.0:
+                if (pdf_jacobian_[i] != 0.0) and (pdf_hessian_[i, i] != 0.0):
+                    # We make a convention that
+                    # is sign(pdf_hessian_)*inf - (inf)**2 is -inf.
+                    log_pdf_hessian_[i, i] = -numpy.inf
+                elif (pdf_jacobian_[i] != 0.0) or (pdf_hessian_[i, i] == 0.0):
+                    # We make a convention that nan - (inf)**2 is -inf. This is
+                    # because nan (an undetermined number) here at worst may be
+                    # inf or -inf. But the other term is (inf)**2, which is
+                    # larger than inf.
+                    log_pdf_hessian_[i, i] = -numpy.inf
+                else:
+                    # This happens when pdf_jacobian_ is zero, so, the second
+                    # term is nan. Regardless of the first term, result is
+                    # always undetermined.
+                    log_pdf_hessian_[i, i] = -numpy.nan
+            else:
+                log_pdf_hessian_[i, i] = (pdf_hessian_[i, i] / pdf_[i]) - \
+                        (pdf_jacobian_[i] / pdf_[i])**2
 
         # Convert derivative w.r.t log of scale
         if self.use_log_scale:
@@ -512,6 +545,7 @@ class Prior(object):
     # plot
     # ====
 
+    @matplotlib.rc_context(get_custom_theme(font_scale=1.2))
     def plot(
             self,
             interval=[0, 2],
@@ -583,8 +617,6 @@ class Prior(object):
             :class: custom-dark
         """
 
-        load_plot_settings()
-
         # Check range
         if not isinstance(interval, (list, tuple)):
             raise TypeError('"interval" should be a list or a tuple')
@@ -624,21 +656,25 @@ class Prior(object):
             # Compute the pdf and its first and second derivative
             if log_scale:
                 d0f[i] = self.log_pdf(hyperparam[i])
-                d1f[i] = self.log_pdf_jacobian(hyperparam[i])
-                d2f[i] = self.log_pdf_hessian(hyperparam[i])
+                d1f[i] = self.log_pdf_jacobian(hyperparam[i])[0]
+                d2f[i] = self.log_pdf_hessian(hyperparam[i])[0, 0]
             else:
                 d0f[i] = self.pdf(hyperparam[i])
-                d1f[i] = self.pdf_jacobian(hyperparam[i])
-                d2f[i] = self.pdf_hessian(hyperparam[i])
+                d1f[i] = self.pdf_jacobian(hyperparam[i])[0]
+                d2f[i] = self.pdf_hessian(hyperparam[i])[0, 0]
 
         # Compare analytic derivative with numerical derivative
         if compare_numerical:
             d1f_num = numpy.zeros_like(hyperparam.size-2)
             d2f_num = numpy.zeros_like(hyperparam.size-4)
 
-            d1f_num = (d0f[2:] - d0f[:-2]) / (hyperparam[2:] - hyperparam[:-2])
-            d2f_num = (d1f_num[2:] - d1f_num[:-2]) / \
-                (hyperparam[3:-1] - hyperparam[1:-3])
+            # Allow numpy.inf - numpy.inf to be nan without raising error
+            # This occurs, for instance, when uniform prior is used.
+            with numpy.errstate(invalid='ignore'):
+                d1f_num = (d0f[2:] - d0f[:-2]) / \
+                    (hyperparam[2:] - hyperparam[:-2])
+                d2f_num = (d1f_num[2:] - d1f_num[:-2]) / \
+                    (hyperparam[3:-1] - hyperparam[1:-3])
 
         # Plotting
         fig, ax = plt.subplots(ncols=3, figsize=(12.5, 4))

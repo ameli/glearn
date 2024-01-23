@@ -16,8 +16,8 @@
 import sys
 import numpy
 import scipy.special
-from _utilities.plot_utilities import *                      # noqa: F401, F403
-from _utilities.plot_utilities import load_plot_settings, save_plot, plt
+from _utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
+        save_plot, plt
 
 
 # =============
@@ -62,6 +62,7 @@ def _matern_kernel(nu, x):
 # main
 # ====
 
+@matplotlib.rc_context(get_custom_theme(font_scale=1.2))
 def main(test=False):
     """
     Set ``plot_errors`` to True to plot errors besides the Matern correlation
@@ -71,9 +72,6 @@ def main(test=False):
     ``nu > 25``, the Matern kernel is almost the same as the Gaussian kernel
     with less than ``1`` percent difference error.
     """
-
-    # Load plot settings
-    sns = load_plot_settings()
 
     # Set this to True for error plots
     plot_errors = False

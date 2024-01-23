@@ -30,7 +30,7 @@
 
 FROM nvidia/cuda:12.3.1-devel-ubuntu22.04 as builder
 MAINTAINER Siavash Ameli <samei@berkeley.edu>
-LABEL Description="glearn python package with cuda-11 support"
+LABEL Description="glearn python package with cuda-12 support"
 
 # Install python3
 RUN apt-get update && \

@@ -1,7 +1,6 @@
 numpy
 scipy
 matplotlib
-seaborn
 imate
 special_functions
 detkit

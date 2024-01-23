@@ -22,13 +22,8 @@ import imate
 from ..priors.prior import Prior
 from ..priors.uniform import Uniform
 from ..device._timer import Timer
-
-try:
-    from .._utilities.plot_utilities import plt, load_plot_settings, \
-        show_or_save_plot
-    plot_modules_exist = True
-except ImportError:
-    plot_modules_exist = False
+from .._utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
+    show_or_save_plot
 
 __all__ = ['Correlation']
 
@@ -706,6 +701,7 @@ class Correlation(object):
     # plot
     # ====
 
+    @matplotlib.rc_context(get_custom_theme(font_scale=1.2))
     def plot(self, derivative=[]):
         """
         Plots the (auto) correlation matrix, which it the correlation matrix
@@ -734,12 +730,6 @@ class Correlation(object):
         if self.current_scale is None:
             raise ValueError('Correlation cannot be plotted if "scale" is ' +
                              'not given.')
-
-        # Load plot settings
-        if plot_modules_exist:
-            load_plot_settings()
-        else:
-            raise ImportError("Cannot load plot settings.")
 
         # Get correlation matrix
         matrix = self.get_matrix(derivative=derivative)

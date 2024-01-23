@@ -342,8 +342,7 @@ class BetaPrime(Prior):
         elif isinstance(x, numpy.ndarray):
             x_ = x
         else:
-            raise TypeError('"x" should be scalar, list, or numpy ' +
-                            'array.')
+            raise TypeError('"x" should be scalar, list, or numpy array.')
 
         # Match the size of self.beta and self.alpha with size of input x
         if x_.size == self.beta.size and x_.size == self.alpha.size:
@@ -423,12 +422,18 @@ class BetaPrime(Prior):
 
         pdf_ = numpy.zeros((x.size, ), dtype=float)
         for i in range(x.size):
-            coeff = 1.0 / beta_function(alpha[i], beta[i])
-            a = alpha[i] - 1.0
-            b = -alpha[i] - beta[i]
-            k = (1.0 + x[i])**b
-            m = x[i]**a
-            pdf_[i] = coeff * m * k
+            if (alpha[i] < 1.0) and (numpy.mod(alpha[i], 1) != 0) and \
+                    (x[i] < 0.0):
+                raise ValueError('x cannot be negative.')
+            elif (alpha[i] < 1.0) and (x[i] == 0):
+                pdf_[i] = numpy.inf
+            else:
+                coeff = 1.0 / beta_function(alpha[i], beta[i])
+                a = alpha[i] - 1.0
+                b = -alpha[i] - beta[i]
+                k = (1.0 + x[i])**b
+                m = x[i]**a
+                pdf_[i] = coeff * m * k
 
         return pdf_
 
@@ -502,12 +507,26 @@ class BetaPrime(Prior):
         pdf_jacobian_ = numpy.zeros((x.size, ), dtype=float)
 
         for i in range(x.size):
-            coeff = 1.0 / beta_function(alpha[i], beta[i])
-            a = alpha[i] - 1.0
-            b = -alpha[i] - beta[i]
-            k = (1.0 + x[i])**b
-            m = x[i]**a
-            pdf_jacobian_[i] = coeff * m * k * (a/x[i] + b/(x[i]+1.0))
+            if alpha[i] == 1.0:
+                coeff = 1.0 / beta_function(alpha[i], beta[i])
+                b = -alpha[i] - beta[i]
+                k = (1.0 + x[i])**b
+                pdf_jacobian_[i] = coeff * k * (b/(x[i]+1.0))
+            elif (alpha[i] < 2.0) and (numpy.mod(alpha[i], 1) != 0) and \
+                    (x[i] < 0.0):
+                raise ValueError('x cannot be negative.')
+            elif (alpha[i] < 2.0) and (x[i] == 0):
+                a = alpha[i] - 1.0
+                pdf_jacobian_[i] = numpy.sign(a) * numpy.inf
+            elif (alpha[i] >= 2.0) and (x[i] == 0):
+                pdf_jacobian_[i] = 0.0
+            else:
+                coeff = 1.0 / beta_function(alpha[i], beta[i])
+                a = alpha[i] - 1.0
+                b = -alpha[i] - beta[i]
+                k = (1.0 + x[i])**b
+                m = x[i]**(a - 1.0)
+                pdf_jacobian_[i] = coeff * m * k * (a + b*x[i]/(x[i]+1.0))
 
         return pdf_jacobian_
 
@@ -585,13 +604,33 @@ class BetaPrime(Prior):
         pdf_hessian_ = numpy.zeros((x.size, x.size), dtype=float)
 
         for i in range(x.size):
-            coeff = 1.0 / beta_function(alpha[i], beta[i])
-            a = alpha[i] - 1.0
-            b = -alpha[i] - beta[i]
-            k = (1.0 + x[i])**b
-            m = x[i]**a
-            pdf_hessian_[i, i] = coeff * m * k * \
-                ((a**2/x[i]**2) - a/x[i]**2 + 2.0*a*b/(x[i]*(x[i]+1.0)) +
-                    b**2/((x[i]+1.0)**2) - b/((x[i]+1.0)**2))
+            if alpha[i] == 1.0:
+                coeff = 1.0 / beta_function(alpha[i], beta[i])
+                b = -alpha[i] - beta[i]
+                k = (1.0 + x[i])**b
+                pdf_hessian_[i, i] = coeff * k * \
+                    (b**2/((x[i]+1.0)**2) - b/((x[i]+1.0)**2))
+            elif (alpha[i] < 3.0) and (numpy.mod(alpha[i], 1) != 0) and \
+                    (x[i] < 0.0):
+                raise ValueError('x cannot be negative.')
+            elif (alpha[i] < 3.0) and (x[i] == 0):
+                a = alpha[i] - 1.0
+                b = -alpha[i] - beta[i]
+                c = a**2 - a + 2.0*a*b
+                if c == 0.0:
+                    pdf_hessian_[i, i] = 0.0
+                else:
+                    pdf_hessian_[i, i] = numpy.sign(c) * numpy.inf
+            elif (alpha[i] >= 3.0) and (x[i] == 0):
+                pdf_hessian_[i, i] = 0.0
+            else:
+                coeff = 1.0 / beta_function(alpha[i], beta[i])
+                a = alpha[i] - 1.0
+                b = -alpha[i] - beta[i]
+                k = (1.0 + x[i])**b
+                m = x[i]**(a - 2.0)
+                pdf_hessian_[i, i] = coeff * m * k * \
+                    (a**2 - a + 2.0*a*b*x[i]/(x[i]+1.0) +
+                        b**2*((x[i]/(x[i]+1.0))**2) - b*((x[i]/(x[i]+1.0))**2))
 
         return pdf_hessian_
