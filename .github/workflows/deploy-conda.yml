@@ -109,7 +109,7 @@ jobs:
                   path: dist
 
             - name: Setup Miniconda
-              uses: conda-incubator/setup-miniconda@v2
+              uses: conda-incubator/setup-miniconda@v3
               with:
                   miniconda-version: "latest"
                   auto-update-conda: true
@@ -149,7 +149,7 @@ jobs:
 
         steps:
             - name: Setup Miniconda
-              uses: conda-incubator/setup-miniconda@v2
+              uses: conda-incubator/setup-miniconda@v3
               with:
                   auto-update-conda: true
                   python-version: ${{ matrix.python-version }}
