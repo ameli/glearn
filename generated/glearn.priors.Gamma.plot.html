@@ -284,7 +284,7 @@
 <h1>glearn.priors.Gamma.plot<a class="headerlink" href="#glearn-priors-gamma-plot" title="Permalink to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="glearn.priors.Gamma.plot">
-<span class="sig-prename descclassname"><span class="pre">Gamma.</span></span><span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compare_numerical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.priors.Gamma.plot" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Gamma.</span></span><span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compare_numerical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#glearn.priors.Gamma.plot" title="Permalink to this definition">#</a></dt>
 <dd><p>Plot the kernel function and its first and second derivative.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -299,7 +299,11 @@ and plots the numerical derivatives together with the exact values
 of the derivatives from analytical formula. This is used to
 validate the analytical formulas.</p>
 </dd>
-<dt><strong>test</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, this function is used for test purposes.</p>
+<dt><strong>filename</strong><span class="classifier">str, default=None</span></dt><dd><p>Name of file to save the plot. If <cite>None</cite>, the plot is shown, but
+not saved. If a string, the plot is not shown, but saved. If the
+filename does not have a file extension, the file is saved in both
+<code class="docutils literal notranslate"><span class="pre">svg</span></code> and <code class="docutils literal notranslate"><span class="pre">pdf</span></code> format. If the filename does not have a path,
+the plot is saved in the current directory.</p>
 </dd>
 </dl>
 </dd>

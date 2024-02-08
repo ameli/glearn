@@ -487,9 +487,11 @@ each row represents an <span class="math notranslate nohighlight">\(d\)</span>-d
 set to <cite>None</cite>, the result of the random generator is not repeatable.</p>
 </dd>
 <dt><strong>plot</strong><span class="classifier">bool or str, default=False</span></dt><dd><p>If <cite>True</cite>, the data will be plotted (only if the data is 1D or 2D).
-If no display is available (such as executing on remote machines) the
-plot is saved in the current directory in <cite>SVG</cite> format. If <code class="docutils literal notranslate"><span class="pre">plot</span></code> is
-set to <code class="docutils literal notranslate"><span class="pre">save</span></code>, it saves the plot instead of showing the plot.</p>
+If <code class="docutils literal notranslate"><span class="pre">plot</span></code> is a string, the plot is not shown, rather saved with a
+filename as the given string. If the filename does not contain file
+extension, the plot is saved in both <code class="docutils literal notranslate"><span class="pre">svg</span></code> and <code class="docutils literal notranslate"><span class="pre">pdf</span></code> formats. If
+the filename does not have directory path, the plot is saved in the
+current directory.</p>
 </dd>
 </dl>
 </dd>

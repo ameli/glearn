@@ -577,7 +577,12 @@ package through <code class="docutils literal notranslate"><span class="pre">ima
 <dt><strong>verbose</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, verbose output on the optimization process is printer
 both during and after the computation.</p>
 </dd>
-<dt><strong>plot</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, the likelihood or posterior function is plotted.</p>
+<dt><strong>plot</strong><span class="classifier">bool or str, default=False</span></dt><dd><p>If <cite>True</cite>, the likelihood or posterior function is plotted. If
+<code class="docutils literal notranslate"><span class="pre">plot</span></code> is a string, the plot is not shown, rather saved with a
+filename as the given string. If the filename does not contain file
+extension, the plot is saved in both <code class="docutils literal notranslate"><span class="pre">svg</span></code> and <code class="docutils literal notranslate"><span class="pre">pdf</span></code> formats.
+If the filename does not have directory path, the plot is saved in
+the current directory.</p>
 </dd>
 </dl>
 </dd>

@@ -516,7 +516,12 @@ computed. Note that obtaining posterior covariance is
 computationally expensive, so if it is not needed, set this
 argument to <cite>False</cite>.</p>
 </dd>
-<dt><strong>plot</strong><span class="classifier">bool, default=False</span></dt><dd><p>If <cite>True</cite>, plots the prediction results.</p>
+<dt><strong>plot</strong><span class="classifier">bool or str, default=False</span></dt><dd><p>If <cite>True</cite>, the prediction result is plotted. If <code class="docutils literal notranslate"><span class="pre">plot</span></code> is a
+string, the plot is not shown, rather saved with a filename as the
+given string. If the filename does not contain file extension, the
+plot is saved in both <code class="docutils literal notranslate"><span class="pre">svg</span></code> and <code class="docutils literal notranslate"><span class="pre">pdf</span></code> formats. If the filename
+does not have directory path, the plot is saved in the current
+directory.</p>
 </dd>
 <dt><strong>true_data</strong><span class="classifier">numpy.array, default=None</span></dt><dd><p>An array of the size <span class="math notranslate nohighlight">\(n^{\ast}\)</span> of the true values of the
 test points data (if known). This option is used for benchmarking
