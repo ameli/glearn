@@ -14,7 +14,7 @@
 import numpy
 from numpy import format_float_scientific as ffs
 import scipy
-from .._utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
+from .._utilities.plot_utilities import plt, matplotlib, get_theme, \
         show_or_save_plot
 
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
@@ -197,8 +197,12 @@ def print_training_summary(res):
 # plot training convergence
 # =========================
 
-@matplotlib.rc_context(get_custom_theme(font_scale=1.2))
-def plot_training_convergence(posterior, res, verbose):
+@matplotlib.rc_context(get_theme(font_scale=1.2))
+def plot_training_convergence(
+        posterior,
+        res,
+        filename=None,
+        verbose=False):
     """
     """
 
@@ -271,7 +275,8 @@ def plot_training_convergence(posterior, res, verbose):
 
     # Save plots
     plt.tight_layout()
-    show_or_save_plot(plt, 'training_convergence',
+    show_or_save_plot(plt, filename=filename,
+                      default_filename='training_convergence',
                       transparent_background=True, verbose=verbose)
 
 
@@ -287,6 +292,7 @@ def plot_prediction(
         z_star_cov=None,
         confidence_level=0.95,
         true_data=None,
+        filename=None,
         verbose=False):
     """
     Plots prediction mean and covariance for 1D or 2D data.
@@ -295,7 +301,8 @@ def plot_prediction(
     if points.ndim == 1 or points.shape[1] == 1:
         # Plot 1D data
         _plot_prediction_1d(points, test_points, z, z_star_mean, z_star_cov,
-                            confidence_level, true_data, verbose)
+                            confidence_level, true_data, filename=filename,
+                            verbose=verbose)
     elif points.shape[1] == 2:
 
         if true_data is not None:
@@ -303,7 +310,8 @@ def plot_prediction(
 
         # Plot 2D data
         _plot_prediction_2d(points, test_points, z, z_star_mean, z_star_cov,
-                            confidence_level, verbose)
+                            confidence_level, filename=filename,
+                            verbose=verbose)
     else:
         raise ValueError('Predictions can be plotted for only 1D and 2D data.')
 
@@ -312,7 +320,7 @@ def plot_prediction(
 # plot prediction 1D
 # ==================
 
-@matplotlib.rc_context(get_custom_theme(font_scale=1.2))
+@matplotlib.rc_context(get_theme(font_scale=1.2))
 def _plot_prediction_1d(
         points,
         test_points,
@@ -321,6 +329,7 @@ def _plot_prediction_1d(
         z_star_cov=None,
         confidence_level=0.95,
         true_data=None,
+        filename=None,
         verbose=False):
     """
     Plots prediction mean and covariance for 1D data.
@@ -394,15 +403,15 @@ def _plot_prediction_1d(
 
     # Save plots
     plt.tight_layout()
-    show_or_save_plot(plt, 'prediction', transparent_background=True,
-                      verbose=verbose)
+    show_or_save_plot(plt, filename=filename, default_filename='prediction',
+                      transparent_background=True, verbose=verbose)
 
 
 # ==================
 # plot prediction 2D
 # ==================
 
-@matplotlib.rc_context(get_custom_theme(font_scale=1.2))
+@matplotlib.rc_context(get_theme(font_scale=1.2))
 def _plot_prediction_2d(
         points,
         test_points,
@@ -410,6 +419,7 @@ def _plot_prediction_2d(
         z_star_mean,
         z_star_cov=None,
         confidence_level=0.95,
+        filename=None,
         verbose=False):
     """
     Plots prediction mean and covariance for 2D data.
@@ -532,8 +542,8 @@ def _plot_prediction_2d(
 
     # Save plots
     plt.tight_layout()
-    show_or_save_plot(plt, 'prediction', transparent_background=True,
-                      verbose=verbose)
+    show_or_save_plot(plt, filename=filename, default_filename='prediction',
+                      transparent_background=True, verbose=verbose)
 
 
 # ========================

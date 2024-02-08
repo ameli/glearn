@@ -13,7 +13,7 @@
 
 import numpy
 import scipy
-from .._utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
+from .._utilities.plot_utilities import plt, matplotlib, get_theme, \
         show_or_save_plot
 
 __all__ = ['plot']
@@ -48,7 +48,7 @@ def plot(full_likelihood, result):
 # plot likelihood versus scale
 # ============================
 
-@matplotlib.rc_context(get_custom_theme(font_scale=1))
+@matplotlib.rc_context(get_theme(font_scale=1))
 def _plot_likelihood_versus_scale(
         full_likelihood,
         result,
@@ -371,14 +371,15 @@ def _plot_likelihood_versus_scale(
     ax[1, 2].set_axis_off()
 
     plt.tight_layout()
-    show_or_save_plot(plt, 'likelihood_vs_scale', transparent_background=False)
+    show_or_save_plot(plt, filename='likelihood_vs_scale',
+                      transparent_background=False, show_and_save=True)
 
 
 # ============================
 # plot likelihood versus sigma
 # ============================
 
-@matplotlib.rc_context(get_custom_theme(font_scale=1))
+@matplotlib.rc_context(get_theme(font_scale=1))
 def _plot_likelihood_versus_sigma(
         full_likelihood,
         result,
@@ -709,14 +710,15 @@ def _plot_likelihood_versus_sigma(
     ax[1, 2].set_axis_off()
 
     plt.tight_layout()
-    show_or_save_plot(plt, 'likelihood_vs_sigma', transparent_background=False)
+    show_or_save_plot(plt, filename='likelihood_vs_sigma',
+                      transparent_background=False, show_and_save=True)
 
 
 # =============================
 # plot likelihood versus sigma0
 # =============================
 
-@matplotlib.rc_context(get_custom_theme(font_scale=1))
+@matplotlib.rc_context(get_theme(font_scale=1))
 def _plot_likelihood_versus_sigma0(
         full_likelihood,
         result,
@@ -1044,15 +1046,15 @@ def _plot_likelihood_versus_sigma0(
     ax[1, 2].set_axis_off()
 
     plt.tight_layout()
-    show_or_save_plot(plt, 'likelihood_vs_sigma0',
-                      transparent_background=False)
+    show_or_save_plot(plt, filename='likelihood_vs_sigma0',
+                      transparent_background=False, show_and_save=True)
 
 
 # ===================================
 # plot likelihood versus sigma0 sigma
 # ===================================
 
-@matplotlib.rc_context(get_custom_theme(font_scale=1))
+@matplotlib.rc_context(get_theme(font_scale=1))
 def _plot_likelihood_versus_sigma0_sigma(full_likelihood, result=None):
     """
     2D contour plot of log likelihood versus sigma0 and sigma.
@@ -1219,5 +1221,5 @@ def _plot_likelihood_versus_sigma0_sigma(full_likelihood, result=None):
     ax[2].grid(True)
 
     plt.tight_layout()
-    show_or_save_plot(plt, 'likelihood_vs_sigma_sigma0',
-                      transparent_background=False)
+    show_or_save_plot(plt, filename='likelihood_vs_sigma_sigma0',
+                      transparent_background=False, show_and_save=True)

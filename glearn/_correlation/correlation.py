@@ -22,7 +22,7 @@ import imate
 from ..priors.prior import Prior
 from ..priors.uniform import Uniform
 from ..device._timer import Timer
-from .._utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
+from .._utilities.plot_utilities import plt, matplotlib, get_theme, \
     show_or_save_plot
 
 __all__ = ['Correlation']
@@ -701,11 +701,24 @@ class Correlation(object):
     # plot
     # ====
 
-    @matplotlib.rc_context(get_custom_theme(font_scale=1.2))
-    def plot(self, derivative=[]):
+    @matplotlib.rc_context(get_theme(font_scale=1.2))
+    def plot(self, derivative=[], filename=None):
         """
         Plots the (auto) correlation matrix, which it the correlation matrix
         between self.points and themselves.
+
+        Parameters
+        ----------
+
+        filename : str, default=None
+            Name of file to save the plot. If `None`, the plot is shown, but
+            not saved. If a string, the plot is not shown, but saved. If the
+            filename does not have a file extension, the file is saved in both
+            ``svg`` and ``pdf`` format. If the filename does not have a path,
+            the plot is saved in the current directory.
+
+        Notes
+        -----
 
         If the matrix is a sparse, it plots all non-zero elements with single
         color regardless of their values, and leaves the zero elements white.
@@ -715,16 +728,6 @@ class Correlation(object):
 
         If a graphical backend is not provided, the plot is not displayed,
         rather saved as ``SVG`` file in the current directory of user.
-
-        :param matrix: A 2D array
-        :type matrix: numpy.ndarray or scipy.sparse.csc_matrix
-
-        :param sparse: Determine whether the matrix is dense or sparse
-        :type sparse: bool
-
-        :param verbose: If ``True``, prints some information during the
-            process.
-        :type verbose: bool
         """
 
         if self.current_scale is None:
@@ -751,4 +754,6 @@ class Correlation(object):
         ax.set_ylabel('Index $j$')
 
         plt.tight_layout()
-        show_or_save_plot(plt, 'correlation', transparent_background=True)
+        show_or_save_plot(plt, filename=filename,
+                          default_filename='correlation',
+                          transparent_background=True)

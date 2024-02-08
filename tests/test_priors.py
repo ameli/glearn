@@ -51,7 +51,7 @@ def check_prior(prior):
     prior.log_pdf(t)
     prior.log_pdf_jacobian(t)
     prior.log_pdf_hessian(t)
-    prior.plot(log_scale=True, compare_numerical=True, test=True)
+    prior.plot(log_scale=True, compare_numerical=True)
 
     remove_file('prior.svg')
     print('OK')

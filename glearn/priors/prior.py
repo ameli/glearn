@@ -12,8 +12,8 @@
 # =======
 
 import numpy
-from .._utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
-    save_plot, show_or_save_plot
+from .._utilities.plot_utilities import plt, matplotlib, get_theme, \
+    show_or_save_plot
 
 __all__ = ['Prior']
 
@@ -545,13 +545,13 @@ class Prior(object):
     # plot
     # ====
 
-    @matplotlib.rc_context(get_custom_theme(font_scale=1.2))
+    @matplotlib.rc_context(get_theme(font_scale=1.2))
     def plot(
             self,
             interval=[0, 2],
             log_scale=False,
             compare_numerical=False,
-            test=False):
+            filename=None):
         """
         Plot the kernel function and its first and second derivative.
 
@@ -571,9 +571,12 @@ class Prior(object):
             of the derivatives from analytical formula. This is used to
             validate the analytical formulas.
 
-
-        test : bool, default=False
-            If `True`, this function is used for test purposes.
+        filename : str, default=None
+            Name of file to save the plot. If `None`, the plot is shown, but
+            not saved. If a string, the plot is not shown, but saved. If the
+            filename does not have a file extension, the file is saved in both
+            ``svg`` and ``pdf`` format. If the filename does not have a path,
+            the plot is saved in the current directory.
 
         Notes
         -----
@@ -729,7 +732,5 @@ class Prior(object):
 
         plt.tight_layout()
 
-        if test:
-            save_plot(plt, 'prior', pdf=False, verbose=False)
-        else:
-            show_or_save_plot(plt, 'prior', transparent_background=True)
+        show_or_save_plot(plt, filename=filename, default_filename='prior',
+                          transparent_background=True)

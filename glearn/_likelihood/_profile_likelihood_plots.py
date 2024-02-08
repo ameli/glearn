@@ -13,7 +13,7 @@
 
 import numpy
 import scipy
-from .._utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
+from .._utilities.plot_utilities import plt, matplotlib, get_theme, \
         show_or_save_plot
 
 __all__ = ['plot']
@@ -47,7 +47,7 @@ def plot(profile_likelihood, result):
 # plot likelihood versus scale
 # ============================
 
-@matplotlib.rc_context(get_custom_theme(font_scale=1))
+@matplotlib.rc_context(get_theme(font_scale=1))
 def _plot_likelihood_versus_scale(
         profile_likelihood,
         result,
@@ -274,14 +274,15 @@ def _plot_likelihood_versus_scale(
     ax[1, 1].grid(True, which='both')
 
     plt.tight_layout()
-    show_or_save_plot(plt, 'likelihood_vs_scale', transparent_background=True)
+    show_or_save_plot(plt, filename='likelihood_vs_scale',
+                      transparent_background=True, show_and_save=True)
 
 
 # ==========================
 # plot likelihood versus eta
 # ==========================
 
-@matplotlib.rc_context(get_custom_theme(font_scale=1))
+@matplotlib.rc_context(get_theme(font_scale=1))
 def _plot_likelihood_versus_eta(
         profile_likelihood,
         result,
@@ -515,14 +516,15 @@ def _plot_likelihood_versus_eta(
     ax[1, 1].grid(True, which='both')
 
     plt.tight_layout()
-    show_or_save_plot(plt, 'likelihood_vs_eta', transparent_background=True)
+    show_or_save_plot(plt, filename='likelihood_vs_eta',
+                      transparent_background=True, show_and_save=True)
 
 
 # ================================
 # plot likelihood versus eta scale
 # ================================
 
-@matplotlib.rc_context(get_custom_theme(font_scale=1))
+@matplotlib.rc_context(get_theme(font_scale=1))
 def _plot_likelihood_versus_eta_scale(profile_likelihood, result):
     """
     Plots log likelihood versus sigma and eta hyperparam.
@@ -690,15 +692,15 @@ def _plot_likelihood_versus_eta_scale(profile_likelihood, result):
     ax[2].grid(True)
 
     plt.tight_layout()
-    show_or_save_plot(plt, 'likelihood_vs_eta_scale',
-                      transparent_background=True)
+    show_or_save_plot(plt, filename='likelihood_vs_eta_scale',
+                      transparent_background=True, show_and_save=True)
 
 
 # ========================
 # plot likelihood der1 eta
 # ========================
 
-@matplotlib.rc_context(get_custom_theme(font_scale=1))
+@matplotlib.rc_context(get_theme(font_scale=1))
 def _plot_likelihood_der1_eta(profile_likelihood, result):
     """
     Plots the derivative of log likelihood as a function of eta. Also it shows
@@ -905,6 +907,6 @@ def _plot_likelihood_der1_eta(profile_likelihood, result):
 
     # Save plots
     plt.tight_layout()
-    show_or_save_plot(plt, 'likelihood_derivative',
-                      transparent_background=False,
-                      pdf=True, bbox_extra_artists=(lg, ))
+    show_or_save_plot(plt, filname='likelihood_derivative',
+                      transparent_background=False, show_and_save=True,
+                      bbox_extra_artists=(lg, ))

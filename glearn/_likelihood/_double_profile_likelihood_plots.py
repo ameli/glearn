@@ -13,7 +13,7 @@
 
 import numpy
 import scipy
-from .._utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
+from .._utilities.plot_utilities import plt, matplotlib, get_theme, \
         show_or_save_plot
 
 __all__ = ['plot']
@@ -55,7 +55,7 @@ def _plot_likelihood_versus_scale(double_profile_likelihood, result):
 # plot likelihood versus scale 1d
 # ===============================
 
-@matplotlib.rc_context(get_custom_theme(font_scale=1))
+@matplotlib.rc_context(get_theme(font_scale=1))
 def _plot_likelihood_versus_scale_1d(double_profile_likelihood, result=None):
     """
     Plots log likelihood versus sigma, eta hyperparam
@@ -173,14 +173,15 @@ def _plot_likelihood_versus_scale_1d(double_profile_likelihood, result=None):
     ax[1, 1].grid(True)
 
     plt.tight_layout()
-    show_or_save_plot(plt, 'likelihood_vs_scale', transparent_background=False)
+    show_or_save_plot(plt, filename='likelihood_vs_scale',
+                      transparent_background=False, show_and_save=True)
 
 
 # ===============================
 # plot likelihood versus scale 2d
 # ===============================
 
-@matplotlib.rc_context(get_custom_theme(font_scale=1))
+@matplotlib.rc_context(get_theme(font_scale=1))
 def _plot_likelihood_versus_scale_2d(double_profile_likelihood, result=None):
     """
     Plots log likelihood versus sigma, eta hyperparam
@@ -332,4 +333,5 @@ def _plot_likelihood_versus_scale_2d(double_profile_likelihood, result=None):
     ax[1].set_title(r'Optimal $\eta$ for $(\alpha_1, \alpha_2)$')
 
     plt.tight_layout()
-    show_or_save_plot(plt, 'likelihood_vs_scale', transparent_background=False)
+    show_or_save_plot(plt, filename='likelihood_vs_scale',
+                      transparent_background=False, show_and_save=True)

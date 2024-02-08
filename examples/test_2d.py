@@ -80,7 +80,7 @@ def main():
     cor = Correlation(points, kernel=kernel, scale=0.1, sparse=False)
     # cor = Correlation(points, kernel=kernel, sparse=False)
     # cor = Correlation(points, kernel=kernel, scale=scale, sparse=False)
-    # cor.plot()
+    # cor.plot(save=True)
 
     # Covariance
     imate_method = 'eigenvalue'

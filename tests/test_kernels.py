@@ -48,7 +48,7 @@ def check_kernel(kernel):
     kernel(x)
     kernel(x, derivative=1)
     kernel(x, derivative=2)
-    kernel.plot(compare_numerical=True, test=True)
+    kernel.plot(compare_numerical=True)
 
     remove_file('kernel.svg')
     print('OK')

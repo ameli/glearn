@@ -14,8 +14,8 @@
 import numpy
 from libc.stdio cimport printf
 from libc.math cimport NAN
-from .._utilities.plot_utilities import matplotlib, plt, get_custom_theme, \
-        save_plot, show_or_save_plot
+from .._utilities.plot_utilities import matplotlib, plt, get_theme, \
+        show_or_save_plot
 
 __all__ = ['Kernel']
 
@@ -184,8 +184,12 @@ cdef class Kernel(object):
     # plot
     # ====
 
-    @matplotlib.rc_context(get_custom_theme(font_scale=1.2))
-    def plot(self, compare_numerical=False, x_max=4.0, test=False):
+    @matplotlib.rc_context(get_theme(font_scale=1.2))
+    def plot(
+            self,
+            compare_numerical=False,
+            x_max=4.0,
+            filename=None):
         """
         Plot the kernel function and its first and second derivative.
 
@@ -201,8 +205,12 @@ cdef class Kernel(object):
         x_max : float, default=4.0
             Maximum range in the abscissa in the plot.
 
-        test : bool, default=False
-            If `True`, this function is used for test purposes.
+        filename : str, default=None
+            Name of file to save the plot. If `None`, the plot is shown, but
+            not saved. If a string, the plot is not shown, but saved. If the
+            filename does not have a file extension, the file is saved in both
+            ``svg`` and ``pdf`` format. If the filename does not have a path,
+            the plot is saved in the current directory.
 
         Notes
         -----
@@ -298,7 +306,5 @@ cdef class Kernel(object):
 
         plt.tight_layout()
 
-        if test:
-            save_plot(plt, 'kernel', pdf=False, verbose=False)
-        else:
-            show_or_save_plot(plt, 'kernel', transparent_background=True)
+        show_or_save_plot(plt, filename=filename, default_filename='kernel',
+                          transparent_background=True)

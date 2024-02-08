@@ -611,8 +611,13 @@ class GaussianProcess(object):
             If `True`, verbose output on the optimization process is printer
             both during and after the computation.
 
-        plot : bool, default=False
-            If `True`, the likelihood or posterior function is plotted.
+        plot : bool or str, default=False
+            If `True`, the likelihood or posterior function is plotted. If
+            ``plot`` is a string, the plot is not shown, rather saved with a
+            filename as the given string. If the filename does not contain file
+            extension, the plot is saved in both ``svg`` and ``pdf`` formats.
+            If the filename does not have directory path, the plot is saved in
+            the current directory.
 
         See Also
         --------
@@ -1022,9 +1027,10 @@ class GaussianProcess(object):
                 tol=tol, max_iter=max_iter, use_rel_error=use_rel_error,
                 verbose=verbose)
 
-        if plot:
+        if plot is not False:
             plot_training_convergence(
-                    self.posterior, self.training_result, verbose)
+                    self.posterior, self.training_result, filename=plot,
+                    verbose=verbose)
 
         if verbose:
             print_training_summary(self.training_result)
@@ -1253,8 +1259,13 @@ class GaussianProcess(object):
             computationally expensive, so if it is not needed, set this
             argument to `False`.
 
-        plot : bool, default=False
-            If `True`, plots the prediction results.
+        plot : bool or str, default=False
+            If `True`, the prediction result is plotted. If ``plot`` is a
+            string, the plot is not shown, rather saved with a filename as the
+            given string. If the filename does not contain file extension, the
+            plot is saved in both ``svg`` and ``pdf`` formats. If the filename
+            does not have directory path, the plot is saved in the current
+            directory.
 
         true_data : numpy.array, default=None
             An array of the size :math:`n^{\\ast}` of the true values of the
@@ -1637,9 +1648,10 @@ class GaussianProcess(object):
             print_prediction_summary(self.prediction_result)
 
         # Plot prediction
-        if plot:
+        if plot is not False:
             plot_prediction(self.mean.points, test_points, self.z, z_star_mean,
-                            z_star_cov, confidence_level, true_data, verbose)
+                            z_star_cov, confidence_level, true_data,
+                            filename=plot, verbose=verbose)
 
         if cov:
             return z_star_mean, z_star_cov

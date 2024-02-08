@@ -11,6 +11,6 @@
 # Imports
 # =======
 
-from .plot_utilities import set_custom_theme
+from .plot_utilities import set_theme
 
-__all__ = ['set_custom_theme']
+__all__ = ['set_theme']

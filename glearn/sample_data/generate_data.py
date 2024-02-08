@@ -12,8 +12,8 @@
 # =======
 
 import numpy
-from .._utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
-    save_plot, show_or_save_plot
+from .._utilities.plot_utilities import plt, matplotlib, get_theme, \
+    show_or_save_plot
 
 __all__ = ['generate_data']
 
@@ -46,9 +46,11 @@ def generate_data(
 
     plot : bool or str, default=False
         If `True`, the data will be plotted (only if the data is 1D or 2D).
-        If no display is available (such as executing on remote machines) the
-        plot is saved in the current directory in `SVG` format. If ``plot`` is
-        set to ``save``, it saves the plot instead of showing the plot.
+        If ``plot`` is a string, the plot is not shown, rather saved with a
+        filename as the given string. If the filename does not contain file
+        extension, the plot is saved in both ``svg`` and ``pdf`` formats. If
+        the filename does not have directory path, the plot is saved in the
+        current directory.
 
     Returns
     -------
@@ -163,8 +165,8 @@ def generate_data(
     y += noise_magnitude*rng.randn(num_points)
 
     # Plot data
-    if plot is True or plot == 'save':
-        _plot_data(x, y, plot)
+    if plot is not False:
+        _plot_data(x, y, filename=plot)
 
     return y
 
@@ -173,8 +175,8 @@ def generate_data(
 # plot data
 # =========
 
-@matplotlib.rc_context(get_custom_theme(font_scale=1.2))
-def _plot_data(x, y, plot):
+@matplotlib.rc_context(get_theme(font_scale=1.2))
+def _plot_data(x, y, filename=None):
     """
     Plots 1D or 2D data.
     """
@@ -197,11 +199,8 @@ def _plot_data(x, y, plot):
 
         plt.tight_layout()
 
-        if plot == 'save':
-            save_plot(plt, 'data', transparent_background=True, pdf=False,
-                      verbose=False)
-        else:
-            show_or_save_plot(plt, 'data', transparent_background=True)
+        show_or_save_plot(plt, filename=filename, default_filename='data',
+                          transparent_background=True, verbose=False)
 
     elif dimension == 2:
 
@@ -242,11 +241,8 @@ def _plot_data(x, y, plot):
 
         plt.tight_layout()
 
-        if plot == 'save':
-            save_plot(plt, 'data', transparent_background=True,
-                      pdf=False, verbose=False)
-        else:
-            show_or_save_plot(plt, 'data', transparent_background=True)
+        show_or_save_plot(plt, filename=filename, default_filename='data',
+                          transparent_background=True, verbose=False)
 
     else:
         raise ValueError('Dimension should be "1" or "2" to plot data.')

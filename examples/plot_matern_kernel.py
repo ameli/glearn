@@ -16,8 +16,8 @@
 import sys
 import numpy
 import scipy.special
-from _utilities.plot_utilities import plt, matplotlib, get_custom_theme, \
-        save_plot, plt
+from _utilities.plot_utilities import plt, matplotlib, get_theme, \
+        show_or_save_plot
 
 
 # =============
@@ -62,7 +62,7 @@ def _matern_kernel(nu, x):
 # main
 # ====
 
-@matplotlib.rc_context(get_custom_theme(font_scale=1.2))
+@matplotlib.rc_context(get_theme(font_scale=1.2))
 def main(test=False):
     """
     Set ``plot_errors`` to True to plot errors besides the Matern correlation
@@ -130,13 +130,12 @@ def main(test=False):
 
     # Save plot
     filename = 'matern_kernel'
+    show_and_save = True
     if test:
         filename = "test_" + filename
-    save_plot(plt, filename, transparent_background=False, pad_inches=0)
-
-    # If no display backend is enabled, do not plot in the interactive mode
-    if (not test) and (matplotlib.get_backend() != 'agg'):
-        plt.show()
+        show_and_save = False
+    show_or_save_plot(plt, filename=filename, transparent_background=False,
+                      show_and_save=show_and_save)
 
 
 # ===========

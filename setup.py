@@ -1512,7 +1512,6 @@ def main(argv):
         python_requires='>=3.8',
         setup_requires=[
             'setuptools',
-            'wheel',
             'special_functions',
             'cython'],
         tests_require=[
