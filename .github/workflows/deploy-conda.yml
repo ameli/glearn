@@ -49,7 +49,7 @@ jobs:
               run: rm -rf /opt/hostedtoolcache 
 
             - name: Build wheels (X86_64)
-              uses: pypa/cibuildwheel@v2.15.0
+              uses: pypa/cibuildwheel@v2.16.5
               env:
                   CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
                   CIBW_ARCHS_WINDOWS: "AMD64 x86"
