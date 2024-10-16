@@ -56,12 +56,15 @@ conda_build_wheels_macosx_arm64_task:
     # CIBW_BUILD: "*-macosx_arm64"
     CIBW_SKIP: "pp* cp36-* cp37-* cp38-*"
     CIBW_BUILD_VERBOSITY: "3"
-    CIBW_BEFORE_BUILD: "pip install delocate; brew install libomp"
+    CIBW_BEFORE_BUILD: >
+      pip install delocate;
+      brew install libomp;
     CIBW_TEST_SKIP: "*_universal2:arm64"
 
   build_script:
     - uname -m
     - brew install python@3.11
+    - sudo mkdir -p /usr/local/bin
     - sudo ln -s /opt/homebrew/opt/python@3.11/bin/python3.11 /usr/local/bin/python
     - which python
     - python -c "import platform;print(platform.python_version());print(platform.system());print(platform.machine())"

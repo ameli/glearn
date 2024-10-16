@@ -24,6 +24,7 @@ cdef class Matern(Kernel):
     cdef double nu
 
     # Methods
-    cdef double cy_kernel(self, const double x) nogil
-    cdef double cy_kernel_first_derivative(self, const double x) nogil
-    cdef double cy_kernel_second_derivative(self, const double x) nogil
+    cdef double cy_kernel(self, const double x) noexcept nogil
+    cdef double cy_kernel_first_derivative(self, const double x) noexcept nogil
+    cdef double cy_kernel_second_derivative(
+        self, const double x) noexcept nogil

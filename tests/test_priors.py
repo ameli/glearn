@@ -54,6 +54,7 @@ def check_prior(prior):
     prior.plot(log_scale=True, compare_numerical=True)
 
     remove_file('prior.svg')
+    remove_file('prior.pdf')
     print('OK')
 
 

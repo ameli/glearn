@@ -13,7 +13,7 @@
 
 # Python
 import numpy
-import multiprocessing
+from .._openmp import get_avail_num_threads
 
 # Cython
 from cython.parallel cimport parallel, prange
@@ -22,7 +22,7 @@ from ._compute_dense_correlation cimport compute_dense_correlation
 from ..kernels import Kernel
 from ..kernels cimport Kernel
 cimport cython
-cimport openmp
+from .._openmp cimport omp_set_num_threads
 
 __all__ = ['dense_cross_correlation']
 
@@ -42,7 +42,7 @@ cdef void _generate_correlation_matrix(
         const double[:] scale,
         Kernel kernel,
         const int num_threads,
-        double[:, ::1] correlation_matrix) nogil:
+        double[:, ::1] correlation_matrix) noexcept nogil:
     """
     Generates a dense correlation matrix.
 
@@ -78,7 +78,7 @@ cdef void _generate_correlation_matrix(
     cdef int dim
 
     # Set number of parallel threads
-    openmp.omp_set_num_threads(num_threads)
+    omp_set_num_threads(num_threads)
 
     # Using max possible chunk size for parallel threads
     cdef int chunk_size = int((<double> num_rows) / num_threads)
@@ -143,7 +143,7 @@ def dense_cross_correlation(
     dimension = training_points.shape[1]
 
     # Get number of CPU threads
-    num_threads = multiprocessing.cpu_count()
+    num_threads = get_avail_num_threads()
 
     # Initialize matrix
     correlation_matrix = numpy.zeros((num_rows, num_columns), dtype=float)

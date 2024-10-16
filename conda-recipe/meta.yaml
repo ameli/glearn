@@ -35,7 +35,7 @@ requirements:
     host:
         - python {{ python }}
         - setuptools
-        - cython>=0.29,<3.0
+        - cython>=0.29
         - pip
         - special_functions       # needs -c s-ameli
         - detkit                  # needs -c s-sameli

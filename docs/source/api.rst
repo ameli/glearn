@@ -118,3 +118,4 @@ Inquiry hardware information, including CPU and GPU devices employed during comp
     glearn.device.get_nvidia_driver_version
     glearn.device.locate_cuda
     glearn.device.restrict_to_single_processor
+    glearn.get_config

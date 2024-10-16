@@ -27,7 +27,7 @@ cdef double euclidean_distance(
         const double[:] point1,
         const double[:] point2,
         const double[:] scale,
-        const int dimension) nogil:
+        const int dimension) noexcept nogil:
     """
     Returns the weighted Euclidean distance between two points.
 

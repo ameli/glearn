@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # SPDX-FileCopyrightText: Copyright 2021, Siavash Ameli <sameli@berkeley.edu>
 # SPDX-License-Identifier: BSD-3-Clause
 # SPDX-FileType: SOURCE
@@ -6,14 +8,6 @@
 # under the terms of the license found in the LICENSE.txt file in the root
 # directory of this source tree.
 
+from .cpu_count import get_avail_num_threads
 
-# ============
-# Declarations
-# ============
-
-cdef void extend_arrays(
-        long[:] max_nnz,
-        long[:] nnz,
-        long** pp_matrix_row_indices,
-        long** pp_matrix_column_indices,
-        double** pp_matrix_data) noexcept nogil
+__all__ = ['get_avail_num_threads']

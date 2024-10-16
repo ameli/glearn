@@ -61,7 +61,7 @@ def load_omp():
 # c load omp
 # ==========
     
-cdef void c_load_omp() nogil:
+cdef void c_load_omp() noexcept nogil:
 
     with parallel():
         pass

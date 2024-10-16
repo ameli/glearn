@@ -32,7 +32,7 @@ Install with ``conda``
 
 ::
 
-    conda install -c s-ameli glearn
+    conda install s-ameli::glearn
 
 Docker Image
 ------------

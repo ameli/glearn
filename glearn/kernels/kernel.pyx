@@ -86,7 +86,7 @@ cdef class Kernel(object):
     # cy kernel
     # =========
 
-    cdef double cy_kernel(self, const double x) nogil:
+    cdef double cy_kernel(self, const double x) noexcept nogil:
         """
         """
 
@@ -98,7 +98,8 @@ cdef class Kernel(object):
     # cy kernel first derivative
     # ==========================
 
-    cdef double cy_kernel_first_derivative(self, const double x) nogil:
+    cdef double cy_kernel_first_derivative(
+            self, const double x) noexcept nogil:
         """
         """
         printf('Not Implemented ERROR: this method should only be called by ' +
@@ -109,7 +110,8 @@ cdef class Kernel(object):
     # cy kernel second derivative
     # ===========================
 
-    cdef double cy_kernel_second_derivative(self, const double x) nogil:
+    cdef double cy_kernel_second_derivative(
+            self, const double x) noexcept nogil:
         """
         """
         printf('Not Implemented ERROR: this method should only be called by ' +

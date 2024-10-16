@@ -78,6 +78,7 @@ try:
     from ._covariance import Covariance                            # noqa: E402
     from ._gaussian_process import GaussianProcess                 # noqa: E402
     from .device import Timer, Memory, info
+    from ._definitions import get_config                           # noqa: E402
 
 except Exception as e:
     # Before printing the exception, check if the exception is raised due to
@@ -89,6 +90,6 @@ except Exception as e:
     raise e
 
 __all__ = ['LinearModel', 'Covariance', 'GaussianProcess', 'Timer', 'Memory',
-           'info']
+           'info', 'get_config']
 
 from .__version__ import __version__                          # noqa: F401 E402

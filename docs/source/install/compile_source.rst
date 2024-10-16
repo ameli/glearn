@@ -20,7 +20,15 @@ This section walks you through the compilation process.
 Install C++ Compiler (`Required`)
 ---------------------------------
 
-Compile |project| with either of GCC, Clang/LLVM, or Intel C++ compiler on UNIX operating systems. For Windows, compile |project| with `Microsoft Visual Studio (MSVC) Compiler for C++ <https://code.visualstudio.com/docs/cpp/config-msvc#:~:text=You%20can%20install%20the%20C,the%20C%2B%2B%20workload%20is%20checked.>`_.
+You can compile |project| with any of the following compilers:
+
+* `GCC <https://gcc.gnu.org/>`__ (Linux, macOS, Windows via `MinGW <https://www.mingw-w64.org/>`__ or `Cygwin <https://www.cygwin.com/>`__)
+* `LLVM/Clang <https://clang.llvm.org/>`__ (Linux, macOS, Windows via `MinGW <https://www.mingw-w64.org/>`__, or LLVM's own Windows support) and `LLVM/Clang by Apple <https://opensource.apple.com/projects/llvm-clang/>`__ 
+* `Intel OneAPI <https://www.intel.com/content/www/us/en/developer/tools/oneapi/overview.html#gs.5c6ir2>`__ (Linux, Windows)
+* `Microsoft Visual Studio (MSVC) Compiler for C++ <https://code.visualstudio.com/docs/cpp/config-msvc#:~:text=You%20can%20install%20the%20C,the%20C%2B%2B%20workload%20is%20checked.>`_ (Windows)
+* `Arm Compiler for Linux <https://developer.arm.com/Tools%20and%20Software/Arm%20Compiler%20for%20Linux>`__ (Linux on AARCH64 architecture)
+
+Below are short description of setting up a few major compilers:
 
 .. rubric:: Install GNU GCC Compiler
 
@@ -55,7 +63,7 @@ Compile |project| with either of GCC, Clang/LLVM, or Intel C++ compiler on UNIX 
 
             sudo brew install gcc libomp
 
-Then, export ``C`` and ``CXX`` variables by
+Then, export ``CC`` and ``CXX`` variables by
 
 .. prompt:: bash
 
@@ -71,7 +79,7 @@ Then, export ``C`` and ``CXX`` variables by
 
         .. prompt:: bash
 
-            sudo apt install clang
+            sudo apt install clang libomp-dev
 
     .. tab-item:: CentOS 7
         :sync: centos
@@ -81,7 +89,7 @@ Then, export ``C`` and ``CXX`` variables by
             sudo yum install yum-utils
             sudo yum-config-manager --enable extras
             sudo yum makecache
-            sudo yum install clang
+            sudo yum install clang libomp-devel
 
     .. tab-item:: RHEL 9
         :sync: rhel
@@ -91,7 +99,7 @@ Then, export ``C`` and ``CXX`` variables by
             sudo dnf install yum-utils
             sudo dnf config-manager --enable extras
             sudo dnf makecache
-            sudo dnf install clang
+            sudo dnf install clang libomp-devel
 
     .. tab-item:: macOS
         :sync: osx
@@ -100,7 +108,7 @@ Then, export ``C`` and ``CXX`` variables by
 
             sudo brew install llvm libomp-dev
 
-Then, export ``C`` and ``CXX`` variables by
+Then, export ``CC`` and ``CXX`` variables by
 
 .. prompt:: bash
 
@@ -109,7 +117,32 @@ Then, export ``C`` and ``CXX`` variables by
 
 .. rubric:: Install Intel oneAPI Compiler
 
-To install `Intel Compiler` see `Intel oneAPI Base Toolkit <https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit-download.html?operatingsystem=linux&distributions=aptpackagemanager>`_.
+To install `Intel Compiler` see `Intel oneAPI Base Toolkit <https://www.intel.com/content/www/us/en/developer/tools/oneapi/overview.html>`__. Once installed, set the compiler's required environment variables by
+
+.. tab-set::
+
+    .. tab-item:: UNIX
+        :sync: unix
+
+        .. prompt:: bash
+
+            source /opt/intel/oneapi/setvars.sh
+
+    .. tab-item:: Windows (Powershell)
+        :sync: win
+
+        .. prompt:: powershell
+
+            C:\Program Files (x86)\Intel\oneAPI\setvars.bat
+
+In UNIX, export ``CC`` and ``CXX`` variables by
+
+.. prompt:: bash
+
+    export CC=`which icpx`
+    export CXX=`which icpx`
+
+.. _install_openmp:
 
 Install OpenMP (`Required`)
 ---------------------------
@@ -217,6 +250,26 @@ Set the following environment variables as desired to configure the compilation 
         .. hint::
 
             By enabling this variable, the build will be `in-source`, similar to setting ``CYTHON_BUILD_IN_SOURCE=1``. To clean the source directory from the generated files, see :ref:`Clean Compilation Files <clean-files>`.
+
+    ``USE_OPENMP``
+        
+        To enable shared-memory parallelization uisng OpenMP, set this variable to `1` and make sure OpenMP is installed (see :ref:`Install OpenMP <install_openmp>`). Setting this variable to `0` disables this feature. By default, this variable is set to `1`.
+
+        .. tab-set::
+
+            .. tab-item:: UNIX
+                :sync: unix
+
+                .. prompt:: bash
+
+                    export USE_OPENMP=1
+
+            .. tab-item:: Windows (Powershell)
+                :sync: win
+
+                .. prompt:: powershell
+
+                    $env:USE_OPENMP = "1"
 
     ``DEBUG_MODE``
 

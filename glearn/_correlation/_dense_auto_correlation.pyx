@@ -13,7 +13,7 @@
 
 # Python
 import numpy
-import multiprocessing
+from .._openmp import get_avail_num_threads
 
 # Cython
 from cython.parallel cimport parallel, prange
@@ -23,7 +23,7 @@ from ._compute_dense_correlation cimport compute_dense_correlation, \
 from ..kernels import Kernel
 from ..kernels cimport Kernel
 cimport cython
-cimport openmp
+from .._openmp cimport omp_set_num_threads
 
 __all__ = ['dense_auto_correlation']
 
@@ -41,7 +41,7 @@ cdef void _generate_correlation_matrix(
         const double[:] scale,
         Kernel kernel,
         const int num_threads,
-        double[:, ::1] correlation_matrix) nogil:
+        double[:, ::1] correlation_matrix) noexcept nogil:
     """
     Generates a dense correlation matrix.
 
@@ -77,7 +77,7 @@ cdef void _generate_correlation_matrix(
     cdef int dim
 
     # Set number of parallel threads
-    openmp.omp_set_num_threads(num_threads)
+    omp_set_num_threads(num_threads)
 
     # Using max possible chunk size for parallel threads
     cdef int chunk_size = int((<double> matrix_size) / num_threads)
@@ -111,7 +111,7 @@ cdef void _generate_correlation_matrix_jacobian(
         const double[:] scale,
         Kernel kernel,
         const int num_threads,
-        double[:, :, ::1] correlation_matrix_jacobian) nogil:
+        double[:, :, ::1] correlation_matrix_jacobian) noexcept nogil:
     """
     Generates a dense correlation matrix.
 
@@ -147,7 +147,7 @@ cdef void _generate_correlation_matrix_jacobian(
     cdef int dim
 
     # Set number of parallel threads
-    openmp.omp_set_num_threads(num_threads)
+    omp_set_num_threads(num_threads)
 
     # Using max possible chunk size for parallel threads
     cdef int chunk_size = int((<double> matrix_size) / num_threads)
@@ -183,7 +183,7 @@ cdef void _generate_correlation_matrix_hessian(
         const double[:] scale,
         Kernel kernel,
         const int num_threads,
-        double[:, :, :, ::1] correlation_matrix_hessian) nogil:
+        double[:, :, :, ::1] correlation_matrix_hessian) noexcept nogil:
     """
     Generates a dense correlation matrix.
 
@@ -219,7 +219,7 @@ cdef void _generate_correlation_matrix_hessian(
     cdef int dim
 
     # Set number of parallel threads
-    openmp.omp_set_num_threads(num_threads)
+    omp_set_num_threads(num_threads)
 
     # Using max possible chunk size for parallel threads
     cdef int chunk_size = int((<double> matrix_size) / num_threads)
@@ -290,7 +290,7 @@ def dense_auto_correlation(
     dimension = points.shape[1]
 
     # Get number of CPU threads
-    num_threads = multiprocessing.cpu_count()
+    num_threads = get_avail_num_threads()
 
     if len(derivative) == 0:
 

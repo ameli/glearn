@@ -30,7 +30,7 @@ cdef double compute_sparse_correlation(
         const double[:] point2,
         const int dimension,
         const double[:] scale,
-        Kernel kernel) nogil:
+        Kernel kernel) noexcept nogil:
     """
     Computes the i-j entry of the correlation matrix.
     """
@@ -54,7 +54,7 @@ cdef void compute_sparse_correlation_jacobian(
         int row,
         int index_pointer,
         int[:] matrix_column_indices,
-        double[:, ::1] matrix_data) nogil:
+        double[:, ::1] matrix_data) noexcept nogil:
     """
     Computes the Jacobian of correlation with respect to scale
     parameters.
@@ -104,7 +104,7 @@ cdef void compute_sparse_correlation_hessian(
         int row,
         int index_pointer,
         int[:] matrix_column_indices,
-        double[:, :, ::1] matrix_data) nogil:
+        double[:, :, ::1] matrix_data) noexcept nogil:
     """
     Computes the Hessian of correlation with respect to scale
     parameters.

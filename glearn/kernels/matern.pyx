@@ -208,7 +208,7 @@ cdef class Matern(Kernel):
     # cy kernel
     # =========
 
-    cdef double cy_kernel(self, const double x) nogil:
+    cdef double cy_kernel(self, const double x) noexcept nogil:
         """
         Computes the Matern class correlation function for a given Euclidean
         distance of two spatial points.
@@ -288,7 +288,8 @@ cdef class Matern(Kernel):
     # cy kernel first derivative
     # ==========================
 
-    cdef double cy_kernel_first_derivative(self, const double x) nogil:
+    cdef double cy_kernel_first_derivative(
+            self, const double x) noexcept nogil:
         """
         Computes the Matern class correlation function for a given Euclidean
         distance of two spatial points.
@@ -390,7 +391,8 @@ cdef class Matern(Kernel):
     # cy kernel second derivative
     # ===========================
 
-    cdef double cy_kernel_second_derivative(self, const double x) nogil:
+    cdef double cy_kernel_second_derivative(
+            self, const double x) noexcept nogil:
         """
         Computes the Matern class correlation function for a given Euclidean
         distance of two spatial points.

@@ -25,7 +25,7 @@ cdef void extend_arrays(
         long[:] nnz,
         long** pp_matrix_row_indices,
         long** pp_matrix_column_indices,
-        double** pp_matrix_data) nogil:
+        double** pp_matrix_data) noexcept nogil:
     """
     Extends the size of arrays by factor of two.
     """

@@ -51,8 +51,9 @@ def test_sample_data():
     x = generate_points(100, grid=False, a=0.2, b=0.4, contrast=0.8)
 
     # Generate sample data
-    generate_data(x, noise_magnitude=0.1, seed=0, plot='save')
-    remove_file('data.svg')
+    generate_data(x, noise_magnitude=0.1, seed=0, plot='sample_1d_data')
+    remove_file('sample_1d_data.svg')
+    remove_file('sample_1d_data.pdf')
 
     # 2D grid
     generate_points(30, dimension=2, grid=True)
@@ -62,8 +63,9 @@ def test_sample_data():
                         b=(0.4, 0.5), contrast=0.7)
 
     # Generate sample data
-    generate_data(x, noise_magnitude=0.1, seed=0, plot='save')
-    remove_file('data.svg')
+    generate_data(x, noise_magnitude=0.1, seed=0, plot='sample_2d_data')
+    remove_file('sample_2d_data.svg')
+    remove_file('sample_2d_data.pdf')
 
 
 # ===========

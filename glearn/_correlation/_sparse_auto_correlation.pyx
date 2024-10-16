@@ -15,7 +15,7 @@
 import numpy
 import scipy
 from scipy import sparse
-import multiprocessing
+from .._openmp import get_avail_num_threads
 
 # Cython
 from cython.parallel cimport parallel, prange
@@ -29,7 +29,9 @@ from ._sparse_matrix_utilities import estimate_kernel_threshold, \
 from ..kernels import Kernel
 from ..kernels cimport Kernel
 cimport cython
-cimport openmp
+from .._openmp cimport omp_set_num_threads, omp_lock_t, omp_init_lock, \
+    omp_get_thread_num, omp_set_lock, omp_unset_lock
+        
 
 __all__ = ['sparse_auto_correlation']
 
@@ -52,7 +54,7 @@ cdef void _generate_correlation_matrix(
         long[:] nnz,
         long** pp_matrix_row_indices,
         long** pp_matrix_column_indices,
-        double** pp_matrix_data) nogil:
+        double** pp_matrix_data) noexcept nogil:
     """
     Generates a sparse correlation matrix.
 
@@ -133,11 +135,11 @@ cdef void _generate_correlation_matrix(
     cdef double* thread_data = <double*> malloc(num_threads * sizeof(double))
 
     # Set number of parallel threads
-    openmp.omp_set_num_threads(num_threads)
+    omp_set_num_threads(num_threads)
 
     # Initialize openmp lock to setup a critical section
-    cdef openmp.omp_lock_t lock
-    openmp.omp_init_lock(&lock)
+    cdef omp_lock_t lock
+    omp_init_lock(&lock)
 
     # Using max possible chunk size for parallel threads
     cdef int chunk_size = int((<double> matrix_size) / num_threads)
@@ -151,17 +153,17 @@ cdef void _generate_correlation_matrix(
             for j in range(i, matrix_size):
 
                 # Compute an element of the matrix
-                thread_data[openmp.omp_get_thread_num()] = \
+                thread_data[omp_get_thread_num()] = \
                         compute_sparse_correlation(
                                 points[i][:], points[j][:], dimension, scale,
                                 kernel)
 
                 # Check with kernel threshold to taper out or store
-                if thread_data[openmp.omp_get_thread_num()] >= \
+                if thread_data[omp_get_thread_num()] >= \
                         kernel_threshold:
 
                     # Add data to the arrays in an openmp critical section
-                    openmp.omp_set_lock(&lock)
+                    omp_set_lock(&lock)
 
                     # Again, check if nnz does not exceed max_nnz on other
                     # parallel threads.
@@ -174,7 +176,7 @@ cdef void _generate_correlation_matrix(
                     pp_matrix_row_indices[0][nnz[0]-1] = i
                     pp_matrix_column_indices[0][nnz[0]-1] = j
                     pp_matrix_data[0][nnz[0]-1] = \
-                        thread_data[openmp.omp_get_thread_num()]
+                        thread_data[omp_get_thread_num()]
 
                     # Use symmetry of the matrix
                     if i != j:
@@ -190,10 +192,10 @@ cdef void _generate_correlation_matrix(
                         pp_matrix_row_indices[0][nnz[0]-1] = j
                         pp_matrix_column_indices[0][nnz[0]-1] = i
                         pp_matrix_data[0][nnz[0]-1] = \
-                            thread_data[openmp.omp_get_thread_num()]
+                            thread_data[omp_get_thread_num()]
 
                     # Release lock to end the openmp critical section
-                    openmp.omp_unset_lock(&lock)
+                    omp_unset_lock(&lock)
 
     free(thread_data)
 
@@ -213,7 +215,7 @@ cdef void _generate_correlation_matrix_jacobian(
         const int num_threads,
         int[:] matrix_column_indices,
         int[:] matrix_index_pointer,
-        double[:, ::1] matrix_data) nogil:
+        double[:, ::1] matrix_data) noexcept nogil:
     """
     Generates the Jcobian of a sparse correlation matrix.
 
@@ -289,7 +291,7 @@ cdef void _generate_correlation_matrix_jacobian(
     cdef int dim
 
     # Set number of parallel threads
-    openmp.omp_set_num_threads(num_threads)
+    omp_set_num_threads(num_threads)
 
     # Using max possible chunk size for parallel threads
     cdef int chunk_size = int((<double> matrix_size) / num_threads)
@@ -325,7 +327,7 @@ cdef void _generate_correlation_matrix_hessian(
         const int num_threads,
         int[:] matrix_column_indices,
         int[:] matrix_index_pointer,
-        double[:, :, ::1] matrix_data) nogil:
+        double[:, :, ::1] matrix_data) noexcept nogil:
     """
     Generates the Jcobian of a sparse correlation matrix.
 
@@ -401,7 +403,7 @@ cdef void _generate_correlation_matrix_hessian(
     cdef int dim
 
     # Set number of parallel threads
-    openmp.omp_set_num_threads(num_threads)
+    omp_set_num_threads(num_threads)
 
     # Using max possible chunk size for parallel threads
     cdef int chunk_size = int((<double> matrix_size) / num_threads)
@@ -489,7 +491,7 @@ def sparse_auto_correlation(
     dimension = points.shape[1]
 
     # Get number of CPU threads
-    num_threads = multiprocessing.cpu_count()
+    num_threads = get_avail_num_threads()
 
     # kernel threshold
     if kernel_threshold is None:

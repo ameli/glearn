@@ -320,7 +320,7 @@ ogp_description_length = 300
 ogp_type = "website"
 ogp_enable_meta_description = True
 ogp_custom_meta_tags = [
-    '<meta property="og:title" content="RestoreIO">',
+    '<meta property="og:title" content="g-learn">',
     '<meta property="og:description" content="g-learn is a modular and ' +
     'high-performance Python package for machine learning using ' +
     'Gaussian process regression with novel algorithms capable of ' +

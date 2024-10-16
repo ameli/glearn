@@ -51,6 +51,7 @@ def check_kernel(kernel):
     kernel.plot(compare_numerical=True)
 
     remove_file('kernel.svg')
+    remove_file('kernel.pdf')
     print('OK')
 
 

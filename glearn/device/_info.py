@@ -73,6 +73,7 @@ def info(print_only=True):
     glearn.device.get_nvidia_driver_version
     glearn.Memory
     glearn.device.locate_cuda
+    glearn.get_config
 
     Notes
     -----

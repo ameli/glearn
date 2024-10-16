@@ -47,7 +47,7 @@ Alternatively, you can install |project| via ``conda``. To do so, you may refer 
 
 .. prompt:: bash
 
-    conda install -c s-ameli glearn -y
+    conda install s-ameli::glearn
 
 .. |pypi| image:: https://img.shields.io/pypi/v/glearn
    :target: https://pypi.org/project/glearn
